@@ -5,6 +5,8 @@ import { MemoryRouter } from 'react-router-dom'
 import { TagManagementPage } from '../../src/pages/TagManagementPage'
 import { useToastStore } from '../../src/stores/toastStore'
 
+vi.mock('../../src/firebase', () => ({ auth: {} }))
+
 vi.mock('../../src/api/eventTagApi', () => ({
   eventTagApi: {
     getAllTags: vi.fn().mockResolvedValue([]),
