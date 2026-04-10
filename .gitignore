@@ -23,6 +23,9 @@ secrets/
 # Test results
 test-results/
 
+# E2E auth state
+e2e/.auth/
+
 # Firebase
 .firebaserc
 
