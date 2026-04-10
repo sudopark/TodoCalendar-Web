@@ -5,6 +5,8 @@ import { AuthGuard } from '../../src/components/AuthGuard'
 import { useAuthStore } from '../../src/stores/authStore'
 import { useToastStore } from '../../src/stores/toastStore'
 
+vi.mock('../../src/firebase', () => ({ auth: {} }))
+
 vi.mock('../../src/stores/authStore', () => ({
   useAuthStore: vi.fn(),
 }))

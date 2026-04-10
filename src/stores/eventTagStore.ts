@@ -44,7 +44,7 @@ export const useEventTagStore = create<EventTagState>((set, get) => ({
     if (!existing) throw new Error('Tag not found')
     const tag = await eventTagApi.updateTag(id, {
       name: updates.name ?? existing.name,
-      color_hex: updates.color_hex ?? existing.color_hex,
+      color_hex: updates.color_hex ?? existing.color_hex ?? undefined,
     })
     set(s => { const tags = new Map(s.tags); tags.set(tag.uuid, tag); return { tags } })
     return tag
