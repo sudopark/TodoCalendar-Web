@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useEventTagStore } from '../../src/stores/eventTagStore'
 
+vi.mock('../../src/firebase', () => ({ auth: {} }))
+
 vi.mock('../../src/api/eventTagApi', () => ({
   eventTagApi: {
     getAllTags: vi.fn(),

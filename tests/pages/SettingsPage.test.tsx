@@ -8,6 +8,8 @@ import { accountApi } from '../../src/api/accountApi'
 import { useAuthStore } from '../../src/stores/authStore'
 import { useToastStore } from '../../src/stores/toastStore'
 
+vi.mock('../../src/firebase', () => ({ auth: {} }))
+
 vi.mock('../../src/api/settingApi', () => ({
   settingApi: {
     getDefaultTagColors: vi.fn(),
