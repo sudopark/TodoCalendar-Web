@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { execSync } from 'child_process'
 
-const PROJECT_DIR = '/Users/sudo.park/Documents/codebase/TodoCalendar-Web'
+const PROJECT_DIR = process.cwd()
 
 test('npm run build 가 정상적으로 완료된다', () => {
   // given / when / then: 빌드 명령이 예외 없이 완료되면 성공

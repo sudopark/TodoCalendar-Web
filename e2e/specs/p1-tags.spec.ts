@@ -50,25 +50,28 @@ test('새 태그 이름을 입력하고 추가하면 목록에 나타난다', as
 
 test('태그 이름이 비어있으면 추가해도 아무 변화가 없다', async ({ page }) => {
   // given
+  const existingTag = { uuid: 'existing-tag-uuid', name: '기존 태그' }
+  await page.route('**/v1/tags/all', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([existingTag]),
+    })
+  })
+
   await page.goto('/')
   await page.waitForLoadState('networkidle')
   await page.goto('/tags')
+  await expect(page.getByText('기존 태그')).toBeVisible()
 
-  const createRequests: string[] = []
-  await page.route('**/v1/tags/tag', async route => {
-    if (route.request().method() === 'POST') {
-      createRequests.push(route.request().url())
-      await route.continue()
-    } else {
-      await route.continue()
-    }
-  })
+  const initialTagCount = await page.getByRole('listitem').count()
 
   // when — 빈 입력으로 추가 버튼 클릭
   await page.getByRole('button', { name: '추가' }).click()
 
-  // then — API 호출이 발생하지 않는다
-  expect(createRequests).toHaveLength(0)
+  // then — 태그 목록에 변화가 없다
+  await expect(page.getByRole('listitem')).toHaveCount(initialTagCount)
+  await expect(page.getByText('기존 태그')).toBeVisible()
 })
 
 test('편집 버튼을 누르면 인라인 수정 UI가 표시된다', async ({ page }) => {
