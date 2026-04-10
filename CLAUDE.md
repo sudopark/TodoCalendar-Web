@@ -1,10 +1,10 @@
 # CLAUDE.md — web
 
-This file provides guidance for the React web client (`web/`).
+This file provides guidance for the React web client.
 
 ## Commands
 
-All commands run from the `web/` directory:
+All commands run from the project root directory:
 
 ```bash
 # Start dev server (localhost:5173)
@@ -133,6 +133,6 @@ vi.mocked(useAuthStore).mockReturnValue({ account: null, loading: true } as any)
 
 ## Security
 
-- Firebase 설정은 `web/.env.local`에 보관 (gitignore 대상)
-- `web/.env.example`에 키 이름만 커밋하여 구조 공유
-- `web/secrets/`는 민감 파일 저장용 (gitignore 대상)
+- Firebase 설정은 `.env.local`에 보관 (gitignore 대상)
+- `.env.example`에 키 이름만 커밋하여 구조 공유
+- `secrets/`는 민감 파일 저장용 (gitignore 대상)
