@@ -41,24 +41,34 @@ function MiniCalendarDayButton({
 
   const isOutside = modifiers.outside
   const isToday = modifiers.today
-  const isSelected = modifiers.selected && !isToday
+  const isSelected = modifiers.selected
 
-  const textColor = isToday
+  // 선택된 날: 오늘이든 아니든 #303646 배경 + 흰색 텍스트
+  // 오늘(미선택): #f4f4f4 배경 + #323232 텍스트
+  // 이전/다음 달: 회색
+  // 일/공휴일(미선택): 빨간색
+  // 일반: #323232
+  const bgStyle = isSelected
+    ? 'bg-[#303646] rounded-full'
+    : isToday
+      ? 'bg-[#f4f4f4] rounded-full'
+      : ''
+
+  const textColor = isSelected
     ? 'text-white font-semibold'
     : isOutside
       ? 'text-gray-400'
       : isSunday || isHoliday
         ? 'text-red-500'
-        : 'text-gray-900'
+        : 'text-[#323232]'
 
   return (
     <button
       {...props}
       className={cn(
         'flex h-6 w-6 items-center justify-center text-[11px] mx-auto cursor-pointer bg-transparent border-0 p-0',
+        bgStyle,
         textColor,
-        isToday && 'bg-brand-dark rounded-full',
-        isSelected && 'ring-2 ring-brand-dark rounded-full',
         className
       )}
     />
