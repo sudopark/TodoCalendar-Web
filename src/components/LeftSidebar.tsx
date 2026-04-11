@@ -1,14 +1,90 @@
+import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import type { DayButton } from 'react-day-picker'
 import { useUiStore } from '../stores/uiStore'
-import MiniCalendar from '../calendar/MiniCalendar'
+import { useHolidayStore } from '../stores/holidayStore'
+import { Calendar } from '@/components/ui/calendar'
+import { Card, CardContent } from '@/components/ui/card'
 import CalendarList from './CalendarList'
 import { Separator } from '@/components/ui/separator'
+import { formatDateKey } from '../utils/eventTimeUtils'
+import { cn } from '@/lib/utils'
+
+const WEEKDAY_KEYS = [
+  'calendar.weekdays.sun',
+  'calendar.weekdays.mon',
+  'calendar.weekdays.tue',
+  'calendar.weekdays.wed',
+  'calendar.weekdays.thu',
+  'calendar.weekdays.fri',
+  'calendar.weekdays.sat',
+] as const
+
+const WEEKDAY_FALLBACKS = ['일', '월', '화', '수', '목', '금', '토']
+
+function MiniCalendarDayButton({
+  day,
+  modifiers,
+  className,
+  ...props
+}: React.ComponentProps<typeof DayButton>) {
+  const isSunday = day.date.getDay() === 0
+  const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
+  const isHoliday = getHolidayNames(formatDateKey(day.date)).length > 0
+
+  const isOutside = modifiers.outside
+  const isToday = modifiers.today
+  const isSelected = modifiers.selected && !isToday
+
+  const textColor = isToday
+    ? 'text-white font-semibold'
+    : isOutside
+      ? 'text-gray-400'
+      : isSunday || isHoliday
+        ? 'text-red-500'
+        : 'text-gray-900'
+
+  return (
+    <button
+      {...props}
+      className={cn(
+        'flex h-6 w-6 items-center justify-center text-[11px] mx-auto cursor-pointer bg-transparent border-0 p-0',
+        textColor,
+        isToday && 'bg-brand-dark rounded-full',
+        isSelected && 'ring-2 ring-brand-dark rounded-full',
+        className
+      )}
+    />
+  )
+}
 
 export default function LeftSidebar() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const sidebarOpen = useUiStore(s => s.sidebarOpen)
+  const currentMonth = useUiStore(s => s.currentMonth)
+  const selectedDate = useUiStore(s => s.selectedDate)
+  const setSelectedDate = useUiStore(s => s.setSelectedDate)
+  const setCurrentMonth = useUiStore(s => s.setCurrentMonth)
+  const fetchHolidays = useHolidayStore(s => s.fetchHolidays)
+
+  // 월 변경 시 해당 연도 공휴일 로드 (이전·다음 달 경계 연도 포함)
+  useEffect(() => {
+    const year = currentMonth.getFullYear()
+    const month = currentMonth.getMonth()
+    const years = new Set([year])
+    if (month === 0) years.add(year - 1)
+    if (month === 11) years.add(year + 1)
+    years.forEach(y => fetchHolidays(y))
+  }, [currentMonth, fetchHolidays])
+
+  const isSundayModifier = useMemo(() => (date: Date) => date.getDay() === 0, [])
+
+  const formatWeekdayName = (date: Date) => {
+    const dayIndex = date.getDay()
+    return t(WEEKDAY_KEYS[dayIndex], WEEKDAY_FALLBACKS[dayIndex])
+  }
 
   return (
     <div
@@ -18,7 +94,39 @@ export default function LeftSidebar() {
     >
       <div className="flex-1 overflow-y-auto flex flex-col">
         <div className="px-3 pt-4">
-          <MiniCalendar />
+          <Card className="border-border-calendar shadow-sm">
+            <CardContent className="p-3">
+              <Calendar
+                mode="single"
+                selected={selectedDate ?? undefined}
+                onSelect={(date) => date && setSelectedDate(date)}
+                month={currentMonth}
+                onMonthChange={setCurrentMonth}
+                formatters={{ formatWeekdayName }}
+                modifiers={{ sunday: isSundayModifier }}
+                classNames={{
+                  root: 'w-full',
+                  months: 'flex flex-col gap-0',
+                  month: 'flex w-full flex-col gap-2',
+                  month_caption: 'flex h-7 w-full items-center justify-center px-7',
+                  caption_label: 'text-sm font-semibold text-text-primary select-none',
+                  nav: 'absolute inset-x-0 top-0 flex w-full items-center justify-between',
+                  button_previous: 'rounded p-0.5 hover:bg-gray-100 text-text-secondary h-7 w-7 flex items-center justify-center',
+                  button_next: 'rounded p-0.5 hover:bg-gray-100 text-text-secondary h-7 w-7 flex items-center justify-center',
+                  weekdays: 'flex',
+                  weekday: 'flex-1 text-center text-[10px] font-medium uppercase text-text-secondary py-1',
+                  week: 'mt-0.5 flex w-full',
+                  day: 'flex-1 flex items-center justify-center py-0.5',
+                  today: '',
+                  selected: '',
+                  outside: '',
+                }}
+                components={{
+                  DayButton: MiniCalendarDayButton,
+                }}
+              />
+            </CardContent>
+          </Card>
         </div>
         <div className="px-3 pt-6 flex-1">
           <CalendarList />
