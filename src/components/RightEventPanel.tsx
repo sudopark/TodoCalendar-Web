@@ -16,8 +16,8 @@ export function RightEventPanel() {
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
 
   return (
-    <div className="w-80 shrink-0 border-l border-border-calendar bg-surface-alt flex flex-col">
-      <ScrollArea className="flex-1">
+    <div className="w-80 shrink-0 border-l border-border-calendar bg-surface-alt flex flex-col h-full overflow-hidden">
+      <ScrollArea className="flex-1 overflow-y-auto">
         <div className="p-6">
           <h1 className="text-xl font-bold text-text-primary mb-6">{t('main.events_title')}</h1>
           {foremostEvent && (
