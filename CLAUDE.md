@@ -65,6 +65,30 @@ e2e/                     # Playwright E2E 테스트
 
 `EventDetailPage`, `TodoFormPage`, `ScheduleFormPage`, `TagManagementPage`, `DoneTodosPage`, `SettingsPage`는 `React.lazy`로 동적 로딩. `LoginPage`와 `MainPage`는 초기 번들에 포함.
 
+## Git Workflow
+
+### 브랜치 전략
+- 이슈 작업 시 반드시 **이슈 번호 기반 브랜치** 생성: `feature/#13-main-screen-redesign`, `fix/#42-calendar-bug`
+- 서브이슈가 있으면 서브이슈 번호 기반으로 별도 브랜치: `feature/#14-top-toolbar`
+- develop 브랜치에 직접 커밋 금지
+
+### 커밋 규칙
+- **단계적으로 커밋**: 한 뭉태기로 몰아서 커밋하지 말 것
+- 논리적 단위(하나의 컴포넌트, 하나의 스토어 변경, 하나의 테스트 셋)별로 커밋
+- 각 커밋은 단독으로 빌드/테스트가 통과해야 함
+- 커밋 메시지에 **이슈 번호를 prefix로 명시**: `#13 feat(store): uiStore에 sidebar 상태 추가`
+
+### TDD 프로세스
+- **테스트 먼저 작성 → 구현 → 리팩토링** 순서로 개발
+- 스토어: 테스트 작성 → 스토어 구현 → 커밋
+- 컴포넌트: 테스트 작성 → 컴포넌트 구현 → 커밋
+- 테스트와 구현을 같은 커밋에 포함
+
+### PR 전략
+- 어느 정도 작업이 모이면 PR 생성 (서브이슈 단위 또는 논리적 묶음)
+- PR 생성 전 E2E 테스트 실행하여 통과 확인
+- PR에는 해당 이슈 번호 참조
+
 ## Testing Strategy
 
 - **단위/컴포넌트 테스트**: Vitest + React Testing Library (`tests/`)
