@@ -4,6 +4,17 @@
 
 @theme {
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  --color-sidebar-bg: #1e293b;
+  --color-sidebar-text: #cbd5e1;
+  --color-sidebar-text-dim: #64748b;
+  --color-surface: #f8f9fa;
+  --color-surface-alt: #f1f4f5;
+  --color-brand: #1d4ed8;
+  --color-brand-dark: #005bc1;
+  --color-border-light: #e2e8f0;
+  --color-border-calendar: #adb3b5;
+  --color-text-primary: #334155;
+  --color-text-secondary: #64748b;
 }
 
 html {
