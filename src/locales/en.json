@@ -186,5 +186,18 @@
   "repeatingScope.todo_complete": "Complete repeating todo",
   "repeatingScope.schedule_edit": "Edit repeating schedule",
   "repeatingScope.schedule_delete": "Delete repeating schedule",
-  "main.fab_label": "Add new event"
+  "main.fab_label": "Add new event",
+  "main.toggle_sidebar": "Toggle sidebar",
+  "main.today": "Today",
+  "main.quick_todo_placeholder": "Add a quick todo...",
+  "main.calendar_list": "My Calendars",
+  "main.event_preview_edit": "Edit",
+  "main.create_event": "New Event",
+  "calendar.weekdays.sun": "Sun",
+  "calendar.weekdays.mon": "Mon",
+  "calendar.weekdays.tue": "Tue",
+  "calendar.weekdays.wed": "Wed",
+  "calendar.weekdays.thu": "Thu",
+  "calendar.weekdays.fri": "Fri",
+  "calendar.weekdays.sat": "Sat"
 }

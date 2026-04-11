@@ -186,5 +186,18 @@
   "repeatingScope.todo_complete": "반복 할일 완료",
   "repeatingScope.schedule_edit": "반복 일정 수정",
   "repeatingScope.schedule_delete": "반복 일정 삭제",
-  "main.fab_label": "새 이벤트 추가"
+  "main.fab_label": "새 이벤트 추가",
+  "main.toggle_sidebar": "사이드바 토글",
+  "main.today": "오늘",
+  "main.quick_todo_placeholder": "할 일 추가...",
+  "main.calendar_list": "내 캘린더",
+  "main.event_preview_edit": "수정",
+  "main.create_event": "새 이벤트",
+  "calendar.weekdays.sun": "일",
+  "calendar.weekdays.mon": "월",
+  "calendar.weekdays.tue": "화",
+  "calendar.weekdays.wed": "수",
+  "calendar.weekdays.thu": "목",
+  "calendar.weekdays.fri": "금",
+  "calendar.weekdays.sat": "토"
 }
