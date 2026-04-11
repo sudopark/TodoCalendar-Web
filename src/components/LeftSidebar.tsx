@@ -121,7 +121,7 @@ export default function LeftSidebar() {
                 modifiers={{ sunday: isSundayModifier }}
                 classNames={{
                   root: 'w-full',
-                  months: 'flex flex-col gap-0',
+                  months: 'relative flex flex-col gap-0',
                   month: 'flex w-full flex-col gap-2',
                   month_caption: 'flex h-7 w-full items-center justify-center px-7',
                   caption_label: 'text-sm font-semibold text-text-primary select-none',
