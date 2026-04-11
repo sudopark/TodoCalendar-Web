@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useUiStore } from '../stores/uiStore'
 import { formatMonthTitle } from '../calendar/calendarUtils'
+import { Button } from '@/components/ui/button'
 
 export default function TopToolbar() {
   const { t } = useTranslation()
@@ -54,13 +55,9 @@ export default function TopToolbar() {
           </button>
         </div>
 
-        <button
-          onClick={goToToday}
-          aria-label={t('main.today', '오늘')}
-          className="self-stretch flex items-center border-b-2 border-brand text-base font-bold text-brand"
-        >
+        <Button variant="outline" size="sm" onClick={goToToday}>
           {t('main.today', '오늘')}
-        </button>
+        </Button>
       </div>
     </div>
   )
