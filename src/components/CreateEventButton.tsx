@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { TypeSelectorPopup } from './TypeSelectorPopup'
+import { Button } from '@/components/ui/button'
 
 export function CreateEventButton() {
   const { t } = useTranslation()
@@ -17,16 +18,17 @@ export function CreateEventButton() {
 
   return (
     <>
-      <div className="flex justify-center px-4 pb-4">
-        <button
-          className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand dark:text-blue-400 shadow-lg hover:shadow-xl hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 transition-shadow"
+      <div className="flex justify-center py-4">
+        <Button
+          variant="outline"
+          className="flex items-center gap-2 rounded-full bg-white px-6 py-3 shadow-lg hover:shadow-xl text-brand font-bold border-0 hover:bg-white hover:text-brand"
           onClick={() => setShowPopup(true)}
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
           {t('main.create_event', 'Create')}
-        </button>
+        </Button>
       </div>
       {showPopup && (
         <TypeSelectorPopup

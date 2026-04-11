@@ -34,12 +34,10 @@ export function QuickTodoInput() {
   }
 
   return (
-    <div className="flex items-center gap-2 px-4 py-3">
-      <svg className="h-5 w-5 shrink-0 text-text-secondary dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="9" strokeWidth={1.5} />
-      </svg>
+    <div className="flex items-center gap-3 px-6 py-4">
+      <span className="h-5 w-5 rounded-full border-2 border-border-calendar shrink-0" />
       <input
-        className="flex-1 bg-transparent text-sm text-text-primary dark:text-gray-200 placeholder:text-text-secondary dark:placeholder:text-gray-500 outline-none"
+        className="flex-1 bg-transparent border-none shadow-none text-sm placeholder:text-text-secondary outline-none focus-visible:ring-0 text-text-primary"
         placeholder={t('main.quick_todo_placeholder', 'Add a new task...')}
         value={value}
         onChange={e => setValue(e.target.value)}
