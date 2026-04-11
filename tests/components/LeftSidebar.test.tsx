@@ -114,6 +114,48 @@ describe('LeftSidebar', () => {
     expect(selectedDate?.getFullYear()).toBe(2026)
   })
 
+  it('이전 달 버튼과 다음 달 버튼이 렌더링된다', () => {
+    // given: 사이드바 열림, 2026년 3월
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+
+    // when
+    renderSidebar()
+
+    // then: 이전/다음 달 네비게이션 버튼이 표시됨
+    expect(screen.getByRole('button', { name: /previous/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /next/i })).toBeInTheDocument()
+  })
+
+  it('이전 달 버튼을 클릭하면 currentMonth가 이전 달로 변경된다', async () => {
+    // given: 사이드바 열림, 2026년 3월
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+
+    // when
+    renderSidebar()
+    const prevButton = screen.getByRole('button', { name: /previous/i })
+    await userEvent.click(prevButton)
+
+    // then: currentMonth가 2026년 2월로 변경됨
+    const { currentMonth } = useUiStore.getState()
+    expect(currentMonth.getFullYear()).toBe(2026)
+    expect(currentMonth.getMonth()).toBe(1)
+  })
+
+  it('다음 달 버튼을 클릭하면 currentMonth가 다음 달로 변경된다', async () => {
+    // given: 사이드바 열림, 2026년 3월
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+
+    // when
+    renderSidebar()
+    const nextButton = screen.getByRole('button', { name: /next/i })
+    await userEvent.click(nextButton)
+
+    // then: currentMonth가 2026년 4월로 변경됨
+    const { currentMonth } = useUiStore.getState()
+    expect(currentMonth.getFullYear()).toBe(2026)
+    expect(currentMonth.getMonth()).toBe(3)
+  })
+
   it('렌더링 시 현재 달의 공휴일 fetch가 호출된다', async () => {
     // given: holidayApi mock, 2026년 3월
     const { holidayApi } = await import('../../src/api/holidayApi')
