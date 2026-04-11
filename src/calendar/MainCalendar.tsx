@@ -54,8 +54,10 @@ export default function MainCalendar({ today: todayProp }: MainCalendarProps) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4">
-      <MainCalendarGrid days={days} onEventClick={handleEventClick} />
+    <div className="flex-1 min-h-0 bg-surface-alt p-4 flex flex-col">
+      <div className="flex-1 min-h-0 rounded-3xl border border-border-calendar bg-white shadow-sm overflow-hidden flex flex-col">
+        <MainCalendarGrid days={days} onEventClick={handleEventClick} />
+      </div>
       {previewEvent && (
         <EventPreviewCard
           calEvent={previewEvent.calEvent}

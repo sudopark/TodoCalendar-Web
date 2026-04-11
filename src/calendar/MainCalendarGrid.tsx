@@ -27,95 +27,102 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
   const { rowHeight, fontSize, showEventNames } = useCalendarAppearanceStore()
 
   return (
-    <div className="grid grid-cols-7">
-      {WEEKDAY_KEYS.map((key, i) => (
-        <div
-          key={key}
-          className={`py-2 text-center text-xs font-medium ${i === 0 ? 'text-red-400' : 'text-gray-500 dark:text-gray-400'}`}
-        >
-          {t(`calendar.weekdays.${key}`, key.charAt(0).toUpperCase() + key.slice(1))}
-        </div>
-      ))}
-      {days.map((day, i) => {
-        const isSelected = selectedDate && formatDateKey(selectedDate) === day.dateKey
-        const holidayNames = getHolidayNames(day.dateKey)
-        const isHoliday = holidayNames.length > 0
-        const isSunday = day.date.getDay() === 0
-
-        const events = (eventsByDate.get(day.dateKey) ?? []).filter(ev => !isTagHidden(ev.event.event_tag_id))
-        const dotColors: string[] = []
-        for (const ev of events.slice(0, 3)) {
-          const tagId = ev.event.event_tag_id
-          const color = tagId ? getColorForTagId(tagId) : undefined
-          dotColors.push(color ?? '#9ca3af')
-        }
-
-        const textColor = day.isToday
-          ? 'font-semibold text-white'
-          : !day.isCurrentMonth
-            ? 'text-gray-300 dark:text-gray-600'
-            : (isHoliday || isSunday)
-              ? 'text-red-500'
-              : 'text-gray-900 dark:text-gray-100'
-
-        const bgClass = day.isToday ? 'bg-blue-500 rounded-full' : ''
-        const selectedClass = isSelected && !day.isToday ? 'ring-2 ring-blue-400 rounded-full' : ''
-
-        return (
+    <div className="flex h-full flex-col">
+      {/* Weekday header row */}
+      <div className="grid grid-cols-7 border-b border-border-calendar shrink-0">
+        {WEEKDAY_KEYS.map((key, i) => (
           <div
-            key={i}
-            className="flex flex-col items-center py-1 cursor-pointer md:items-start md:py-1.5"
-            data-testid="day-cell"
-            style={{ minHeight: `${rowHeight}px`, fontSize: `${fontSize}px` }}
-            onClick={() => setSelectedDate(day.date)}
-            title={holidayNames.join(', ') || undefined}
+            key={key}
+            className={`py-2 px-2 text-left text-xs font-medium uppercase tracking-wide ${i === 0 ? 'text-red-400' : 'text-text-secondary dark:text-gray-400'}`}
           >
-            <div className={`flex h-7 w-7 items-center justify-center text-sm md:ml-0.5 ${textColor} ${bgClass} ${selectedClass}`}>
-              {day.dayOfMonth}
-            </div>
-            {/* Desktop: color bars with event names */}
-            {events.length > 0 && (
-              <div className="hidden md:block mt-0.5 space-y-px w-full px-0.5">
-                {events.slice(0, 2).map((ev, j) => {
-                  const tagId = ev.event.event_tag_id
-                  const color = tagId ? getColorForTagId(tagId) : '#9ca3af'
-                  return (
-                    <div
-                      key={j}
-                      className="truncate rounded-sm px-0.5 text-[10px] leading-tight text-white cursor-pointer"
-                      style={{ backgroundColor: color ?? '#9ca3af' }}
-                      data-testid="event-bar"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onEventClick?.(ev, e.currentTarget.getBoundingClientRect())
-                      }}
-                    >
-                      {showEventNames ? ev.event.name : '\u00A0'}
-                    </div>
-                  )
-                })}
-                {events.length > 2 && (
-                  <div className="text-[9px] text-gray-400 dark:text-gray-500 px-0.5">
-                    +{events.length - 2}
-                  </div>
-                )}
-              </div>
-            )}
-            {/* Mobile: dots */}
-            {dotColors.length > 0 && (
-              <div className="md:hidden mt-0.5 flex gap-0.5" data-testid="event-dots">
-                {dotColors.map((color, j) => (
-                  <span
-                    key={j}
-                    className="inline-block h-1 w-1 rounded-full"
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
-              </div>
-            )}
+            {t(`calendar.weekdays.${key}`, key.toUpperCase())}
           </div>
-        )
-      })}
+        ))}
+      </div>
+
+      {/* Day cells grid */}
+      <div className="grid grid-cols-7 flex-1" style={{ gridAutoRows: '1fr' }}>
+        {days.map((day, i) => {
+          const isSelected = selectedDate && formatDateKey(selectedDate) === day.dateKey
+          const holidayNames = getHolidayNames(day.dateKey)
+          const isHoliday = holidayNames.length > 0
+          const isSunday = day.date.getDay() === 0
+
+          const events = (eventsByDate.get(day.dateKey) ?? []).filter(ev => !isTagHidden(ev.event.event_tag_id))
+          const dotColors: string[] = []
+          for (const ev of events.slice(0, 3)) {
+            const tagId = ev.event.event_tag_id
+            const color = tagId ? getColorForTagId(tagId) : undefined
+            dotColors.push(color ?? '#9ca3af')
+          }
+
+          const textColor = day.isToday
+            ? 'font-semibold text-white'
+            : !day.isCurrentMonth
+              ? 'text-gray-300 dark:text-gray-600'
+              : (isHoliday || isSunday)
+                ? 'text-red-500'
+                : 'text-gray-900 dark:text-gray-100'
+
+          const bgClass = day.isToday ? 'bg-brand-dark rounded-full' : ''
+          const selectedClass = isSelected && !day.isToday ? 'ring-2 ring-brand-dark rounded-full' : ''
+
+          return (
+            <div
+              key={i}
+              className={`flex flex-col p-2 cursor-pointer border-r border-b border-border-calendar ${!day.isCurrentMonth ? 'bg-surface-alt' : ''}`}
+              data-testid="day-cell"
+              style={{ minHeight: `${rowHeight}px`, fontSize: `${fontSize}px` }}
+              onClick={() => setSelectedDate(day.date)}
+              title={holidayNames.join(', ') || undefined}
+            >
+              <div className={`flex h-7 w-7 items-center justify-center text-sm ${textColor} ${bgClass} ${selectedClass}`}>
+                {day.dayOfMonth}
+              </div>
+              {/* Desktop: color bars with event names */}
+              {events.length > 0 && (
+                <div className="hidden md:block mt-0.5 space-y-px w-full">
+                  {events.slice(0, 2).map((ev, j) => {
+                    const tagId = ev.event.event_tag_id
+                    const color = tagId ? getColorForTagId(tagId) : '#9ca3af'
+                    return (
+                      <div
+                        key={j}
+                        className="truncate rounded-sm px-1 text-[10px] leading-tight text-white cursor-pointer"
+                        style={{ backgroundColor: color ?? '#9ca3af' }}
+                        data-testid="event-bar"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onEventClick?.(ev, e.currentTarget.getBoundingClientRect())
+                        }}
+                      >
+                        {showEventNames ? ev.event.name : '\u00A0'}
+                      </div>
+                    )
+                  })}
+                  {events.length > 2 && (
+                    <div className="text-[9px] text-text-secondary dark:text-gray-500 px-0.5">
+                      +{events.length - 2}
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Mobile: dots */}
+              {dotColors.length > 0 && (
+                <div className="md:hidden mt-0.5 flex gap-0.5" data-testid="event-dots">
+                  {dotColors.map((color, j) => (
+                    <span
+                      key={j}
+                      className="inline-block h-1 w-1 rounded-full"
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
