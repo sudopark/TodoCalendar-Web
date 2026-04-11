@@ -5,9 +5,17 @@ import { MemoryRouter } from 'react-router-dom'
 import { DayEventList } from '../../src/components/DayEventList'
 import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
 import { useEventTagStore } from '../../src/stores/eventTagStore'
+import { useCurrentTodosStore } from '../../src/stores/currentTodosStore'
 
 vi.mock('../../src/stores/calendarEventsStore', () => ({ useCalendarEventsStore: vi.fn() }))
 vi.mock('../../src/stores/eventTagStore', () => ({ useEventTagStore: vi.fn() }))
+vi.mock('../../src/api/todoApi', () => ({
+  todoApi: { completeTodo: vi.fn(), getCurrentTodos: vi.fn().mockResolvedValue([]) },
+}))
+vi.mock('../../src/api/scheduleApi', () => ({
+  scheduleApi: { getSchedules: vi.fn().mockResolvedValue([]) },
+}))
+vi.mock('../../src/firebase', () => ({ auth: {}, db: {} }))
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -37,6 +45,7 @@ describe('DayEventList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockEventTagStore()
+    useCurrentTodosStore.setState({ todos: [] })
   })
 
   it('날짜가 선택되지 않으면 아무것도 표시하지 않는다', () => {
@@ -87,12 +96,29 @@ describe('DayEventList', () => {
 
     expect(mockNavigate).toHaveBeenCalled()
   })
+
+  it('CurrentTodoList의 항목이 DayEventList 상단에 표시된다', () => {
+    const todo = { uuid: 't1', name: '할 일', is_current: false, event_time: null }
+    const eventsByDate = new Map([
+      ['2024-03-15', [{ type: 'todo' as const, event: todo }]],
+    ])
+    mockCalendarEventsStore(eventsByDate)
+    useCurrentTodosStore.setState({
+      todos: [{ uuid: 'ct1', name: '현재 할 일', is_current: true, event_time: null } as any],
+    })
+
+    renderComponent(new Date(2024, 2, 15))
+
+    expect(screen.getByText('현재 할 일')).toBeInTheDocument()
+    expect(screen.getByText('할 일')).toBeInTheDocument()
+  })
 })
 
 describe('DayEventList — 편집 메뉴', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockEventTagStore()
+    useCurrentTodosStore.setState({ todos: [] })
   })
 
   it('이벤트 아이템에 "···" 메뉴 버튼이 표시된다', () => {
