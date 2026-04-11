@@ -7,8 +7,8 @@ function loadTheme(): Theme {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored === 'system' || stored === 'light' || stored === 'dark') return stored
-    return 'system'
-  } catch { return 'system' }
+    return 'light'
+  } catch { return 'light' }
 }
 
 function applyTheme(theme: Theme) {
