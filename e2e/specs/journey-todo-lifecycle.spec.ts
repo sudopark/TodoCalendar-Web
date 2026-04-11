@@ -52,7 +52,7 @@ test('FAB 클릭 후 Todo 선택 시 Todo 폼이 화면에 보여야 한다 [ove
   await page.waitForLoadState('networkidle')
 
   // when — FAB 클릭 → Todo 선택 (exact: true 로 TypeSelectorPopup 버튼만 매칭)
-  await page.getByRole('button', { name: '새 이벤트 추가' }).click()
+  await page.getByRole('button', { name: '새 이벤트' }).click()
   await expect(page.getByRole('button', { name: 'Todo', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Todo', exact: true }).click()
 
@@ -98,7 +98,7 @@ test('FAB 클릭 후 Schedule 선택 시 Schedule 폼이 화면에 보여야 한
   await page.waitForLoadState('networkidle')
 
   // when — FAB 클릭 → Schedule 선택 (exact: true 로 TypeSelectorPopup 버튼만 매칭)
-  await page.getByRole('button', { name: '새 이벤트 추가' }).click()
+  await page.getByRole('button', { name: '새 이벤트' }).click()
   await expect(page.getByRole('button', { name: 'Schedule', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Schedule', exact: true }).click()
 

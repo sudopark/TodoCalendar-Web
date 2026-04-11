@@ -48,7 +48,7 @@ test('Todo 폼에서 취소 버튼을 클릭하면 오버레이가 닫히고 메
   await page.waitForLoadState('networkidle')
 
   // when — FAB → Todo
-  await page.getByRole('button', { name: '새 이벤트 추가' }).click()
+  await page.getByRole('button', { name: '새 이벤트' }).click()
   await page.getByRole('button', { name: 'Todo', exact: true }).click()
   await expect(page).toHaveURL(/\/todos\/new/)
   await expect(page.getByRole('heading', { name: '새 Todo' })).toBeVisible()
@@ -71,7 +71,7 @@ test('Todo 폼 뒤의 백드롭을 클릭하면 오버레이가 닫히고 메인
   await page.waitForLoadState('networkidle')
 
   // when — FAB → Todo (background state로 오버레이 렌더)
-  await page.getByRole('button', { name: '새 이벤트 추가' }).click()
+  await page.getByRole('button', { name: '새 이벤트' }).click()
   await page.getByRole('button', { name: 'Todo', exact: true }).click()
   await expect(page).toHaveURL(/\/todos\/new/)
 

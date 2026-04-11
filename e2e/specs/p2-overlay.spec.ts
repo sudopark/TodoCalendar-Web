@@ -26,7 +26,7 @@ test("FAB 클릭 후 Todo 선택 시 배경에 메인 페이지 캘린더가 유
   await page.waitForLoadState('networkidle')
 
   // when — FAB 클릭 후 Todo 선택
-  await page.getByRole('button', { name: '새 이벤트 추가' }).click()
+  await page.getByRole('button', { name: '새 이벤트' }).click()
   await expect(page.getByRole('button', { name: 'Todo', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Todo', exact: true }).click()
 
@@ -43,7 +43,7 @@ test("FAB 클릭 후 Schedule 선택 시 배경에 메인 페이지 캘린더가
   await page.waitForLoadState('networkidle')
 
   // when — FAB 클릭 후 Schedule 선택
-  await page.getByRole('button', { name: '새 이벤트 추가' }).click()
+  await page.getByRole('button', { name: '새 이벤트' }).click()
   await expect(page.getByRole('button', { name: 'Schedule', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Schedule', exact: true }).click()
 
