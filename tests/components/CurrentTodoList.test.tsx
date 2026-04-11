@@ -74,7 +74,7 @@ describe('CurrentTodoList', () => {
     useCurrentTodosStore.setState({ todos: todos as any })
 
     renderComponent()
-    await userEvent.click(screen.getByRole('button', { name: /이동 테스트/ }))
+    await userEvent.click(screen.getByText('이동 테스트'))
 
     expect(mockNavigate).toHaveBeenCalled()
   })
@@ -98,7 +98,7 @@ describe('CurrentTodoList — 완료', () => {
     useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false, lastRange: null })
 
     render(<MemoryRouter><CurrentTodoList /></MemoryRouter>)
-    await userEvent.click(screen.getByRole('checkbox', { name: '완료 할 일' }))
+    await userEvent.click(screen.getByRole('button', { name: '완료 할 일' }))
 
     await waitFor(() => {
       expect(useCurrentTodosStore.getState().todos.some(t => t.uuid === 't1')).toBe(false)
@@ -119,7 +119,7 @@ describe('CurrentTodoList — 완료', () => {
     useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false, lastRange: { lower: 0, upper: 9999999999 } })
 
     render(<MemoryRouter><CurrentTodoList /></MemoryRouter>)
-    await userEvent.click(screen.getByRole('checkbox', { name: '반복 할 일' }))
+    await userEvent.click(screen.getByRole('button', { name: '반복 할 일' }))
 
     // 반복 Todo 완료 후 에러 없이 처리됨을 확인
     await waitFor(() => {

@@ -7,13 +7,15 @@ import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
+import { CellTimeLabel } from './CellTimeLabel'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
-import { skipRepeatingTodo, refreshAllTodoStores } from '../utils/todoActions'
+import { refreshAllTodoStores } from '../utils/todoActions'
 import type { Todo } from '../models'
 
 export function UncompletedTodoList() {
   const { t } = useTranslation()
   const todos = useUncompletedTodosStore(s => s.todos)
+  const reload = useUncompletedTodosStore(s => s.fetch)
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
   const { isTagHidden } = useTagFilterStore()
   const navigate = useNavigate()
@@ -61,57 +63,66 @@ export function UncompletedTodoList() {
     await doComplete(todo, scope)
   }
 
-  async function handleSkip(todo: Todo) {
-    try {
-      await skipRepeatingTodo(todo)
-    } catch (e) {
-      console.warn('건너뛰기 실패:', e)
-    }
-  }
-
   const visibleTodos = todos.filter(t => !isTagHidden(t.event_tag_id))
 
   if (visibleTodos.length === 0) return null
 
   return (
     <section>
-      <h3 className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-red-400">
-        {t('todo.uncompleted')}
-      </h3>
-      <ul className="divide-y divide-gray-100">
+      <div className="flex items-center justify-between px-1 py-2">
+        <h3 className="text-[22px] font-semibold text-[#323232]">
+          {t('todo.uncompleted')}
+        </h3>
+        <button
+          onClick={() => reload()}
+          className="text-[#969696] hover:text-[#646464] transition-colors"
+          aria-label="refresh"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+      </div>
+      <div className="flex flex-col gap-1.5">
         {visibleTodos.map(todo => {
           const color = todo.event_tag_id
             ? (getColorForTagId(todo.event_tag_id) ?? '#9ca3af')
             : '#9ca3af'
           return (
-            <li key={todo.uuid} className="flex items-stretch gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50">
-              <div className="w-1 shrink-0 rounded-full" style={{ backgroundColor: color }} />
-              <input
-                type="checkbox"
-                aria-label={todo.name}
-                className="h-4 w-4 rounded border-gray-300 self-center shrink-0"
-                onChange={() => handleComplete(todo)}
+            <div
+              key={todo.uuid}
+              className="flex items-center gap-2 rounded-[5px] bg-[#f3f4f7] px-2 hover:brightness-95 cursor-pointer"
+              style={{ height: 50 }}
+              onClick={() => navigate(`/events/${todo.uuid}?type=todo`, {
+                state: { background: location, eventType: 'todo' },
+              })}
+            >
+              {/* 좌측 시간 영역 52px */}
+              <div className="shrink-0" style={{ width: 52 }}>
+                <CellTimeLabel type="todo" eventTime={todo.event_time} />
+              </div>
+
+              {/* 컬러바 6px */}
+              <div
+                className="shrink-0 self-stretch rounded-[3px] my-2"
+                style={{ width: 6, backgroundColor: color }}
               />
+
+              {/* 이벤트 정보 - 미완료 todo는 빨간색 */}
+              <div className="flex-1 min-w-0">
+                <p className="truncate text-sm font-medium text-[#ea4444]">{todo.name}</p>
+              </div>
+
+              {/* 완료 버튼 */}
               <button
-                className="flex flex-1 items-center min-w-0 rounded text-left"
-                onClick={() => navigate(`/events/${todo.uuid}?type=todo`, {
-                  state: { background: location, eventType: 'todo' },
-                })}
-              >
-                <span className="truncate text-sm font-medium text-[#323232]">{todo.name}</span>
-              </button>
-              {todo.repeating && (
-                <button
-                  onClick={() => handleSkip(todo)}
-                  className="shrink-0 text-xs text-[#969696] hover:text-gray-600 self-center"
-                >
-                  {t('todo.skip')}
-                </button>
-              )}
-            </li>
+                aria-label={todo.name}
+                className="shrink-0 h-5 w-5 rounded-full border-2 border-[#ccd0dc] hover:border-[#323232] transition-colors"
+                onClick={(e) => { e.stopPropagation(); handleComplete(todo) }}
+              />
+            </div>
           )
         })}
-      </ul>
+      </div>
       {scopeTarget && (
         <RepeatingScopeDialog
           mode="complete"
