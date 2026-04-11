@@ -1,12 +1,18 @@
 import { create } from 'zustand'
 import { eventTagApi } from '../api/eventTagApi'
+import { settingApi } from '../api/settingApi'
 import { useCalendarEventsStore } from './calendarEventsStore'
 import { useCurrentTodosStore } from './currentTodosStore'
 import { useUncompletedTodosStore } from './uncompletedTodosStore'
 import type { EventTag } from '../models'
+import type { DefaultTagColors } from '../models'
+
+export const DEFAULT_TAG_ID = 'default'
+export const HOLIDAY_TAG_ID = 'holiday'
 
 interface EventTagState {
   tags: Map<string, EventTag>
+  defaultTagColors: DefaultTagColors | null
   fetchAll: () => Promise<void>
   getColorForTagId: (id: string) => string | null | undefined
   createTag: (name: string, color_hex?: string) => Promise<EventTag>
@@ -18,20 +24,29 @@ interface EventTagState {
 
 export const useEventTagStore = create<EventTagState>((set, get) => ({
   tags: new Map(),
+  defaultTagColors: null,
 
   fetchAll: async () => {
     try {
-      const list = await eventTagApi.getAllTags()
+      const [list, defaultColors] = await Promise.all([
+        eventTagApi.getAllTags(),
+        settingApi.getDefaultTagColors(),
+      ])
       const map = new Map<string, EventTag>()
       for (const tag of list) map.set(tag.uuid, tag)
-      set({ tags: map })
+      set({ tags: map, defaultTagColors: defaultColors })
     } catch (e) {
       console.warn('태그 로드 실패:', e)
       throw e
     }
   },
 
-  getColorForTagId: (id: string) => get().tags.get(id)?.color_hex,
+  getColorForTagId: (id: string) => {
+    const { tags, defaultTagColors } = get()
+    if (id === DEFAULT_TAG_ID) return defaultTagColors?.default
+    if (id === HOLIDAY_TAG_ID) return defaultTagColors?.holiday
+    return tags.get(id)?.color_hex
+  },
 
   createTag: async (name: string, color_hex?: string) => {
     const tag = await eventTagApi.createTag({ name, color_hex })
@@ -63,5 +78,5 @@ export const useEventTagStore = create<EventTagState>((set, get) => ({
     useUncompletedTodosStore.getState().fetch().catch(() => {})
   },
 
-  reset: () => set({ tags: new Map() }),
+  reset: () => set({ tags: new Map(), defaultTagColors: null }),
 }))
