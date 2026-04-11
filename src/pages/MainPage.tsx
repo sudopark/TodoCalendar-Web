@@ -8,12 +8,14 @@ export function MainPage() {
   useKeyboardShortcuts()
 
   return (
-    <div className="flex h-screen flex-col bg-surface">
-      <TopToolbar />
-      <div className="flex flex-1 min-h-0">
-        <LeftSidebar />
-        <MainCalendar />
-        <RightEventPanel />
+    <div className="h-screen bg-slate-800 p-2">
+      <div className="flex h-full flex-col rounded-2xl bg-surface overflow-hidden shadow-xl">
+        <TopToolbar />
+        <div className="flex flex-1 min-h-0">
+          <LeftSidebar />
+          <MainCalendar />
+          <RightEventPanel />
+        </div>
       </div>
     </div>
   )

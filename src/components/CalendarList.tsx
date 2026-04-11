@@ -13,17 +13,13 @@ export default function CalendarList() {
   const hiddenTagIds = useTagFilterStore(s => s.hiddenTagIds)
   const toggleTag = useTagFilterStore(s => s.toggleTag)
 
-  const handleTagManagement = () => {
-    navigate('/tags', { state: { background: location } })
-  }
-
   return (
     <div className="flex flex-col">
-      <p className="text-sidebar-text-dim text-xs font-medium uppercase tracking-wider mb-3">
+      <p className="text-text-secondary text-xs font-medium uppercase tracking-wider mb-3">
         {t('main.calendar_list', '내 캘린더')}
       </p>
 
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-1">
         {Array.from(tags.values()).map(tag => {
           const hidden = hiddenTagIds.has(tag.uuid)
           const color = tag.color_hex ?? '#9ca3af'
@@ -31,30 +27,26 @@ export default function CalendarList() {
           return (
             <div
               key={tag.uuid}
-              className={`flex items-center gap-3 py-1.5 cursor-pointer ${hidden ? 'opacity-50' : ''}`}
+              className={`flex items-center gap-3 py-1.5 cursor-pointer rounded hover:bg-gray-100 px-1 ${hidden ? 'opacity-50' : ''}`}
               onClick={() => toggleTag(tag.uuid)}
             >
-              <div
-                style={{ color }}
-                className="[&_[data-slot=checkbox]]:data-[state=checked]:bg-current [&_[data-slot=checkbox]]:data-[state=checked]:border-current"
-              >
-                <Checkbox
-                  checked={!hidden}
-                  onCheckedChange={() => toggleTag(tag.uuid)}
-                  aria-label={hidden ? `${tag.name} 표시` : `${tag.name} 숨기기`}
-                  style={!hidden ? { backgroundColor: color, borderColor: color } : { borderColor: color }}
-                />
-              </div>
-              <span className="text-sidebar-text text-sm truncate">{tag.name}</span>
+              <Checkbox
+                checked={!hidden}
+                onCheckedChange={() => toggleTag(tag.uuid)}
+                aria-label={hidden ? `${tag.name} 표시` : `${tag.name} 숨기기`}
+                className="h-4 w-4 rounded-sm border-2"
+                style={!hidden ? { backgroundColor: color, borderColor: color } : { borderColor: color }}
+              />
+              <span className="text-text-primary text-sm truncate">{tag.name}</span>
             </div>
           )
         })}
       </div>
 
-      <div className="py-1.5 mt-1">
+      <div className="py-2 mt-2">
         <button
-          onClick={handleTagManagement}
-          className="text-xs text-blue-400 hover:text-blue-300"
+          onClick={() => navigate('/tags', { state: { background: location } })}
+          className="text-xs text-brand hover:text-blue-700"
         >
           {t('tag.manage', '태그 관리')} &gt;
         </button>
