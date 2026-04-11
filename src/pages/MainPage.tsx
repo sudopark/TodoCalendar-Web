@@ -13,7 +13,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 
 export function MainPage() {
   useKeyboardShortcuts()
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
   const selectedDate = useUiStore(s => s.selectedDate)
   const foremostEvent = useForemostEventStore(s => s.foremostEvent)
@@ -66,7 +66,7 @@ export function MainPage() {
       <button
         className="fixed bottom-6 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-2xl text-white shadow-lg hover:bg-blue-700"
         onClick={() => setShowTypeSelector(o => !o)}
-        aria-label="새 이벤트 추가"
+        aria-label={t('main.fab_label')}
       >
         +
       </button>

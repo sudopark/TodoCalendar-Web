@@ -1,11 +1,10 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { Repeating, RepeatingOption } from '../models'
 
 const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone
 
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0] // 월~일 display order
-const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
-const DAY_FULL_LABELS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
 
 function defaultOption(type: string, startTs: number): RepeatingOption {
   const d = new Date(startTs * 1000)
@@ -34,6 +33,14 @@ interface RepeatingPickerProps {
 }
 
 export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPickerProps) {
+  const { t, i18n } = useTranslation()
+  const isKo = i18n.language !== 'en'
+  const DAY_LABELS = isKo
+    ? ['일', '월', '화', '수', '목', '금', '토']
+    : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+  const DAY_FULL_LABELS = isKo
+    ? ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+    : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const [enabled, setEnabled] = useState(!!value)
   const [option, setOption] = useState<RepeatingOption>(
     value?.option ?? defaultOption('every_day', startTimestamp)
@@ -98,34 +105,34 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
   return (
     <div className="space-y-3">
       <label className="flex items-center gap-2 text-sm font-medium">
-        <input type="checkbox" aria-label="반복" checked={enabled} onChange={handleToggle} />
-        반복
+        <input type="checkbox" aria-label={t('repeating.enabled')} checked={enabled} onChange={handleToggle} />
+        {t('repeating.enabled')}
       </label>
 
       {enabled && (
         <div className="space-y-3 pl-4">
           {/* 반복 유형 선택 */}
           <div>
-            <label className="block text-xs text-gray-500">반복 유형</label>
+            <label className="block text-xs text-gray-500">{t('repeating.type')}</label>
             <select
-              aria-label="반복 유형"
+              aria-label={t('repeating.type')}
               className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
               value={option.optionType}
               onChange={e => handleTypeChange(e.target.value)}
             >
-              <option value="every_day">매일</option>
-              <option value="every_week">매주</option>
-              <option value="every_month">매월</option>
-              <option value="every_year">매년</option>
-              <option value="every_year_some_day">매년 (특정일)</option>
-              <option value="lunar_calendar_every_year">매년 (음력)</option>
+              <option value="every_day">{t('repeating.daily')}</option>
+              <option value="every_week">{t('repeating.weekly')}</option>
+              <option value="every_month">{t('repeating.monthly')}</option>
+              <option value="every_year">{t('repeating.yearly')}</option>
+              <option value="every_year_some_day">{t('repeating.yearly_some_day')}</option>
+              <option value="lunar_calendar_every_year">{t('repeating.lunar')}</option>
             </select>
           </div>
 
           {/* 간격 (음력 제외) */}
           {interval !== null && (
             <div>
-              <label className="block text-xs text-gray-500">간격</label>
+              <label className="block text-xs text-gray-500">{t('repeating.interval')}</label>
               <input
                 type="number"
                 min={1}
@@ -143,7 +150,7 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
           {/* 매주: 요일 체크박스 (월~일 순서) */}
           {weekOption && (
             <div>
-              <p className="text-xs text-gray-500">요일</p>
+              <p className="text-xs text-gray-500">{t('repeating.day_of_week')}</p>
               <div className="mt-1 flex gap-1">
                 {DAY_ORDER.map(i => (
                   <div key={i} className="flex flex-col items-center text-xs">
@@ -179,7 +186,7 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
                     checked={monthMode === 'days'}
                     onChange={() => setMonthMode('days')}
                   />
-                  날짜 지정
+                  {t('repeating.month_mode_days')}
                 </label>
                 <label className="flex items-center gap-1 text-sm">
                   <input
@@ -188,12 +195,12 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
                     checked={monthMode === 'week'}
                     onChange={() => setMonthMode('week')}
                   />
-                  요일 지정
+                  {t('repeating.month_mode_week')}
                 </label>
               </div>
               {monthMode === 'days' && (
                 <div>
-                  <label className="block text-xs text-gray-500">날짜</label>
+                  <label className="block text-xs text-gray-500">{t('repeating.date_label')}</label>
                   <input
                     type="number"
                     min={1}
@@ -218,13 +225,13 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
               {monthMode === 'week' && (
                 <div className="space-y-2">
                   <div>
-                    <label className="block text-xs text-gray-500" htmlFor="month-week-seq">주차</label>
+                    <label className="block text-xs text-gray-500" htmlFor="month-week-seq">{t('repeating.week_seq')}</label>
                     <input
                       id="month-week-seq"
                       type="number"
                       min={1}
                       max={5}
-                      aria-label="주차"
+                      aria-label={t('repeating.week_seq')}
                       className="mt-1 w-20 rounded border border-gray-300 px-2 py-1 text-sm"
                       value={
                         'weekOrdinals' in monthOption.monthDaySelection &&
@@ -251,7 +258,7 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
                     />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">요일</p>
+                    <p className="text-xs text-gray-500">{t('repeating.day_of_week')}</p>
                     <div className="mt-1 flex gap-1">
                       {DAY_ORDER.map(i => {
                         const currentDays =
@@ -298,13 +305,13 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
           {yearOption && (
             <div className="space-y-2">
               <div>
-                <label className="block text-xs text-gray-500" htmlFor="year-month">월</label>
+                <label className="block text-xs text-gray-500" htmlFor="year-month">{t('repeating.month_label')}</label>
                 <input
                   id="year-month"
                   type="number"
                   min={1}
                   max={12}
-                  aria-label="월"
+                  aria-label={t('repeating.month_label')}
                   className="mt-1 w-20 rounded border border-gray-300 px-2 py-1 text-sm"
                   value={yearOption.months[0] ?? 1}
                   onChange={e => {
@@ -315,13 +322,13 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500" htmlFor="year-week-seq">주차</label>
+                <label className="block text-xs text-gray-500" htmlFor="year-week-seq">{t('repeating.week_seq')}</label>
                 <input
                   id="year-week-seq"
                   type="number"
                   min={1}
                   max={5}
-                  aria-label="주차"
+                  aria-label={t('repeating.week_seq')}
                   className="mt-1 w-20 rounded border border-gray-300 px-2 py-1 text-sm"
                   value={
                     yearOption.weekOrdinals.length > 0
@@ -340,7 +347,7 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
                 />
               </div>
               <div>
-                <p className="text-xs text-gray-500">요일</p>
+                <p className="text-xs text-gray-500">{t('repeating.day_of_week')}</p>
                 <div className="mt-1 flex gap-1">
                   {DAY_ORDER.map(i => (
                     <div key={i} className="flex flex-col items-center text-xs">
@@ -370,7 +377,7 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
           {specificDayOption && (
             <div className="flex gap-3">
               <div>
-                <label className="block text-xs text-gray-500">월</label>
+                <label className="block text-xs text-gray-500">{t('repeating.month_label')}</label>
                 <input
                   type="number"
                   min={1}
@@ -385,7 +392,7 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500">일</label>
+                <label className="block text-xs text-gray-500">{t('repeating.day_label')}</label>
                 <input
                   type="number"
                   min={1}
@@ -404,20 +411,20 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
 
           {/* 종료 조건 */}
           <div>
-            <label className="block text-xs text-gray-500">종료 조건</label>
+            <label className="block text-xs text-gray-500">{t('repeating.end_condition')}</label>
             <div className="mt-1 flex gap-3">
-              {(['none', 'date', 'count'] as const).map(t => (
-                <label key={t} className="flex items-center gap-1 text-sm">
+              {(['none', 'date', 'count'] as const).map(et => (
+                <label key={et} className="flex items-center gap-1 text-sm">
                   <input
                     type="radio"
                     name="end-type"
-                    checked={endType === t}
+                    checked={endType === et}
                     onChange={() => {
-                      setEndType(t)
-                      emitWithEnd(option, t, endDate, endCount)
+                      setEndType(et)
+                      emitWithEnd(option, et, endDate, endCount)
                     }}
                   />
-                  {t === 'none' ? '없음' : t === 'date' ? '날짜' : '횟수'}
+                  {et === 'none' ? t('repeating.end_none') : et === 'date' ? t('repeating.end_date') : t('repeating.end_count')}
                 </label>
               ))}
             </div>
