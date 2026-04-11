@@ -28,9 +28,7 @@ export default function TopToolbar() {
           </svg>
         </button>
 
-        <span className="text-2xl font-extrabold italic text-brand">
-          To-do Calendar
-        </span>
+        <img src="/logo-light.png" alt="To-do Calendar" className="h-8" />
 
         <div className="flex items-center gap-1">
           <button
