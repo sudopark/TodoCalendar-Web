@@ -15,7 +15,7 @@ export function RightEventPanel() {
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
 
   return (
-    <div className="w-80 lg:w-96 border-l bg-white dark:bg-gray-800 flex flex-col">
+    <div className="w-80 lg:w-96 border-l dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col">
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {foremostEvent && (
           <div className="mb-4">

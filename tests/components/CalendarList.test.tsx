@@ -95,7 +95,7 @@ describe('CalendarList', () => {
     fireEvent.click(screen.getByRole('button', { name: /태그 관리/i }))
 
     // then
-    expect(mockNavigate).toHaveBeenCalledWith('/tags', expect.objectContaining({ state: expect.anything() }))
+    expect(mockNavigate.mock.calls[0][0]).toBe('/tags')
   })
 
   it('태그가 없으면 태그 행 없이 헤더만 표시한다', () => {

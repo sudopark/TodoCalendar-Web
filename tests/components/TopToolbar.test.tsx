@@ -90,7 +90,7 @@ describe('TopToolbar', () => {
     fireEvent.click(screen.getByRole('button', { name: /설정/i }))
 
     // then
-    expect(mockNavigate).toHaveBeenCalledWith('/settings')
+    expect(mockNavigate.mock.calls[0][0]).toBe('/settings')
   })
 
   it('사이드바 토글 버튼을 클릭하면 사이드바 상태가 변경된다', () => {

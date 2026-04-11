@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { CalendarDay } from './calendarUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 import { formatDateKey } from '../utils/eventTimeUtils'
@@ -8,7 +9,7 @@ import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
 
 interface MainCalendarGridProps {
   days: CalendarDay[]
@@ -16,6 +17,7 @@ interface MainCalendarGridProps {
 }
 
 export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGridProps) {
+  const { t } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
   const setSelectedDate = useUiStore(s => s.setSelectedDate)
   const eventsByDate = useCalendarEventsStore(s => s.eventsByDate)
@@ -26,12 +28,12 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
 
   return (
     <div className="grid grid-cols-7">
-      {WEEKDAYS.map((day, i) => (
+      {WEEKDAY_KEYS.map((key, i) => (
         <div
-          key={day}
+          key={key}
           className={`py-2 text-center text-xs font-medium ${i === 0 ? 'text-red-400' : 'text-gray-500 dark:text-gray-400'}`}
         >
-          {day}
+          {t(`calendar.weekdays.${key}`, key.charAt(0).toUpperCase() + key.slice(1))}
         </div>
       ))}
       {days.map((day, i) => {

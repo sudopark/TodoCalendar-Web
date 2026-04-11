@@ -47,8 +47,8 @@ describe('MainCalendar', () => {
     renderCalendar()
 
     // then: 요일 헤더가 표시된다
-    expect(screen.getByText('Sun')).toBeInTheDocument()
-    expect(screen.getByText('Mon')).toBeInTheDocument()
+    expect(screen.getByText('일')).toBeInTheDocument()
+    expect(screen.getByText('월')).toBeInTheDocument()
     const cells = screen.getAllByTestId('day-cell')
     expect(cells.length).toBeGreaterThan(0)
   })

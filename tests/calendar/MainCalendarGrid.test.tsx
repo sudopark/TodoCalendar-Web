@@ -33,7 +33,7 @@ describe('MainCalendarGrid', () => {
     render(<MainCalendarGrid days={marchDays} />)
 
     // then: 요일 헤더 7개 표시
-    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const weekdays = ['일', '월', '화', '수', '목', '금', '토']
     weekdays.forEach(day => {
       expect(screen.getByText(day)).toBeInTheDocument()
     })

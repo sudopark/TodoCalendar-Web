@@ -7,7 +7,7 @@ export default function LeftSidebar() {
 
   return (
     <div
-      className={`hidden md:flex flex-col transition-all duration-200 border-r bg-white dark:bg-gray-800 overflow-hidden ${
+      className={`hidden md:flex flex-col transition-all duration-200 border-r dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden ${
         sidebarOpen ? 'w-64' : 'w-0'
       }`}
     >

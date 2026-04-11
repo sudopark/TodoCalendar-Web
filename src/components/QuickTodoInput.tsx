@@ -34,7 +34,7 @@ export function QuickTodoInput() {
   }
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 border-t">
+    <div className="flex items-center gap-2 px-3 py-2 border-t dark:border-gray-700">
       <input
         className="flex-1 rounded-md border px-3 py-2 text-sm bg-white dark:bg-gray-700 dark:text-white"
         placeholder={t('main.quick_todo_placeholder', '할 일 추가...')}

@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 import { useEventTagStore } from '../stores/eventTagStore'
 import { EventTimeDisplay } from './EventTimeDisplay'
@@ -11,18 +12,19 @@ interface EventPreviewCardProps {
 }
 
 export default function EventPreviewCard({ calEvent, anchorRect, onClose }: EventPreviewCardProps) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
 
   const event = calEvent.event
   const tagColor = event.event_tag_id ? getColorForTagId(event.event_tag_id) : null
-  const eventTime = calEvent.type === 'todo' ? event.event_time : event.event_time
+  const eventTime = event.event_time
 
   const showBelow = window.innerHeight - anchorRect.bottom > 200
-  const top = showBelow ? anchorRect.bottom + window.scrollY : anchorRect.top + window.scrollY
+  const top = showBelow ? anchorRect.bottom : anchorRect.top
   const translateY = showBelow ? '0' : '-100%'
-  const left = anchorRect.left + window.scrollX
+  const left = anchorRect.left
 
   function handleEdit() {
     const path = calEvent.type === 'todo'
@@ -42,7 +44,7 @@ export default function EventPreviewCard({ calEvent, anchorRect, onClose }: Even
       />
       {/* Card */}
       <div
-        className="absolute z-40 rounded-lg shadow-xl border bg-white dark:bg-gray-800 p-4 min-w-[240px]"
+        className="fixed z-40 rounded-lg shadow-xl border dark:border-gray-700 bg-white dark:bg-gray-800 p-4 min-w-[240px]"
         style={{ top, left, transform: `translateY(${translateY})` }}
         data-testid="event-preview-card"
       >
@@ -70,7 +72,7 @@ export default function EventPreviewCard({ calEvent, anchorRect, onClose }: Even
             className="rounded-md bg-blue-500 px-3 py-1 text-sm font-medium text-white hover:bg-blue-600"
             onClick={handleEdit}
           >
-            수정
+            {t('main.event_preview_edit', '수정')}
           </button>
         </div>
       </div>
