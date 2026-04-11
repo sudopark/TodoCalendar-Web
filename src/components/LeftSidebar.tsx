@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { DayButton } from 'react-day-picker'
@@ -23,14 +23,20 @@ const WEEKDAY_KEYS = [
 
 const WEEKDAY_FALLBACKS = ['일', '월', '화', '수', '목', '금', '토']
 
+const isSundayModifier = (date: Date) => date.getDay() === 0
+
+interface MiniCalendarDayButtonProps extends React.ComponentProps<typeof DayButton> {
+  getHolidayNames: (dateKey: string) => string[]
+}
+
 function MiniCalendarDayButton({
   day,
   modifiers,
   className,
+  getHolidayNames,
   ...props
-}: React.ComponentProps<typeof DayButton>) {
+}: MiniCalendarDayButtonProps) {
   const isSunday = day.date.getDay() === 0
-  const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
   const isHoliday = getHolidayNames(formatDateKey(day.date)).length > 0
 
   const isOutside = modifiers.outside
@@ -68,6 +74,7 @@ export default function LeftSidebar() {
   const setSelectedDate = useUiStore(s => s.setSelectedDate)
   const setCurrentMonth = useUiStore(s => s.setCurrentMonth)
   const fetchHolidays = useHolidayStore(s => s.fetchHolidays)
+  const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
 
   // 월 변경 시 해당 연도 공휴일 로드 (이전·다음 달 경계 연도 포함)
   useEffect(() => {
@@ -78,8 +85,6 @@ export default function LeftSidebar() {
     if (month === 11) years.add(year + 1)
     years.forEach(y => fetchHolidays(y))
   }, [currentMonth, fetchHolidays])
-
-  const isSundayModifier = useMemo(() => (date: Date) => date.getDay() === 0, [])
 
   const formatWeekdayName = (date: Date) => {
     const dayIndex = date.getDay()
@@ -122,7 +127,7 @@ export default function LeftSidebar() {
                   outside: '',
                 }}
                 components={{
-                  DayButton: MiniCalendarDayButton,
+                  DayButton: (props) => <MiniCalendarDayButton {...props} getHolidayNames={getHolidayNames} />,
                 }}
               />
             </CardContent>

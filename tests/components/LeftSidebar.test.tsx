@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import LeftSidebar from '../../src/components/LeftSidebar'
 import { useUiStore } from '../../src/stores/uiStore'
+import { useHolidayStore } from '../../src/stores/holidayStore'
 
 vi.mock('../../src/api/holidayApi', () => ({
   holidayApi: { getHolidays: async () => ({ items: [] }) },
@@ -93,5 +95,39 @@ describe('LeftSidebar', () => {
     // then: 3월의 날짜가 표시됨
     expect(screen.getByText('15')).toBeInTheDocument()
     expect(screen.getByText('31')).toBeInTheDocument()
+  })
+
+  it('날짜를 클릭하면 uiStore의 selectedDate가 변경된다', async () => {
+    // given: 2026년 3월, selectedDate 없음
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), selectedDate: null })
+
+    // when
+    renderSidebar()
+    const day15 = screen.getByText('15')
+    await userEvent.click(day15)
+
+    // then: selectedDate가 설정됨
+    const selectedDate = useUiStore.getState().selectedDate
+    expect(selectedDate).not.toBeNull()
+    expect(selectedDate?.getDate()).toBe(15)
+    expect(selectedDate?.getMonth()).toBe(2)
+    expect(selectedDate?.getFullYear()).toBe(2026)
+  })
+
+  it('렌더링 시 현재 달의 공휴일 fetch가 호출된다', async () => {
+    // given: holidayApi mock, 2026년 3월
+    const { holidayApi } = await import('../../src/api/holidayApi')
+    const getHolidaysSpy = vi.spyOn(holidayApi, 'getHolidays')
+    useHolidayStore.setState({ holidays: new Map(), loadedYears: new Set() })
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+
+    // when
+    renderSidebar()
+
+    // then: 2026년 공휴일 fetch가 수행됨
+    await waitFor(() => {
+      expect(useHolidayStore.getState().loadedYears.has(2026)).toBe(true)
+    })
+    getHolidaysSpy.mockRestore()
   })
 })
