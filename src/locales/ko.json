@@ -192,6 +192,7 @@
   "main.event_types": "이벤트 종류",
   "main.event_preview_edit": "수정",
   "main.create_event": "새 이벤트",
+  "main.events_title": "Events",
   "calendar.weekdays.sun": "일",
   "calendar.weekdays.mon": "월",
   "calendar.weekdays.tue": "화",
