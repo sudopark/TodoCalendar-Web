@@ -44,7 +44,7 @@ test('날짜 셀 클릭 시 해당 셀이 선택 표시(ring-2)된다', async ({
   await targetCell.click()
 
   // then: ring-2 클래스가 적용된 셀이 생겨야 함
-  await expect(page.locator('.ring-2.ring-blue-400')).toBeVisible()
+  await expect(page.locator('.ring-2.ring-brand-dark')).toBeVisible()
 })
 
 test('FAB(+) 버튼 클릭 시 TypeSelectorPopup에 Todo와 Schedule 옵션이 표시된다', async ({ page }) => {

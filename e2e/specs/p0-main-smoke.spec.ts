@@ -78,8 +78,8 @@ test('오늘 날짜(11일)에 파란 원 하이라이트가 표시된다', async
 
   // then: 오늘(11) 셀은 bg-blue-500 클래스를 가진 내부 div를 포함
   const todayCell = page.locator('[data-testid="day-cell"]').filter({
-    has: page.locator('.bg-blue-500'),
+    has: page.locator('.bg-brand-dark'),
   })
   await expect(todayCell).toBeVisible()
-  await expect(todayCell.locator('.bg-blue-500')).toContainText('11')
+  await expect(todayCell.locator('.bg-brand-dark')).toContainText('11')
 })
