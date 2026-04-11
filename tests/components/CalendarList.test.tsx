@@ -38,7 +38,7 @@ describe('CalendarList', () => {
     renderCalendarList()
 
     // then
-    expect(screen.getByText('내 캘린더')).toBeInTheDocument()
+    expect(screen.getByText('이벤트 종류')).toBeInTheDocument()
     expect(screen.getByText('업무')).toBeInTheDocument()
     expect(screen.getByText('개인')).toBeInTheDocument()
   })
@@ -106,7 +106,7 @@ describe('CalendarList', () => {
     renderCalendarList()
 
     // then
-    expect(screen.getByText('내 캘린더')).toBeInTheDocument()
+    expect(screen.getByText('이벤트 종류')).toBeInTheDocument()
     expect(screen.queryByText('업무')).not.toBeInTheDocument()
   })
 })

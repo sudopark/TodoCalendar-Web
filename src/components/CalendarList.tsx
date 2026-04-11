@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Button } from '@/components/ui/button'
 
 export default function CalendarList() {
   const { t } = useTranslation()
@@ -16,7 +17,7 @@ export default function CalendarList() {
   return (
     <div className="flex flex-col">
       <p className="text-text-secondary text-xs font-medium uppercase tracking-wider mb-3">
-        {t('main.calendar_list', '내 캘린더')}
+        {t('main.event_types', '이벤트 종류')}
       </p>
 
       <div className="flex flex-col gap-1">
@@ -44,12 +45,13 @@ export default function CalendarList() {
       </div>
 
       <div className="py-2 mt-2">
-        <button
+        <Button
+          variant="link"
+          size="sm"
           onClick={() => navigate('/tags', { state: { background: location } })}
-          className="text-xs text-brand hover:text-blue-700"
         >
           {t('tag.manage', '태그 관리')} &gt;
-        </button>
+        </Button>
       </div>
     </div>
   )
