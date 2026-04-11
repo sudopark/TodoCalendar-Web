@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
+import { Checkbox } from '@/components/ui/checkbox'
 
 export default function CalendarList() {
   const { t } = useTranslation()
@@ -18,7 +19,7 @@ export default function CalendarList() {
 
   return (
     <div className="flex flex-col">
-      <p className="px-2 py-1.5 text-xs font-medium text-sidebar-text-dim uppercase tracking-wide">
+      <p className="text-sidebar-text-dim text-xs font-medium uppercase tracking-wider mb-3">
         {t('main.calendar_list', '내 캘린더')}
       </p>
 
@@ -28,30 +29,29 @@ export default function CalendarList() {
           const color = tag.color_hex ?? '#9ca3af'
 
           return (
-            <button
+            <div
               key={tag.uuid}
+              className={`flex items-center gap-3 py-1.5 cursor-pointer ${hidden ? 'opacity-50' : ''}`}
               onClick={() => toggleTag(tag.uuid)}
-              aria-label={hidden ? `${tag.name} 표시` : `${tag.name} 숨기기`}
-              className={`flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-white/10 dark:hover:bg-white/5 text-left transition-opacity ${hidden ? 'opacity-50' : ''}`}
             >
-              {hidden ? (
-                <span
-                  className="inline-block h-3.5 w-3.5 rounded-sm flex-shrink-0 border-2"
-                  style={{ borderColor: color, backgroundColor: 'transparent' }}
+              <div
+                style={{ color }}
+                className="[&_[data-slot=checkbox]]:data-[state=checked]:bg-current [&_[data-slot=checkbox]]:data-[state=checked]:border-current"
+              >
+                <Checkbox
+                  checked={!hidden}
+                  onCheckedChange={() => toggleTag(tag.uuid)}
+                  aria-label={hidden ? `${tag.name} 표시` : `${tag.name} 숨기기`}
+                  style={!hidden ? { backgroundColor: color, borderColor: color } : { borderColor: color }}
                 />
-              ) : (
-                <span
-                  className="inline-block h-3.5 w-3.5 rounded-sm flex-shrink-0"
-                  style={{ backgroundColor: color }}
-                />
-              )}
-              <span className="text-sidebar-text truncate">{tag.name}</span>
-            </button>
+              </div>
+              <span className="text-sidebar-text text-sm truncate">{tag.name}</span>
+            </div>
           )
         })}
       </div>
 
-      <div className="px-2 py-1.5 mt-1">
+      <div className="py-1.5 mt-1">
         <button
           onClick={handleTagManagement}
           className="text-xs text-blue-400 hover:text-blue-300"

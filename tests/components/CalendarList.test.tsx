@@ -55,9 +55,9 @@ describe('CalendarList', () => {
     // given: 태그 모두 보임
     renderCalendarList()
 
-    // when: '업무' 태그 숨기기 버튼 클릭
-    const hideButton = screen.getByRole('button', { name: '업무 숨기기' })
-    fireEvent.click(hideButton)
+    // when: '업무' 태그 행 클릭
+    const tagRow = screen.getByText('업무').closest('.cursor-pointer')!
+    fireEvent.click(tagRow)
 
     // then: 업무 태그가 hiddenTagIds에 포함됨
     expect(useTagFilterStore.getState().hiddenTagIds.has('tag-1')).toBe(true)
@@ -81,9 +81,9 @@ describe('CalendarList', () => {
     useTagFilterStore.setState({ hiddenTagIds: new Set(['tag-1']) })
     renderCalendarList()
 
-    // when: 업무 태그 표시 버튼 클릭
-    const showButton = screen.getByRole('button', { name: '업무 표시' })
-    fireEvent.click(showButton)
+    // when: 업무 태그 행 클릭
+    const tagRow = screen.getByText('업무').closest('.cursor-pointer')!
+    fireEvent.click(tagRow)
 
     // then: 업무 태그가 hiddenTagIds에서 제거됨
     expect(useTagFilterStore.getState().hiddenTagIds.has('tag-1')).toBe(false)

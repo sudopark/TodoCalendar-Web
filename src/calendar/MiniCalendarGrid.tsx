@@ -31,7 +31,7 @@ export default function MiniCalendarGrid({ days }: MiniCalendarGridProps) {
       {WEEKDAY_KEYS.map((key, i) => (
         <div
           key={key}
-          className={`py-1 text-center text-xs font-medium ${i === 0 ? 'text-red-400' : 'text-gray-500 dark:text-gray-400'}`}
+          className={`py-1 text-center text-[10px] font-medium uppercase ${i === 0 ? 'text-red-400' : 'text-text-secondary'}`}
         >
           {t(key, WEEKDAY_FALLBACKS[i])}
         </div>
@@ -60,7 +60,7 @@ export default function MiniCalendarGrid({ days }: MiniCalendarGridProps) {
             onClick={() => setSelectedDate(day.date)}
           >
             <div
-              className={`flex h-7 w-7 items-center justify-center text-xs ${textColor} ${bgClass} ${ringClass}`}
+              className={`flex h-6 w-6 items-center justify-center text-[11px] ${textColor} ${bgClass} ${ringClass}`}
             >
               {day.dayOfMonth}
             </div>
