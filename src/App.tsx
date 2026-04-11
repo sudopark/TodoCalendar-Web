@@ -50,22 +50,25 @@ function AppRoutes() {
       </Suspense>
 
       {/* 오버레이 렌더: background가 있을 때 EventDetailPage를 배경 위에 표시.
+          fixed inset-0 z-50 으로 뷰포트 전체를 덮어 스크롤 없이 보이도록 한다.
           배경 페이지의 Header가 이미 표시 중이므로 Header 불필요. */}
       {background && (
-        <Suspense fallback={<LoadingSkeleton />}>
-          <Routes>
-            {[
-              ['/events/:id', <EventDetailPage />],
-              ['/todos/new', <TodoFormPage />],
-              ['/todos/:id/edit', <TodoFormPage />],
-              ['/schedules/new', <ScheduleFormPage />],
-              ['/schedules/:id/edit', <ScheduleFormPage />],
-              ['/tags', <TagManagementPage />],
-            ].map(([path, element]) => (
-              <Route key={path as string} path={path as string} element={<AuthGuard>{element as React.ReactElement}</AuthGuard>} />
-            ))}
-          </Routes>
-        </Suspense>
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/30">
+          <Suspense fallback={<LoadingSkeleton />}>
+            <Routes>
+              {[
+                ['/events/:id', <EventDetailPage />],
+                ['/todos/new', <TodoFormPage />],
+                ['/todos/:id/edit', <TodoFormPage />],
+                ['/schedules/new', <ScheduleFormPage />],
+                ['/schedules/:id/edit', <ScheduleFormPage />],
+                ['/tags', <TagManagementPage />],
+              ].map(([path, element]) => (
+                <Route key={path as string} path={path as string} element={<AuthGuard>{element as React.ReactElement}</AuthGuard>} />
+              ))}
+            </Routes>
+          </Suspense>
+        </div>
       )}
     </>
   )
