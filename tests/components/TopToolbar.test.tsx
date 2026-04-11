@@ -1,14 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { useUiStore } from '../../src/stores/uiStore'
 import TopToolbar from '../../src/components/TopToolbar'
-
-const mockNavigate = vi.fn()
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
-  return { ...actual, useNavigate: () => mockNavigate }
-})
 
 function renderToolbar() {
   return render(
@@ -20,7 +14,6 @@ function renderToolbar() {
 
 describe('TopToolbar', () => {
   beforeEach(() => {
-    mockNavigate.mockReset()
     useUiStore.setState({
       sidebarOpen: true,
       currentMonth: new Date(2026, 2, 1), // March 2026
@@ -36,7 +29,7 @@ describe('TopToolbar', () => {
     expect(screen.getByText('March 2026')).toBeInTheDocument()
   })
 
-  it('사이드바 토글, 오늘, 이전/다음 달, 설정 버튼을 렌더한다', () => {
+  it('사이드바 토글, 오늘, 이전/다음 달 버튼을 렌더한다', () => {
     // given / when
     renderToolbar()
 
@@ -45,7 +38,6 @@ describe('TopToolbar', () => {
     expect(screen.getByRole('button', { name: /오늘/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Previous month' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Next month' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /설정/i })).toBeInTheDocument()
   })
 
   it('이전 달 버튼을 클릭하면 이전 달로 이동한다', () => {
@@ -82,15 +74,6 @@ describe('TopToolbar', () => {
     const today = new Date()
     const expectedTitle = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(today)
     expect(screen.getByText(expectedTitle)).toBeInTheDocument()
-  })
-
-  it('설정 버튼을 클릭하면 /settings로 이동한다', () => {
-    // given / when
-    renderToolbar()
-    fireEvent.click(screen.getByRole('button', { name: /설정/i }))
-
-    // then
-    expect(mockNavigate.mock.calls[0][0]).toBe('/settings')
   })
 
   it('사이드바 토글 버튼을 클릭하면 사이드바 상태가 변경된다', () => {
