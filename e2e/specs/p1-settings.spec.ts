@@ -158,13 +158,13 @@ test('알림 섹션이 표시된다', async ({ page }) => {
   await expect(page.getByText('알림', { exact: true }).first()).toBeVisible()
 })
 
-test('헤더 네비게이션에서 설정 링크를 통해 설정 페이지로 이동할 수 있다', async ({ page }) => {
+test('메인페이지 TopToolbar 설정 버튼으로 설정 페이지에 진입할 수 있다', async ({ page }) => {
   // given
   await page.goto('/')
   await page.waitForLoadState('networkidle')
 
-  // when
-  await page.getByRole('link', { name: '설정' }).click()
+  // when — TopToolbar의 설정 아이콘 버튼 클릭
+  await page.getByRole('button', { name: '설정' }).click()
 
   // then
   await expect(page).toHaveURL('/settings')

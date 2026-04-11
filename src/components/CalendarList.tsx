@@ -9,7 +9,7 @@ export default function CalendarList() {
   const location = useLocation()
 
   const tags = useEventTagStore(s => s.tags)
-  const isTagHidden = useTagFilterStore(s => s.isTagHidden)
+  const hiddenTagIds = useTagFilterStore(s => s.hiddenTagIds)
   const toggleTag = useTagFilterStore(s => s.toggleTag)
 
   const handleTagManagement = () => {
@@ -24,7 +24,7 @@ export default function CalendarList() {
 
       <div className="flex flex-col">
         {Array.from(tags.values()).map(tag => {
-          const hidden = isTagHidden(tag.uuid)
+          const hidden = hiddenTagIds.has(tag.uuid)
           const dotColor = hidden ? '#d1d5db' : (tag.color_hex ?? '#9ca3af')
 
           return (

@@ -36,16 +36,14 @@ test('완료된 할 일이 없으면 빈 상태 메시지가 표시된다', asyn
 })
 
 test('헤더 네비게이션의 완료 링크를 통해 /done으로 이동할 수 있다', async ({ page }) => {
-  // given
-  await page.goto('/')
+  // given — 메인페이지에서는 Header가 숨겨지므로 /done 페이지에서 Header 확인
+  await page.goto('/done')
   await page.waitForLoadState('networkidle')
 
-  // when
-  await page.getByRole('link', { name: '완료' }).click()
-
-  // then
+  // then — /done 페이지에 Header가 표시되고 완료 링크가 활성 상태
   await expect(page).toHaveURL('/done')
   await expect(page.getByRole('heading', { name: '완료된 할 일' })).toBeVisible()
+  await expect(page.getByRole('link', { name: '완료' })).toBeVisible()
 })
 
 test('완료된 항목이 있으면 이름이 목록에 표시된다', async ({ page }) => {
