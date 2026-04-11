@@ -6,7 +6,6 @@ import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { formatDateKey } from '../utils/eventTimeUtils'
 import { EventTimeDisplay } from './EventTimeDisplay'
-import { CurrentTodoList } from './CurrentTodoList'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 
 function EventItem({ calEvent, onNavigate }: { calEvent: CalendarEvent; onNavigate: () => void }) {
@@ -94,7 +93,6 @@ export function DayEventList({ selectedDate }: DayEventListProps) {
 
   return (
     <div>
-      <CurrentTodoList showHeader={false} />
       {sorted.length === 0 ? (
         <div className="flex items-center justify-center py-8 text-sm text-gray-400">
           {t('event.no_events')}

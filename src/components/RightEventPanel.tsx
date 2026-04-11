@@ -3,6 +3,7 @@ import { useUiStore } from '../stores/uiStore'
 import { useForemostEventStore } from '../stores/foremostEventStore'
 import { ForemostEventBanner } from './ForemostEventBanner'
 import { UncompletedTodoList } from './UncompletedTodoList'
+import { CurrentTodoList } from './CurrentTodoList'
 import { DayEventList } from './DayEventList'
 import { QuickTodoInput } from './QuickTodoInput'
 import { CreateEventButton } from './CreateEventButton'
@@ -25,6 +26,7 @@ export function RightEventPanel() {
             </div>
           )}
           <UncompletedTodoList />
+          <CurrentTodoList showHeader={false} />
           {selectedDate && (
             <section>
               <h2 className="px-3 py-2 text-sm font-semibold text-gray-700">
