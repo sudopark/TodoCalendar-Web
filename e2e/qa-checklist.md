@@ -10,15 +10,16 @@
 - [ ] Google/Apple 로그인 버튼 표시
 - [ ] 미인증 사용자 → `/login` 리다이렉트 (/, /todos/new, /settings 등)
 - [ ] 인증 후 `/` 메인 페이지 렌더링
-- [ ] Header 네비게이션 링크 표시 (캘린더, 완료, 설정)
+- [ ] TopToolbar 표시 (사이드바 토글, 오늘 버튼, 월 내비, 설정)
 - [ ] 캘린더 컴포넌트 표시 (월 제목, 요일 헤더, 날짜 그리드)
-- [ ] FAB (+) 버튼 표시
+- [ ] 이벤트 생성 버튼 표시
 
 ## P1 — High (핵심 기능)
 
 - [ ] 캘린더 월 네비게이션 (이전/다음 버튼)
 - [ ] 날짜 선택 → 하이라이트 표시
-- [ ] FAB → TypeSelectorPopup (Todo/Schedule 선택)
+- [ ] 사이드바 토글 (열기/닫기)
+- [ ] 이벤트 생성 버튼 → TypeSelectorPopup (Todo/Schedule 선택)
 - [ ] Todo 생성 폼 렌더링 (이름, 태그, 시간, 반복, 알림)
 - [ ] Todo 저장 → 캘린더에 반영
 - [ ] Todo 편집 폼 로드 + 수정 + 저장
@@ -40,10 +41,13 @@
 - [ ] 테마 전환 (System/Light/Dark)
 - [ ] 언어 전환 (한국어/English)
 - [ ] Todo 체크박스 → 완료 처리
+- [ ] 빠른 Todo 입력 (QuickTodoInput)
 - [ ] 로그아웃
 
 ## P2 — Medium (UX/Edge case)
 
+- [ ] 이벤트 클릭 → 프리뷰 카드 표시 → 수정 내비게이션
+- [ ] 미니캘린더 날짜 선택 → 메인 달력/이벤트 목록 연동
 - [ ] 키보드 단축키: `n` → TypeSelectorPopup
 - [ ] 키보드 단축키: `Escape` → 오버레이 닫기
 - [ ] 오버레이 라우팅 (배경 페이지 유지)
