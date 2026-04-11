@@ -107,10 +107,10 @@ describe('RightEventPanel', () => {
     expect(heading).toBeInTheDocument()
   })
 
-  it('패널 타이틀이 "Events"로 표시된다', () => {
+  it('QuickTodoInput이 하단 고정 영역에 표시된다', () => {
     renderComponent()
 
-    expect(screen.getByText('Events')).toBeInTheDocument()
+    expect(screen.getByText('Todo')).toBeInTheDocument()
   })
 
   it('selectedDate가 없어도 CurrentTodoList의 항목이 표시된다', () => {

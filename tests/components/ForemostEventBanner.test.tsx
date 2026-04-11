@@ -53,7 +53,7 @@ describe('ForemostEventBanner', () => {
     renderComponent()
 
     expect(screen.getByText('중요한 할 일')).toBeInTheDocument()
-    expect(screen.getByText('고정')).toBeInTheDocument()
+    expect(screen.getByText('Foremost Event')).toBeInTheDocument()
   })
 
   it('배너를 클릭하면 이벤트 상세 페이지로 이동한다', async () => {
