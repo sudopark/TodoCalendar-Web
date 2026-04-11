@@ -29,7 +29,7 @@ describe('TopToolbar', () => {
     expect(screen.getByText('March 2026')).toBeInTheDocument()
   })
 
-  it('사이드바 토글, 오늘, 이전/다음 달, 설정 버튼을 렌더한다', () => {
+  it('사이드바 토글, 오늘, 이전/다음 달 버튼을 렌더한다', () => {
     // given / when
     renderToolbar()
 
@@ -38,6 +38,14 @@ describe('TopToolbar', () => {
     expect(screen.getByRole('button', { name: /오늘/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Previous month' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Next month' })).toBeInTheDocument()
+  })
+
+  it('로고 이미지를 렌더한다', () => {
+    // given / when
+    renderToolbar()
+
+    // then
+    expect(screen.getByRole('img', { name: 'To-do Calendar' })).toBeInTheDocument()
   })
 
   it('이전 달 버튼을 클릭하면 이전 달로 이동한다', () => {
