@@ -27,8 +27,8 @@ test("FAB 클릭 후 Todo 선택 시 배경에 메인 페이지 캘린더가 유
 
   // when — FAB 클릭 후 Todo 선택
   await page.getByRole('button', { name: '새 이벤트 추가' }).click()
-  await expect(page.getByRole('button', { name: 'Todo' })).toBeVisible()
-  await page.getByRole('button', { name: 'Todo' }).click()
+  await expect(page.getByRole('button', { name: 'Todo', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Todo', exact: true }).click()
 
   // then — /todos/new 오버레이가 열린다
   await expect(page).toHaveURL(/\/todos\/new/)
@@ -44,8 +44,8 @@ test("FAB 클릭 후 Schedule 선택 시 배경에 메인 페이지 캘린더가
 
   // when — FAB 클릭 후 Schedule 선택
   await page.getByRole('button', { name: '새 이벤트 추가' }).click()
-  await expect(page.getByRole('button', { name: 'Schedule' })).toBeVisible()
-  await page.getByRole('button', { name: 'Schedule' }).click()
+  await expect(page.getByRole('button', { name: 'Schedule', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Schedule', exact: true }).click()
 
   // then — /schedules/new 오버레이가 열린다
   await expect(page).toHaveURL(/\/schedules\/new/)
