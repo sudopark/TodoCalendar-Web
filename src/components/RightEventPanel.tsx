@@ -15,8 +15,9 @@ export function RightEventPanel() {
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
 
   return (
-    <div className="w-80 lg:w-96 border-l dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col">
+    <div className="w-80 shrink-0 border-l border-border-calendar bg-surface-alt dark:bg-gray-800 flex flex-col">
       <div className="flex-1 overflow-y-auto px-4 py-4">
+        <h1 className="text-xl font-bold text-text-primary dark:text-gray-100 mb-3">Tasks</h1>
         {foremostEvent && (
           <div className="mb-4">
             <ForemostEventBanner />
@@ -37,7 +38,7 @@ export function RightEventPanel() {
           </section>
         )}
       </div>
-      <div className="shrink-0">
+      <div className="shrink-0 border-t border-border-calendar">
         <QuickTodoInput />
         <CreateEventButton />
       </div>

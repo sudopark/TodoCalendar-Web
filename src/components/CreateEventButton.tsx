@@ -17,12 +17,17 @@ export function CreateEventButton() {
 
   return (
     <>
-      <button
-        className="mx-3 mb-3 rounded-lg bg-blue-600 py-3 text-center text-white font-medium hover:bg-blue-700 w-[calc(100%-1.5rem)]"
-        onClick={() => setShowPopup(true)}
-      >
-        {t('main.create_event', '새 이벤트')}
-      </button>
+      <div className="flex justify-center px-4 pb-4">
+        <button
+          className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand dark:text-blue-400 shadow-lg hover:shadow-xl hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 transition-shadow"
+          onClick={() => setShowPopup(true)}
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+          </svg>
+          {t('main.create_event', 'Create')}
+        </button>
+      </div>
       {showPopup && (
         <TypeSelectorPopup
           onSelect={handleSelect}
