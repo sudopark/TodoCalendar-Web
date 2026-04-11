@@ -39,13 +39,13 @@ test('캘린더에 현재 월 타이틀이 표시된다', async ({ page }) => {
   await expect(page.getByText(/April 2026/)).toBeVisible()
 })
 
-test('캘린더에 요일 헤더(Sun-Sat)가 표시된다', async ({ page }) => {
+test('캘린더에 요일 헤더가 표시된다', async ({ page }) => {
   // given
   await page.goto('/')
   await page.waitForLoadState('networkidle')
 
-  // then
-  for (const day of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']) {
+  // then: 기본 언어(ko) 기준 요일 헤더
+  for (const day of ['일', '월', '화', '수', '목', '금', '토']) {
     await expect(page.getByText(day, { exact: true }).first()).toBeVisible()
   }
 })
