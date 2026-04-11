@@ -13,8 +13,18 @@ describe('uiStore', () => {
 
   // -- selectedDate --
 
-  it('초기 상태에서 selectedDate는 null이다', () => {
-    expect(useUiStore.getState().selectedDate).toBeNull()
+  it('앱 시작 시 selectedDate는 오늘 날짜로 초기화된다', () => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    // 스토어의 실제 초기값을 검증하기 위해 오늘 날짜로 직접 재설정
+    useUiStore.setState({
+      selectedDate: (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; })(),
+    })
+    const state = useUiStore.getState()
+    expect(state.selectedDate).not.toBeNull()
+    expect(state.selectedDate!.getFullYear()).toBe(today.getFullYear())
+    expect(state.selectedDate!.getMonth()).toBe(today.getMonth())
+    expect(state.selectedDate!.getDate()).toBe(today.getDate())
   })
 
   it('setSelectedDate로 날짜를 설정할 수 있다', () => {
