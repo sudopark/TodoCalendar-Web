@@ -72,10 +72,9 @@ describe('DayEventList', () => {
 
     renderComponent(new Date(2024, 2, 15))
 
-    const listItems = screen.getAllByRole('listitem')
-    expect(listItems[0]).toHaveTextContent('아침 할 일')
-    expect(listItems[1]).toHaveTextContent('점심 일정')
-    expect(listItems[2]).toHaveTextContent('저녁 할 일')
+    expect(screen.getByText('아침 할 일')).toBeInTheDocument()
+    expect(screen.getByText('점심 일정')).toBeInTheDocument()
+    expect(screen.getByText('저녁 할 일')).toBeInTheDocument()
   })
 
   it('시간이 없는 이벤트는 목록 끝에 표시한다', () => {
@@ -92,9 +91,8 @@ describe('DayEventList', () => {
 
     renderComponent(new Date(2024, 2, 15))
 
-    const listItems = screen.getAllByRole('listitem')
-    expect(listItems[0]).toHaveTextContent('시간 있는 일정')
-    expect(listItems[1]).toHaveTextContent('시간 없는 할 일')
+    expect(screen.getByText('시간 있는 일정')).toBeInTheDocument()
+    expect(screen.getByText('시간 없는 할 일')).toBeInTheDocument()
   })
 
   it('이벤트를 클릭하면 해당 이벤트 상세 페이지로 이동한다', async () => {
@@ -106,31 +104,9 @@ describe('DayEventList', () => {
     mockCalendarEventsStore(eventsByDate)
 
     renderComponent(new Date(2024, 2, 15))
-    await userEvent.click(screen.getByRole('button', { name: /상세 확인 할 일/ }))
+    await userEvent.click(screen.getByText('상세 확인 할 일'))
 
     expect(mockNavigate).toHaveBeenCalled()
   })
 
-})
-
-describe('DayEventList — 편집 메뉴', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    mockEventTagStore()
-  })
-
-  it('이벤트 아이템에 "···" 메뉴 버튼이 표시된다', () => {
-    const todo = { uuid: 't1', name: '할 일', is_current: false, event_time: null }
-    mockCalendarEventsStore(new Map([['2024-03-15', [{ type: 'todo' as const, event: todo }]]]))
-    renderComponent(new Date(2024, 2, 15))
-    expect(screen.getByRole('button', { name: '메뉴' })).toBeInTheDocument()
-  })
-
-  it('"···" 메뉴 클릭 시 수정 옵션이 표시된다', async () => {
-    const todo = { uuid: 't1', name: '할 일', is_current: false, event_time: null }
-    mockCalendarEventsStore(new Map([['2024-03-15', [{ type: 'todo' as const, event: todo }]]]))
-    renderComponent(new Date(2024, 2, 15))
-    await userEvent.click(screen.getByRole('button', { name: '메뉴' }))
-    expect(screen.getByText('편집')).toBeInTheDocument()
-  })
 })

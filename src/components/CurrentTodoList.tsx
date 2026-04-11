@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
 import { useCurrentTodosStore } from '../stores/currentTodosStore'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
+import { CellTimeLabel } from './CellTimeLabel'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
-import { skipRepeatingTodo, refreshAllTodoStores } from '../utils/todoActions'
+import { refreshAllTodoStores } from '../utils/todoActions'
 import type { Todo } from '../models'
 
 interface CurrentTodoListProps {
@@ -16,7 +16,6 @@ interface CurrentTodoListProps {
 }
 
 export function CurrentTodoList({ showHeader = true }: CurrentTodoListProps) {
-  const { t } = useTranslation()
   const todos = useCurrentTodosStore(s => s.todos)
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
   const { isTagHidden } = useTagFilterStore()
@@ -37,16 +36,13 @@ export function CurrentTodoList({ showHeader = true }: CurrentTodoListProps) {
     const { removeEvent } = useCalendarEventsStore.getState()
     try {
       if (scope === 'this' && todo.repeating && todo.event_time) {
-        // 이번만 완료: next_event_time 전달로 시리즈 유지
         const next = nextRepeatingTime(todo.event_time, todo.repeating_turn ?? 1, todo.repeating, todo.exclude_repeatings)
         await todoApi.completeTodo(todo.uuid, { origin: todo, next_event_time: next?.time, next_repeating_turn: next?.turn })
       } else if (scope === 'future') {
-        // 먼저 시리즈 종료 후 완료 처리
         const startTs = getStartTimestamp(todo.event_time!)
         await todoApi.patchTodo(todo.uuid, { repeating: { ...todo.repeating, end: startTs - 1 } })
         await todoApi.completeTodo(todo.uuid, { origin: todo })
       } else {
-        // 비반복
         await todoApi.completeTodo(todo.uuid, { origin: todo })
       }
 
@@ -68,14 +64,6 @@ export function CurrentTodoList({ showHeader = true }: CurrentTodoListProps) {
     await doComplete(todo, scope)
   }
 
-  async function handleSkip(todo: Todo) {
-    try {
-      await skipRepeatingTodo(todo)
-    } catch (e) {
-      console.warn('건너뛰기 실패:', e)
-    }
-  }
-
   const visibleTodos = todos.filter(t => !isTagHidden(t.event_tag_id))
 
   if (visibleTodos.length === 0) return null
@@ -83,44 +71,50 @@ export function CurrentTodoList({ showHeader = true }: CurrentTodoListProps) {
   return (
     <section>
       {showHeader && (
-        <h3 className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+        <h3 className="px-1 py-2 text-xs font-semibold uppercase tracking-wide text-[#969696]">
           Current
         </h3>
       )}
-      <ul className="divide-y divide-gray-100">
+      <div className="flex flex-col gap-1.5">
         {visibleTodos.map(todo => {
           const color = todo.event_tag_id
             ? (getColorForTagId(todo.event_tag_id) ?? '#9ca3af')
             : '#9ca3af'
           return (
-            <li key={todo.uuid} className="flex items-stretch gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50">
-              <div className="w-1 shrink-0 rounded-full" style={{ backgroundColor: color }} />
-              <input
-                type="checkbox"
-                aria-label={todo.name}
-                className="h-4 w-4 rounded border-gray-300 self-center shrink-0"
-                onChange={() => handleComplete(todo)}
+            <div
+              key={todo.uuid}
+              className="flex items-center gap-2 rounded-[5px] bg-[#f3f4f7] px-2 hover:brightness-95 cursor-pointer"
+              style={{ height: 50 }}
+              onClick={() => navigate(`/events/${todo.uuid}?type=todo`, {
+                state: { background: location, eventType: 'todo' },
+              })}
+            >
+              {/* 좌측 시간 영역 52px */}
+              <div className="shrink-0" style={{ width: 52 }}>
+                <CellTimeLabel type="todo" eventTime={todo.event_time} />
+              </div>
+
+              {/* 컬러바 6px */}
+              <div
+                className="shrink-0 self-stretch rounded-[3px] my-2"
+                style={{ width: 6, backgroundColor: color }}
               />
+
+              {/* 이벤트 정보 */}
+              <div className="flex-1 min-w-0">
+                <p className="truncate text-sm font-medium text-[#323232]">{todo.name}</p>
+              </div>
+
+              {/* 완료 버튼 */}
               <button
-                className="flex flex-1 items-center min-w-0 rounded text-left"
-                onClick={() => navigate(`/events/${todo.uuid}?type=todo`, {
-                  state: { background: location, eventType: 'todo' },
-                })}
-              >
-                <span className="truncate text-sm font-medium text-[#323232]">{todo.name}</span>
-              </button>
-              {todo.repeating && (
-                <button
-                  onClick={() => handleSkip(todo)}
-                  className="shrink-0 text-xs text-[#969696] hover:text-gray-600 self-center"
-                >
-                  {t('todo.skip')}
-                </button>
-              )}
-            </li>
+                aria-label={todo.name}
+                className="shrink-0 h-5 w-5 rounded-full border-2 border-[#ccd0dc] hover:border-[#323232] transition-colors"
+                onClick={(e) => { e.stopPropagation(); handleComplete(todo) }}
+              />
+            </div>
           )
         })}
-      </ul>
+      </div>
       {scopeTarget && (
         <RepeatingScopeDialog
           mode="complete"

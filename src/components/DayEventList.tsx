@@ -1,62 +1,58 @@
-import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { formatDateKey } from '../utils/eventTimeUtils'
-import { EventTimeDisplay } from './EventTimeDisplay'
+import { CellTimeLabel } from './CellTimeLabel'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
+import type { EventTime } from '../models'
 
 function EventItem({ calEvent, onNavigate }: { calEvent: CalendarEvent; onNavigate: () => void }) {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { t } = useTranslation()
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
-  const [menuOpen, setMenuOpen] = useState(false)
 
-  const { uuid, name, event_tag_id, event_time } = calEvent.type === 'todo'
+  const { name, event_tag_id, event_time } = calEvent.type === 'todo'
     ? { ...calEvent.event, event_time: calEvent.event.event_time ?? undefined }
     : { ...calEvent.event, event_time: calEvent.event.event_time }
 
   const color = event_tag_id ? (getColorForTagId(event_tag_id) ?? '#9ca3af') : '#9ca3af'
-  const editPath = calEvent.type === 'todo' ? `/todos/${uuid}/edit` : `/schedules/${uuid}/edit`
 
   return (
-    <div className="relative flex w-full items-stretch gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50">
-      <div className="w-1 shrink-0 rounded-full" style={{ backgroundColor: color }} />
-      <button className="flex flex-1 items-start text-left min-w-0" onClick={onNavigate}>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-[#323232]">{name}</p>
-          {event_time && (
-            <p className="text-xs text-[#969696]">
-              <EventTimeDisplay eventTime={event_time} />
-            </p>
-          )}
-        </div>
-      </button>
-      <button
-        aria-label={t('common.menu')}
-        className="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 self-center"
-        onClick={e => { e.stopPropagation(); setMenuOpen(o => !o) }}
-      >
-        ···
-      </button>
-      {menuOpen && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-          <div className="absolute right-0 top-8 z-20 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-            <button
-              className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
-              onClick={() => { setMenuOpen(false); navigate(editPath, { state: { background: location } }) }}
-            >
-              {t('common.edit')}
-            </button>
-          </div>
-        </>
-      )}
+    <div
+      className="flex items-center gap-2 rounded-[5px] bg-[#f3f4f7] px-2 hover:brightness-95 cursor-pointer"
+      style={{ height: 50 }}
+      onClick={onNavigate}
+    >
+      {/* 좌측 시간 영역 52px */}
+      <div className="shrink-0" style={{ width: 52 }}>
+        <CellTimeLabel type={calEvent.type} eventTime={event_time} />
+      </div>
+
+      {/* 컬러바 6px */}
+      <div
+        className="shrink-0 self-stretch rounded-[3px] my-2"
+        style={{ width: 6, backgroundColor: color }}
+      />
+
+      {/* 이벤트 정보 */}
+      <div className="flex-1 min-w-0">
+        <p className="truncate text-sm font-medium text-[#323232]">{name}</p>
+        {event_time && event_time.time_type === 'period' && (
+          <p className="truncate text-xs text-[#646464]">
+            <PeriodDescription eventTime={event_time} />
+          </p>
+        )}
+      </div>
     </div>
   )
+}
+
+function PeriodDescription({ eventTime }: { eventTime: EventTime }) {
+  if (eventTime.time_type !== 'period') return null
+  const start = new Date(eventTime.period_start * 1000)
+  const end = new Date(eventTime.period_end * 1000)
+  const fmt = (d: Date) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+  return <span>{fmt(start)} - {fmt(end)}</span>
 }
 
 interface DayEventListProps {
@@ -85,24 +81,21 @@ export function DayEventList({ selectedDate }: DayEventListProps) {
   const sorted = [...allEvents].sort((a, b) => getTimestamp(a) - getTimestamp(b))
 
   return (
-    <div>
+    <div className="flex flex-col gap-1.5">
       {sorted.length === 0 ? (
-        <div className="flex items-center justify-center py-8 text-sm text-gray-400">
+        <div className="flex items-center justify-center py-8 text-sm text-[#969696]">
           {t('event.no_events')}
         </div>
       ) : (
-        <ul className="divide-y divide-gray-100">
-          {sorted.map((calEvent, i) => (
-            <li key={`${calEvent.event.uuid}-${i}`}>
-              <EventItem
-                calEvent={calEvent}
-                onNavigate={() => navigate(`/events/${calEvent.event.uuid}?type=${calEvent.type}`, {
-                  state: { background: location, eventType: calEvent.type },
-                })}
-              />
-            </li>
-          ))}
-        </ul>
+        sorted.map((calEvent, i) => (
+          <EventItem
+            key={`${calEvent.event.uuid}-${i}`}
+            calEvent={calEvent}
+            onNavigate={() => navigate(`/events/${calEvent.event.uuid}?type=${calEvent.type}`, {
+              state: { background: location, eventType: calEvent.type },
+            })}
+          />
+        ))
       )}
     </div>
   )
