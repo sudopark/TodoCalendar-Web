@@ -51,7 +51,7 @@ export default function CalendarList() {
           onClick={() => navigate('/tags', { state: { background: location } })}
           className="text-xs px-0 h-auto"
         >
-          {t('tag.manage_link', '태그 관리 >')}
+          {t('tag.manage', '태그 관리')} &gt;
         </Button>
       </div>
     </div>
