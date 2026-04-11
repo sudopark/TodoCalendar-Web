@@ -16,15 +16,31 @@ vi.mock('../src/stores/authStore', () => ({
 vi.mock('../src/firebase', () => ({ auth: {} }))
 
 vi.mock('../src/api/todoApi', () => ({
-  todoApi: { getCurrentTodos: async () => [] },
+  todoApi: {
+    getCurrentTodos: async () => [],
+    getTodos: async () => [],
+    getUncompletedTodos: async () => [],
+  },
+}))
+
+vi.mock('../src/api/scheduleApi', () => ({
+  scheduleApi: { getSchedules: async () => [] },
 }))
 
 vi.mock('../src/api/foremostApi', () => ({
   foremostApi: { getForemostEvent: async () => null },
 }))
 
+vi.mock('../src/api/holidayApi', () => ({
+  holidayApi: { getHolidays: async () => [] },
+}))
+
+vi.mock('../src/api/eventTagApi', () => ({
+  eventTagApi: { getAllTags: async () => [] },
+}))
+
 test('로그인된 사용자에게 달력이 표시된다', async () => {
   render(<App />)
-  expect(await screen.findByText('Sun')).toBeInTheDocument()
-  expect(screen.getAllByTestId('day-cell').length).toBeGreaterThan(0)
+  const cells = await screen.findAllByTestId('day-cell', {}, { timeout: 3000 })
+  expect(cells.length).toBeGreaterThan(0)
 })

@@ -17,6 +17,12 @@ const DoneTodosPage = React.lazy(() => import('./pages/DoneTodosPage').then(m =>
 const SettingsPage = React.lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
 
+function ConditionalHeader() {
+  const { pathname } = useLocation()
+  if (pathname === '/') return null
+  return <Header />
+}
+
 function AppRoutes() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -31,7 +37,7 @@ function AppRoutes() {
             path="/*"
             element={
               <AuthGuard>
-                <Header />
+                <ConditionalHeader />
                 <Routes>
                   <Route path="/" element={<MainPage />} />
                   <Route path="/events/:id" element={<EventDetailPage />} />
