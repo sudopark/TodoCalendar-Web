@@ -1,6 +1,13 @@
 import '@testing-library/jest-dom'
 import '../src/i18n'
 
+class ResizeObserverMock {
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+}
+global.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver
+
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation(query => ({
