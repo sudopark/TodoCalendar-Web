@@ -26,24 +26,21 @@ export function ForemostEventBanner() {
   return (
     <button
       data-testid="foremost-banner"
-      className="flex w-full items-start gap-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-left hover:bg-blue-100"
+      className="flex w-full items-stretch gap-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-left hover:bg-blue-100"
       onClick={() => navigate(`/events/${event.uuid}?type=${eventType}`, {
         state: { background: location, eventType },
       })}
     >
-      <span
-        className="mt-0.5 h-3 w-3 shrink-0 rounded-full"
-        style={{ backgroundColor: color }}
-      />
+      <div className="w-1 shrink-0 rounded-full" style={{ backgroundColor: color }} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-gray-900">{event.name}</p>
+        <p className="truncate text-sm font-semibold text-[#323232]">{event.name}</p>
         {eventTime && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-[#969696]">
             <EventTimeDisplay eventTime={eventTime} />
           </p>
         )}
       </div>
-      <span className="text-xs text-blue-400">{t('event.pinned')}</span>
+      <span className="text-xs text-blue-400 self-center">{t('event.pinned')}</span>
     </button>
   )
 }

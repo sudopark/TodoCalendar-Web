@@ -23,16 +23,13 @@ function EventItem({ calEvent, onNavigate }: { calEvent: CalendarEvent; onNaviga
   const editPath = calEvent.type === 'todo' ? `/todos/${uuid}/edit` : `/schedules/${uuid}/edit`
 
   return (
-    <div className="relative flex w-full items-start gap-3 rounded-lg px-3 py-2 hover:bg-gray-50">
-      <button className="flex flex-1 items-start gap-3 text-left" onClick={onNavigate}>
-        <span
-          className="mt-1 h-3 w-3 shrink-0 rounded-full"
-          style={{ backgroundColor: color }}
-        />
+    <div className="relative flex w-full items-stretch gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50">
+      <div className="w-1 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+      <button className="flex flex-1 items-start text-left min-w-0" onClick={onNavigate}>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-gray-900">{name}</p>
+          <p className="truncate text-sm font-medium text-[#323232]">{name}</p>
           {event_time && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[#969696]">
               <EventTimeDisplay eventTime={event_time} />
             </p>
           )}
@@ -40,7 +37,7 @@ function EventItem({ calEvent, onNavigate }: { calEvent: CalendarEvent; onNaviga
       </button>
       <button
         aria-label={t('common.menu')}
-        className="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100"
+        className="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 self-center"
         onClick={e => { e.stopPropagation(); setMenuOpen(o => !o) }}
       >
         ···

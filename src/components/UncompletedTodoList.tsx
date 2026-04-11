@@ -84,26 +84,26 @@ export function UncompletedTodoList() {
             ? (getColorForTagId(todo.event_tag_id) ?? '#9ca3af')
             : '#9ca3af'
           return (
-            <li key={todo.uuid} className="flex items-center gap-2 px-3 py-2">
+            <li key={todo.uuid} className="flex items-stretch gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50">
+              <div className="w-1 shrink-0 rounded-full" style={{ backgroundColor: color }} />
               <input
                 type="checkbox"
                 aria-label={todo.name}
-                className="h-4 w-4 rounded border-gray-300"
+                className="h-4 w-4 rounded border-gray-300 self-center shrink-0"
                 onChange={() => handleComplete(todo)}
               />
               <button
-                className="flex flex-1 items-center gap-2 rounded text-left hover:bg-gray-50"
+                className="flex flex-1 items-center min-w-0 rounded text-left"
                 onClick={() => navigate(`/events/${todo.uuid}?type=todo`, {
                   state: { background: location, eventType: 'todo' },
                 })}
               >
-                <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: color }} />
-                <span className="truncate text-sm text-gray-900">{todo.name}</span>
+                <span className="truncate text-sm font-medium text-[#323232]">{todo.name}</span>
               </button>
               {todo.repeating && (
                 <button
                   onClick={() => handleSkip(todo)}
-                  className="shrink-0 text-xs text-gray-400 hover:text-gray-600"
+                  className="shrink-0 text-xs text-[#969696] hover:text-gray-600 self-center"
                 >
                   {t('todo.skip')}
                 </button>
