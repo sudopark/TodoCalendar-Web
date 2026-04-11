@@ -81,7 +81,7 @@ describe('CalendarList', () => {
     useTagFilterStore.setState({ hiddenTagIds: new Set(['tag-1']) })
     renderCalendarList()
 
-    // when: 업무 태그 행 클릭
+    // when: 업무 태그 행 클릭 (숨김→표시)
     const tagRow = screen.getByText('업무').closest('.cursor-pointer')!
     fireEvent.click(tagRow)
 

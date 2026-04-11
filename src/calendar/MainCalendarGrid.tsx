@@ -59,10 +59,10 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
           const textColor = day.isToday
             ? 'font-semibold text-white'
             : !day.isCurrentMonth
-              ? 'text-gray-300 dark:text-gray-600'
+              ? 'text-gray-300'
               : (isHoliday || isSunday)
                 ? 'text-red-500'
-                : 'text-gray-900 dark:text-gray-100'
+                : 'text-text-primary'
 
           const bgClass = day.isToday ? 'bg-brand-dark rounded-full' : ''
           const selectedClass = isSelected && !day.isToday ? 'ring-2 ring-brand-dark rounded-full' : ''

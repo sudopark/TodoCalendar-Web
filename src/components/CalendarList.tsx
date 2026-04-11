@@ -32,10 +32,10 @@ export default function CalendarList() {
             >
               <Checkbox
                 checked={!hidden}
-                onCheckedChange={() => toggleTag(tag.uuid)}
                 aria-label={hidden ? `${tag.name} 표시` : `${tag.name} 숨기기`}
-                className="h-4 w-4 rounded-sm border-2"
+                className="h-4 w-4 rounded-sm border-2 pointer-events-none"
                 style={!hidden ? { backgroundColor: color, borderColor: color } : { borderColor: color }}
+                tabIndex={-1}
               />
               <span className="text-text-primary text-sm truncate">{tag.name}</span>
             </div>

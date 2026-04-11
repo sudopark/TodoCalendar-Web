@@ -20,8 +20,8 @@ export function CreateEventButton() {
     <>
       <div className="flex justify-center py-4">
         <Button
-          variant="outline"
-          className="flex items-center gap-2 rounded-full bg-white px-6 py-3 shadow-lg hover:shadow-xl text-brand font-bold border-0 hover:bg-white hover:text-brand"
+          variant="ghost"
+          className="flex items-center gap-2 rounded-full bg-white px-6 py-3 shadow-lg hover:shadow-xl text-brand font-bold hover:bg-white hover:text-brand"
           onClick={() => setShowPopup(true)}
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
