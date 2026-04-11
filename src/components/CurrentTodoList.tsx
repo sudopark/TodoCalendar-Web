@@ -11,7 +11,11 @@ import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalc
 import { skipRepeatingTodo, refreshAllTodoStores } from '../utils/todoActions'
 import type { Todo } from '../models'
 
-export function CurrentTodoList() {
+interface CurrentTodoListProps {
+  showHeader?: boolean
+}
+
+export function CurrentTodoList({ showHeader = true }: CurrentTodoListProps) {
   const { t } = useTranslation()
   const todos = useCurrentTodosStore(s => s.todos)
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
@@ -78,9 +82,11 @@ export function CurrentTodoList() {
 
   return (
     <section>
-      <h3 className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
-        Current
-      </h3>
+      {showHeader && (
+        <h3 className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          Current
+        </h3>
+      )}
       <ul className="divide-y divide-gray-100">
         {visibleTodos.map(todo => {
           const color = todo.event_tag_id

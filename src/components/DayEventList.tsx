@@ -6,6 +6,7 @@ import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { formatDateKey } from '../utils/eventTimeUtils'
 import { EventTimeDisplay } from './EventTimeDisplay'
+import { CurrentTodoList } from './CurrentTodoList'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 
 function EventItem({ calEvent, onNavigate }: { calEvent: CalendarEvent; onNavigate: () => void }) {
@@ -91,26 +92,27 @@ export function DayEventList({ selectedDate }: DayEventListProps) {
   schedules.sort((a, b) => getTimestamp(a) - getTimestamp(b))
   const sorted = [...todos, ...schedules]
 
-  if (sorted.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-8 text-sm text-gray-400">
-        {t('event.no_events')}
-      </div>
-    )
-  }
-
   return (
-    <ul className="divide-y divide-gray-100">
-      {sorted.map((calEvent, i) => (
-        <li key={`${calEvent.event.uuid}-${i}`}>
-          <EventItem
-            calEvent={calEvent}
-            onNavigate={() => navigate(`/events/${calEvent.event.uuid}?type=${calEvent.type}`, {
-              state: { background: location, eventType: calEvent.type },
-            })}
-          />
-        </li>
-      ))}
-    </ul>
+    <div>
+      <CurrentTodoList showHeader={false} />
+      {sorted.length === 0 ? (
+        <div className="flex items-center justify-center py-8 text-sm text-gray-400">
+          {t('event.no_events')}
+        </div>
+      ) : (
+        <ul className="divide-y divide-gray-100">
+          {sorted.map((calEvent, i) => (
+            <li key={`${calEvent.event.uuid}-${i}`}>
+              <EventItem
+                calEvent={calEvent}
+                onNavigate={() => navigate(`/events/${calEvent.event.uuid}?type=${calEvent.type}`, {
+                  state: { background: location, eventType: calEvent.type },
+                })}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
