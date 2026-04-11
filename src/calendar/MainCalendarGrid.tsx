@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { CalendarDay } from './calendarUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
@@ -40,6 +40,22 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
   const isTagHidden = useTagFilterStore(s => s.isTagHidden)
   const { rowHeight, fontSize, showEventNames } = useCalendarAppearanceStore()
 
+  // 첫 번째 주 컨테이너의 실제 높이를 측정 (flex-1로 인해 minHeight보다 클 수 있음)
+  const [actualRowHeight, setActualRowHeight] = useState(rowHeight)
+  const firstWeekRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = firstWeekRef.current
+    if (!el) return
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setActualRowHeight(entry.contentRect.height)
+      }
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   // days를 7일 단위로 주(week) 분할
   const weeks = useMemo(() => {
     const result: CalendarDay[][] = []
@@ -67,8 +83,8 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
     [weeks, filteredEventsByDate],
   )
 
-  // 표시 가능한 이벤트 행 수 계산
-  const maxVisibleRows = Math.max(1, Math.floor((rowHeight - DATE_NUMBER_HEIGHT - EVENT_AREA_TOP_OFFSET) / (EVENT_ROW_HEIGHT + EVENT_ROW_GAP)))
+  // 표시 가능한 이벤트 행 수 계산 (실제 셀 높이 기반)
+  const maxVisibleRows = Math.max(1, Math.floor((actualRowHeight - DATE_NUMBER_HEIGHT - EVENT_AREA_TOP_OFFSET) / (EVENT_ROW_HEIGHT + EVENT_ROW_GAP)))
 
   const totalWeeks = weeks.length
 
@@ -100,6 +116,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
             // flex-1로 균등 높이 분배, 마지막 주는 border-b 없음
             <div
               key={wi}
+              ref={wi === 0 ? firstWeekRef : undefined}
               className={`flex-1 relative grid grid-cols-7 ${!isLastWeek ? 'border-b border-border-calendar' : ''}`}
               style={{ minHeight: `${rowHeight}px` }}
             >
