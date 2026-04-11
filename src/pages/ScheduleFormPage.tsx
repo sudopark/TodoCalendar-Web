@@ -203,31 +203,31 @@ export function ScheduleFormPage() {
         <button className="text-sm text-gray-500" onClick={() => navigate(-1)}>{t('common.cancel')}</button>
       </div>
 
-      <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="space-y-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm">
         <div>
-          <label className="block text-sm font-medium text-gray-700">{t('event.name')}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.name')}</label>
           <input
             aria-label={t('event.name')}
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
             value={name}
             onChange={e => setName(e.target.value)}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">{t('event.tag')}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.tag')}</label>
           <div className="mt-1"><TagSelector value={tagId} onChange={setTagId} /></div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">{t('event.time')}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.time')}</label>
           <div className="mt-1">
             <EventTimePicker value={eventTime} onChange={v => v && handleEventTimeChange(v)} required={true} />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">{t('event.repeat')}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.repeat')}</label>
           <div className="mt-1">
             <RepeatingPicker
               value={repeating}
@@ -238,7 +238,7 @@ export function ScheduleFormPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">{t('event.notification')}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.notification')}</label>
           <div className="mt-1">
             <NotificationPicker
               value={notifications}
@@ -261,7 +261,7 @@ export function ScheduleFormPage() {
           </button>
           {id && (
             <button
-              className="rounded-lg border border-red-300 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50"
+              className="rounded-lg border border-red-300 dark:border-red-700 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
               onClick={() => original?.repeating ? setShowDeleteScope(true) : setShowDeleteConfirm(true)}
             >
               {t('common.delete')}
