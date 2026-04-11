@@ -23,7 +23,7 @@ export default function MiniCalendar() {
   }, [days, fetchHolidays])
 
   return (
-    <div className="p-2">
+    <div className="bg-white rounded-xl border border-border-calendar shadow-sm p-3">
       <MiniCalendarGrid days={days} />
     </div>
   )

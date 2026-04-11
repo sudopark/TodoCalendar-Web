@@ -45,13 +45,13 @@ export default function MiniCalendarGrid({ days }: MiniCalendarGridProps) {
         const textColor = day.isToday
           ? 'font-semibold text-white'
           : !day.isCurrentMonth
-            ? 'text-gray-400 dark:text-gray-600'
+            ? 'text-gray-400'
             : isHoliday || isSunday
               ? 'text-red-500'
-              : 'text-gray-900 dark:text-gray-100'
+              : 'text-gray-900'
 
-        const bgClass = day.isToday ? 'bg-blue-500 rounded-full' : ''
-        const ringClass = isSelected && !day.isToday ? 'ring-2 ring-blue-500 rounded-full' : ''
+        const bgClass = day.isToday ? 'bg-brand-dark rounded-full' : ''
+        const ringClass = isSelected && !day.isToday ? 'ring-2 ring-brand-dark rounded-full' : ''
 
         return (
           <div

@@ -43,8 +43,8 @@ describe('MiniCalendarGrid', () => {
     // given / when
     render(<MiniCalendarGrid days={marchDays} />)
 
-    // then: 15일이 오늘이므로 bg-blue-500 클래스
-    const todayElements = document.querySelectorAll('.bg-blue-500')
+    // then: 15일이 오늘이므로 bg-brand-dark 클래스
+    const todayElements = document.querySelectorAll('.bg-brand-dark')
     expect(todayElements.length).toBe(1)
     expect(todayElements[0].textContent).toBe('15')
   })
@@ -73,8 +73,8 @@ describe('MiniCalendarGrid', () => {
     // when
     render(<MiniCalendarGrid days={marchDays} />)
 
-    // then: ring-2 ring-blue-500 클래스가 있는 요소
-    const ringElements = document.querySelectorAll('.ring-2.ring-blue-500')
+    // then: ring-2 ring-brand-dark 클래스가 있는 요소
+    const ringElements = document.querySelectorAll('.ring-2.ring-brand-dark')
     expect(ringElements.length).toBe(1)
     expect(ringElements[0].textContent).toBe('20')
   })
