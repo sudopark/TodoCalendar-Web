@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useCurrentTodosStore } from '../stores/currentTodosStore'
@@ -17,6 +18,7 @@ import type { Todo, EventTime, Repeating, NotificationOption } from '../models'
 export function TodoFormPage() {
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
 
   const { addEvent, removeEvent, refreshCurrentRange } = useCalendarEventsStore()
@@ -73,7 +75,7 @@ export function TodoFormPage() {
       navigate(-1)
     } catch (e) {
       console.warn('저장 실패:', e)
-      setError('저장에 실패했습니다. 다시 시도해주세요.')
+      setError(t('todoForm.save_failed'))
     } finally {
       setSaving(false)
     }
@@ -87,7 +89,7 @@ export function TodoFormPage() {
       navigate(-1)
     } catch (e) {
       console.warn('저장 실패:', e)
-      setError('저장에 실패했습니다. 다시 시도해주세요.')
+      setError(t('todoForm.save_failed'))
     } finally {
       setSaving(false)
     }
@@ -189,7 +191,7 @@ export function TodoFormPage() {
       navigate(-1)
     } catch (e) {
       console.warn('삭제 실패:', e)
-      setError('삭제에 실패했습니다.')
+      setError(t('todoForm.delete_failed'))
       setShowDeleteScope(false)
       setShowConfirm(false)
     }
@@ -206,15 +208,15 @@ export function TodoFormPage() {
   return (
     <div className="mx-auto max-w-lg px-4 py-6">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-lg font-bold">{id ? 'Todo 수정' : '새 Todo'}</h1>
-        <button className="text-sm text-gray-500" onClick={() => navigate(-1)}>취소</button>
+        <h1 className="text-lg font-bold">{id ? t('todo.edit') : t('todo.new')}</h1>
+        <button className="text-sm text-gray-500" onClick={() => navigate(-1)}>{t('common.cancel')}</button>
       </div>
 
       <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
         <div>
-          <label className="block text-sm font-medium text-gray-700">이름</label>
+          <label className="block text-sm font-medium text-gray-700">{t('event.name')}</label>
           <input
-            aria-label="이름"
+            aria-label={t('event.name')}
             className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
             value={name}
             onChange={e => setName(e.target.value)}
@@ -222,18 +224,18 @@ export function TodoFormPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">태그</label>
+          <label className="block text-sm font-medium text-gray-700">{t('event.tag')}</label>
           <div className="mt-1"><TagSelector value={tagId} onChange={setTagId} /></div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">시간</label>
+          <label className="block text-sm font-medium text-gray-700">{t('event.time')}</label>
           <div className="mt-1"><EventTimePicker value={eventTime} onChange={handleEventTimeChange} required={false} /></div>
         </div>
 
         {eventTime && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">반복</label>
+            <label className="block text-sm font-medium text-gray-700">{t('event.repeat')}</label>
             <div className="mt-1">
               <RepeatingPicker
                 value={repeating}
@@ -250,7 +252,7 @@ export function TodoFormPage() {
 
         {eventTime && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">알림</label>
+            <label className="block text-sm font-medium text-gray-700">{t('event.notification')}</label>
             <div className="mt-1">
               <NotificationPicker
                 value={notifications}
@@ -270,14 +272,14 @@ export function TodoFormPage() {
             onClick={handleSave}
             disabled={saving || showSaveScope || showDeleteScope}
           >
-            저장
+            {t('common.save')}
           </button>
           {id && (
             <button
               className="rounded-lg border border-red-300 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50"
               onClick={() => original?.repeating ? setShowDeleteScope(true) : setShowConfirm(true)}
             >
-              삭제
+              {t('common.delete')}
             </button>
           )}
         </div>
@@ -285,9 +287,9 @@ export function TodoFormPage() {
 
       {showConfirm && (
         <ConfirmDialog
-          title="Todo 삭제"
-          message={`"${name}" 을 정말 삭제할까요?`}
-          confirmLabel="삭제"
+          title={t('todoForm.delete_confirm_title')}
+          message={t('todoForm.delete_confirm_message', { name })}
+          confirmLabel={t('common.delete')}
           onConfirm={async () => { setShowConfirm(false); await applyDelete('this') }}
           onCancel={() => setShowConfirm(false)}
         />
