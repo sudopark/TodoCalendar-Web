@@ -28,7 +28,7 @@ interface UiState {
 }
 
 export const useUiStore = create<UiState>((set, get) => ({
-  selectedDate: null,
+  selectedDate: (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; })(),
   sidebarOpen: loadSidebarState(),
   currentMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
 
