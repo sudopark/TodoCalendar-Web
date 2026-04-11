@@ -1,9 +1,11 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useEventTagStore } from '../stores/eventTagStore'
+import { useEventTagStore, DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
+import type { EventTag } from '../models'
 
 export default function CalendarList() {
   const { t } = useTranslation()
@@ -11,8 +13,20 @@ export default function CalendarList() {
   const location = useLocation()
 
   const tags = useEventTagStore(s => s.tags)
+  const defaultTagColors = useEventTagStore(s => s.defaultTagColors)
   const hiddenTagIds = useTagFilterStore(s => s.hiddenTagIds)
   const toggleTag = useTagFilterStore(s => s.toggleTag)
+
+  const allTags = useMemo<EventTag[]>(() => {
+    const defaultTags: EventTag[] = [
+      { uuid: DEFAULT_TAG_ID, name: t('tag.default_name', '기본'), color_hex: defaultTagColors?.default },
+      { uuid: HOLIDAY_TAG_ID, name: t('tag.holiday_name', '공휴일'), color_hex: defaultTagColors?.holiday },
+    ]
+    const userTags = Array.from(tags.values()).filter(
+      tag => tag.uuid !== DEFAULT_TAG_ID && tag.uuid !== HOLIDAY_TAG_ID
+    )
+    return [...defaultTags, ...userTags]
+  }, [tags, defaultTagColors, t])
 
   return (
     <div className="flex flex-col">
@@ -21,7 +35,7 @@ export default function CalendarList() {
       </p>
 
       <div className="flex flex-col gap-1">
-        {Array.from(tags.values()).map(tag => {
+        {allTags.map(tag => {
           const hidden = hiddenTagIds.has(tag.uuid)
           const color = tag.color_hex ?? '#9ca3af'
 
