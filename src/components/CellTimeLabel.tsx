@@ -31,7 +31,8 @@ export function CellTimeLabel({ type, eventTime }: CellTimeLabelProps) {
   if (type === 'todo') {
     return <TodoTimeLabel eventTime={eventTime} />
   }
-  return <ScheduleTimeLabel eventTime={eventTime!} />
+  if (!eventTime) return null
+  return <ScheduleTimeLabel eventTime={eventTime} />
 }
 
 function TodoTimeLabel({ eventTime }: { eventTime?: EventTime | null }) {

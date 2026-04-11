@@ -57,6 +57,7 @@ describe('DayEventList', () => {
   })
 
   it('이벤트를 시간순으로 혼합 정렬하여 표시한다', () => {
+    // given: todo, schedule, todo가 시간순이 아닌 순서로 주어짐
     const todoEarly = { uuid: 't1', name: '아침 할 일', is_current: false, event_time: { time_type: 'at' as const, timestamp: 1710468000 } }
     const scheduleMid = { uuid: 's1', name: '점심 일정', event_time: { time_type: 'at' as const, timestamp: 1710480600 } }
     const todoLate = { uuid: 't2', name: '저녁 할 일', is_current: false, event_time: { time_type: 'at' as const, timestamp: 1710504000 } }
@@ -70,11 +71,13 @@ describe('DayEventList', () => {
 
     mockCalendarEventsStore(eventsByDate)
 
+    // when: 컴포넌트를 렌더링
     renderComponent(new Date(2024, 2, 15))
 
-    expect(screen.getByText('아침 할 일')).toBeInTheDocument()
-    expect(screen.getByText('점심 일정')).toBeInTheDocument()
-    expect(screen.getByText('저녁 할 일')).toBeInTheDocument()
+    // then: 화면에 표시되는 순서가 시간 오름차순 (아침 → 점심 → 저녁)
+    const items = screen.getAllByText(/할 일|일정/)
+    const names = items.map(el => el.textContent)
+    expect(names).toEqual(['아침 할 일', '점심 일정', '저녁 할 일'])
   })
 
   it('시간이 없는 이벤트는 목록 끝에 표시한다', () => {
