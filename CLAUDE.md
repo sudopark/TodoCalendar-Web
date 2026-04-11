@@ -94,6 +94,41 @@ e2e/                     # Playwright E2E 테스트
 - PR 생성 전 E2E 테스트 실행하여 통과 확인
 - PR에는 해당 이슈 번호 참조
 
+### 서브에이전트 기반 병렬 작업 플로우
+
+큰 작업을 여러 서브태스크로 나눠서 작업할 때의 전체 흐름:
+
+```
+1. 계획 수립
+   - 이슈 분석 → 서브태스크 분리 → 파일 충돌 맵 작성
+   - 각 태스크의 복잡도에 따라 모델 배정 (S: haiku, M: sonnet, L/XL: opus)
+
+2. 서브에이전트 작업 (worktree + 이슈 브랜치)
+   - 독립 파일을 수정하는 태스크는 worktree 격리로 병렬 실행
+   - 같은 파일을 수정하는 태스크는 순차 실행
+   - 각 에이전트는 최신 develop 기반으로 이슈 번호 브랜치 생성
+   - TDD 플로우: 테스트 작성 → 구현 → 단계적 커밋
+   - 작업 완료 후 push → PR 생성
+
+3. 리뷰 (별도 리뷰 전용 서브에이전트)
+   - PR diff를 읽고 인라인 코멘트 작성
+   - 아키텍처, 안전성, 테스트 커버리지 검토
+
+4. 리뷰 반영 (원래 작업 에이전트 또는 메인)
+   - 리뷰 코멘트 분석 → 반영할 것 수정 → push
+   - ⚠️ 반드시 push 완료 후 머지 (머지 후 push 금지)
+
+5. 머지 및 동기화
+   - `gh pr merge --rebase` 로 rebase merge
+   - 머지 직후 로컬 develop pull: `git pull --rebase origin develop`
+   - 다음 태스크는 최신 develop 기반으로 새 브랜치 생성
+```
+
+**핵심 규칙:**
+- 머지는 반드시 **rebase merge** (`--rebase`)
+- 리뷰 피드백 반영은 반드시 **머지 전에 push 완료**
+- 다음 태스크 브랜치는 반드시 **최신 develop 기반**으로 생성
+
 ## Testing Strategy
 
 - **단위/컴포넌트 테스트**: Vitest + React Testing Library (`tests/`)
