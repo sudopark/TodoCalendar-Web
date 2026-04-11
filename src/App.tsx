@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { AuthGuard } from './components/AuthGuard'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Header } from './components/Header'
@@ -19,6 +19,7 @@ const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage').then(m => (
 
 function AppRoutes() {
   const location = useLocation()
+  const navigate = useNavigate()
   const background = (location.state as { background?: typeof location } | null)?.background
 
   return (
@@ -53,21 +54,31 @@ function AppRoutes() {
           fixed inset-0 z-50 으로 뷰포트 전체를 덮어 스크롤 없이 보이도록 한다.
           배경 페이지의 Header가 이미 표시 중이므로 Header 불필요. */}
       {background && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/30">
-          <Suspense fallback={<LoadingSkeleton />}>
-            <Routes>
-              {[
-                ['/events/:id', <EventDetailPage />],
-                ['/todos/new', <TodoFormPage />],
-                ['/todos/:id/edit', <TodoFormPage />],
-                ['/schedules/new', <ScheduleFormPage />],
-                ['/schedules/:id/edit', <ScheduleFormPage />],
-                ['/tags', <TagManagementPage />],
-              ].map(([path, element]) => (
-                <Route key={path as string} path={path as string} element={<AuthGuard>{element as React.ReactElement}</AuthGuard>} />
-              ))}
-            </Routes>
-          </Suspense>
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* 백드롭: 클릭 시 이전 페이지로 복귀 */}
+          <div
+            className="fixed inset-0 bg-black/30"
+            data-testid="overlay-backdrop"
+            aria-label="오버레이 닫기"
+            onClick={() => navigate(-1)}
+          />
+          {/* 폼 콘텐츠: 백드롭 위에 렌더. stopPropagation으로 백드롭 클릭과 분리 */}
+          <div className="relative" onClick={e => e.stopPropagation()}>
+            <Suspense fallback={<LoadingSkeleton />}>
+              <Routes>
+                {[
+                  ['/events/:id', <EventDetailPage />],
+                  ['/todos/new', <TodoFormPage />],
+                  ['/todos/:id/edit', <TodoFormPage />],
+                  ['/schedules/new', <ScheduleFormPage />],
+                  ['/schedules/:id/edit', <ScheduleFormPage />],
+                  ['/tags', <TagManagementPage />],
+                ].map(([path, element]) => (
+                  <Route key={path as string} path={path as string} element={<AuthGuard>{element as React.ReactElement}</AuthGuard>} />
+                ))}
+              </Routes>
+            </Suspense>
+          </div>
         </div>
       )}
     </>

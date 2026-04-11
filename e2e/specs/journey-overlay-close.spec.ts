@@ -62,12 +62,9 @@ test('Todo 폼에서 취소 버튼을 클릭하면 오버레이가 닫히고 메
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Test 2: FAB → Todo 폼 → 어두운 백드롭 클릭 → 오버레이 닫힘 여부
-// NOTE: App.tsx를 보면 background가 있을 때 fixed inset-0 z-50 bg-black/30 div가 렌더됨
-//       하지만 backdrop에 onClick 핸들러가 없으므로 클릭해도 닫히지 않는다.
-//       이 테스트는 현재 동작을 문서화한다.
+// Test 2: FAB → Todo 폼 → 어두운 백드롭 클릭 → 오버레이 닫힘
 // ─────────────────────────────────────────────────────────────────────────────
-test('Todo 폼 뒤의 백드롭을 클릭해도 오버레이는 닫히지 않는다 (backdrop handler 없음)', async ({ page }) => {
+test('Todo 폼 뒤의 백드롭을 클릭하면 오버레이가 닫히고 메인 페이지로 돌아간다', async ({ page }) => {
   // given
   await setupBasicMocks(page)
   await page.goto('/')
@@ -78,13 +75,12 @@ test('Todo 폼 뒤의 백드롭을 클릭해도 오버레이는 닫히지 않는
   await page.getByRole('button', { name: 'Todo', exact: true }).click()
   await expect(page).toHaveURL(/\/todos\/new/)
 
-  // 백드롭 영역 (fixed inset-0 z-50 bg-black/30) 클릭
-  // 오버레이 div 바깥쪽, 왼쪽 상단 영역을 클릭
-  await page.mouse.click(10, 10)
+  // 백드롭 영역 클릭 — data-testid로 백드롭 div를 정확히 타겟
+  await page.getByTestId('overlay-backdrop').click()
 
-  // then — 오버레이가 여전히 표시된다 (backdrop close 미구현)
-  // 백드롭 클릭 핸들러가 없으므로 URL은 변경되지 않음
-  await expect(page).toHaveURL(/\/todos\/new/)
+  // then — 오버레이가 닫히고 메인 페이지 URL로 복귀한다
+  await expect(page).toHaveURL('/')
+  await expect(page.getByRole('heading', { name: '새 Todo' })).not.toBeVisible()
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
