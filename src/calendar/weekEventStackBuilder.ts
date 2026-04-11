@@ -81,13 +81,12 @@ export function buildWeekEventStack(
 
   while (remaining.length > 0) {
     const row: EventOnWeekRow[] = []
-    const used: DeduplicatedEvent[] = []
+    const usedUuids = new Set<string>()
 
-    fillRow(remaining, row, used, 1, weekDays.length)
+    fillRow(remaining, row, usedUuids, 1, weekDays.length)
 
     // remaining에서 used 제거
-    const usedSet = new Set(used.map(e => e.event.event.uuid))
-    remaining = remaining.filter(e => !usedSet.has(e.event.event.uuid))
+    remaining = remaining.filter(e => !usedUuids.has(e.event.event.uuid))
 
     rows.push(row)
   }
@@ -113,7 +112,7 @@ export function buildWeekEventStack(
 function fillRow(
   candidates: DeduplicatedEvent[],
   row: EventOnWeekRow[],
-  used: DeduplicatedEvent[],
+  usedUuids: Set<string>,
   rangeStart: number,
   rangeEnd: number,
 ): void {
@@ -122,7 +121,7 @@ function fillRow(
   // 범위 내에 맞는 이벤트 중 가장 긴 것 찾기
   const fitting = candidates.filter(
     e => e.startCol >= rangeStart && e.endCol <= rangeEnd
-      && !used.some(u => u.event.event.uuid === e.event.event.uuid)
+      && !usedUuids.has(e.event.event.uuid)
   )
 
   if (fitting.length === 0) return
@@ -135,15 +134,15 @@ function fillRow(
     startCol: best.startCol,
     endCol: best.endCol,
   })
-  used.push(best)
+  usedUuids.add(best.event.event.uuid)
 
   // 왼쪽 빈 공간
   if (best.startCol > rangeStart) {
-    fillRow(candidates, row, used, rangeStart, best.startCol - 1)
+    fillRow(candidates, row, usedUuids, rangeStart, best.startCol - 1)
   }
 
   // 오른쪽 빈 공간
   if (best.endCol < rangeEnd) {
-    fillRow(candidates, row, used, best.endCol + 1, rangeEnd)
+    fillRow(candidates, row, usedUuids, best.endCol + 1, rangeEnd)
   }
 }

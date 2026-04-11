@@ -16,6 +16,10 @@ const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
 // 이벤트 바 높이(px) + 간격
 const EVENT_ROW_HEIGHT = 20
 const EVENT_ROW_GAP = 2
+// 날짜 숫자 영역 높이(px)
+const DATE_NUMBER_HEIGHT = 28
+// 날짜 숫자 아래 이벤트 바 시작 오프셋(px)
+const EVENT_AREA_TOP_OFFSET = 8
 
 interface MainCalendarGridProps {
   days: CalendarDay[]
@@ -59,10 +63,8 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
     [weeks, filteredEventsByDate],
   )
 
-  // 날짜 숫자 영역 높이 (대략 28px)
-  const dateNumberHeight = 28
   // 표시 가능한 이벤트 행 수 계산
-  const maxVisibleRows = Math.max(1, Math.floor((rowHeight - dateNumberHeight) / (EVENT_ROW_HEIGHT + EVENT_ROW_GAP)))
+  const maxVisibleRows = Math.max(1, Math.floor((rowHeight - DATE_NUMBER_HEIGHT) / (EVENT_ROW_HEIGHT + EVENT_ROW_GAP)))
 
   return (
     <div className="flex h-full flex-col">
@@ -155,7 +157,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
               {/* Desktop: 이벤트 스팬 행들 (날짜 숫자 아래 절대 위치) */}
               <div
                 className="hidden md:block absolute left-0 right-0 pointer-events-none"
-                style={{ top: `${dateNumberHeight + 8}px` }}
+                style={{ top: `${DATE_NUMBER_HEIGHT + EVENT_AREA_TOP_OFFSET}px` }}
               >
                 {visibleRows.map((row, ri) => (
                   <div

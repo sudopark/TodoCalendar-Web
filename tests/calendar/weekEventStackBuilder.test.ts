@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  buildWeekEventStack,
-  type EventOnWeekRow,
-  type WeekEventStack,
-} from '../../src/calendar/weekEventStackBuilder'
+import { buildWeekEventStack } from '../../src/calendar/weekEventStackBuilder'
 import type { CalendarDay } from '../../src/calendar/calendarUtils'
 import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 import type { Todo } from '../../src/models/Todo'
