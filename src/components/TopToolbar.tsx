@@ -18,52 +18,60 @@ export default function TopToolbar() {
   const title = formatMonthTitle(year, month)
 
   return (
-    <div className="flex items-center justify-between px-4 py-2 border-b dark:border-gray-700 bg-white dark:bg-gray-800">
-      <div className="flex items-center gap-2">
+    <div className="flex h-16 items-center justify-between px-6 border-b border-border-light bg-white dark:bg-gray-800 dark:border-gray-700 shrink-0">
+      <div className="flex items-center gap-3">
         <button
           onClick={toggleSidebar}
           aria-label={t('main.toggle_sidebar', '사이드바 토글')}
-          className="rounded p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+          className="rounded p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
 
-        <button
-          onClick={goToToday}
-          aria-label={t('main.today', '오늘')}
-          className="rounded px-2.5 py-1 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600"
-        >
-          {t('main.today', '오늘')}
-        </button>
+        <span className="text-2xl font-extrabold text-brand dark:text-blue-400">
+          To-do Calendar
+        </span>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 ml-2">
           <button
             onClick={goToPrevMonth}
             aria-label="Previous month"
-            className="rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+            className="rounded p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
           >
-            ‹
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
           </button>
-          <span className="text-sm font-semibold dark:text-gray-100 min-w-[9rem] text-center">
+          <span className="text-lg font-bold text-text-primary dark:text-gray-100 min-w-[9rem] text-center">
             {title}
           </span>
           <button
             onClick={goToNextMonth}
             aria-label="Next month"
-            className="rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+            className="rounded p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
           >
-            ›
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
+
+        <button
+          onClick={goToToday}
+          aria-label={t('main.today', '오늘')}
+          className="relative pb-0.5 text-sm font-bold text-brand dark:text-blue-400 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-brand dark:after:bg-blue-400"
+        >
+          {t('main.today', '오늘')}
+        </button>
       </div>
 
       <div className="flex items-center">
         <button
           onClick={() => navigate('/settings')}
           aria-label={t('nav.settings', '설정')}
-          className="rounded p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
+          className="rounded p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

@@ -8,7 +8,7 @@ export function MainPage() {
   useKeyboardShortcuts()
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen flex-col bg-surface dark:bg-gray-900">
       <TopToolbar />
       <div className="flex flex-1 min-h-0">
         <LeftSidebar />
