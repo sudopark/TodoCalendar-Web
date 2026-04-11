@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 export type RepeatScope = 'this' | 'future' | 'all'
 
 interface RepeatingScopeDialogProps {
@@ -7,45 +9,46 @@ interface RepeatingScopeDialogProps {
   onCancel: () => void
 }
 
-function dialogTitle(mode: 'edit' | 'delete' | 'complete', eventType: 'todo' | 'schedule'): string {
-  if (eventType === 'todo') {
-    switch (mode) {
-      case 'edit': return '반복 할일 수정'
-      case 'delete': return '반복 할일 삭제'
-      case 'complete': return '반복 할일 완료'
-    }
-  }
-  return mode === 'delete' ? '반복 일정 삭제' : '반복 일정 수정'
-}
-
 export function RepeatingScopeDialog({ mode, eventType = 'schedule', onSelect, onCancel }: RepeatingScopeDialogProps) {
+  const { t } = useTranslation()
   const isTodo = eventType === 'todo'
+
+  function dialogTitle(): string {
+    if (eventType === 'todo') {
+      switch (mode) {
+        case 'edit': return t('repeatingScope.todo_edit')
+        case 'delete': return t('repeatingScope.todo_delete')
+        case 'complete': return t('repeatingScope.todo_complete')
+      }
+    }
+    return mode === 'delete' ? t('repeatingScope.schedule_delete') : t('repeatingScope.schedule_edit')
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
         <h2 className="text-base font-semibold text-gray-900">
-          {dialogTitle(mode, eventType)}
+          {dialogTitle()}
         </h2>
         <div className="mt-4 flex flex-col divide-y divide-gray-100">
           <button
             className="px-4 py-3 text-left text-sm text-gray-800 hover:bg-gray-50"
             onClick={() => onSelect('this')}
           >
-            이 이벤트만
+            {t('repeat.this_only')}
           </button>
           <button
             className="px-4 py-3 text-left text-sm text-gray-800 hover:bg-gray-50"
             onClick={() => onSelect('future')}
           >
-            이 이벤트 및 이후 이벤트
+            {t('repeat.future')}
           </button>
           {!isTodo && (
             <button
               className="px-4 py-3 text-left text-sm text-gray-800 hover:bg-gray-50"
               onClick={() => onSelect('all')}
             >
-              모든 이벤트
+              {t('repeat.all')}
             </button>
           )}
         </div>
@@ -53,7 +56,7 @@ export function RepeatingScopeDialog({ mode, eventType = 'schedule', onSelect, o
           className="mt-4 w-full rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100"
           onClick={onCancel}
         >
-          취소
+          {t('common.cancel')}
         </button>
       </div>
     </div>

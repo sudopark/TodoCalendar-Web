@@ -1,25 +1,26 @@
+import { useTranslation } from 'react-i18next'
 import type { NotificationOption } from '../models'
 
-const TIME_PRESETS = [
-  { label: '정시', seconds: 0 },
-  { label: '1분 전', seconds: -60 },
-  { label: '5분 전', seconds: -300 },
-  { label: '10분 전', seconds: -600 },
-  { label: '15분 전', seconds: -900 },
-  { label: '30분 전', seconds: -1800 },
-  { label: '1시간 전', seconds: -3600 },
-  { label: '2시간 전', seconds: -7200 },
-  { label: '1일 전', seconds: -86400 },
-  { label: '2일 전', seconds: -172800 },
-  { label: '1주 전', seconds: -604800 },
+const TIME_PRESET_KEYS = [
+  { key: 'notif.on_time', seconds: 0 },
+  { key: 'notif.1min_before', seconds: -60 },
+  { key: 'notif.5min_before', seconds: -300 },
+  { key: 'notif.10min_before', seconds: -600 },
+  { key: 'notif.15min_before', seconds: -900 },
+  { key: 'notif.30min_before', seconds: -1800 },
+  { key: 'notif.1hour_before', seconds: -3600 },
+  { key: 'notif.2hour_before', seconds: -7200 },
+  { key: 'notif.1day_before', seconds: -86400 },
+  { key: 'notif.2day_before', seconds: -172800 },
+  { key: 'notif.1week_before', seconds: -604800 },
 ] as const
 
-const ALLDAY_PRESETS = [
-  { label: '당일 오전 9시', dayOffset: 0, hour: 9, minute: 0 },
-  { label: '당일 정오', dayOffset: 0, hour: 12, minute: 0 },
-  { label: '1일 전 오전 9시', dayOffset: -1, hour: 9, minute: 0 },
-  { label: '2일 전 오전 9시', dayOffset: -2, hour: 9, minute: 0 },
-  { label: '1주 전 오전 9시', dayOffset: -7, hour: 9, minute: 0 },
+const ALLDAY_PRESET_KEYS = [
+  { key: 'notif.allday_same_day_9am', dayOffset: 0, hour: 9, minute: 0 },
+  { key: 'notif.allday_same_day_noon', dayOffset: 0, hour: 12, minute: 0 },
+  { key: 'notif.allday_1day_before_9am', dayOffset: -1, hour: 9, minute: 0 },
+  { key: 'notif.allday_2day_before_9am', dayOffset: -2, hour: 9, minute: 0 },
+  { key: 'notif.allday_1week_before_9am', dayOffset: -7, hour: 9, minute: 0 },
 ] as const
 
 interface NotificationPickerProps {
@@ -37,10 +38,12 @@ function matchesAllDayPreset(opt: NotificationOption, dayOffset: number, hour: n
 }
 
 export function NotificationPicker({ value, onChange, isAllDay }: NotificationPickerProps) {
+  const { t } = useTranslation()
+
   if (isAllDay) {
     return (
       <div className="space-y-1">
-        {ALLDAY_PRESETS.map((preset, i) => {
+        {ALLDAY_PRESET_KEYS.map((preset, i) => {
           const selected = value.some(v => matchesAllDayPreset(v, preset.dayOffset, preset.hour, preset.minute))
           return (
             <label key={i} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
@@ -56,7 +59,7 @@ export function NotificationPicker({ value, onChange, isAllDay }: NotificationPi
                 }}
                 className="h-4 w-4 rounded border-gray-300"
               />
-              {preset.label}
+              {t(preset.key)}
             </label>
           )
         })}
@@ -66,7 +69,7 @@ export function NotificationPicker({ value, onChange, isAllDay }: NotificationPi
 
   return (
     <div className="space-y-1">
-      {TIME_PRESETS.map((preset, i) => {
+      {TIME_PRESET_KEYS.map((preset, i) => {
         const selected = value.some(v => matchesTimePreset(v, preset.seconds))
         return (
           <label key={i} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
@@ -82,7 +85,7 @@ export function NotificationPicker({ value, onChange, isAllDay }: NotificationPi
               }}
               className="h-4 w-4 rounded border-gray-300"
             />
-            {preset.label}
+            {t(preset.key)}
           </label>
         )
       })}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { EventTime } from '../models'
 
 type TimeType = 'none' | 'at' | 'period' | 'allday'
@@ -39,6 +40,7 @@ interface EventTimePickerProps {
 }
 
 export function EventTimePicker({ value, onChange, required = false }: EventTimePickerProps) {
+  const { t } = useTranslation()
   const now = Math.floor(Date.now() / 1000)
 
   const initType = (): TimeType => {
@@ -81,29 +83,29 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
         {!required && (
           <label className="flex items-center gap-1 text-sm">
             <input type="radio" name="time-type" checked={type === 'none'} onChange={() => handleTypeChange('none')} />
-            시간 없음
+            {t('eventTime.none')}
           </label>
         )}
         <label className="flex items-center gap-1 text-sm">
           <input type="radio" name="time-type" checked={type === 'at'} onChange={() => handleTypeChange('at')} />
-          특정 시각
+          {t('eventTime.at')}
         </label>
         <label className="flex items-center gap-1 text-sm">
           <input type="radio" name="time-type" checked={type === 'period'} onChange={() => handleTypeChange('period')} />
-          기간
+          {t('eventTime.period')}
         </label>
         <label className="flex items-center gap-1 text-sm">
           <input type="radio" name="time-type" checked={type === 'allday'} onChange={() => handleTypeChange('allday')} />
-          종일
+          {t('eventTime.allday')}
         </label>
       </div>
 
       {type === 'at' && internal?.time_type === 'at' && (
         <div>
-          <label className="block text-xs text-gray-500" htmlFor="at-input">시각</label>
+          <label className="block text-xs text-gray-500" htmlFor="at-input">{t('eventTime.time_label')}</label>
           <input
             id="at-input"
-            aria-label="시각"
+            aria-label={t('eventTime.time_label')}
             type="datetime-local"
             className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
             value={tsToDatetimeLocal(internal.timestamp)}
@@ -120,10 +122,10 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
         <div className="space-y-1">
           <div className="flex gap-3">
             <div>
-              <label className="block text-xs text-gray-500" htmlFor="period-start">시작</label>
+              <label className="block text-xs text-gray-500" htmlFor="period-start">{t('eventTime.start')}</label>
               <input
                 id="period-start"
-                aria-label="시작"
+                aria-label={t('eventTime.start')}
                 type="datetime-local"
                 className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
                 value={tsToDatetimeLocal(internal.period_start)}
@@ -136,10 +138,10 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500" htmlFor="period-end">종료</label>
+              <label className="block text-xs text-gray-500" htmlFor="period-end">{t('eventTime.end')}</label>
               <input
                 id="period-end"
-                aria-label="종료"
+                aria-label={t('eventTime.end')}
                 type="datetime-local"
                 className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
                 value={tsToDatetimeLocal(internal.period_end)}
@@ -158,10 +160,10 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
       {type === 'allday' && internal?.time_type === 'allday' && (
         <div className="flex gap-3">
           <div>
-            <label className="block text-xs text-gray-500" htmlFor="allday-start">시작일</label>
+            <label className="block text-xs text-gray-500" htmlFor="allday-start">{t('eventTime.start_date')}</label>
             <input
               id="allday-start"
-              aria-label="시작일"
+              aria-label={t('eventTime.start_date')}
               type="date"
               className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
               value={tsToDateInput(internal.period_start + internal.seconds_from_gmt)}
@@ -173,10 +175,10 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-500" htmlFor="allday-end">종료일</label>
+            <label className="block text-xs text-gray-500" htmlFor="allday-end">{t('eventTime.end_date')}</label>
             <input
               id="allday-end"
-              aria-label="종료일"
+              aria-label={t('eventTime.end_date')}
               type="date"
               className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
               value={tsToDateInput(internal.period_end + internal.seconds_from_gmt)}
