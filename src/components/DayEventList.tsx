@@ -82,11 +82,7 @@ export function DayEventList({ selectedDate }: DayEventListProps) {
     return et.period_start
   }
 
-  const todos = allEvents.filter(e => e.type === 'todo')
-  const schedules = allEvents.filter(e => e.type === 'schedule')
-  todos.sort((a, b) => getTimestamp(a) - getTimestamp(b))
-  schedules.sort((a, b) => getTimestamp(a) - getTimestamp(b))
-  const sorted = [...todos, ...schedules]
+  const sorted = [...allEvents].sort((a, b) => getTimestamp(a) - getTimestamp(b))
 
   return (
     <div>
