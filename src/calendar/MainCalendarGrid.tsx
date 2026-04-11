@@ -33,7 +33,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
         {WEEKDAY_KEYS.map((key, i) => (
           <div
             key={key}
-            className={`py-2 px-2 text-left text-xs font-medium uppercase tracking-wide ${i === 0 ? 'text-red-400' : 'text-text-secondary dark:text-gray-400'}`}
+            className={`px-3 py-3 text-xs font-medium uppercase tracking-wide ${i === 0 ? 'text-red-400' : 'text-text-secondary'}`}
           >
             {t(`calendar.weekdays.${key}`, key.toUpperCase())}
           </div>
@@ -70,25 +70,31 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
           return (
             <div
               key={i}
-              className={`flex flex-col p-2 cursor-pointer border-r border-b border-border-calendar ${!day.isCurrentMonth ? 'bg-surface-alt' : ''}`}
+              className={`flex flex-col p-2 cursor-pointer border-r border-b border-border-calendar hover:bg-gray-50 ${!day.isCurrentMonth ? 'bg-surface-alt' : ''}`}
               data-testid="day-cell"
               style={{ minHeight: `${rowHeight}px`, fontSize: `${fontSize}px` }}
               onClick={() => setSelectedDate(day.date)}
               title={holidayNames.join(', ') || undefined}
             >
-              <div className={`flex h-7 w-7 items-center justify-center text-sm ${textColor} ${bgClass} ${selectedClass}`}>
-                {day.dayOfMonth}
-              </div>
+              {day.isToday ? (
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-dark text-white font-semibold text-sm">
+                  {day.dayOfMonth}
+                </div>
+              ) : (
+                <div className={`flex h-7 w-7 items-center justify-center text-sm font-medium ${textColor} ${selectedClass}`}>
+                  {day.dayOfMonth}
+                </div>
+              )}
               {/* Desktop: color bars with event names */}
               {events.length > 0 && (
-                <div className="hidden md:block mt-0.5 space-y-px w-full">
+                <div className="hidden md:block mt-1 space-y-0.5 w-full">
                   {events.slice(0, 2).map((ev, j) => {
                     const tagId = ev.event.event_tag_id
                     const color = tagId ? getColorForTagId(tagId) : '#9ca3af'
                     return (
                       <div
                         key={j}
-                        className="truncate rounded-sm px-1 text-[10px] leading-tight text-white cursor-pointer"
+                        className="truncate rounded px-1.5 py-0.5 text-[10px] leading-tight text-white cursor-pointer"
                         style={{ backgroundColor: color ?? '#9ca3af' }}
                         data-testid="event-bar"
                         onClick={(e) => {
@@ -101,7 +107,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                     )
                   })}
                   {events.length > 2 && (
-                    <div className="text-[9px] text-text-secondary dark:text-gray-500 px-0.5">
+                    <div className="text-[9px] text-text-secondary px-0.5">
                       +{events.length - 2}
                     </div>
                   )}
