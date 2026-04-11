@@ -56,13 +56,15 @@ describe('DayEventList', () => {
     expect(screen.getByText('이벤트가 없습니다')).toBeInTheDocument()
   })
 
-  it('Todo와 Schedule 이벤트를 Todo 먼저, Schedule 순으로 표시한다', () => {
-    const todo = { uuid: 't1', name: '할 일', is_current: false, event_time: null }
-    const schedule = { uuid: 's1', name: '일정', event_time: { time_type: 'at' as const, timestamp: 1710480600 } }
+  it('이벤트를 시간순으로 혼합 정렬하여 표시한다', () => {
+    const todoEarly = { uuid: 't1', name: '아침 할 일', is_current: false, event_time: { time_type: 'at' as const, timestamp: 1710468000 } }
+    const scheduleMid = { uuid: 's1', name: '점심 일정', event_time: { time_type: 'at' as const, timestamp: 1710480600 } }
+    const todoLate = { uuid: 't2', name: '저녁 할 일', is_current: false, event_time: { time_type: 'at' as const, timestamp: 1710504000 } }
     const eventsByDate = new Map([
       ['2024-03-15', [
-        { type: 'schedule' as const, event: schedule },
-        { type: 'todo' as const, event: todo },
+        { type: 'todo' as const, event: todoLate },
+        { type: 'schedule' as const, event: scheduleMid },
+        { type: 'todo' as const, event: todoEarly },
       ]],
     ])
 
@@ -71,8 +73,28 @@ describe('DayEventList', () => {
     renderComponent(new Date(2024, 2, 15))
 
     const listItems = screen.getAllByRole('listitem')
-    expect(listItems[0]).toHaveTextContent('할 일')
-    expect(listItems[1]).toHaveTextContent('일정')
+    expect(listItems[0]).toHaveTextContent('아침 할 일')
+    expect(listItems[1]).toHaveTextContent('점심 일정')
+    expect(listItems[2]).toHaveTextContent('저녁 할 일')
+  })
+
+  it('시간이 없는 이벤트는 목록 끝에 표시한다', () => {
+    const todoNoTime = { uuid: 't1', name: '시간 없는 할 일', is_current: false, event_time: null }
+    const scheduleWithTime = { uuid: 's1', name: '시간 있는 일정', event_time: { time_type: 'at' as const, timestamp: 1710480600 } }
+    const eventsByDate = new Map([
+      ['2024-03-15', [
+        { type: 'todo' as const, event: todoNoTime },
+        { type: 'schedule' as const, event: scheduleWithTime },
+      ]],
+    ])
+
+    mockCalendarEventsStore(eventsByDate)
+
+    renderComponent(new Date(2024, 2, 15))
+
+    const listItems = screen.getAllByRole('listitem')
+    expect(listItems[0]).toHaveTextContent('시간 있는 일정')
+    expect(listItems[1]).toHaveTextContent('시간 없는 할 일')
   })
 
   it('이벤트를 클릭하면 해당 이벤트 상세 페이지로 이동한다', async () => {
