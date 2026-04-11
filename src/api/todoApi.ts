@@ -18,7 +18,7 @@ export const todoApi = {
     return apiClient.get(`/v1/todos/todo/${id}`)
   },
 
-  createTodo(body: { name: string; event_tag_id?: string; event_time?: EventTime; repeating?: Repeating; notification_options?: NotificationOption[] }): Promise<Todo> {
+  createTodo(body: { name: string; event_tag_id?: string; event_time?: EventTime; repeating?: Repeating; notification_options?: NotificationOption[]; is_current?: boolean }): Promise<Todo> {
     return apiClient.post('/v1/todos/todo', body)
   },
 
