@@ -6,7 +6,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   globalSetup: './e2e/global-setup.ts',
   use: {
-    baseURL: 'http://localhost:5175',
+    baseURL: 'http://localhost:5173',
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
   },
@@ -22,7 +22,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'npm run dev',
-    port: 5175,
+    port: 5173,
     reuseExistingServer: !process.env.CI,
   },
 })
