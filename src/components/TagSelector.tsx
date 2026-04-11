@@ -40,7 +40,7 @@ export function TagSelector({ value, onChange }: TagSelectorProps) {
         className="text-xs text-blue-500 hover:underline"
         onClick={() => navigate('/tags', { state: { background: location } })}
       >
-        {t('tag.manage_link')}
+        {t('tag.manage')} &gt;
       </button>
     </div>
   )
