@@ -112,4 +112,18 @@ describe('RightEventPanel', () => {
 
     expect(screen.getByText('Events')).toBeInTheDocument()
   })
+
+  it('selectedDate가 없어도 CurrentTodoList의 항목이 표시된다', () => {
+    // given: 날짜 미선택, currentTodo 존재
+    useUiStore.setState({ selectedDate: null })
+    useCurrentTodosStore.setState({
+      todos: [{ uuid: 'ct1', name: '현재 할 일', is_current: true, event_time: null } as any],
+    })
+
+    renderComponent()
+
+    // then: 날짜 섹션 없이도 currentTodo가 보임
+    expect(screen.getByText('현재 할 일')).toBeInTheDocument()
+    expect(screen.queryByText('이벤트가 없습니다')).not.toBeInTheDocument()
+  })
 })
