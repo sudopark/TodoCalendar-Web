@@ -85,7 +85,9 @@ e2e/                     # Playwright E2E 테스트
 - 테스트와 구현을 같은 커밋에 포함
 
 ### E2E 테스트
-- `npm run test:e2e` 대신 항상 `npx playwright test --headed` 로 실행 (브라우저 화면 확인)
+- `npx playwright test --video on` 으로 실행 (영상 녹화 모드)
+- 테스트 완료 후 `test-results/` 폴더의 `.webm` 영상을 `open` 명령으로 자동 재생하여 결과 확인
+- `test-results/` 는 gitignore 대상 (커밋에 포함하지 않음)
 
 ### PR 전략
 - 어느 정도 작업이 모이면 PR 생성 (서브이슈 단위 또는 논리적 묶음)
