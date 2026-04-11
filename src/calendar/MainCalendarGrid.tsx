@@ -1,7 +1,9 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { CalendarDay } from './calendarUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 import { formatDateKey } from '../utils/eventTimeUtils'
+import { buildWeekEventStack, type EventOnWeekRow } from './weekEventStackBuilder'
 import { useUiStore } from '../stores/uiStore'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useHolidayStore } from '../stores/holidayStore'
@@ -10,6 +12,10 @@ import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
+
+// 이벤트 바 높이(px) + 간격
+const EVENT_ROW_HEIGHT = 20
+const EVENT_ROW_GAP = 2
 
 interface MainCalendarGridProps {
   days: CalendarDay[]
@@ -26,9 +32,41 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
   const isTagHidden = useTagFilterStore(s => s.isTagHidden)
   const { rowHeight, fontSize, showEventNames } = useCalendarAppearanceStore()
 
+  // days를 7일 단위로 주(week) 분할
+  const weeks = useMemo(() => {
+    const result: CalendarDay[][] = []
+    for (let i = 0; i < days.length; i += 7) {
+      result.push(days.slice(i, i + 7))
+    }
+    return result
+  }, [days])
+
+  // 숨겨진 태그를 제외한 eventsByDate
+  const filteredEventsByDate = useMemo(() => {
+    const filtered = new Map<string, CalendarEvent[]>()
+    for (const [key, events] of eventsByDate) {
+      const visible = events.filter(ev => !isTagHidden(ev.event.event_tag_id))
+      if (visible.length > 0) {
+        filtered.set(key, visible)
+      }
+    }
+    return filtered
+  }, [eventsByDate, isTagHidden])
+
+  // 주별 이벤트 스택 계산
+  const weekStacks = useMemo(
+    () => weeks.map(weekDays => buildWeekEventStack(weekDays, filteredEventsByDate)),
+    [weeks, filteredEventsByDate],
+  )
+
+  // 날짜 숫자 영역 높이 (대략 28px)
+  const dateNumberHeight = 28
+  // 표시 가능한 이벤트 행 수 계산
+  const maxVisibleRows = Math.max(1, Math.floor((rowHeight - dateNumberHeight) / (EVENT_ROW_HEIGHT + EVENT_ROW_GAP)))
+
   return (
     <div className="flex h-full flex-col">
-      {/* Weekday header row */}
+      {/* 요일 헤더 */}
       <div className="grid grid-cols-7 border-b border-border-calendar shrink-0">
         {WEEKDAY_KEYS.map((key, i) => (
           <div
@@ -40,95 +78,135 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
         ))}
       </div>
 
-      {/* Day cells grid */}
-      <div className="grid grid-cols-7 flex-1" style={{ gridAutoRows: '1fr' }}>
-        {days.map((day, i) => {
-          const isSelected = selectedDate && formatDateKey(selectedDate) === day.dateKey
-          const holidayNames = getHolidayNames(day.dateKey)
-          const isHoliday = holidayNames.length > 0
-          const isSunday = day.date.getDay() === 0
-
-          const events = (eventsByDate.get(day.dateKey) ?? []).filter(ev => !isTagHidden(ev.event.event_tag_id))
-          const dotColors: string[] = []
-          for (const ev of events.slice(0, 3)) {
-            const tagId = ev.event.event_tag_id
-            const color = tagId ? getColorForTagId(tagId) : undefined
-            dotColors.push(color ?? '#9ca3af')
-          }
-
-          const textColor = day.isToday
-            ? 'font-semibold text-white'
-            : !day.isCurrentMonth
-              ? 'text-gray-300'
-              : (isHoliday || isSunday)
-                ? 'text-red-500'
-                : 'text-text-primary'
-
-          const bgClass = day.isToday ? 'bg-brand-dark rounded-full' : ''
-          const selectedClass = isSelected && !day.isToday ? 'ring-2 ring-brand-dark rounded-full' : ''
+      {/* 주 단위 반복 */}
+      <div className="flex flex-1 flex-col" style={{ minHeight: 0 }}>
+        {weeks.map((weekDays, wi) => {
+          const stack = weekStacks[wi]
+          const visibleRows = stack.rows.slice(0, maxVisibleRows)
+          const hiddenCount = stack.rows.length > maxVisibleRows
+            ? stack.rows.slice(maxVisibleRows).reduce((sum, row) => sum + row.length, 0)
+            : 0
 
           return (
-            <div
-              key={i}
-              className={`flex flex-col p-2 cursor-pointer border-r border-b border-border-calendar hover:bg-gray-50 ${!day.isCurrentMonth ? 'bg-surface-alt' : ''}`}
-              data-testid="day-cell"
-              style={{ minHeight: `${rowHeight}px`, fontSize: `${fontSize}px` }}
-              onClick={() => setSelectedDate(day.date)}
-              title={holidayNames.join(', ') || undefined}
-            >
-              {day.isToday ? (
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-dark text-white font-semibold text-sm">
-                  {day.dayOfMonth}
-                </div>
-              ) : (
-                <div className={`flex h-7 w-7 items-center justify-center text-sm font-medium ${textColor} ${selectedClass}`}>
-                  {day.dayOfMonth}
-                </div>
-              )}
-              {/* Desktop: color bars with event names */}
-              {events.length > 0 && (
-                <div className="hidden md:block mt-1 space-y-0.5 w-full">
-                  {events.slice(0, 2).map((ev, j) => {
+            <div key={wi} className="flex-1 min-h-0 relative" style={{ minHeight: `${rowHeight}px` }}>
+              {/* 날짜 숫자 행 */}
+              <div className="grid grid-cols-7">
+                {weekDays.map((day, di) => {
+                  const isSelected = selectedDate && formatDateKey(selectedDate) === day.dateKey
+                  const holidayNames = getHolidayNames(day.dateKey)
+                  const isHoliday = holidayNames.length > 0
+                  const isSunday = day.date.getDay() === 0
+
+                  // 해당 날짜의 이벤트 (모바일 dots용)
+                  const dayEvents = (filteredEventsByDate.get(day.dateKey) ?? [])
+                  const dotColors: string[] = []
+                  for (const ev of dayEvents.slice(0, 3)) {
                     const tagId = ev.event.event_tag_id
-                    const color = tagId ? getColorForTagId(tagId) : '#9ca3af'
-                    return (
+                    const color = tagId ? getColorForTagId(tagId) : undefined
+                    dotColors.push(color ?? '#9ca3af')
+                  }
+
+                  const textColor = day.isToday
+                    ? 'font-semibold text-white'
+                    : !day.isCurrentMonth
+                      ? 'text-gray-300'
+                      : (isHoliday || isSunday)
+                        ? 'text-red-500'
+                        : 'text-text-primary'
+
+                  const selectedClass = isSelected && !day.isToday ? 'ring-2 ring-brand-dark rounded-full' : ''
+
+                  return (
+                    <div
+                      key={di}
+                      className={`flex flex-col p-2 cursor-pointer border-r border-b border-border-calendar hover:bg-gray-50 ${!day.isCurrentMonth ? 'bg-surface-alt' : ''}`}
+                      data-testid="day-cell"
+                      style={{ minHeight: `${rowHeight}px`, fontSize: `${fontSize}px` }}
+                      onClick={() => setSelectedDate(day.date)}
+                      title={holidayNames.join(', ') || undefined}
+                    >
+                      {day.isToday ? (
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-dark text-white font-semibold text-sm">
+                          {day.dayOfMonth}
+                        </div>
+                      ) : (
+                        <div className={`flex h-7 w-7 items-center justify-center text-sm font-medium ${textColor} ${selectedClass}`}>
+                          {day.dayOfMonth}
+                        </div>
+                      )}
+
+                      {/* Mobile: dots */}
+                      {dotColors.length > 0 && (
+                        <div className="md:hidden mt-0.5 flex gap-0.5" data-testid="event-dots">
+                          {dotColors.map((color, j) => (
+                            <span
+                              key={j}
+                              className="inline-block h-1 w-1 rounded-full"
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Desktop: 이벤트 스팬 행들 (날짜 숫자 아래 절대 위치) */}
+              <div
+                className="hidden md:block absolute left-0 right-0 pointer-events-none"
+                style={{ top: `${dateNumberHeight + 8}px` }}
+              >
+                {visibleRows.map((row, ri) => (
+                  <div
+                    key={ri}
+                    className="grid grid-cols-7 relative"
+                    style={{ height: `${EVENT_ROW_HEIGHT}px`, marginBottom: `${EVENT_ROW_GAP}px` }}
+                  >
+                    {row.map((ev) => (
                       <div
-                        key={j}
-                        className="truncate rounded px-1.5 py-0.5 text-[10px] leading-tight text-white cursor-pointer"
-                        style={{ backgroundColor: color ?? '#9ca3af' }}
+                        key={ev.event.event.uuid}
+                        className="truncate rounded px-1.5 py-0.5 text-[10px] leading-tight text-white cursor-pointer pointer-events-auto"
                         data-testid="event-bar"
+                        style={{
+                          gridColumn: `${ev.startCol} / ${ev.endCol + 1}`,
+                          backgroundColor: getEventColor(ev, getColorForTagId),
+                        }}
                         onClick={(e) => {
                           e.stopPropagation()
-                          onEventClick?.(ev, e.currentTarget.getBoundingClientRect())
+                          onEventClick?.(ev.event, e.currentTarget.getBoundingClientRect())
                         }}
                       >
-                        {showEventNames ? ev.event.name : '\u00A0'}
+                        {showEventNames ? ev.event.event.name : '\u00A0'}
                       </div>
-                    )
-                  })}
-                  {events.length > 2 && (
-                    <div className="text-[9px] text-text-secondary px-0.5">
-                      +{events.length - 2}
+                    ))}
+                  </div>
+                ))}
+
+                {/* +N more 표시 */}
+                {hiddenCount > 0 && (
+                  <div className="grid grid-cols-7">
+                    <div className="col-span-7 text-[9px] text-text-secondary px-2 pointer-events-auto">
+                      +{hiddenCount} more
                     </div>
-                  )}
-                </div>
-              )}
-              {/* Mobile: dots */}
-              {dotColors.length > 0 && (
-                <div className="md:hidden mt-0.5 flex gap-0.5" data-testid="event-dots">
-                  {dotColors.map((color, j) => (
-                    <span
-                      key={j}
-                      className="inline-block h-1 w-1 rounded-full"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             </div>
           )
         })}
       </div>
     </div>
   )
+}
+
+function getEventColor(
+  ev: EventOnWeekRow,
+  getColorForTagId: (tagId: string) => string | null | undefined,
+): string {
+  const tagId = ev.event.event.event_tag_id
+  if (tagId) {
+    return getColorForTagId(tagId) ?? '#9ca3af'
+  }
+  return '#9ca3af'
 }
