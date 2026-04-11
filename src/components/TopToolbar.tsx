@@ -17,7 +17,7 @@ export default function TopToolbar() {
   const title = formatMonthTitle(year, month)
 
   return (
-    <div className="flex h-16 items-center justify-between px-6 border-b border-border-light bg-white shrink-0">
+    <div className="flex h-16 items-center px-6 border-b border-border-light bg-white shrink-0">
       <div className="flex items-center gap-6">
         <button
           onClick={toggleSidebar}
