@@ -5,6 +5,9 @@ import CalendarList from '../../src/components/CalendarList'
 import { useEventTagStore } from '../../src/stores/eventTagStore'
 import { useTagFilterStore } from '../../src/stores/tagFilterStore'
 import type { EventTag } from '../../src/models'
+import type { DefaultTagColors } from '../../src/models'
+
+vi.mock('../../src/firebase', () => ({ auth: {} }))
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -16,6 +19,11 @@ const mockTags: EventTag[] = [
   { uuid: 'tag-1', name: '업무', color_hex: '#3b82f6' },
   { uuid: 'tag-2', name: '개인', color_hex: '#10b981' },
 ]
+
+const mockDefaultColors: DefaultTagColors = {
+  default: '#aaaaaa',
+  holiday: '#ff0000',
+}
 
 function renderCalendarList() {
   return render(
@@ -29,7 +37,7 @@ describe('CalendarList', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
     const tagMap = new Map<string, EventTag>(mockTags.map(t => [t.uuid, t]))
-    useEventTagStore.setState({ tags: tagMap })
+    useEventTagStore.setState({ tags: tagMap, defaultTagColors: mockDefaultColors })
     useTagFilterStore.setState({ hiddenTagIds: new Set() })
   })
 
@@ -41,6 +49,44 @@ describe('CalendarList', () => {
     expect(screen.getByText('이벤트 종류')).toBeInTheDocument()
     expect(screen.getByText('업무')).toBeInTheDocument()
     expect(screen.getByText('개인')).toBeInTheDocument()
+  })
+
+  it('기본 태그와 공휴일 태그가 항상 상단에 표시된다', () => {
+    // given / when
+    renderCalendarList()
+
+    // then
+    expect(screen.getByText('기본')).toBeInTheDocument()
+    expect(screen.getByText('공휴일')).toBeInTheDocument()
+  })
+
+  it('태그가 없어도 기본/공휴일 태그는 표시된다', () => {
+    // given: 사용자 태그 없음
+    useEventTagStore.setState({ tags: new Map(), defaultTagColors: mockDefaultColors })
+
+    // when
+    renderCalendarList()
+
+    // then
+    expect(screen.getByText('기본')).toBeInTheDocument()
+    expect(screen.getByText('공휴일')).toBeInTheDocument()
+  })
+
+  it('기본/공휴일 태그는 사용자 태그보다 먼저 렌더된다', () => {
+    // given / when
+    renderCalendarList()
+
+    const allTagNames = screen.getAllByText(/기본|공휴일|업무|개인/).map(el => el.textContent)
+
+    // then: 기본, 공휴일이 업무/개인 앞에 온다
+    const defaultIdx = allTagNames.indexOf('기본')
+    const holidayIdx = allTagNames.indexOf('공휴일')
+    const workIdx = allTagNames.indexOf('업무')
+    const personalIdx = allTagNames.indexOf('개인')
+    expect(defaultIdx).toBeLessThan(workIdx)
+    expect(holidayIdx).toBeLessThan(workIdx)
+    expect(defaultIdx).toBeLessThan(personalIdx)
+    expect(holidayIdx).toBeLessThan(personalIdx)
   })
 
   it('태그 관리 링크가 렌더된다', () => {
@@ -98,9 +144,9 @@ describe('CalendarList', () => {
     expect(mockNavigate.mock.calls[0][0]).toBe('/tags')
   })
 
-  it('태그가 없으면 태그 행 없이 헤더만 표시한다', () => {
+  it('태그가 없으면 기본/공휴일 태그만 표시한다', () => {
     // given: 태그 없음
-    useEventTagStore.setState({ tags: new Map() })
+    useEventTagStore.setState({ tags: new Map(), defaultTagColors: mockDefaultColors })
 
     // when
     renderCalendarList()
@@ -108,5 +154,7 @@ describe('CalendarList', () => {
     // then
     expect(screen.getByText('이벤트 종류')).toBeInTheDocument()
     expect(screen.queryByText('업무')).not.toBeInTheDocument()
+    expect(screen.getByText('기본')).toBeInTheDocument()
+    expect(screen.getByText('공휴일')).toBeInTheDocument()
   })
 })

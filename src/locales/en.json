@@ -78,6 +78,8 @@
   "settings.account_delete_failed": "Failed to delete account",
   "settings.delete_account_confirm": "Deleting your account will erase all data. Continue?",
   "settings.current_tz": "Current: {{tz}}",
+  "tag.default_name": "Default",
+  "tag.holiday_name": "Holiday",
   "tag.manage": "Manage Tags",
   "tag.new_placeholder": "New tag name",
   "tag.add": "Add",

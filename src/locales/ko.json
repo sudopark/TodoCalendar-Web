@@ -78,6 +78,8 @@
   "settings.account_delete_failed": "계정 삭제에 실패했습니다",
   "settings.delete_account_confirm": "계정을 삭제하면 모든 데이터가 사라집니다. 계속할까요?",
   "settings.current_tz": "현재: {{tz}}",
+  "tag.default_name": "기본",
+  "tag.holiday_name": "공휴일",
   "tag.manage": "태그 관리",
   "tag.new_placeholder": "새 태그 이름",
   "tag.add": "추가",
