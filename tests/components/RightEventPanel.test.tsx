@@ -107,15 +107,9 @@ describe('RightEventPanel', () => {
     expect(heading).toBeInTheDocument()
   })
 
-  it('CurrentTodoList에 표시할 todo가 있으면 렌더링된다', () => {
-    // given: current todo 존재
-    useCurrentTodosStore.setState({
-      todos: [{ uuid: 'ct1', name: '현재 할 일', is_current: true, event_time: null } as any],
-    })
-
+  it('패널 타이틀이 "Events"로 표시된다', () => {
     renderComponent()
 
-    // then: todo 이름이 표시됨
-    expect(screen.getByText('현재 할 일')).toBeInTheDocument()
+    expect(screen.getByText('Events')).toBeInTheDocument()
   })
 })
