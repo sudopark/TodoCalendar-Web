@@ -53,7 +53,7 @@ describe('LeftSidebar', () => {
     // when
     renderSidebar()
 
-    // then: 요일 헤더 렌더됨
+    // then: 요일 헤더 렌더됨 (한국어 i18n)
     ;['일', '월', '화', '수', '목', '금', '토'].forEach(day => {
       expect(screen.getByText(day)).toBeInTheDocument()
     })
@@ -81,5 +81,17 @@ describe('LeftSidebar', () => {
     // then
     const sidebar = container.firstChild as HTMLElement
     expect(sidebar).toHaveClass('hidden', 'md:flex')
+  })
+
+  it('현재 달의 날짜를 렌더링한다', () => {
+    // given: 2026년 3월
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+
+    // when
+    renderSidebar()
+
+    // then: 3월의 날짜가 표시됨
+    expect(screen.getByText('15')).toBeInTheDocument()
+    expect(screen.getByText('31')).toBeInTheDocument()
   })
 })
