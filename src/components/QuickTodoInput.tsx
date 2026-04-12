@@ -40,18 +40,12 @@ export function QuickTodoInput() {
 
   return (
     <div
-      className="flex items-center gap-2 rounded-[5px] bg-[#f3f4f7] px-2 transition-opacity"
-      style={{ height: 50, opacity: focused || value ? 1 : 0.5 }}
+      className="flex items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] border border-gray-200 px-3 py-2.5"
     >
-      {/* 좌측 시간 영역 52px */}
-      <div className="shrink-0 text-center" style={{ width: 52 }}>
-        <p className="text-xs text-[#323232]">Todo</p>
-      </div>
-
-      {/* 컬러바 6px */}
+      {/* 컬러바 3px */}
       <div
-        className="shrink-0 self-stretch rounded-[3px] my-2"
-        style={{ width: 6, backgroundColor: tagColor }}
+        className="shrink-0 self-stretch rounded-full"
+        style={{ width: 3, backgroundColor: tagColor }}
       />
 
       {/* 입력 필드 */}

@@ -18,18 +18,15 @@ export function CreateEventButton() {
   return (
     <>
       <button
-        className="flex items-center gap-2 rounded-[5px] bg-[#f3f4f7] px-2 w-full hover:brightness-95 transition-colors"
-        style={{ height: 50 }}
+        className="flex items-center justify-center gap-2 rounded-[5px] bg-[#303646] px-3 py-2.5 w-full hover:brightness-110 transition-colors"
         onClick={() => setShowPopup(true)}
       >
         {/* + 아이콘 */}
-        <div className="shrink-0 flex items-center justify-center" style={{ width: 52 }}>
-          <svg className="h-5 w-5 text-[#969696]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-        </div>
+        <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
 
-        <span className="text-sm text-[#969696]">
+        <span className="text-sm text-white font-medium">
           {t('main.create_event', 'Create')}
         </span>
       </button>
