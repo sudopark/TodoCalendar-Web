@@ -1,12 +1,10 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { DayButton } from 'react-day-picker'
 import { useUiStore } from '../stores/uiStore'
 import { useHolidayStore } from '../stores/holidayStore'
 import { Calendar } from '@/components/ui/calendar'
 import CalendarList from './CalendarList'
-import { Separator } from '@/components/ui/separator'
 import { formatDateKey } from '../utils/eventTimeUtils'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
@@ -77,7 +75,6 @@ function MiniCalendarDayButton({
 
 export default function LeftSidebar() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const sidebarOpen = useUiStore(s => s.sidebarOpen)
   const sidebarMonth = useUiStore(s => s.sidebarMonth)
   const selectedDate = useUiStore(s => s.selectedDate)
@@ -147,30 +144,6 @@ export default function LeftSidebar() {
         </div>
         <div className="px-3 pt-6 flex-1">
           <CalendarList />
-        </div>
-      </div>
-      <div className="shrink-0">
-        <Separator />
-        <div className="px-4 py-3 flex flex-col gap-1">
-          <button
-            onClick={() => navigate('/done')}
-            className="flex items-center gap-2 py-1.5 rounded text-sm text-text-secondary hover:text-text-primary hover:bg-gray-100 text-left"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12" />
-            </svg>
-            Archive
-          </button>
-          <button
-            onClick={() => navigate('/settings')}
-            className="flex items-center gap-2 py-1.5 rounded text-sm text-text-secondary hover:text-text-primary hover:bg-gray-100 text-left"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Settings
-          </button>
         </div>
       </div>
     </div>
