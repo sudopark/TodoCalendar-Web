@@ -137,6 +137,7 @@ export default function LeftSidebar() {
               <TypeSelectorPopup
                 onSelect={handleCreateSelect}
                 onClose={() => setShowCreatePopup(false)}
+                positionClassName="absolute top-full left-0 mt-1 w-full"
               />
             )}
           </div>
