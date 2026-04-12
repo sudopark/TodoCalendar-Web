@@ -1,10 +1,12 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { DayButton } from 'react-day-picker'
 import { useUiStore } from '../stores/uiStore'
 import { useHolidayStore } from '../stores/holidayStore'
 import { Calendar } from '@/components/ui/calendar'
 import CalendarList from './CalendarList'
+import { TypeSelectorPopup } from './TypeSelectorPopup'
 import { formatDateKey } from '../utils/eventTimeUtils'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
@@ -75,6 +77,9 @@ function MiniCalendarDayButton({
 
 export default function LeftSidebar() {
   const { t } = useTranslation()
+  const [showCreatePopup, setShowCreatePopup] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
   const sidebarOpen = useUiStore(s => s.sidebarOpen)
   const sidebarMonth = useUiStore(s => s.sidebarMonth)
   const selectedDate = useUiStore(s => s.selectedDate)
@@ -82,6 +87,12 @@ export default function LeftSidebar() {
   const setSidebarMonth = useUiStore(s => s.setSidebarMonth)
   const fetchHolidays = useHolidayStore(s => s.fetchHolidays)
   const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
+
+  function handleCreateSelect(type: 'todo' | 'schedule') {
+    setShowCreatePopup(false)
+    const path = type === 'todo' ? '/todos/new' : '/schedules/new'
+    navigate(path, { state: { background: location } })
+  }
 
   // 월 변경 시 해당 연도 공휴일 로드 (이전·다음 달 경계 연도 포함)
   useEffect(() => {
@@ -107,6 +118,28 @@ export default function LeftSidebar() {
     >
       <div className="flex-1 overflow-y-auto flex flex-col">
         <div className="px-3 pt-4">
+          {/* 이벤트 추가 버튼 */}
+          <div className="mb-2 relative">
+            <button
+              data-testid="sidebar-create-event"
+              className="flex items-center gap-2 rounded-[5px] bg-[#f3f4f7] px-2 w-full hover:brightness-95 transition-colors"
+              style={{ height: 50 }}
+              onClick={() => setShowCreatePopup(true)}
+            >
+              <div className="shrink-0 flex items-center justify-center" style={{ width: 52 }}>
+                <svg className="h-5 w-5 text-[#969696]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+              <span className="text-sm text-[#969696]">{t('main.create_event', 'Create')}</span>
+            </button>
+            {showCreatePopup && (
+              <TypeSelectorPopup
+                onSelect={handleCreateSelect}
+                onClose={() => setShowCreatePopup(false)}
+              />
+            )}
+          </div>
           <div>
             <div className="p-3">
               <Calendar
