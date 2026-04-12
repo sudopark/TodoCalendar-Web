@@ -206,8 +206,8 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                       return (
                         <div
                           key={ev.event.event.uuid}
-                          className={`truncate rounded px-1.5 py-0.5 text-[10px] leading-tight cursor-pointer pointer-events-auto ${
-                            isAtTime ? 'flex items-center text-[#45454a]' : 'text-white'
+                          className={`flex items-center rounded px-1.5 py-0.5 text-[10px] leading-tight cursor-pointer pointer-events-auto overflow-hidden ${
+                            isAtTime ? 'text-[#45454a]' : 'text-white'
                           }`}
                           data-testid="event-bar"
                           style={{
@@ -219,13 +219,14 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                             onEventClick?.(ev.event, e.currentTarget.getBoundingClientRect())
                           }}
                         >
-                          {isAtTime && (
-                            <span
-                              className="inline-block h-[6px] w-[6px] rounded-full mr-1 shrink-0"
-                              style={{ backgroundColor: color }}
-                            />
-                          )}
-                          {showEventNames ? ev.event.event.name : '\u00A0'}
+                          <span
+                            className="inline-block h-[6px] w-[6px] rounded-full mr-1 shrink-0"
+                            style={{ backgroundColor: isAtTime ? color : 'rgba(255,255,255,0.8)' }}
+                          />
+                          {isAtTime
+                            ? <span className="truncate min-w-0">{showEventNames ? ev.event.event.name : '\u00A0'}</span>
+                            : (showEventNames ? ev.event.event.name : '\u00A0')
+                          }
                         </div>
                       )
                     })}
@@ -260,7 +261,7 @@ function getEventColor(
   return '#9ca3af'
 }
 
-export function getEventTimeType(ev: EventOnWeekRow): string {
+export function getEventTimeType(ev: EventOnWeekRow): 'at' | 'period' | 'allday' {
   const calEvent = ev.event
   if (calEvent.type === 'todo') {
     return calEvent.event.event_time?.time_type ?? 'at'
