@@ -10,7 +10,6 @@ export function QuickTodoInput() {
   const { t } = useTranslation()
   const [value, setValue] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [focused, setFocused] = useState(false)
   const defaultTagId = useEventDefaultsStore(s => s.defaultTagId)
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
 
@@ -55,8 +54,6 @@ export function QuickTodoInput() {
         value={value}
         onChange={e => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
         disabled={submitting}
       />
     </div>
