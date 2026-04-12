@@ -9,6 +9,7 @@ import { useHolidayStore } from '../../src/stores/holidayStore'
 import { useEventTagStore } from '../../src/stores/eventTagStore'
 import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 
+vi.mock('../../src/firebase', () => ({ auth: {} }))
 vi.mock('../../src/api/todoApi', () => ({
   todoApi: { getTodos: vi.fn(async () => []) },
 }))
