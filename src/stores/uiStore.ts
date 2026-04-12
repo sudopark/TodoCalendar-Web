@@ -42,7 +42,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   setSelectedDate: (date: Date) => {
     const current = get().selectedDate
     if (current && formatDateKey(current) === formatDateKey(date)) {
-      set({ selectedDate: null })
+      set({ selectedDate: null, rightPanelOpen: false })
     } else {
       set({
         selectedDate: date,

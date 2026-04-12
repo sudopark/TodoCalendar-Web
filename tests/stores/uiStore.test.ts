@@ -9,6 +9,7 @@ describe('uiStore', () => {
       sidebarOpen: true,
       currentMonth: new Date(2026, 3, 1),
       sidebarMonth: new Date(2026, 3, 1),
+      rightPanelOpen: false,
     })
   })
 
@@ -168,15 +169,14 @@ describe('uiStore', () => {
     expect(useUiStore.getState().rightPanelOpen).toBe(true)
   })
 
-  it('같은 날짜를 다시 선택하여 해제해도 rightPanelOpen은 유지된다', () => {
+  it('같은 날짜를 다시 선택하여 해제하면 rightPanelOpen이 false가 된다', () => {
     const date = new Date(2026, 3, 15)
-    useUiStore.setState({ rightPanelOpen: true, selectedDate: null })
+    useUiStore.setState({ rightPanelOpen: false, selectedDate: null })
     useUiStore.getState().setSelectedDate(date)
     expect(useUiStore.getState().rightPanelOpen).toBe(true)
-    // 같은 날짜 다시 선택 → selectedDate null
+    // 같은 날짜 다시 선택 → selectedDate null, 드로워 닫힘
     useUiStore.getState().setSelectedDate(date)
     expect(useUiStore.getState().selectedDate).toBeNull()
-    // 패널은 열린 상태 유지
-    expect(useUiStore.getState().rightPanelOpen).toBe(true)
+    expect(useUiStore.getState().rightPanelOpen).toBe(false)
   })
 })
