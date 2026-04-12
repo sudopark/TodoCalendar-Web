@@ -59,7 +59,7 @@ export function RightEventPanel() {
 
           {/* TODO 섹션 */}
           <div className="mb-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#969696] mb-2">TODO</h3>
+            <h3 className="text-xs font-semibold tracking-wider text-[#969696] mb-2">Current Todo</h3>
             <div className="border-t border-border-calendar pt-2">
               <CurrentTodoList showHeader={false} />
             </div>
