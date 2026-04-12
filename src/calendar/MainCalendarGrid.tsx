@@ -198,23 +198,37 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                     className="grid grid-cols-7 relative"
                     style={{ height: `${EVENT_ROW_HEIGHT}px`, marginBottom: `${EVENT_ROW_GAP}px` }}
                   >
-                    {row.map((ev) => (
-                      <div
-                        key={ev.event.event.uuid}
-                        className="truncate rounded px-1.5 py-0.5 text-[10px] leading-tight text-white cursor-pointer pointer-events-auto"
-                        data-testid="event-bar"
-                        style={{
-                          gridColumn: `${ev.startCol} / ${ev.endCol + 1}`,
-                          backgroundColor: getEventColor(ev, getColorForTagId),
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onEventClick?.(ev.event, e.currentTarget.getBoundingClientRect())
-                        }}
-                      >
-                        {showEventNames ? ev.event.event.name : '\u00A0'}
-                      </div>
-                    ))}
+                    {row.map((ev) => {
+                      const timeType = getEventTimeType(ev)
+                      const color = getEventColor(ev, getColorForTagId)
+                      const isAtTime = timeType === 'at'
+
+                      return (
+                        <div
+                          key={ev.event.event.uuid}
+                          className={`truncate rounded px-1.5 py-0.5 text-[10px] leading-tight cursor-pointer pointer-events-auto ${
+                            isAtTime ? 'flex items-center text-[#45454a]' : 'text-white'
+                          }`}
+                          data-testid="event-bar"
+                          style={{
+                            gridColumn: `${ev.startCol} / ${ev.endCol + 1}`,
+                            backgroundColor: isAtTime ? 'transparent' : color,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onEventClick?.(ev.event, e.currentTarget.getBoundingClientRect())
+                          }}
+                        >
+                          {isAtTime && (
+                            <span
+                              className="inline-block h-[6px] w-[6px] rounded-full mr-1 shrink-0"
+                              style={{ backgroundColor: color }}
+                            />
+                          )}
+                          {showEventNames ? ev.event.event.name : '\u00A0'}
+                        </div>
+                      )
+                    })}
                   </div>
                 ))}
 
@@ -244,4 +258,12 @@ function getEventColor(
     return getColorForTagId(tagId) ?? '#9ca3af'
   }
   return '#9ca3af'
+}
+
+export function getEventTimeType(ev: EventOnWeekRow): string {
+  const calEvent = ev.event
+  if (calEvent.type === 'todo') {
+    return calEvent.event.event_time?.time_type ?? 'at'
+  }
+  return calEvent.event.event_time.time_type
 }
