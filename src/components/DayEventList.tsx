@@ -1,15 +1,34 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
-import { useEventTagStore } from '../stores/eventTagStore'
+import { useEventTagStore, DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { formatDateKey } from '../utils/eventTimeUtils'
-import { CellTimeLabel } from './CellTimeLabel'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 import type { EventTime } from '../models'
 
+function TimeDescription({ eventTime }: { eventTime?: EventTime }) {
+  if (!eventTime) return <span>Todo</span>
+  switch (eventTime.time_type) {
+    case 'at': {
+      const d = new Date(eventTime.timestamp * 1000)
+      return <span>{d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+    }
+    case 'allday':
+      return <span>All day</span>
+    case 'period': {
+      const start = new Date(eventTime.period_start * 1000)
+      const end = new Date(eventTime.period_end * 1000)
+      const fmt = (d: Date) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      return <span>{fmt(start)} - {fmt(end)}</span>
+    }
+  }
+}
+
 function EventItem({ calEvent, onNavigate }: { calEvent: CalendarEvent; onNavigate: () => void }) {
+  const { t } = useTranslation()
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
+  const tags = useEventTagStore(s => s.tags)
 
   const { name, event_tag_id, event_time } = calEvent.type === 'todo'
     ? { ...calEvent.event, event_time: calEvent.event.event_time ?? undefined }
@@ -17,42 +36,38 @@ function EventItem({ calEvent, onNavigate }: { calEvent: CalendarEvent; onNaviga
 
   const color = event_tag_id ? (getColorForTagId(event_tag_id) ?? '#9ca3af') : '#9ca3af'
 
+  function getTagName(tagId: string | null | undefined): string {
+    if (!tagId) return ''
+    if (tagId === DEFAULT_TAG_ID) return t('tag.default_name', 'Default')
+    if (tagId === HOLIDAY_TAG_ID) return t('tag.holiday_name', 'Holiday')
+    return tags.get(tagId)?.name ?? ''
+  }
+
+  const tagName = getTagName(event_tag_id)
+
   return (
     <div
-      className="flex items-center gap-2 rounded-[5px] bg-[#f3f4f7] px-2 hover:brightness-95 cursor-pointer"
-      style={{ height: 50 }}
+      className="flex items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] px-3 py-2.5 hover:brightness-95 cursor-pointer"
       onClick={onNavigate}
     >
-      {/* 좌측 시간 영역 52px */}
-      <div className="shrink-0" style={{ width: 52 }}>
-        <CellTimeLabel type={calEvent.type} eventTime={event_time} />
-      </div>
-
-      {/* 컬러바 6px */}
+      {/* 컬러바 3px */}
       <div
-        className="shrink-0 self-stretch rounded-[3px] my-2"
-        style={{ width: 6, backgroundColor: color }}
+        className="shrink-0 self-stretch rounded-full"
+        style={{ width: 3, backgroundColor: color }}
       />
 
-      {/* 이벤트 정보 */}
+      {/* 이벤트 정보 3줄 */}
       <div className="flex-1 min-w-0">
-        <p className="truncate text-sm font-medium text-[#323232]">{name}</p>
-        {event_time && event_time.time_type === 'period' && (
-          <p className="truncate text-xs text-[#646464]">
-            <PeriodDescription eventTime={event_time} />
-          </p>
+        <p className="truncate text-sm font-semibold text-[#323232]">{name}</p>
+        <p className="truncate text-xs text-[#646464]">
+          <TimeDescription eventTime={event_time} />
+        </p>
+        {tagName && (
+          <p className="truncate text-[11px] text-[#969696]">{tagName}</p>
         )}
       </div>
     </div>
   )
-}
-
-function PeriodDescription({ eventTime }: { eventTime: EventTime }) {
-  if (eventTime.time_type !== 'period') return null
-  const start = new Date(eventTime.period_start * 1000)
-  const end = new Date(eventTime.period_end * 1000)
-  const fmt = (d: Date) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-  return <span>{fmt(start)} - {fmt(end)}</span>
 }
 
 interface DayEventListProps {
