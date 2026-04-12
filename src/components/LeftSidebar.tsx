@@ -10,6 +10,7 @@ import CalendarList from './CalendarList'
 import { Separator } from '@/components/ui/separator'
 import { formatDateKey } from '../utils/eventTimeUtils'
 import { cn } from '@/lib/utils'
+import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
 
 const WEEKDAY_KEYS = [
   'calendar.weekdays.sun',
@@ -103,9 +104,10 @@ export default function LeftSidebar() {
 
   return (
     <div
-      className={`hidden md:flex flex-col transition-all duration-200 bg-slate-50 border-r border-border-light overflow-hidden shrink-0 ${
-        sidebarOpen ? 'w-64' : 'w-0'
-      }`}
+      className={cn(
+        'hidden md:flex flex-col transition-all duration-200 bg-slate-50 border-r border-border-light overflow-hidden shrink-0',
+        sidebarOpen ? SIDEBAR_WIDTH_CLASS : 'w-0'
+      )}
     >
       <div className="flex-1 overflow-y-auto flex flex-col">
         <div className="px-3 pt-4">
