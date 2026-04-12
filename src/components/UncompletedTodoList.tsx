@@ -4,8 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
 import { useUncompletedTodosStore } from '../stores/uncompletedTodosStore'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
-import { useEventTagStore, DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../stores/eventTagStore'
+import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
+import { useTagName } from '../hooks/useTagName'
 import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
 import { refreshAllTodoStores } from '../utils/todoActions'
@@ -16,15 +17,8 @@ export function UncompletedTodoList() {
   const todos = useUncompletedTodosStore(s => s.todos)
   const reload = useUncompletedTodosStore(s => s.fetch)
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
-  const tags = useEventTagStore(s => s.tags)
   const { isTagHidden } = useTagFilterStore()
-
-  function getTagName(tagId: string | null | undefined): string {
-    if (!tagId) return ''
-    if (tagId === DEFAULT_TAG_ID) return t('tag.default_name', 'Default')
-    if (tagId === HOLIDAY_TAG_ID) return t('tag.holiday_name', 'Holiday')
-    return tags.get(tagId)?.name ?? ''
-  }
+  const getTagName = useTagName()
   const navigate = useNavigate()
   const location = useLocation()
   const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)

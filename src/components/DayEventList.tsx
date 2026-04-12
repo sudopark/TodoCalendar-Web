@@ -1,48 +1,22 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
-import { useEventTagStore, DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../stores/eventTagStore'
+import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
+import { useTagName } from '../hooks/useTagName'
+import { TimeDescription } from './TimeDescription'
 import { formatDateKey } from '../utils/eventTimeUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
-import type { EventTime } from '../models'
-
-function TimeDescription({ eventTime }: { eventTime?: EventTime }) {
-  if (!eventTime) return <span>Todo</span>
-  switch (eventTime.time_type) {
-    case 'at': {
-      const d = new Date(eventTime.timestamp * 1000)
-      return <span>{d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
-    }
-    case 'allday':
-      return <span>All day</span>
-    case 'period': {
-      const start = new Date(eventTime.period_start * 1000)
-      const end = new Date(eventTime.period_end * 1000)
-      const fmt = (d: Date) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-      return <span>{fmt(start)} - {fmt(end)}</span>
-    }
-  }
-}
 
 function EventItem({ calEvent, onNavigate }: { calEvent: CalendarEvent; onNavigate: () => void }) {
-  const { t } = useTranslation()
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
-  const tags = useEventTagStore(s => s.tags)
+  const getTagName = useTagName()
 
   const { name, event_tag_id, event_time } = calEvent.type === 'todo'
     ? { ...calEvent.event, event_time: calEvent.event.event_time ?? undefined }
     : { ...calEvent.event, event_time: calEvent.event.event_time }
 
   const color = event_tag_id ? (getColorForTagId(event_tag_id) ?? '#9ca3af') : '#9ca3af'
-
-  function getTagName(tagId: string | null | undefined): string {
-    if (!tagId) return ''
-    if (tagId === DEFAULT_TAG_ID) return t('tag.default_name', 'Default')
-    if (tagId === HOLIDAY_TAG_ID) return t('tag.holiday_name', 'Holiday')
-    return tags.get(tagId)?.name ?? ''
-  }
-
   const tagName = getTagName(event_tag_id)
 
   return (
