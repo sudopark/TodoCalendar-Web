@@ -8,7 +8,9 @@ import { useCurrentTodosStore } from '../../src/stores/currentTodosStore'
 
 vi.mock('../../src/stores/foremostEventStore', () => ({ useForemostEventStore: vi.fn() }))
 vi.mock('../../src/stores/eventTagStore', () => ({
-  useEventTagStore: vi.fn((selector: any) => selector({ getColorForTagId: () => null })),
+  useEventTagStore: vi.fn((selector: any) => selector({ getColorForTagId: () => null, tags: new Map() })),
+  DEFAULT_TAG_ID: 'default',
+  HOLIDAY_TAG_ID: 'holiday',
 }))
 vi.mock('../../src/api/todoApi', () => ({
   todoApi: { createTodo: vi.fn(), getCurrentTodos: vi.fn().mockResolvedValue([]) },
@@ -116,7 +118,7 @@ describe('RightEventPanel', () => {
   it('QuickTodoInput이 하단 고정 영역에 표시된다', () => {
     renderComponent()
 
-    expect(screen.getByText('Todo')).toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toBeInTheDocument()
   })
 
   it('selectedDate가 없어도 CurrentTodoList의 항목이 표시된다', () => {
