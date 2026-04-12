@@ -119,19 +119,19 @@ export default function LeftSidebar() {
       <div className="flex-1 overflow-y-auto flex flex-col">
         <div className="px-3 pt-4">
           {/* 이벤트 추가 버튼 */}
-          <div className="mb-2 relative">
+          <div className="mb-2 relative flex">
             <button
               data-testid="sidebar-create-event"
-              className="flex items-center gap-2 rounded-[5px] bg-[#f3f4f7] px-2 w-full hover:brightness-95 transition-colors"
-              style={{ height: 50 }}
+              className="inline-flex items-center gap-1.5 rounded-full bg-white border border-gray-200 px-4 py-2 shadow-sm hover:shadow transition-shadow"
               onClick={() => setShowCreatePopup(true)}
             >
-              <div className="shrink-0 flex items-center justify-center" style={{ width: 52 }}>
-                <svg className="h-5 w-5 text-[#969696]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </div>
-              <span className="text-sm text-[#969696]">{t('main.create_event', 'Create')}</span>
+              <svg className="h-4 w-4 text-[#323232]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span className="text-sm font-medium text-[#323232]">{t('main.create_event', 'Create')}</span>
+              <svg className="h-3 w-3 text-[#969696] ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
             {showCreatePopup && (
               <TypeSelectorPopup
