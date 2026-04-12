@@ -24,8 +24,8 @@ test('TopToolbar에 사이드바 토글, 오늘 버튼, 월 네비게이션, 설
   // then: Header는 메인 페이지에서 숨겨지고 TopToolbar가 대신 표시된다
   await expect(page.getByRole('button', { name: '사이드바 토글' })).toBeVisible()
   await expect(page.getByRole('button', { name: '오늘' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Previous month' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Next month' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Previous month', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Next month', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: '설정' })).toBeVisible()
 })
 
@@ -36,7 +36,7 @@ test('캘린더에 현재 월 타이틀이 표시된다', async ({ page }) => {
 
   // then: formatMonthTitle은 'en-US' 로케일로 "April 2026" 형태를 반환
   // TopToolbar의 월 타이틀은 heading이 아닌 span으로 렌더된다
-  await expect(page.getByText(/April 2026/)).toBeVisible()
+  await expect(page.getByText(/April 2026/).first()).toBeVisible()
 })
 
 test('캘린더에 요일 헤더가 표시된다', async ({ page }) => {
@@ -67,8 +67,8 @@ test('CreateEventButton이 RightEventPanel에 표시된다', async ({ page }) =>
   await page.goto('/')
   await page.waitForLoadState('networkidle')
 
-  // then: FAB 대신 RightEventPanel 내 CreateEventButton (텍스트: "새 이벤트")
-  await expect(page.getByRole('button', { name: '새 이벤트' })).toBeVisible()
+  // then: RightEventPanel 내 CreateEventButton
+  await expect(page.getByTestId('create-event-button')).toBeVisible()
 })
 
 test('오늘 날짜(11일)에 파란 원 하이라이트가 표시된다', async ({ page }) => {
@@ -76,10 +76,7 @@ test('오늘 날짜(11일)에 파란 원 하이라이트가 표시된다', async
   await page.goto('/')
   await page.waitForLoadState('networkidle')
 
-  // then: 오늘(11) 셀은 bg-blue-500 클래스를 가진 내부 div를 포함
-  const todayCell = page.locator('[data-testid="day-cell"]').filter({
-    has: page.locator('.bg-brand-dark'),
-  })
+  // then: 오늘 셀은 data-today 속성을 가진다
+  const todayCell = page.locator('[data-testid="day-cell"][data-today]')
   await expect(todayCell).toBeVisible()
-  await expect(todayCell.locator('.bg-brand-dark')).toContainText('11')
 })

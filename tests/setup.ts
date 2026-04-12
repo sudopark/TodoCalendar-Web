@@ -8,6 +8,11 @@ class ResizeObserverMock {
 }
 global.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver
 
+// @base-ui/react ScrollArea가 jsdom에 없는 Web Animations API를 호출하는 문제 방지
+if (typeof Element.prototype.getAnimations !== 'function') {
+  Element.prototype.getAnimations = () => []
+}
+
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation(query => ({

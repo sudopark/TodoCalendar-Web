@@ -18,6 +18,8 @@ export function CreateEventButton() {
   return (
     <>
       <button
+        data-testid="create-event-button"
+        aria-label="새 이벤트"
         className="flex items-center justify-center gap-2 rounded-[5px] bg-[#303646] px-3 py-2.5 w-full hover:brightness-110 transition-colors"
         onClick={() => setShowPopup(true)}
       >

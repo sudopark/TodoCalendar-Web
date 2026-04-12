@@ -159,6 +159,8 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                     key={di}
                     className={`flex flex-col pt-1.5 px-1.5 pb-1 cursor-pointer hover:brightness-95 transition-[filter] ${isLastCol ? '' : 'border-r border-border-calendar'} ${!day.isCurrentMonth && !isSelected ? 'bg-surface-alt' : ''}`}
                     data-testid="day-cell"
+                    data-today={day.isToday || undefined}
+                    data-selected={isSelected || undefined}
                     style={{
                       backgroundColor: cellBg,
                       fontSize: `${fontSize}px`,
