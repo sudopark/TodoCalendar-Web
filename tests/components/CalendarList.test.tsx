@@ -41,7 +41,7 @@ describe('CalendarList', () => {
     useTagFilterStore.setState({ hiddenTagIds: new Set() })
   })
 
-  it('태그 목록과 섹션 헤더를 렌더링한다', () => {
+  it('태그 목록과 "이벤트 종류" 헤더를 렌더링한다', () => {
     // given / when
     renderCalendarList()
 
@@ -49,6 +49,14 @@ describe('CalendarList', () => {
     expect(screen.getByText('이벤트 종류')).toBeInTheDocument()
     expect(screen.getByText('업무')).toBeInTheDocument()
     expect(screen.getByText('개인')).toBeInTheDocument()
+  })
+
+  it('헤더 우측에 태그 관리 진입용 chevron 버튼이 렌더된다', () => {
+    // given / when
+    renderCalendarList()
+
+    // then
+    expect(screen.getByRole('button', { name: /태그 관리/i })).toBeInTheDocument()
   })
 
   it('기본 태그와 공휴일 태그가 항상 상단에 표시된다', () => {
@@ -89,15 +97,7 @@ describe('CalendarList', () => {
     expect(holidayIdx).toBeLessThan(personalIdx)
   })
 
-  it('태그 관리 링크가 렌더된다', () => {
-    // given / when
-    renderCalendarList()
-
-    // then
-    expect(screen.getByRole('button', { name: /태그 관리/i })).toBeInTheDocument()
-  })
-
-  it('태그 숨기기 버튼 클릭 시 태그가 숨김 상태로 변경된다', () => {
+  it('태그 행 클릭 시 태그가 숨김 상태로 변경된다', () => {
     // given: 태그 모두 보임
     renderCalendarList()
 
@@ -122,7 +122,7 @@ describe('CalendarList', () => {
     expect(personalTagRow).toBeInTheDocument()
   })
 
-  it('숨긴 태그 표시 버튼 클릭 시 태그가 다시 표시된다', () => {
+  it('숨긴 태그 행 클릭 시 태그가 다시 표시된다', () => {
     // given: tag-1 숨김 상태
     useTagFilterStore.setState({ hiddenTagIds: new Set(['tag-1']) })
     renderCalendarList()
@@ -135,7 +135,7 @@ describe('CalendarList', () => {
     expect(useTagFilterStore.getState().hiddenTagIds.has('tag-1')).toBe(false)
   })
 
-  it('태그 관리 버튼 클릭 시 /tags 경로로 이동한다', () => {
+  it('헤더 chevron 버튼 클릭 시 /tags 경로로 이동한다', () => {
     // given / when
     renderCalendarList()
     fireEvent.click(screen.getByRole('button', { name: /태그 관리/i }))
@@ -156,5 +156,33 @@ describe('CalendarList', () => {
     expect(screen.queryByText('업무')).not.toBeInTheDocument()
     expect(screen.getByText('기본')).toBeInTheDocument()
     expect(screen.getByText('공휴일')).toBeInTheDocument()
+  })
+
+  it('활성 태그는 색상으로 채워진 원형 아이콘을 표시한다', () => {
+    // given: 태그 모두 보임
+    useTagFilterStore.setState({ hiddenTagIds: new Set() })
+
+    // when
+    renderCalendarList()
+
+    // then: 업무 태그 행에서 원형 체크 표시 컨테이너가 존재한다
+    const tagRow = screen.getByText('업무').closest('.cursor-pointer')!
+    const circleIcon = tagRow.querySelector('.rounded-full')
+    expect(circleIcon).toBeInTheDocument()
+  })
+
+  it('숨긴 태그는 빈 원(테두리만) 아이콘을 표시한다', () => {
+    // given: tag-1 숨김 상태
+    useTagFilterStore.setState({ hiddenTagIds: new Set(['tag-1']) })
+
+    // when
+    renderCalendarList()
+
+    // then: 숨긴 '업무' 태그 행의 원형 아이콘 내에 체크마크 svg가 없다
+    const tagRow = screen.getByText('업무').closest('.cursor-pointer')!
+    const circleIcon = tagRow.querySelector('.rounded-full')
+    expect(circleIcon).toBeInTheDocument()
+    // 숨김 상태 — 내부에 svg 체크마크가 없어야 한다
+    expect(circleIcon?.querySelector('svg')).not.toBeInTheDocument()
   })
 })
