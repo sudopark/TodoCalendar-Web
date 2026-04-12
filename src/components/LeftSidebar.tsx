@@ -79,22 +79,22 @@ export default function LeftSidebar() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const sidebarOpen = useUiStore(s => s.sidebarOpen)
-  const currentMonth = useUiStore(s => s.currentMonth)
+  const sidebarMonth = useUiStore(s => s.sidebarMonth)
   const selectedDate = useUiStore(s => s.selectedDate)
   const setSelectedDate = useUiStore(s => s.setSelectedDate)
-  const setCurrentMonth = useUiStore(s => s.setCurrentMonth)
+  const setSidebarMonth = useUiStore(s => s.setSidebarMonth)
   const fetchHolidays = useHolidayStore(s => s.fetchHolidays)
   const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
 
   // 월 변경 시 해당 연도 공휴일 로드 (이전·다음 달 경계 연도 포함)
   useEffect(() => {
-    const year = currentMonth.getFullYear()
-    const month = currentMonth.getMonth()
+    const year = sidebarMonth.getFullYear()
+    const month = sidebarMonth.getMonth()
     const years = new Set([year])
     if (month === 0) years.add(year - 1)
     if (month === 11) years.add(year + 1)
     years.forEach(y => fetchHolidays(y))
-  }, [currentMonth, fetchHolidays])
+  }, [sidebarMonth, fetchHolidays])
 
   const formatWeekdayName = (date: Date) => {
     const dayIndex = date.getDay()
@@ -115,8 +115,8 @@ export default function LeftSidebar() {
                 mode="single"
                 selected={selectedDate ?? undefined}
                 onSelect={(date) => date && setSelectedDate(date)}
-                month={currentMonth}
-                onMonthChange={setCurrentMonth}
+                month={sidebarMonth}
+                onMonthChange={setSidebarMonth}
                 formatters={{ formatWeekdayName }}
                 modifiers={{ sunday: isSundayModifier }}
                 classNames={{
