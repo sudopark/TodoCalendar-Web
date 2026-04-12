@@ -5,7 +5,6 @@ import type { DayButton } from 'react-day-picker'
 import { useUiStore } from '../stores/uiStore'
 import { useHolidayStore } from '../stores/holidayStore'
 import { Calendar } from '@/components/ui/calendar'
-import { Card, CardContent } from '@/components/ui/card'
 import CalendarList from './CalendarList'
 import { Separator } from '@/components/ui/separator'
 import { formatDateKey } from '../utils/eventTimeUtils'
@@ -105,15 +104,16 @@ export default function LeftSidebar() {
   return (
     <div
       className={cn(
-        'hidden md:flex flex-col transition-all duration-200 bg-slate-50 border-r border-border-light overflow-hidden shrink-0',
+        'hidden md:flex flex-col transition-all duration-200 bg-slate-50 overflow-hidden shrink-0',
         sidebarOpen ? SIDEBAR_WIDTH_CLASS : 'w-0'
       )}
     >
       <div className="flex-1 overflow-y-auto flex flex-col">
         <div className="px-3 pt-4">
-          <Card className="border-border-calendar shadow-sm">
-            <CardContent className="p-3">
+          <div>
+            <div className="p-3">
               <Calendar
+                className="!bg-transparent"
                 mode="single"
                 selected={selectedDate ?? undefined}
                 onSelect={(date) => date && setSelectedDate(date)}
@@ -122,7 +122,7 @@ export default function LeftSidebar() {
                 formatters={{ formatWeekdayName }}
                 modifiers={{ sunday: isSundayModifier }}
                 classNames={{
-                  root: 'w-full',
+                  root: 'w-full bg-transparent',
                   months: 'relative flex flex-col gap-0',
                   month: 'flex w-full flex-col gap-2',
                   month_caption: 'flex h-7 w-full items-center justify-center px-7',
@@ -142,8 +142,8 @@ export default function LeftSidebar() {
                   DayButton: (props) => <MiniCalendarDayButton {...props} getHolidayNames={getHolidayNames} />,
                 }}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
         <div className="px-3 pt-6 flex-1">
           <CalendarList />

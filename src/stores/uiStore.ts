@@ -37,7 +37,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   sidebarOpen: loadSidebarState(),
   currentMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   sidebarMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-  rightPanelOpen: false,
+  rightPanelOpen: true,
 
   setSelectedDate: (date: Date) => {
     const current = get().selectedDate

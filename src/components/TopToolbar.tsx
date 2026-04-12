@@ -20,33 +20,33 @@ export default function TopToolbar() {
   const title = formatMonthTitle(year, month)
 
   return (
-    <div className="flex h-16 items-center border-b border-border-light bg-white shrink-0">
-      {/* 햄버거 버튼: 사이드바 열림 여부와 관계없이 항상 표시 */}
-      <button
-        onClick={toggleSidebar}
-        aria-label={t('main.toggle_sidebar', '사이드바 토글')}
-        className="shrink-0 rounded-full p-2 mx-2 hover:bg-gray-100 text-gray-700"
-      >
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
-
-      {/* 로고 영역: LeftSidebar 너비와 동기화 (햄버거 버튼 너비만큼 제외) */}
+    <div className="flex h-16 items-center bg-slate-50 shrink-0">
+      {/* 좌측 영역: 사이드바 너비와 동기화 (햄버거 + 로고) */}
       <div
         className={cn(
-          'shrink-0 overflow-hidden transition-all duration-200',
-          sidebarOpen ? `${SIDEBAR_WIDTH_CLASS} px-2` : 'w-0'
+          'shrink-0 flex items-center overflow-hidden transition-all duration-200',
+          sidebarOpen ? SIDEBAR_WIDTH_CLASS : 'w-12'
         )}
       >
-        <img
-          src="/logo-light.png"
-          alt="To-do Calendar"
-          className="h-8"
-        />
+        <button
+          onClick={toggleSidebar}
+          aria-label={t('main.toggle_sidebar', '사이드바 토글')}
+          className="shrink-0 rounded-full p-2 mx-2 hover:bg-gray-100 text-gray-700"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        {sidebarOpen && (
+          <img
+            src="/logo-light.png"
+            alt="To-do Calendar"
+            className="h-8"
+          />
+        )}
       </div>
 
-      {/* 중앙+우측 영역: 캘린더 시작점에 맞춤 */}
+      {/* 중앙 영역: 캘린더 좌측 끝과 정렬 */}
       <div className="flex flex-1 items-center gap-4 px-4">
         <div className="flex items-center gap-1">
           <button
