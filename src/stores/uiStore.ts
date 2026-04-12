@@ -18,6 +18,7 @@ interface UiState {
   sidebarOpen: boolean
   currentMonth: Date
   sidebarMonth: Date
+  rightPanelOpen: boolean
 
   setSelectedDate: (date: Date) => void
   toggleSidebar: () => void
@@ -27,6 +28,8 @@ interface UiState {
   goToPrevMonth: () => void
   goToNextMonth: () => void
   goToToday: () => void
+  toggleRightPanel: () => void
+  setRightPanelOpen: (open: boolean) => void
 }
 
 export const useUiStore = create<UiState>((set, get) => ({
@@ -34,6 +37,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   sidebarOpen: loadSidebarState(),
   currentMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   sidebarMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  rightPanelOpen: false,
 
   setSelectedDate: (date: Date) => {
     const current = get().selectedDate
@@ -43,6 +47,7 @@ export const useUiStore = create<UiState>((set, get) => ({
       set({
         selectedDate: date,
         currentMonth: new Date(date.getFullYear(), date.getMonth(), 1),
+        rightPanelOpen: true,
       })
     }
   },
@@ -82,5 +87,13 @@ export const useUiStore = create<UiState>((set, get) => ({
       sidebarMonth: todayMonth,
       selectedDate: today,
     })
+  },
+
+  toggleRightPanel: () => {
+    set({ rightPanelOpen: !get().rightPanelOpen })
+  },
+
+  setRightPanelOpen: (open: boolean) => {
+    set({ rightPanelOpen: open })
   },
 }))
