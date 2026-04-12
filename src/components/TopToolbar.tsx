@@ -40,11 +40,14 @@ export default function TopToolbar() {
           </svg>
         </button>
         {sidebarOpen && (
-          <img
-            src="/logo-light.png"
-            alt="To-do Calendar"
-            className="h-8"
-          />
+          <div className="flex items-center gap-1">
+            <img
+              src="/logo-light.png"
+              alt="To-do Calendar"
+              className="h-8"
+            />
+            <span className="text-lg font-bold text-text-primary whitespace-nowrap">To-do Calendar</span>
+          </div>
         )}
       </div>
 
