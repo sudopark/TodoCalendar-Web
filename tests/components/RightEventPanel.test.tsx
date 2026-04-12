@@ -61,6 +61,12 @@ describe('RightEventPanel', () => {
     expect(screen.getByRole('button', { name: '새 이벤트' })).toBeInTheDocument()
   })
 
+  it('패널 닫기 버튼이 표시된다', () => {
+    renderComponent()
+
+    expect(screen.getByRole('button', { name: '패널 닫기' })).toBeInTheDocument()
+  })
+
   it('foremostEvent가 없으면 ForemostEventBanner가 표시되지 않는다', () => {
     // given: foremost event 없음
     mockForemostStore(null)
