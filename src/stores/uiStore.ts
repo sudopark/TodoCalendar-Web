@@ -17,11 +17,13 @@ interface UiState {
   selectedDate: Date | null
   sidebarOpen: boolean
   currentMonth: Date
+  sidebarMonth: Date
 
   setSelectedDate: (date: Date) => void
   toggleSidebar: () => void
   setSidebarOpen: (open: boolean) => void
   setCurrentMonth: (date: Date) => void
+  setSidebarMonth: (date: Date) => void
   goToPrevMonth: () => void
   goToNextMonth: () => void
   goToToday: () => void
@@ -31,13 +33,17 @@ export const useUiStore = create<UiState>((set, get) => ({
   selectedDate: (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; })(),
   sidebarOpen: loadSidebarState(),
   currentMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  sidebarMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
 
   setSelectedDate: (date: Date) => {
     const current = get().selectedDate
     if (current && formatDateKey(current) === formatDateKey(date)) {
       set({ selectedDate: null })
     } else {
-      set({ selectedDate: date })
+      set({
+        selectedDate: date,
+        currentMonth: new Date(date.getFullYear(), date.getMonth(), 1),
+      })
     }
   },
 
@@ -56,6 +62,10 @@ export const useUiStore = create<UiState>((set, get) => ({
     set({ currentMonth: new Date(date.getFullYear(), date.getMonth(), 1) })
   },
 
+  setSidebarMonth: (date: Date) => {
+    set({ sidebarMonth: new Date(date.getFullYear(), date.getMonth(), 1) })
+  },
+
   goToPrevMonth: () => {
     set({ currentMonth: navigateMonth(get().currentMonth, -1) })
   },
@@ -66,8 +76,10 @@ export const useUiStore = create<UiState>((set, get) => ({
 
   goToToday: () => {
     const today = new Date()
+    const todayMonth = new Date(today.getFullYear(), today.getMonth(), 1)
     set({
-      currentMonth: new Date(today.getFullYear(), today.getMonth(), 1),
+      currentMonth: todayMonth,
+      sidebarMonth: todayMonth,
       selectedDate: today,
     })
   },
