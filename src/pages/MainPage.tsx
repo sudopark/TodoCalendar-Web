@@ -13,12 +13,14 @@ export function MainPage() {
     <div className="h-screen bg-slate-50">
       <div className="flex h-full flex-col overflow-hidden">
         <TopToolbar />
-        <div className="flex flex-1 min-h-0">
+        <div className="flex flex-1 min-h-0 relative">
           <LeftSidebar />
           <MainCalendar />
+
+          {/* 오버레이: 중앙 캘린더를 덮는 패널 */}
           <div
-            className={`shrink-0 overflow-hidden transition-all duration-200 ${
-              rightPanelOpen ? 'w-80' : 'w-0'
+            className={`absolute right-0 top-0 bottom-0 w-[408px] z-10 transition-transform duration-300 ease-in-out ${
+              rightPanelOpen ? 'translate-x-0' : 'translate-x-full'
             }`}
           >
             <RightEventPanel />

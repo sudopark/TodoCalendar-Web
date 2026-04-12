@@ -10,52 +10,77 @@ import { CreateEventButton } from './CreateEventButton'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 export function RightEventPanel() {
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
   const foremostEvent = useForemostEventStore(s => s.foremostEvent)
   const toggleRightPanel = useUiStore(s => s.toggleRightPanel)
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
 
+  const dateTitle = selectedDate
+    ? selectedDate.toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric' })
+    : ''
+  const weekdayText = selectedDate
+    ? selectedDate.toLocaleDateString(dateLocale, { weekday: 'long' })
+    : ''
+
   return (
-    <div className="w-80 shrink-0 border border-border-calendar rounded-lg shadow-sm bg-white flex flex-col h-full overflow-hidden my-4 mr-4">
-      {/* 접기 버튼 */}
-      <div className="flex items-center justify-end px-2 pt-2">
+    <div className="w-full h-full flex flex-col bg-white border-l border-border-calendar shadow-lg">
+      {/* 닫기 버튼 */}
+      <div className="flex items-center justify-end px-3 pt-3">
         <button
           onClick={toggleRightPanel}
           aria-label="패널 닫기"
-          className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 5l7 7-7 7" />
           </svg>
         </button>
       </div>
 
       {/* 스크롤 영역 */}
-      <ScrollArea className="flex-1 overflow-y-auto">
-        <div className="p-4 pt-0 flex flex-col gap-4">
-          {foremostEvent && <ForemostEventBanner />}
-          <UncompletedTodoList />
-          <CurrentTodoList showHeader={false} />
+      <ScrollArea className="flex-1">
+        <div className="px-6 pb-4 flex flex-col">
+          {/* 날짜 헤더 */}
           {selectedDate && (
-            <section>
-              <div className="flex items-center justify-between px-1 py-2">
-                <h2 className="text-[22px] font-semibold text-[#323232]">
-                  {selectedDate.toLocaleDateString(dateLocale, {
-                    month: 'long',
-                    day: 'numeric',
-                    weekday: 'short',
-                  })}
-                </h2>
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-[#323232]">{dateTitle}</h1>
+              <p className="text-sm text-[#969696] mt-0.5">{weekdayText}</p>
+            </div>
+          )}
+
+          {foremostEvent && (
+            <div className="mb-4">
+              <ForemostEventBanner />
+            </div>
+          )}
+
+          <UncompletedTodoList />
+
+          {/* TODO 섹션 */}
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#969696] mb-2">TODO</h3>
+            <div className="border-t border-border-calendar pt-2">
+              <CurrentTodoList showHeader={false} />
+            </div>
+          </div>
+
+          {/* 이벤트 섹션 */}
+          {selectedDate && (
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[#969696] mb-2">
+                {t('main.events_title', '이벤트')}
+              </h3>
+              <div className="border-t border-border-calendar pt-2">
+                <DayEventList selectedDate={selectedDate} />
               </div>
-              <DayEventList selectedDate={selectedDate} />
-            </section>
+            </div>
           )}
         </div>
       </ScrollArea>
 
-      {/* 하단 고정 (웹 전용) */}
-      <div className="shrink-0 border-t border-border-calendar p-4 flex flex-col gap-1.5">
+      {/* 하단 고정 */}
+      <div className="shrink-0 border-t border-border-calendar p-4 flex flex-col gap-2">
         <QuickTodoInput />
         <CreateEventButton />
       </div>
