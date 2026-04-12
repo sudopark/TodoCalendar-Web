@@ -136,4 +136,47 @@ describe('uiStore', () => {
     // sidebarMonth는 그대로 6월
     expect(state.sidebarMonth.getMonth()).toBe(5)
   })
+
+  // -- rightPanelOpen --
+
+  it('rightPanelOpen 초기값은 false이다', () => {
+    useUiStore.setState({ rightPanelOpen: false })
+    expect(useUiStore.getState().rightPanelOpen).toBe(false)
+  })
+
+  it('toggleRightPanel로 패널 열기/닫기를 토글한다', () => {
+    useUiStore.setState({ rightPanelOpen: false })
+    useUiStore.getState().toggleRightPanel()
+    expect(useUiStore.getState().rightPanelOpen).toBe(true)
+
+    useUiStore.getState().toggleRightPanel()
+    expect(useUiStore.getState().rightPanelOpen).toBe(false)
+  })
+
+  it('setRightPanelOpen으로 패널 상태를 직접 설정한다', () => {
+    useUiStore.setState({ rightPanelOpen: false })
+    useUiStore.getState().setRightPanelOpen(true)
+    expect(useUiStore.getState().rightPanelOpen).toBe(true)
+
+    useUiStore.getState().setRightPanelOpen(false)
+    expect(useUiStore.getState().rightPanelOpen).toBe(false)
+  })
+
+  it('날짜를 선택하면 rightPanelOpen이 true가 된다', () => {
+    useUiStore.setState({ rightPanelOpen: false, selectedDate: null })
+    useUiStore.getState().setSelectedDate(new Date(2026, 3, 15))
+    expect(useUiStore.getState().rightPanelOpen).toBe(true)
+  })
+
+  it('같은 날짜를 다시 선택하여 해제해도 rightPanelOpen은 유지된다', () => {
+    const date = new Date(2026, 3, 15)
+    useUiStore.setState({ rightPanelOpen: true, selectedDate: null })
+    useUiStore.getState().setSelectedDate(date)
+    expect(useUiStore.getState().rightPanelOpen).toBe(true)
+    // 같은 날짜 다시 선택 → selectedDate null
+    useUiStore.getState().setSelectedDate(date)
+    expect(useUiStore.getState().selectedDate).toBeNull()
+    // 패널은 열린 상태 유지
+    expect(useUiStore.getState().rightPanelOpen).toBe(true)
+  })
 })
