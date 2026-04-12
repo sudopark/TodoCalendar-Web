@@ -26,7 +26,7 @@ function renderSidebar() {
 describe('LeftSidebar', () => {
   it('사이드바가 열려 있을 때 w-64 클래스가 적용된다', () => {
     // given: 사이드바 열림 상태
-    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
     // when
     const { container } = renderSidebar()
@@ -38,7 +38,7 @@ describe('LeftSidebar', () => {
 
   it('사이드바가 닫혀 있을 때 w-0 클래스가 적용된다', () => {
     // given: 사이드바 닫힘 상태
-    useUiStore.setState({ sidebarOpen: false, currentMonth: new Date(2026, 2, 1) })
+    useUiStore.setState({ sidebarOpen: false, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
     // when
     const { container } = renderSidebar()
@@ -50,7 +50,7 @@ describe('LeftSidebar', () => {
 
   it('사이드바가 열려 있을 때 달력 그리드를 렌더링한다', () => {
     // given: 사이드바 열림, 2026년 3월
-    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
     // when
     renderSidebar()
@@ -63,7 +63,7 @@ describe('LeftSidebar', () => {
 
   it('사이드바에 transition-all duration-200 클래스가 적용된다', () => {
     // given
-    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
     // when
     const { container } = renderSidebar()
@@ -75,7 +75,7 @@ describe('LeftSidebar', () => {
 
   it('모바일에서 숨겨지는 hidden md:flex 클래스가 적용된다', () => {
     // given
-    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
     // when
     const { container } = renderSidebar()
@@ -87,7 +87,7 @@ describe('LeftSidebar', () => {
 
   it('현재 달의 날짜를 렌더링한다', () => {
     // given: 2026년 3월
-    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
     // when
     renderSidebar()
@@ -99,7 +99,7 @@ describe('LeftSidebar', () => {
 
   it('날짜를 클릭하면 uiStore의 selectedDate가 변경된다', async () => {
     // given: 2026년 3월, selectedDate 없음
-    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), selectedDate: null })
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1), selectedDate: null })
 
     // when
     renderSidebar()
@@ -116,7 +116,7 @@ describe('LeftSidebar', () => {
 
   it('이전 달 버튼과 다음 달 버튼이 렌더링된다', () => {
     // given: 사이드바 열림, 2026년 3월
-    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
     // when
     renderSidebar()
@@ -126,34 +126,36 @@ describe('LeftSidebar', () => {
     expect(screen.getByRole('button', { name: /next/i })).toBeInTheDocument()
   })
 
-  it('이전 달 버튼을 클릭하면 currentMonth가 이전 달로 변경된다', async () => {
+  it('이전 달 버튼을 클릭하면 sidebarMonth가 이전 달로 변경되고 currentMonth는 그대로다', async () => {
     // given: 사이드바 열림, 2026년 3월
-    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
     // when
     renderSidebar()
     const prevButton = screen.getByRole('button', { name: /previous/i })
     await userEvent.click(prevButton)
 
-    // then: currentMonth가 2026년 2월로 변경됨
-    const { currentMonth } = useUiStore.getState()
-    expect(currentMonth.getFullYear()).toBe(2026)
-    expect(currentMonth.getMonth()).toBe(1)
+    // then: sidebarMonth가 2026년 2월로 변경됨, currentMonth는 변경 없음
+    const state = useUiStore.getState()
+    expect(state.sidebarMonth.getFullYear()).toBe(2026)
+    expect(state.sidebarMonth.getMonth()).toBe(1)
+    expect(state.currentMonth.getMonth()).toBe(2)
   })
 
-  it('다음 달 버튼을 클릭하면 currentMonth가 다음 달로 변경된다', async () => {
+  it('다음 달 버튼을 클릭하면 sidebarMonth가 다음 달로 변경되고 currentMonth는 그대로다', async () => {
     // given: 사이드바 열림, 2026년 3월
-    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
     // when
     renderSidebar()
     const nextButton = screen.getByRole('button', { name: /next/i })
     await userEvent.click(nextButton)
 
-    // then: currentMonth가 2026년 4월로 변경됨
-    const { currentMonth } = useUiStore.getState()
-    expect(currentMonth.getFullYear()).toBe(2026)
-    expect(currentMonth.getMonth()).toBe(3)
+    // then: sidebarMonth가 2026년 4월로 변경됨, currentMonth는 변경 없음
+    const state = useUiStore.getState()
+    expect(state.sidebarMonth.getFullYear()).toBe(2026)
+    expect(state.sidebarMonth.getMonth()).toBe(3)
+    expect(state.currentMonth.getMonth()).toBe(2)
   })
 
   it('렌더링 시 현재 달의 공휴일 fetch가 호출된다', async () => {
@@ -161,7 +163,7 @@ describe('LeftSidebar', () => {
     const { holidayApi } = await import('../../src/api/holidayApi')
     const getHolidaysSpy = vi.spyOn(holidayApi, 'getHolidays')
     useHolidayStore.setState({ holidays: new Map(), loadedYears: new Set() })
-    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1) })
+    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
     // when
     renderSidebar()
