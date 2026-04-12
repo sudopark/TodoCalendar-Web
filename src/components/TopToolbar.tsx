@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useUiStore } from '../stores/uiStore'
 import { formatMonthTitle } from '../calendar/calendarUtils'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export default function TopToolbar() {
   const { t } = useTranslation()
@@ -11,26 +12,43 @@ export default function TopToolbar() {
   const goToPrevMonth = useUiStore(s => s.goToPrevMonth)
   const goToNextMonth = useUiStore(s => s.goToNextMonth)
   const currentMonth = useUiStore(s => s.currentMonth)
+  const sidebarOpen = useUiStore(s => s.sidebarOpen)
 
   const year = currentMonth.getFullYear()
   const month = currentMonth.getMonth()
   const title = formatMonthTitle(year, month)
 
   return (
-    <div className="flex h-16 items-center px-6 border-b border-border-light bg-white shrink-0">
-      <div className="flex items-center gap-6">
+    <div className="flex h-16 items-center border-b border-border-light bg-white shrink-0">
+      {/* 좌측 영역: 사이드바 너비와 동기화. 햄버거·로고를 여기에 고정 배치 */}
+      <div
+        className={cn(
+          'flex shrink-0 items-center gap-4 overflow-hidden transition-all duration-200',
+          sidebarOpen ? 'w-64 px-4' : 'w-14 px-4'
+        )}
+      >
         <button
           onClick={toggleSidebar}
           aria-label={t('main.toggle_sidebar', '사이드바 토글')}
-          className="rounded-full p-2 hover:bg-gray-100 text-gray-700"
+          className="rounded-full p-2 hover:bg-gray-100 text-gray-700 shrink-0"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
 
-        <img src="/logo-light.png" alt="To-do Calendar" className="h-8" />
+        <img
+          src="/logo-light.png"
+          alt="To-do Calendar"
+          className={cn(
+            'h-8 shrink-0 transition-all duration-200',
+            sidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 pointer-events-none'
+          )}
+        />
+      </div>
 
+      {/* 중앙+우측 영역: 캘린더 시작점에 맞춤 */}
+      <div className="flex flex-1 items-center gap-4 px-4">
         <div className="flex items-center gap-1">
           <button
             onClick={goToPrevMonth}
