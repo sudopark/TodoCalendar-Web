@@ -8,6 +8,7 @@ describe('uiStore', () => {
       selectedDate: null,
       sidebarOpen: true,
       currentMonth: new Date(2026, 3, 1),
+      sidebarMonth: new Date(2026, 3, 1),
     })
   })
 
@@ -92,16 +93,47 @@ describe('uiStore', () => {
   })
 
   it('goToToday로 오늘 날짜와 해당 월로 이동한다', () => {
-    useUiStore.setState({ currentMonth: new Date(2020, 0, 1), selectedDate: null })
+    useUiStore.setState({ currentMonth: new Date(2020, 0, 1), sidebarMonth: new Date(2020, 0, 1), selectedDate: null })
     useUiStore.getState().goToToday()
 
     const today = new Date()
     const state = useUiStore.getState()
     expect(state.currentMonth.getFullYear()).toBe(today.getFullYear())
     expect(state.currentMonth.getMonth()).toBe(today.getMonth())
+    expect(state.sidebarMonth.getFullYear()).toBe(today.getFullYear())
+    expect(state.sidebarMonth.getMonth()).toBe(today.getMonth())
     expect(state.selectedDate).not.toBeNull()
     expect(state.selectedDate!.getFullYear()).toBe(today.getFullYear())
     expect(state.selectedDate!.getMonth()).toBe(today.getMonth())
     expect(state.selectedDate!.getDate()).toBe(today.getDate())
+  })
+
+  // -- sidebarMonth --
+
+  it('setSidebarMonth로 사이드바 캘린더 월을 독립적으로 변경한다', () => {
+    useUiStore.setState({ currentMonth: new Date(2026, 3, 1), sidebarMonth: new Date(2026, 3, 1) })
+    useUiStore.getState().setSidebarMonth(new Date(2026, 5, 15))
+    const state = useUiStore.getState()
+    expect(state.sidebarMonth.getFullYear()).toBe(2026)
+    expect(state.sidebarMonth.getMonth()).toBe(5)
+    expect(state.sidebarMonth.getDate()).toBe(1)
+    // 중앙 캘린더는 변경되지 않음
+    expect(state.currentMonth.getMonth()).toBe(3)
+  })
+
+  it('좌측 캘린더에서 날짜를 선택하면 중앙 캘린더(currentMonth)가 해당 월로 변경된다', () => {
+    useUiStore.setState({ currentMonth: new Date(2026, 3, 1), sidebarMonth: new Date(2026, 5, 1), selectedDate: null })
+    useUiStore.getState().setSelectedDate(new Date(2026, 5, 10))
+    const state = useUiStore.getState()
+    expect(state.selectedDate?.getMonth()).toBe(5)
+    expect(state.currentMonth.getMonth()).toBe(5)
+  })
+
+  it('setSelectedDate는 sidebarMonth를 변경하지 않는다', () => {
+    useUiStore.setState({ currentMonth: new Date(2026, 3, 1), sidebarMonth: new Date(2026, 5, 1), selectedDate: null })
+    useUiStore.getState().setSelectedDate(new Date(2026, 3, 10))
+    const state = useUiStore.getState()
+    // sidebarMonth는 그대로 6월
+    expect(state.sidebarMonth.getMonth()).toBe(5)
   })
 })
