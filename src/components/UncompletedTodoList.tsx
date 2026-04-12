@@ -4,10 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
 import { useUncompletedTodosStore } from '../stores/uncompletedTodosStore'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
-import { useEventTagStore } from '../stores/eventTagStore'
+import { useEventTagStore, DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
-import { CellTimeLabel } from './CellTimeLabel'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
 import { refreshAllTodoStores } from '../utils/todoActions'
 import type { Todo } from '../models'
@@ -17,7 +16,15 @@ export function UncompletedTodoList() {
   const todos = useUncompletedTodosStore(s => s.todos)
   const reload = useUncompletedTodosStore(s => s.fetch)
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
+  const tags = useEventTagStore(s => s.tags)
   const { isTagHidden } = useTagFilterStore()
+
+  function getTagName(tagId: string | null | undefined): string {
+    if (!tagId) return ''
+    if (tagId === DEFAULT_TAG_ID) return t('tag.default_name', 'Default')
+    if (tagId === HOLIDAY_TAG_ID) return t('tag.holiday_name', 'Holiday')
+    return tags.get(tagId)?.name ?? ''
+  }
   const navigate = useNavigate()
   const location = useLocation()
   const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)
@@ -88,35 +95,34 @@ export function UncompletedTodoList() {
           const color = todo.event_tag_id
             ? (getColorForTagId(todo.event_tag_id) ?? '#9ca3af')
             : '#9ca3af'
+          const tagName = getTagName(todo.event_tag_id)
           return (
             <div
               key={todo.uuid}
-              className="flex items-center gap-2 rounded-[5px] bg-[#f3f4f7] px-2 hover:brightness-95 cursor-pointer"
-              style={{ height: 50 }}
+              className="flex items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] px-3 py-2.5 hover:brightness-95 cursor-pointer"
               onClick={() => navigate(`/events/${todo.uuid}?type=todo`, {
                 state: { background: location, eventType: 'todo' },
               })}
             >
-              {/* 좌측 시간 영역 52px */}
-              <div className="shrink-0" style={{ width: 52 }}>
-                <CellTimeLabel type="todo" eventTime={todo.event_time} />
-              </div>
-
-              {/* 컬러바 6px */}
+              {/* 컬러바 3px */}
               <div
-                className="shrink-0 self-stretch rounded-[3px] my-2"
-                style={{ width: 6, backgroundColor: color }}
+                className="shrink-0 self-stretch rounded-full"
+                style={{ width: 3, backgroundColor: color }}
               />
 
               {/* 이벤트 정보 - 미완료 todo는 빨간색 */}
               <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-medium text-[#ea4444]">{todo.name}</p>
+                <p className="truncate text-sm font-semibold text-[#ea4444]">{todo.name}</p>
+                <p className="truncate text-xs text-[#646464]">Todo</p>
+                {tagName && (
+                  <p className="truncate text-[11px] text-[#969696]">{tagName}</p>
+                )}
               </div>
 
               {/* 완료 버튼 */}
               <button
                 aria-label={todo.name}
-                className="shrink-0 h-5 w-5 rounded-full border-2 border-[#ccd0dc] hover:border-[#323232] transition-colors"
+                className="shrink-0 h-5 w-5 rounded-full border-2 border-[#ccd0dc] hover:border-[#323232] transition-colors self-center"
                 onClick={(e) => { e.stopPropagation(); handleComplete(todo) }}
               />
             </div>
