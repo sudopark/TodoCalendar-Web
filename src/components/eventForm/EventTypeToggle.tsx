@@ -1,34 +1,26 @@
 import { useTranslation } from 'react-i18next'
 import { useEventFormStore } from '../../stores/eventFormStore'
+import { Flag } from 'lucide-react'
 
 export function EventTypeToggle() {
   const { t } = useTranslation()
   const eventType = useEventFormStore(s => s.eventType)
   const setEventType = useEventFormStore(s => s.setEventType)
 
+  const isTodo = eventType === 'todo'
+
   return (
-    <div className="inline-flex rounded-lg bg-muted p-1 text-sm">
+    <div className="flex items-center gap-3">
+      <Flag className="w-4 h-4 text-muted-foreground shrink-0" />
+      <span className="text-sm">
+        {t('eventType.is_todo', 'Todo')}
+      </span>
       <button
         type="button"
-        className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-          eventType === 'todo'
-            ? 'bg-background text-foreground shadow-sm'
-            : 'text-muted-foreground hover:text-foreground'
-        }`}
-        onClick={() => setEventType('todo')}
+        className="ml-1 rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground hover:bg-muted/80 transition-colors"
+        onClick={() => setEventType(isTodo ? 'schedule' : 'todo')}
       >
-        Todo
-      </button>
-      <button
-        type="button"
-        className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-          eventType === 'schedule'
-            ? 'bg-background text-foreground shadow-sm'
-            : 'text-muted-foreground hover:text-foreground'
-        }`}
-        onClick={() => setEventType('schedule')}
-      >
-        {t('schedule.title', 'Schedule')}
+        {isTodo ? t('common.yes', '예') : t('common.no', '아니오')}
       </button>
     </div>
   )
