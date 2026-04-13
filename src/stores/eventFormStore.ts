@@ -48,14 +48,6 @@ function isAllDay(time: EventTime | null): boolean {
   return time?.time_type === 'allday'
 }
 
-function selectedDateTimestamp(): number {
-  const selectedDate = useUiStore.getState().selectedDate
-  if (selectedDate) {
-    return Math.floor(selectedDate.getTime() / 1000)
-  }
-  return Math.floor(Date.now() / 1000)
-}
-
 export function canSave(state: EventFormState): boolean {
   if (!state.name.trim()) return false
   if (state.eventType === 'schedule' && !state.eventTime) return false
@@ -117,16 +109,31 @@ export const useEventFormStore = create<EventFormState>((set, get) => ({
   },
 
   closeForm: () => {
-    set({ isOpen: false, anchorRect: null })
+    set({
+      isOpen: false,
+      anchorRect: null,
+      name: '',
+      eventType: 'todo',
+      eventTagId: null,
+      eventTime: null,
+      repeating: null,
+      notifications: [],
+      place: '',
+      url: '',
+      memo: '',
+      saving: false,
+      error: null,
+    })
   },
 
   setEventType: (type) => {
     const { eventTime } = get()
     if (type === 'schedule' && !eventTime) {
-      set({
-        eventType: type,
-        eventTime: { time_type: 'at', timestamp: selectedDateTimestamp() },
-      })
+      const selectedDate = useUiStore.getState().selectedDate
+      const ts = selectedDate
+        ? Math.floor(selectedDate.getTime() / 1000)
+        : Math.floor(Date.now() / 1000)
+      set({ eventType: type, eventTime: { time_type: 'at', timestamp: ts } })
     } else {
       set({ eventType: type })
     }
@@ -153,7 +160,7 @@ export const useEventFormStore = create<EventFormState>((set, get) => ({
 
   save: async () => {
     const state = get()
-    if (!canSave(state)) return
+    if (!canSave(state) || state.saving) return
 
     set({ saving: true, error: null })
     try {

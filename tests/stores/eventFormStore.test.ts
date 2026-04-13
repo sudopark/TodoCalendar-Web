@@ -154,6 +154,28 @@ describe('eventFormStore', () => {
       // then
       expect(useEventFormStore.getState().isOpen).toBe(false)
     })
+
+    it('closeForm 호출 시 모든 폼 필드가 초기화된다', async () => {
+      // given
+      const { useEventFormStore } = await import('../../src/stores/eventFormStore')
+      useEventFormStore.getState().openForm(makeAnchorRect())
+      useEventFormStore.getState().setName('test event')
+      useEventFormStore.getState().setPlace('서울')
+      useEventFormStore.getState().setUrl('https://example.com')
+      useEventFormStore.getState().setMemo('메모')
+
+      // when
+      useEventFormStore.getState().closeForm()
+
+      // then
+      const state = useEventFormStore.getState()
+      expect(state.isOpen).toBe(false)
+      expect(state.name).toBe('')
+      expect(state.place).toBe('')
+      expect(state.url).toBe('')
+      expect(state.memo).toBe('')
+      expect(state.error).toBeNull()
+    })
   })
 
   // MARK: - setEventType
@@ -517,6 +539,25 @@ describe('eventFormStore', () => {
 
       // then: 폼이 닫힘
       expect(useEventFormStore.getState().isOpen).toBe(false)
+    })
+  })
+
+  // MARK: - save concurrent
+
+  describe('save concurrent', () => {
+    it('이미 저장 중이면 중복 저장 요청을 무시한다', async () => {
+      // given
+      const { useEventFormStore } = await import('../../src/stores/eventFormStore')
+      useEventFormStore.getState().openForm(null)
+      useEventFormStore.getState().setName('test')
+      useEventFormStore.setState({ saving: true })
+
+      // when
+      await useEventFormStore.getState().save()
+
+      // then: 폼이 여전히 열려있고 에러 없음 (저장이 실행되지 않았으므로)
+      expect(useEventFormStore.getState().isOpen).toBe(true)
+      expect(useEventFormStore.getState().error).toBeNull()
     })
   })
 
