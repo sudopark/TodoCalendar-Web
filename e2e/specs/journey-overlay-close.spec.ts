@@ -41,7 +41,7 @@ async function setupBasicMocks(page: Parameters<Parameters<typeof test>[1]>[0]) 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test 1: FAB → Todo 폼 → 취소 버튼 → 오버레이 닫힘, 메인 페이지, URL은 /
 // ─────────────────────────────────────────────────────────────────────────────
-test('Todo 폼에서 취소 버튼을 클릭하면 오버레이가 닫히고 메인 페이지가 표시된다', async ({ page }) => {
+test('Todo 팝오버에서 백드롭을 클릭하면 팝오버가 닫히고 메인 페이지가 표시된다', async ({ page }) => {
   // given
   await setupBasicMocks(page)
   await page.goto('/')
@@ -50,37 +50,35 @@ test('Todo 폼에서 취소 버튼을 클릭하면 오버레이가 닫히고 메
   // when — FAB → Todo
   await page.getByTestId('create-event-button').click()
   await page.getByRole('button', { name: 'Todo', exact: true }).click()
-  await expect(page).toHaveURL(/\/todos\/new/)
-  await expect(page.getByRole('heading', { name: '새 Todo' })).toBeVisible()
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
+  await expect(page.getByRole('button', { name: '저장' })).toBeVisible()
 
-  // 취소 버튼 클릭
-  await page.getByRole('button', { name: '취소' }).click()
+  // 백드롭 클릭 — 카드에 가려지지 않는 좌상단 모서리를 클릭
+  await page.getByTestId('event-form-backdrop').click({ position: { x: 10, y: 10 } })
 
-  // then — 오버레이가 닫히고 메인 페이지가 표시되어야 한다
-  await expect(page).toHaveURL('/')
-  await expect(page.getByRole('heading', { name: '새 Todo' })).not.toBeVisible()
+  // then — 팝오버가 닫히고 메인 페이지가 표시되어야 한다
+  await expect(page.getByTestId('event-form-backdrop')).not.toBeVisible()
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test 2: FAB → Todo 폼 → 어두운 백드롭 클릭 → 오버레이 닫힘
 // ─────────────────────────────────────────────────────────────────────────────
-test('Todo 폼 뒤의 백드롭을 클릭하면 오버레이가 닫히고 메인 페이지로 돌아간다', async ({ page }) => {
+test('Schedule 팝오버에서 백드롭을 클릭하면 팝오버가 닫히고 메인 페이지로 돌아간다', async ({ page }) => {
   // given
   await setupBasicMocks(page)
   await page.goto('/')
   await page.waitForLoadState('networkidle')
 
-  // when — FAB → Todo (background state로 오버레이 렌더)
+  // when — FAB → Schedule
   await page.getByTestId('create-event-button').click()
-  await page.getByRole('button', { name: 'Todo', exact: true }).click()
-  await expect(page).toHaveURL(/\/todos\/new/)
+  await page.getByRole('button', { name: 'Schedule', exact: true }).click()
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
 
-  // 백드롭 영역 클릭 — data-testid로 백드롭 div를 정확히 타겟
-  await page.getByTestId('overlay-backdrop').click()
+  // 백드롭 영역 클릭 — 카드에 가려지지 않는 좌상단 모서리를 클릭
+  await page.getByTestId('event-form-backdrop').click({ position: { x: 10, y: 10 } })
 
-  // then — 오버레이가 닫히고 메인 페이지 URL로 복귀한다
-  await expect(page).toHaveURL('/')
-  await expect(page.getByRole('heading', { name: '새 Todo' })).not.toBeVisible()
+  // then — 팝오버가 닫힌다
+  await expect(page.getByTestId('event-form-backdrop')).not.toBeVisible()
 })
 
 // ─────────────────────────────────────────────────────────────────────────────

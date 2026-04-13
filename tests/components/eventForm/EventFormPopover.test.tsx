@@ -116,7 +116,7 @@ describe('EventFormPopover', () => {
     render(<EventFormPopover />)
 
     // then
-    expect(screen.getByPlaceholderText('이름')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('이벤트 이름 추가')).toBeInTheDocument()
   })
 
   it('저장 버튼이 표시된다', () => {

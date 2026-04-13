@@ -121,22 +121,23 @@ test('Todo 폼에서 "업무" 태그를 선택하고 저장하면 Current 목록
     }
   })
 
-  // when — 메인 → /todos/new
+  // when — 기본 태그를 "업무"로 설정 후, FAB → Todo → 팝오버에서 저장
+  await page.addInitScript(() => {
+    localStorage.setItem('event_defaults', JSON.stringify({ defaultTagId: 'tag-work-001' }))
+  })
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  await page.goto('/todos/new')
-  await expect(page.getByRole('heading', { name: '새 Todo' })).toBeVisible()
 
-  // 태그 "업무" 선택
-  await expect(page.getByRole('button', { name: '업무' })).toBeVisible()
-  await page.getByRole('button', { name: '업무' }).click()
+  await page.getByTestId('create-event-button').click()
+  await page.getByRole('button', { name: 'Todo', exact: true }).click()
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
 
   // 이름 입력 후 저장
-  await page.getByLabel('이름').fill('업무 태그 Todo')
+  await page.getByPlaceholder('이벤트 이름 추가').fill('업무 태그 Todo')
   await page.getByRole('button', { name: '저장' }).click()
 
-  // then — 메인으로 돌아가고 todo가 표시된다
-  await expect(page).not.toHaveURL(/\/todos\/new/)
+  // then — 저장 후 팝오버가 닫히고 todo가 표시된다
+  await expect(page.getByTestId('event-form-backdrop')).not.toBeVisible()
   await expect(page.getByText('업무 태그 Todo').first()).toBeVisible()
 
   // 색상 바가 todo 아이템에 있어야 한다 (rounded-full 클래스의 컬러바)
