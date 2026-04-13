@@ -192,15 +192,17 @@ describe('LeftSidebar', () => {
     expect(screen.getByTestId('sidebar-create-event')).toBeInTheDocument()
   })
 
-  it('이벤트 추가 버튼을 클릭하면 eventFormStore가 열린다', async () => {
+  it('이벤트 추가 버튼 클릭 후 Todo를 선택하면 eventFormStore가 열린다', async () => {
     // given: 사이드바 열림
     useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
-    // when
+    // when: 버튼 클릭 → 드롭다운 표시 → Todo 선택
     renderSidebar()
     await userEvent.click(screen.getByTestId('sidebar-create-event'))
+    await userEvent.click(screen.getByText('Todo'))
 
-    // then: eventFormStore의 isOpen이 true가 됨
+    // then: eventFormStore가 열리고 eventType이 todo
     expect(useEventFormStore.getState().isOpen).toBe(true)
+    expect(useEventFormStore.getState().eventType).toBe('todo')
   })
 })

@@ -3,6 +3,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { useEventFormStore } from '../../stores/eventFormStore'
 import type { EventTime } from '../../models'
+import { Clock } from 'lucide-react'
 
 // --- Conversion utils ---
 
@@ -72,19 +73,21 @@ export function EventTimePickerShadcn() {
     if (checked) {
       handleTypeChange('allday')
     } else {
-      // Convert allday → at using period_start
       const ts = eventTime?.time_type === 'allday' ? eventTime.period_start : now
       setEventTime({ time_type: 'at', timestamp: ts })
     }
   }
 
+  const inputClass = 'rounded-md border border-input bg-transparent px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring'
+
   return (
     <div className="space-y-3">
-      {/* Time type selector */}
+      {/* Row 1: Time type + allday toggle */}
       <div className="flex items-center gap-3">
+        <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
         <select
           aria-label="시간 유형"
-          className="rounded border border-input bg-transparent px-2 py-1 text-sm"
+          className={`${inputClass} min-w-0`}
           value={selectedType}
           onChange={e => handleTypeChange(e.target.value as TimeType)}
         >
@@ -96,32 +99,28 @@ export function EventTimePickerShadcn() {
           <option value="allday">{t('eventTime.allday')}</option>
         </select>
 
-        {/* 하루종일 checkbox — shown when a time is selected */}
         {selectedType !== 'none' && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Checkbox
               id="allday-toggle"
               checked={isAllDay}
               onCheckedChange={handleAllDayToggle}
             />
-            <Label htmlFor="allday-toggle" className="text-sm font-normal">
+            <Label htmlFor="allday-toggle" className="text-sm font-normal cursor-pointer">
               {t('eventTime.allday')}
             </Label>
           </div>
         )}
       </div>
 
-      {/* at: single datetime-local input */}
+      {/* Row 2: Date/time inputs - inline, Google Calendar style */}
       {selectedType === 'at' && eventTime?.time_type === 'at' && (
-        <div>
-          <label className="block text-xs text-muted-foreground" htmlFor="at-input">
-            {t('eventTime.time_label')}
-          </label>
+        <div className="pl-7">
           <input
             id="at-input"
             aria-label={t('eventTime.time_label')}
             type="datetime-local"
-            className="mt-1 rounded border border-input bg-transparent px-2 py-1 text-sm"
+            className={inputClass}
             value={tsToDatetimeLocal(eventTime.timestamp)}
             onChange={e => {
               const ts = datetimeLocalToTs(e.target.value)
@@ -132,87 +131,67 @@ export function EventTimePickerShadcn() {
         </div>
       )}
 
-      {/* period: start + end datetime-local inputs */}
       {selectedType === 'period' && eventTime?.time_type === 'period' && (
-        <div className="flex flex-wrap gap-3">
-          <div>
-            <label className="block text-xs text-muted-foreground" htmlFor="period-start">
-              {t('eventTime.start')}
-            </label>
-            <input
-              id="period-start"
-              aria-label={t('eventTime.start')}
-              type="datetime-local"
-              className="mt-1 rounded border border-input bg-transparent px-2 py-1 text-sm"
-              value={tsToDatetimeLocal(eventTime.period_start)}
-              onChange={e => {
-                const newStart = datetimeLocalToTs(e.target.value)
-                if (newStart === null || eventTime.time_type !== 'period') return
-                const newEnd = newStart > eventTime.period_end ? newStart : eventTime.period_end
-                setEventTime({ ...eventTime, period_start: newStart, period_end: newEnd })
-              }}
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-muted-foreground" htmlFor="period-end">
-              {t('eventTime.end')}
-            </label>
-            <input
-              id="period-end"
-              aria-label={t('eventTime.end')}
-              type="datetime-local"
-              className="mt-1 rounded border border-input bg-transparent px-2 py-1 text-sm"
-              value={tsToDatetimeLocal(eventTime.period_end)}
-              onChange={e => {
-                const newEnd = datetimeLocalToTs(e.target.value)
-                if (newEnd === null || eventTime.time_type !== 'period') return
-                if (newEnd < eventTime.period_start) return
-                setEventTime({ ...eventTime, period_end: newEnd })
-              }}
-            />
-          </div>
+        <div className="flex items-center gap-2 pl-7">
+          <input
+            id="period-start"
+            aria-label={t('eventTime.start')}
+            type="datetime-local"
+            className={`${inputClass} min-w-0 flex-1`}
+            value={tsToDatetimeLocal(eventTime.period_start)}
+            onChange={e => {
+              const newStart = datetimeLocalToTs(e.target.value)
+              if (newStart === null || eventTime.time_type !== 'period') return
+              const newEnd = newStart > eventTime.period_end ? newStart : eventTime.period_end
+              setEventTime({ ...eventTime, period_start: newStart, period_end: newEnd })
+            }}
+          />
+          <span className="text-muted-foreground text-sm shrink-0">~</span>
+          <input
+            id="period-end"
+            aria-label={t('eventTime.end')}
+            type="datetime-local"
+            className={`${inputClass} min-w-0 flex-1`}
+            value={tsToDatetimeLocal(eventTime.period_end)}
+            onChange={e => {
+              const newEnd = datetimeLocalToTs(e.target.value)
+              if (newEnd === null || eventTime.time_type !== 'period') return
+              if (newEnd < eventTime.period_start) return
+              setEventTime({ ...eventTime, period_end: newEnd })
+            }}
+          />
         </div>
       )}
 
-      {/* allday: start + end date inputs */}
       {selectedType === 'allday' && eventTime?.time_type === 'allday' && (
-        <div className="flex flex-wrap gap-3">
-          <div>
-            <label className="block text-xs text-muted-foreground" htmlFor="allday-start">
-              {t('eventTime.start_date')}
-            </label>
-            <input
-              id="allday-start"
-              aria-label={t('eventTime.start_date')}
-              type="date"
-              className="mt-1 rounded border border-input bg-transparent px-2 py-1 text-sm"
-              value={tsToDateInput(eventTime.period_start + eventTime.seconds_from_gmt)}
-              onChange={e => {
-                const ts = dateInputToTs(e.target.value)
-                if (ts === null || eventTime.time_type !== 'allday') return
-                setEventTime({ ...eventTime, period_start: ts - eventTime.seconds_from_gmt })
-              }}
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-muted-foreground" htmlFor="allday-end">
-              {t('eventTime.end_date')}
-            </label>
-            <input
-              id="allday-end"
-              aria-label={t('eventTime.end_date')}
-              type="date"
-              className="mt-1 rounded border border-input bg-transparent px-2 py-1 text-sm"
-              value={tsToDateInput(eventTime.period_end + eventTime.seconds_from_gmt)}
-              onChange={e => {
-                const ts = dateInputToTs(e.target.value)
-                if (ts === null || eventTime.time_type !== 'allday') return
-                const newEnd = ts - eventTime.seconds_from_gmt
-                if (newEnd < eventTime.period_start) return
-                setEventTime({ ...eventTime, period_end: newEnd })
-              }}
-            />
-          </div>
+        <div className="flex items-center gap-2 pl-7">
+          <input
+            id="allday-start"
+            aria-label={t('eventTime.start_date')}
+            type="date"
+            className={`${inputClass} min-w-0 flex-1`}
+            value={tsToDateInput(eventTime.period_start + eventTime.seconds_from_gmt)}
+            onChange={e => {
+              const ts = dateInputToTs(e.target.value)
+              if (ts === null || eventTime.time_type !== 'allday') return
+              setEventTime({ ...eventTime, period_start: ts - eventTime.seconds_from_gmt })
+            }}
+          />
+          <span className="text-muted-foreground text-sm shrink-0">~</span>
+          <input
+            id="allday-end"
+            aria-label={t('eventTime.end_date')}
+            type="date"
+            className={`${inputClass} min-w-0 flex-1`}
+            value={tsToDateInput(eventTime.period_end + eventTime.seconds_from_gmt)}
+            onChange={e => {
+              const ts = dateInputToTs(e.target.value)
+              if (ts === null || eventTime.time_type !== 'allday') return
+              const newEnd = ts - eventTime.seconds_from_gmt
+              if (newEnd < eventTime.period_start) return
+              setEventTime({ ...eventTime, period_end: newEnd })
+            }}
+          />
         </div>
       )}
     </div>
