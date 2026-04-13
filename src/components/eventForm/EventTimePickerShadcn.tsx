@@ -132,66 +132,76 @@ export function EventTimePickerShadcn() {
       )}
 
       {selectedType === 'period' && eventTime?.time_type === 'period' && (
-        <div className="flex items-center gap-2 pl-7">
-          <input
-            id="period-start"
-            aria-label={t('eventTime.start')}
-            type="datetime-local"
-            className={`${inputClass} min-w-0 flex-1`}
-            value={tsToDatetimeLocal(eventTime.period_start)}
-            onChange={e => {
-              const newStart = datetimeLocalToTs(e.target.value)
-              if (newStart === null || eventTime.time_type !== 'period') return
-              const newEnd = newStart > eventTime.period_end ? newStart : eventTime.period_end
-              setEventTime({ ...eventTime, period_start: newStart, period_end: newEnd })
-            }}
-          />
-          <span className="text-muted-foreground text-sm shrink-0">~</span>
-          <input
-            id="period-end"
-            aria-label={t('eventTime.end')}
-            type="datetime-local"
-            className={`${inputClass} min-w-0 flex-1`}
-            value={tsToDatetimeLocal(eventTime.period_end)}
-            onChange={e => {
-              const newEnd = datetimeLocalToTs(e.target.value)
-              if (newEnd === null || eventTime.time_type !== 'period') return
-              if (newEnd < eventTime.period_start) return
-              setEventTime({ ...eventTime, period_end: newEnd })
-            }}
-          />
+        <div className="space-y-2 pl-7">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground w-8 shrink-0">{t('eventTime.start')}</span>
+            <input
+              id="period-start"
+              aria-label={t('eventTime.start')}
+              type="datetime-local"
+              className={inputClass}
+              value={tsToDatetimeLocal(eventTime.period_start)}
+              onChange={e => {
+                const newStart = datetimeLocalToTs(e.target.value)
+                if (newStart === null || eventTime.time_type !== 'period') return
+                const newEnd = newStart > eventTime.period_end ? newStart : eventTime.period_end
+                setEventTime({ ...eventTime, period_start: newStart, period_end: newEnd })
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground w-8 shrink-0">{t('eventTime.end')}</span>
+            <input
+              id="period-end"
+              aria-label={t('eventTime.end')}
+              type="datetime-local"
+              className={inputClass}
+              value={tsToDatetimeLocal(eventTime.period_end)}
+              onChange={e => {
+                const newEnd = datetimeLocalToTs(e.target.value)
+                if (newEnd === null || eventTime.time_type !== 'period') return
+                if (newEnd < eventTime.period_start) return
+                setEventTime({ ...eventTime, period_end: newEnd })
+              }}
+            />
+          </div>
         </div>
       )}
 
       {selectedType === 'allday' && eventTime?.time_type === 'allday' && (
-        <div className="flex items-center gap-2 pl-7">
-          <input
-            id="allday-start"
-            aria-label={t('eventTime.start_date')}
-            type="date"
-            className={`${inputClass} min-w-0 flex-1`}
-            value={tsToDateInput(eventTime.period_start + eventTime.seconds_from_gmt)}
-            onChange={e => {
-              const ts = dateInputToTs(e.target.value)
-              if (ts === null || eventTime.time_type !== 'allday') return
-              setEventTime({ ...eventTime, period_start: ts - eventTime.seconds_from_gmt })
-            }}
-          />
-          <span className="text-muted-foreground text-sm shrink-0">~</span>
-          <input
-            id="allday-end"
-            aria-label={t('eventTime.end_date')}
-            type="date"
-            className={`${inputClass} min-w-0 flex-1`}
-            value={tsToDateInput(eventTime.period_end + eventTime.seconds_from_gmt)}
-            onChange={e => {
-              const ts = dateInputToTs(e.target.value)
-              if (ts === null || eventTime.time_type !== 'allday') return
-              const newEnd = ts - eventTime.seconds_from_gmt
-              if (newEnd < eventTime.period_start) return
-              setEventTime({ ...eventTime, period_end: newEnd })
-            }}
-          />
+        <div className="space-y-2 pl-7">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground w-8 shrink-0">{t('eventTime.start')}</span>
+            <input
+              id="allday-start"
+              aria-label={t('eventTime.start_date')}
+              type="date"
+              className={inputClass}
+              value={tsToDateInput(eventTime.period_start + eventTime.seconds_from_gmt)}
+              onChange={e => {
+                const ts = dateInputToTs(e.target.value)
+                if (ts === null || eventTime.time_type !== 'allday') return
+                setEventTime({ ...eventTime, period_start: ts - eventTime.seconds_from_gmt })
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground w-8 shrink-0">{t('eventTime.end')}</span>
+            <input
+              id="allday-end"
+              aria-label={t('eventTime.end_date')}
+              type="date"
+              className={inputClass}
+              value={tsToDateInput(eventTime.period_end + eventTime.seconds_from_gmt)}
+              onChange={e => {
+                const ts = dateInputToTs(e.target.value)
+                if (ts === null || eventTime.time_type !== 'allday') return
+                const newEnd = ts - eventTime.seconds_from_gmt
+                if (newEnd < eventTime.period_start) return
+                setEventTime({ ...eventTime, period_end: newEnd })
+              }}
+            />
+          </div>
         </div>
       )}
     </div>
