@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import LeftSidebar from '../../src/components/LeftSidebar'
 import { useUiStore } from '../../src/stores/uiStore'
 import { useHolidayStore } from '../../src/stores/holidayStore'
+import { useEventFormStore } from '../../src/stores/eventFormStore'
 
 vi.mock('../../src/firebase', () => ({
   auth: {},
@@ -14,12 +15,6 @@ vi.mock('../../src/firebase', () => ({
 vi.mock('../../src/api/holidayApi', () => ({
   holidayApi: { getHolidays: async () => ({ items: [] }) },
 }))
-
-const mockNavigate = vi.fn()
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
-  return { ...actual, useNavigate: () => mockNavigate }
-})
 
 function renderSidebar() {
   return render(
@@ -32,6 +27,7 @@ function renderSidebar() {
 describe('LeftSidebar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    useEventFormStore.getState().closeForm()
   })
 
   it('사이드바가 열려 있을 때 w-64 클래스가 적용된다', () => {
@@ -196,7 +192,7 @@ describe('LeftSidebar', () => {
     expect(screen.getByTestId('sidebar-create-event')).toBeInTheDocument()
   })
 
-  it('이벤트 추가 버튼을 클릭하면 TypeSelectorPopup이 나타난다', async () => {
+  it('이벤트 추가 버튼을 클릭하면 eventFormStore가 열린다', async () => {
     // given: 사이드바 열림
     useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
@@ -204,34 +200,7 @@ describe('LeftSidebar', () => {
     renderSidebar()
     await userEvent.click(screen.getByTestId('sidebar-create-event'))
 
-    // then: Todo / Schedule 선택 팝업이 표시됨
-    expect(screen.getByText('Todo')).toBeInTheDocument()
-    expect(screen.getByText('Schedule')).toBeInTheDocument()
-  })
-
-  it('TypeSelectorPopup에서 Todo를 선택하면 /todos/new로 이동한다', async () => {
-    // given: 사이드바 열림
-    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
-
-    // when
-    renderSidebar()
-    await userEvent.click(screen.getByTestId('sidebar-create-event'))
-    await userEvent.click(screen.getByText('Todo'))
-
-    // then: /todos/new 경로로 navigate
-    expect(mockNavigate.mock.calls[0][0]).toBe('/todos/new')
-  })
-
-  it('TypeSelectorPopup에서 Schedule을 선택하면 /schedules/new로 이동한다', async () => {
-    // given: 사이드바 열림
-    useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
-
-    // when
-    renderSidebar()
-    await userEvent.click(screen.getByTestId('sidebar-create-event'))
-    await userEvent.click(screen.getByText('Schedule'))
-
-    // then: /schedules/new 경로로 navigate
-    expect(mockNavigate.mock.calls[0][0]).toBe('/schedules/new')
+    // then: eventFormStore의 isOpen이 true가 됨
+    expect(useEventFormStore.getState().isOpen).toBe(true)
   })
 })

@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DayButton } from 'react-day-picker'
 import { useUiStore } from '../stores/uiStore'
 import { useHolidayStore } from '../stores/holidayStore'
+import { useEventFormStore } from '../stores/eventFormStore'
 import { Calendar } from '@/components/ui/calendar'
 import CalendarList from './CalendarList'
-import { TypeSelectorPopup } from './TypeSelectorPopup'
 import { formatDateKey } from '../utils/eventTimeUtils'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
@@ -77,9 +76,8 @@ function MiniCalendarDayButton({
 
 export default function LeftSidebar() {
   const { t } = useTranslation()
-  const [showCreatePopup, setShowCreatePopup] = useState(false)
-  const navigate = useNavigate()
-  const location = useLocation()
+  const createButtonRef = useRef<HTMLButtonElement>(null)
+  const openForm = useEventFormStore(s => s.openForm)
   const sidebarOpen = useUiStore(s => s.sidebarOpen)
   const sidebarMonth = useUiStore(s => s.sidebarMonth)
   const selectedDate = useUiStore(s => s.selectedDate)
@@ -87,12 +85,6 @@ export default function LeftSidebar() {
   const setSidebarMonth = useUiStore(s => s.setSidebarMonth)
   const fetchHolidays = useHolidayStore(s => s.fetchHolidays)
   const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
-
-  function handleCreateSelect(type: 'todo' | 'schedule') {
-    setShowCreatePopup(false)
-    const path = type === 'todo' ? '/todos/new' : '/schedules/new'
-    navigate(path, { state: { background: location } })
-  }
 
   // 월 변경 시 해당 연도 공휴일 로드 (이전·다음 달 경계 연도 포함)
   useEffect(() => {
@@ -121,9 +113,13 @@ export default function LeftSidebar() {
           {/* 이벤트 추가 버튼 */}
           <div className="mb-2 relative flex">
             <button
+              ref={createButtonRef}
               data-testid="sidebar-create-event"
               className="inline-flex items-center gap-1.5 rounded-full bg-white border border-gray-200 px-4 py-2 shadow-sm hover:shadow transition-shadow"
-              onClick={() => setShowCreatePopup(true)}
+              onClick={() => {
+                const rect = createButtonRef.current?.getBoundingClientRect() ?? null
+                openForm(rect)
+              }}
             >
               <svg className="h-4 w-4 text-[#323232]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -133,13 +129,6 @@ export default function LeftSidebar() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            {showCreatePopup && (
-              <TypeSelectorPopup
-                onSelect={handleCreateSelect}
-                onClose={() => setShowCreatePopup(false)}
-                positionClassName="absolute top-full left-0 mt-1 w-full"
-              />
-            )}
           </div>
           <div>
             <div className="p-3">

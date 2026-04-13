@@ -41,9 +41,7 @@ function AppRoutes() {
                 <Routes>
                   <Route path="/" element={<MainPage />} />
                   <Route path="/events/:id" element={<EventDetailPage />} />
-                  <Route path="/todos/new" element={<TodoFormPage />} />
                   <Route path="/todos/:id/edit" element={<TodoFormPage />} />
-                  <Route path="/schedules/new" element={<ScheduleFormPage />} />
                   <Route path="/schedules/:id/edit" element={<ScheduleFormPage />} />
                   <Route path="/tags" element={<TagManagementPage />} />
                   <Route path="/done" element={<DoneTodosPage />} />
@@ -74,9 +72,7 @@ function AppRoutes() {
               <Routes>
                 {[
                   ['/events/:id', <EventDetailPage />],
-                  ['/todos/new', <TodoFormPage />],
                   ['/todos/:id/edit', <TodoFormPage />],
-                  ['/schedules/new', <ScheduleFormPage />],
                   ['/schedules/:id/edit', <ScheduleFormPage />],
                   ['/tags', <TagManagementPage />],
                 ].map(([path, element]) => (
