@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { NotificationPickerDropdown } from './NotificationPickerDropdown'
 import { useEventFormStore } from '../../stores/eventFormStore'
 import { useEventTagStore, DEFAULT_TAG_ID } from '../../stores/eventTagStore'
+import { Tag, Bell } from 'lucide-react'
 
 export function EventFormMiddleSection() {
   const { t } = useTranslation()
@@ -19,16 +20,22 @@ export function EventFormMiddleSection() {
   return (
     <div className="space-y-3">
       {/* Tag display (read-only) */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span
-          className="inline-block w-3 h-3 rounded-full shrink-0"
-          style={{ backgroundColor: tagColor }}
-        />
-        <span>{tagName}</span>
+      <div className="flex items-center gap-3">
+        <Tag className="w-4 h-4 text-muted-foreground shrink-0" />
+        <div className="flex items-center gap-2 text-sm">
+          <span
+            className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+            style={{ backgroundColor: tagColor }}
+          />
+          <span>{tagName}</span>
+        </div>
       </div>
 
-      {/* Notification picker */}
-      <NotificationPickerDropdown />
+      {/* Notification picker - aligned with tag */}
+      <div className="flex items-center gap-3">
+        <Bell className="w-4 h-4 text-muted-foreground shrink-0" />
+        <NotificationPickerDropdown />
+      </div>
     </div>
   )
 }

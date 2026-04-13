@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import { Input } from '@/components/ui/input'
 import { EventTypeToggle } from './EventTypeToggle'
 import { EventTimePickerShadcn } from './EventTimePickerShadcn'
 import { DDayBadge } from './DDayBadge'
@@ -18,15 +17,16 @@ export function EventFormTopSection() {
     : '#4A90D9'
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Name input with tag color bar */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <div
-          className="w-1 self-stretch rounded-full shrink-0"
-          style={{ backgroundColor: tagColor }}
+          className="w-1 rounded-full shrink-0"
+          style={{ backgroundColor: tagColor, height: '28px' }}
         />
-        <Input
-          placeholder={t('event.name', '이름')}
+        <input
+          className="flex-1 text-base font-medium bg-transparent outline-none placeholder:text-muted-foreground"
+          placeholder={t('event.name', '이벤트 이름 추가')}
           value={name}
           onChange={e => setName(e.target.value)}
           autoFocus

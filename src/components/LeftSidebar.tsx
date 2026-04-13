@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DayButton } from 'react-day-picker'
 import { useUiStore } from '../stores/uiStore'
@@ -76,8 +76,10 @@ function MiniCalendarDayButton({
 
 export default function LeftSidebar() {
   const { t } = useTranslation()
+  const [showCreateMenu, setShowCreateMenu] = useState(false)
   const createButtonRef = useRef<HTMLButtonElement>(null)
   const openForm = useEventFormStore(s => s.openForm)
+  const setEventType = useEventFormStore(s => s.setEventType)
   const sidebarOpen = useUiStore(s => s.sidebarOpen)
   const sidebarMonth = useUiStore(s => s.sidebarMonth)
   const selectedDate = useUiStore(s => s.selectedDate)
@@ -110,16 +112,13 @@ export default function LeftSidebar() {
     >
       <div className="flex-1 overflow-y-auto flex flex-col">
         <div className="px-3 pt-4">
-          {/* 이벤트 추가 버튼 */}
+          {/* 이벤트 추가 버튼 + 타입 선택 드롭다운 */}
           <div className="mb-2 relative flex">
             <button
               ref={createButtonRef}
               data-testid="sidebar-create-event"
               className="inline-flex items-center gap-1.5 rounded-full bg-white border border-gray-200 px-4 py-2 shadow-sm hover:shadow transition-shadow"
-              onClick={() => {
-                const rect = createButtonRef.current?.getBoundingClientRect() ?? null
-                openForm(rect)
-              }}
+              onClick={() => setShowCreateMenu(!showCreateMenu)}
             >
               <svg className="h-4 w-4 text-[#323232]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -129,6 +128,36 @@ export default function LeftSidebar() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
+            {showCreateMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowCreateMenu(false)} />
+                <div className="absolute top-full left-0 mt-1 z-50 w-full overflow-hidden rounded-xl bg-white shadow-xl">
+                  <button
+                    className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50"
+                    onClick={() => {
+                      setShowCreateMenu(false)
+                      const rect = createButtonRef.current?.getBoundingClientRect() ?? null
+                      openForm(rect)
+                      setEventType('todo')
+                    }}
+                  >
+                    Todo
+                  </button>
+                  <div className="border-t border-gray-100" />
+                  <button
+                    className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50"
+                    onClick={() => {
+                      setShowCreateMenu(false)
+                      const rect = createButtonRef.current?.getBoundingClientRect() ?? null
+                      openForm(rect)
+                      setEventType('schedule')
+                    }}
+                  >
+                    Schedule
+                  </button>
+                </div>
+              </>
+            )}
           </div>
           <div>
             <div className="p-3">

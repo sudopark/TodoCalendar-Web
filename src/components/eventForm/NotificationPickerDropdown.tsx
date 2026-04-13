@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bell } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
@@ -119,7 +118,6 @@ export function NotificationPickerDropdown() {
           />
         }
       >
-        <Bell className="size-3.5" />
         {triggerLabel}
       </PopoverTrigger>
 
