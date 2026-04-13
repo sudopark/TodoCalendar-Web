@@ -61,7 +61,7 @@ test('FAB(+) 버튼 클릭 시 TypeSelectorPopup에 Todo와 Schedule 옵션이 �
   await expect(page.getByRole('button', { name: 'Schedule', exact: true })).toBeVisible()
 })
 
-test('팝업에서 Todo 클릭 시 /todos/new 페이지로 이동한다', async ({ page }) => {
+test('팝업에서 Todo 클릭 시 이벤트 생성 팝오버가 열린다', async ({ page }) => {
   // given
   await page.goto('/')
   await page.waitForLoadState('networkidle')
@@ -71,11 +71,12 @@ test('팝업에서 Todo 클릭 시 /todos/new 페이지로 이동한다', async 
   // when
   await page.getByRole('button', { name: 'Todo', exact: true }).click()
 
-  // then
-  await expect(page).toHaveURL(/\/todos\/new/)
+  // then — 팝오버가 열리고 저장 버튼이 표시된다
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
+  await expect(page.getByRole('button', { name: '저장' })).toBeVisible()
 })
 
-test('팝업에서 Schedule 클릭 시 /schedules/new 페이지로 이동한다', async ({ page }) => {
+test('팝업에서 Schedule 클릭 시 이벤트 생성 팝오버가 열린다', async ({ page }) => {
   // given
   await page.goto('/')
   await page.waitForLoadState('networkidle')
@@ -85,6 +86,7 @@ test('팝업에서 Schedule 클릭 시 /schedules/new 페이지로 이동한다'
   // when
   await page.getByRole('button', { name: 'Schedule', exact: true }).click()
 
-  // then
-  await expect(page).toHaveURL(/\/schedules\/new/)
+  // then — 팝오버가 열리고 저장 버튼이 표시된다
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
+  await expect(page.getByRole('button', { name: '저장' })).toBeVisible()
 })

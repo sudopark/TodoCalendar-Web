@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useEventFormStore } from '../stores/eventFormStore'
 
 export function useKeyboardShortcuts() {
   const navigate = useNavigate()
@@ -14,11 +15,14 @@ export function useKeyboardShortcuts() {
       if (target.closest('[role="dialog"]') || target.closest('.fixed')) return
 
       switch (e.key) {
-        case 'n':
-          // New event (Todo by default)
-          if (location.state?.background) return  // 이미 모달 열림
-          navigate('/todos/new', { state: { background: location } })
+        case 'n': {
+          // New event (Todo by default) — open popover instead of navigating
+          const formStore = useEventFormStore.getState()
+          if (formStore.isOpen) return  // 이미 폼 열림
+          formStore.openForm(null)
+          formStore.setEventType('todo')
           break
+        }
         case 'Escape':
           // Close overlay/modal
           if (location.state?.background) navigate(-1)

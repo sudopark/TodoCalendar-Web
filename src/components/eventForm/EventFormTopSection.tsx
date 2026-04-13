@@ -26,7 +26,7 @@ export function EventFormTopSection() {
         />
         <input
           className="flex-1 text-base font-medium bg-transparent outline-none placeholder:text-muted-foreground"
-          placeholder={t('event.name', '이벤트 이름 추가')}
+          placeholder={t('event.namePlaceholder', '이벤트 이름 추가')}
           value={name}
           onChange={e => setName(e.target.value)}
           autoFocus

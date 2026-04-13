@@ -18,6 +18,7 @@
   "todo.skip": "Skip",
   "todo.revert": "Revert",
   "event.name": "Name",
+  "event.namePlaceholder": "Add event name",
   "event.tag": "Tag",
   "event.time": "Time",
   "event.repeat": "Repeat",

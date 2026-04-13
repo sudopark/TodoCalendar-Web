@@ -5,61 +5,79 @@ test.beforeEach(async ({ context }) => {
   await setupAuthContext(context)
 })
 
-test('새 Todo 폼 진입 시 이름 입력과 저장 버튼이 표시된다', async ({ page }) => {
+test('이벤트 생성 팝오버에서 이름 입력과 저장 버튼이 표시된다', async ({ page }) => {
   // given
   await page.goto('/')
   await page.waitForLoadState('networkidle')
 
-  // when
-  await page.goto('/todos/new')
+  // when — FAB → Todo 선택으로 팝오버 열기
+  await page.getByTestId('create-event-button').click()
+  await page.getByRole('button', { name: 'Todo', exact: true }).click()
 
   // then
-  await expect(page.getByRole('heading', { name: '새 Todo' })).toBeVisible()
-  await expect(page.getByLabel('이름')).toBeVisible()
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
+  await expect(page.getByPlaceholder('이벤트 이름 추가')).toBeVisible()
   await expect(page.getByRole('button', { name: '저장' })).toBeVisible()
-  await expect(page.getByRole('button', { name: '취소' })).toBeVisible()
 })
 
-test('Todo 이름을 입력하고 저장하면 이전 페이지로 돌아간다', async ({ page }) => {
+test('Todo 이름을 입력하고 저장하면 팝오버가 닫힌다', async ({ page }) => {
   // given
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  await page.goto('/todos/new')
-  await expect(page.getByLabel('이름')).toBeVisible()
+
+  await page.route('**/v1/todos/todo', async route => {
+    if (route.request().method() === 'POST') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          uuid: 'test-todo-id',
+          name: 'E2E 테스트 할 일',
+          is_current: true,
+        }),
+      })
+    } else {
+      await route.continue()
+    }
+  })
+
+  await page.getByTestId('create-event-button').click()
+  await page.getByRole('button', { name: 'Todo', exact: true }).click()
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
 
   // when
-  await page.getByLabel('이름').fill('E2E 테스트 할 일')
+  await page.getByPlaceholder('이벤트 이름 추가').fill('E2E 테스트 할 일')
   await page.getByRole('button', { name: '저장' }).click()
 
-  // then — 저장 후 폼 페이지를 벗어난다 (메인 또는 히스토리 백)
-  await expect(page).not.toHaveURL('/todos/new')
+  // then — 저장 후 팝오버가 닫힌다
+  await expect(page.getByTestId('event-form-backdrop')).not.toBeVisible()
 })
 
-test('이름 없이 저장하면 폼이 그대로 유지된다', async ({ page }) => {
+test('이름 없이 저장 버튼은 비활성화된다', async ({ page }) => {
   // given
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  await page.goto('/todos/new')
+  await page.getByTestId('create-event-button').click()
+  await page.getByRole('button', { name: 'Todo', exact: true }).click()
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
 
-  // when — 이름을 입력하지 않고 저장
-  await page.getByRole('button', { name: '저장' }).click()
-
-  // then — 폼이 떠있어야 한다
-  await expect(page).toHaveURL(/\/todos\/new/)
-  await expect(page.getByRole('heading', { name: '새 Todo' })).toBeVisible()
+  // then — 이름이 비어있으면 저장 버튼이 비활성화 상태이다
+  await expect(page.getByRole('button', { name: '저장' })).toBeDisabled()
 })
 
-test('취소 버튼을 누르면 이전 페이지로 돌아간다', async ({ page }) => {
+test('백드롭 클릭 시 팝오버가 닫힌다', async ({ page }) => {
   // given
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  await page.goto('/todos/new')
+  await page.getByTestId('create-event-button').click()
+  await page.getByRole('button', { name: 'Todo', exact: true }).click()
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
 
-  // when
-  await page.getByRole('button', { name: '취소' }).click()
+  // when — 카드에 가려지지 않는 좌상단 모서리를 클릭
+  await page.getByTestId('event-form-backdrop').click({ position: { x: 10, y: 10 } })
 
   // then
-  await expect(page).not.toHaveURL('/todos/new')
+  await expect(page.getByTestId('event-form-backdrop')).not.toBeVisible()
 })
 
 test('Todo 수정 폼 진입 시 "Todo 수정" 제목이 표시된다', async ({ page }) => {

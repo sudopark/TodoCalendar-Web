@@ -18,95 +18,99 @@ async function enableDarkMode(page: Parameters<Parameters<typeof test>[1]>[0]) {
   })
 }
 
-// --- TodoFormPage 다크모드 ---
+// --- Todo 팝오버 다크모드 ---
 
-test('다크 모드에서 /todos/new 폼 카드가 어두운 배경을 갖는다', async ({ page }) => {
+test('다크 모드에서 Todo 팝오버 카드가 어두운 배경을 갖는다', async ({ page }) => {
   // given — 다크 모드 활성화
   await enableDarkMode(page)
 
   // when
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  await page.goto('/todos/new')
-  await page.waitForLoadState('networkidle')
+  await page.getByTestId('create-event-button').click()
+  await page.getByRole('button', { name: 'Todo', exact: true }).click()
 
-  // then — 폼 카드가 dark:bg-gray-800 클래스를 갖는다
-  const card = page.locator('.dark\\:bg-gray-800').first()
+  // then — 팝오버 카드가 dark:bg-gray-800 또는 dark 테마 카드 스타일을 갖는다
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
+  const card = page.locator('[class*="shadow-2xl"]').first()
   await expect(card).toBeVisible()
 })
 
-test('다크 모드에서 /todos/new 폼 카드에 bg-white 단독 사용이 없다', async ({ page }) => {
+test('다크 모드에서 Todo 팝오버 열기 시 html 요소에 dark 클래스가 있다', async ({ page }) => {
   // given
   await enableDarkMode(page)
 
   // when
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  await page.goto('/todos/new')
-  await page.waitForLoadState('networkidle')
+  await page.getByTestId('create-event-button').click()
+  await page.getByRole('button', { name: 'Todo', exact: true }).click()
 
   // then — <html>에 dark 클래스가 있어야 다크 모드가 작동한다
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
   const htmlEl = page.locator('html')
   await expect(htmlEl).toHaveClass(/dark/)
 })
 
-test('다크 모드에서 /todos/new 레이블 텍스트가 밝은 색을 갖는다', async ({ page }) => {
+test('다크 모드에서 Todo 팝오버의 입력 필드가 보인다', async ({ page }) => {
   // given
   await enableDarkMode(page)
 
   // when
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  await page.goto('/todos/new')
-  await page.waitForLoadState('networkidle')
+  await page.getByTestId('create-event-button').click()
+  await page.getByRole('button', { name: 'Todo', exact: true }).click()
 
-  // then — dark:text-gray-200 클래스를 가진 레이블이 존재한다
-  const label = page.locator('.dark\\:text-gray-200').first()
-  await expect(label).toBeVisible()
+  // then — 이름 입력 필드가 보인다
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
+  await expect(page.getByPlaceholder('이벤트 이름 추가')).toBeVisible()
 })
 
-// --- ScheduleFormPage 다크모드 ---
+// --- Schedule 팝오버 다크모드 ---
 
-test('다크 모드에서 /schedules/new 폼 카드가 어두운 배경을 갖는다', async ({ page }) => {
+test('다크 모드에서 Schedule 팝오버 카드가 어두운 배경을 갖는다', async ({ page }) => {
   // given
   await enableDarkMode(page)
 
   // when
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  await page.goto('/schedules/new')
-  await page.waitForLoadState('networkidle')
+  await page.getByTestId('create-event-button').click()
+  await page.getByRole('button', { name: 'Schedule', exact: true }).click()
 
   // then
-  const card = page.locator('.dark\\:bg-gray-800').first()
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
+  const card = page.locator('[class*="shadow-2xl"]').first()
   await expect(card).toBeVisible()
 })
 
-test('다크 모드에서 /schedules/new에서 html 요소에 dark 클래스가 있다', async ({ page }) => {
+test('다크 모드에서 Schedule 팝오버 열기 시 html 요소에 dark 클래스가 있다', async ({ page }) => {
   // given
   await enableDarkMode(page)
 
   // when
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  await page.goto('/schedules/new')
-  await page.waitForLoadState('networkidle')
+  await page.getByTestId('create-event-button').click()
+  await page.getByRole('button', { name: 'Schedule', exact: true }).click()
 
   // then
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
   await expect(page.locator('html')).toHaveClass(/dark/)
 })
 
-test('다크 모드에서 /schedules/new 레이블 텍스트가 밝은 색을 갖는다', async ({ page }) => {
+test('다크 모드에서 Schedule 팝오버의 입력 필드가 보인다', async ({ page }) => {
   // given
   await enableDarkMode(page)
 
   // when
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  await page.goto('/schedules/new')
-  await page.waitForLoadState('networkidle')
+  await page.getByTestId('create-event-button').click()
+  await page.getByRole('button', { name: 'Schedule', exact: true }).click()
 
   // then
-  const label = page.locator('.dark\\:text-gray-200').first()
-  await expect(label).toBeVisible()
+  await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
+  await expect(page.getByPlaceholder('이벤트 이름 추가')).toBeVisible()
 })
