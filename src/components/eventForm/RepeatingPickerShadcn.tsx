@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { useEventFormStore } from '../../stores/eventFormStore'
-import type { Repeating, RepeatingOption } from '../../models'
+import type { RepeatingOption } from '../../models'
 
 const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -133,7 +133,7 @@ export function RepeatingPickerShadcn() {
             <label className="block text-xs text-muted-foreground">{t('repeating.type')}</label>
             <Select
               value={option.optionType}
-              onValueChange={handleTypeChange}
+              onValueChange={(value) => { if (value) handleTypeChange(value) }}
             >
               <SelectTrigger className="mt-1" aria-label={t('repeating.type')}>
                 <SelectValue />
