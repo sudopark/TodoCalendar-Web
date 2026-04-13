@@ -2,6 +2,7 @@ import TopToolbar from '../components/TopToolbar'
 import LeftSidebar from '../components/LeftSidebar'
 import MainCalendar from '../calendar/MainCalendar'
 import { RightEventPanel } from '../components/RightEventPanel'
+import { EventFormPopover } from '../components/eventForm/EventFormPopover'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { useUiStore } from '../stores/uiStore'
 
@@ -27,6 +28,7 @@ export function MainPage() {
           </div>
         </div>
       </div>
+      <EventFormPopover />
     </div>
   )
 }
