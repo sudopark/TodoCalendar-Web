@@ -34,7 +34,10 @@ export function EventFormTopSection() {
       </div>
 
       {/* Event type toggle */}
-      <EventTypeToggle />
+      <div className="space-y-1.5">
+        <span className="text-xs text-muted-foreground">이벤트 유형</span>
+        <EventTypeToggle />
+      </div>
 
       {/* Time picker */}
       <EventTimePickerShadcn />

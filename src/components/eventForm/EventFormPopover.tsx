@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useEventFormStore, canSave } from '../../stores/eventFormStore'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { EventFormTopSection } from './EventFormTopSection'
 import { EventFormMiddleSection } from './EventFormMiddleSection'
 import { EventFormBottomSection } from './EventFormBottomSection'
@@ -104,16 +103,19 @@ export function EventFormPopover() {
         style={{ left: `${position.x}px`, top: `${position.y}px` }}
         onMouseDown={handleMouseDown}
       >
-        <Card className="w-[420px] shadow-2xl cursor-move">
-          <ScrollArea className="max-h-[70vh]">
-            <CardContent className="px-5 pt-5 pb-2 space-y-6">
+        <Card className="w-[420px] shadow-2xl cursor-move flex flex-col max-h-[80vh]">
+          <div
+            className="flex-1 overflow-y-auto min-h-0 overscroll-contain"
+            onWheel={e => e.stopPropagation()}
+          >
+            <CardContent className="px-5 pt-5 pb-6 space-y-10">
               <EventFormTopSection />
               <EventFormMiddleSection />
               <EventFormBottomSection />
               {error && <p className="text-sm text-destructive">{error}</p>}
             </CardContent>
-          </ScrollArea>
-          <CardFooter className="px-5 pb-5 pt-2">
+          </div>
+          <CardFooter className="px-5 py-4 border-t bg-card shrink-0">
             <Button
               className="w-full"
               disabled={!isSavable || saving}
