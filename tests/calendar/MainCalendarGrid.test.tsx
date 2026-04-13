@@ -151,7 +151,7 @@ describe('MainCalendarGrid', () => {
   })
 
   describe('셀 배경 강조 디자인', () => {
-    it('선택된 날 셀 전체에 선택 배경색(#303646)이 적용된다', () => {
+    it('선택된 날 숫자에 원형 선택 배경색(#303646)이 적용된다', () => {
       // given: 3월 10일을 선택된 날로 설정
       const march10 = marchDays.find(d => d.isCurrentMonth && d.dayOfMonth === 10)!
       useUiStore.setState({ selectedDate: march10.date })
@@ -159,25 +159,25 @@ describe('MainCalendarGrid', () => {
       // when: MainCalendarGrid 렌더
       render(<MainCalendarGrid days={marchDays} />)
 
-      // then: 선택된 날 셀에 선택 배경색이 적용된다
+      // then: 선택된 날 숫자 원형에 배경색 적용
       const cells = screen.getAllByTestId('day-cell')
       const march10Index = marchDays.findIndex(d => d.isCurrentMonth && d.dayOfMonth === 10)
-      const selectedCell = cells[march10Index]
-      expect(selectedCell).toHaveStyle({ backgroundColor: '#303646' })
+      const numberCircle = cells[march10Index].querySelector('.rounded-full')
+      expect(numberCircle).toHaveStyle({ backgroundColor: '#303646' })
     })
 
-    it('오늘 셀 전체에 오늘 배경색(#f4f4f4)이 적용된다', () => {
+    it('오늘 날짜 숫자에 원형 오늘 배경색(#f4f4f4)이 적용된다', () => {
       // given: 오늘(2026-03-15)이 포함된 캘린더, 아무것도 선택 안 됨
       useUiStore.setState({ selectedDate: null })
 
       // when: MainCalendarGrid 렌더
       render(<MainCalendarGrid days={marchDays} />)
 
-      // then: 오늘 셀에 오늘 배경색이 적용된다
+      // then: 오늘 숫자 원형에 배경색 적용
       const cells = screen.getAllByTestId('day-cell')
       const todayIndex = marchDays.findIndex(d => d.isToday)
-      const todayCell = cells[todayIndex]
-      expect(todayCell).toHaveStyle({ backgroundColor: '#f4f4f4' })
+      const numberCircle = cells[todayIndex].querySelector('.rounded-full')
+      expect(numberCircle).toHaveStyle({ backgroundColor: '#f4f4f4' })
     })
 
     it('선택되지 않은 일반 날 셀에는 강조 배경색이 없다', () => {

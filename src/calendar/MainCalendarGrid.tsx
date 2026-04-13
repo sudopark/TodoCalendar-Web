@@ -136,8 +136,8 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                   dotColors.push(color ?? '#9ca3af')
                 }
 
-                // 셀 배경 결정
-                const cellBg = isSelected
+                // 날짜 숫자 원형 배경 결정
+                const circleBg = isSelected
                   ? SELECTED_BG
                   : day.isToday
                     ? TODAY_BG
@@ -157,19 +157,19 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                 return (
                   <div
                     key={di}
-                    className={`flex flex-col pt-1.5 px-1.5 pb-1 cursor-pointer hover:brightness-95 transition-[filter] ${isLastCol ? '' : 'border-r border-border-calendar'} ${!day.isCurrentMonth && !isSelected ? 'bg-surface-alt' : ''}`}
+                    className={`flex flex-col pt-1.5 px-1.5 pb-1 cursor-pointer hover:brightness-95 transition-[filter] ${isLastCol ? '' : 'border-r border-border-calendar'} ${!day.isCurrentMonth ? 'bg-surface-alt' : ''}`}
                     data-testid="day-cell"
                     data-today={day.isToday || undefined}
                     data-selected={isSelected || undefined}
-                    style={{
-                      backgroundColor: cellBg,
-                      fontSize: `${fontSize}px`,
-                    }}
+                    style={{ fontSize: `${fontSize}px` }}
                     onClick={() => setSelectedDate(day.date)}
                     title={holidayNames.join(', ') || undefined}
                   >
-                    {/* 날짜 숫자 */}
-                    <div className={`flex h-7 w-7 items-center justify-center text-sm font-medium ${dateTextColor}`}>
+                    {/* 날짜 숫자 — 선택/오늘은 원형 배경 */}
+                    <div
+                      className={`flex h-7 w-7 items-center justify-center text-sm font-medium rounded-full ${dateTextColor}`}
+                      style={{ backgroundColor: circleBg }}
+                    >
                       {day.dayOfMonth}
                     </div>
 
