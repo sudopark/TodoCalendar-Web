@@ -1,15 +1,15 @@
 import { create } from 'zustand'
 import { todoApi } from '../api/todoApi'
 import { scheduleApi } from '../api/scheduleApi'
-import { groupEventsByDate, eventTimeOverlapsRange, eventTimeToStartDate, eventTimeToEndDate, formatDateKey } from '../utils/eventTimeUtils'
+import { groupEventsByDate, eventTimeToStartDate, eventTimeToEndDate, formatDateKey, yearRange } from '../utils/eventTimeUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 
 interface CalendarEventsState {
   eventsByDate: Map<string, CalendarEvent[]>
   loading: boolean
-  lastRange: { lower: number; upper: number } | null
-  fetchEventsForRange: (lower: number, upper: number) => Promise<void>
-  refreshCurrentRange: () => Promise<void>
+  loadedYears: Set<number>
+  fetchEventsForYear: (year: number) => Promise<void>
+  refreshYears: (years: number[]) => Promise<void>
   addEvent: (event: CalendarEvent) => void
   removeEvent: (uuid: string) => void
   replaceEvent: (uuid: string, next: CalendarEvent) => void
@@ -19,47 +19,54 @@ interface CalendarEventsState {
 export const useCalendarEventsStore = create<CalendarEventsState>((set, get) => ({
   eventsByDate: new Map(),
   loading: false,
-  lastRange: null,
+  loadedYears: new Set(),
 
-  fetchEventsForRange: async (lower: number, upper: number) => {
-    const { lastRange } = get()
-    // 같은 범위 재요청 → 스킵 (빈 달도 fetch 완료로 간주)
-    if (lastRange && lastRange.lower === lower && lastRange.upper === upper) {
-      return
-    }
+  fetchEventsForYear: async (year: number) => {
+    if (get().loadedYears.has(year)) return
     set({ loading: true })
     try {
+      const range = yearRange(year)
       const [todos, schedules] = await Promise.all([
-        todoApi.getTodos(lower, upper),
-        scheduleApi.getSchedules(lower, upper),
+        todoApi.getTodos(range.lower, range.upper),
+        scheduleApi.getSchedules(range.lower, range.upper),
       ])
-      const eventsByDate = groupEventsByDate(todos, schedules, lower, upper)
-      set({ eventsByDate, loading: false, lastRange: { lower, upper } })
+      const yearEvents = groupEventsByDate(todos, schedules, range.lower, range.upper)
+      const merged = new Map(get().eventsByDate)
+      for (const [key, events] of yearEvents) {
+        const existing = merged.get(key) ?? []
+        merged.set(key, [...existing, ...events])
+      }
+      const newLoadedYears = new Set(get().loadedYears)
+      newLoadedYears.add(year)
+      set({ eventsByDate: merged, loading: false, loadedYears: newLoadedYears })
     } catch (e) {
       console.warn('이벤트 로드 실패:', e)
-      set({ loading: false, lastRange: null })
+      set({ loading: false })
     }
   },
 
-  refreshCurrentRange: async () => {
-    const { lastRange } = get()
-    if (!lastRange) return
-    // 캐시 무효화 후 재요청
-    set({ lastRange: null })
-    await get().fetchEventsForRange(lastRange.lower, lastRange.upper)
+  refreshYears: async (years: number[]) => {
+    const newLoadedYears = new Set(get().loadedYears)
+    years.forEach(y => newLoadedYears.delete(y))
+    const cleaned = new Map<string, CalendarEvent[]>()
+    const yearSet = new Set(years)
+    for (const [key, events] of get().eventsByDate) {
+      const keyYear = parseInt(key.substring(0, 4), 10)
+      if (!yearSet.has(keyYear)) {
+        cleaned.set(key, events)
+      }
+    }
+    set({ loadedYears: newLoadedYears, eventsByDate: cleaned })
+    await Promise.all(years.map(y => get().fetchEventsForYear(y)))
   },
 
   addEvent: (event: CalendarEvent) => {
-    const { eventsByDate, lastRange } = get()
-    if (!lastRange) return
     const eventTime = event.type === 'todo'
       ? (event.event.event_time ?? null)
       : event.event.event_time
     if (!eventTime) return
 
-    if (!eventTimeOverlapsRange(eventTime, lastRange.lower, lastRange.upper)) return
-
-    const updated = new Map(eventsByDate)
+    const updated = new Map(get().eventsByDate)
     const start = eventTimeToStartDate(eventTime)
     const end = eventTimeToEndDate(eventTime)
     const cur = new Date(start)
@@ -89,5 +96,5 @@ export const useCalendarEventsStore = create<CalendarEventsState>((set, get) => 
     get().addEvent(next)
   },
 
-  reset: () => set({ eventsByDate: new Map(), loading: false, lastRange: null }),
+  reset: () => set({ eventsByDate: new Map(), loading: false, loadedYears: new Set() }),
 }))
