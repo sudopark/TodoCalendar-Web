@@ -126,7 +126,7 @@ describe('authStore', () => {
       expect(useCurrentTodosStore.getState().todos).toEqual([])
       expect(useForemostEventStore.getState().foremostEvent).toBeNull()
       expect(useCalendarEventsStore.getState().eventsByDate.size).toBe(0)
-      expect(useCalendarEventsStore.getState().lastRange).toBeNull()
+      expect(useCalendarEventsStore.getState().loadedYears.size).toBe(0)
     })
   })
 })
