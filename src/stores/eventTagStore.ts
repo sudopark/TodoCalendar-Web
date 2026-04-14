@@ -73,7 +73,10 @@ export const useEventTagStore = create<EventTagState>((set, get) => ({
   deleteTagAndEvents: async (id: string) => {
     await eventTagApi.deleteTagAndEvents(id)
     set(s => { const tags = new Map(s.tags); tags.delete(id); return { tags } })
-    await useCalendarEventsStore.getState().refreshCurrentRange().catch(() => {})
+    const loadedYears = Array.from(useCalendarEventsStore.getState().loadedYears)
+    if (loadedYears.length > 0) {
+      await useCalendarEventsStore.getState().refreshYears(loadedYears).catch(() => {})
+    }
     useCurrentTodosStore.getState().fetch().catch(() => {})
     useUncompletedTodosStore.getState().fetch().catch(() => {})
   },

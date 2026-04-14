@@ -11,7 +11,16 @@ import { ConfirmDialog } from '../components/ConfirmDialog'
 import { RepeatingScopeDialog, type RepeatScope } from '../components/RepeatingScopeDialog'
 import { NotificationPicker } from '../components/NotificationPicker'
 import { useEventDefaultsStore } from '../stores/eventDefaultsStore'
+import { eventTimeToStartDate } from '../utils/eventTimeUtils'
 import type { Schedule, EventTime, Repeating, NotificationOption } from '../models'
+
+function getAffectedYears(...eventTimes: (EventTime | null | undefined)[]): number[] {
+  const years = new Set<number>()
+  for (const et of eventTimes) {
+    if (et) years.add(eventTimeToStartDate(et).getFullYear())
+  }
+  return Array.from(years)
+}
 
 export function ScheduleFormPage() {
   const { id } = useParams<{ id?: string }>()
@@ -19,7 +28,7 @@ export function ScheduleFormPage() {
   const { t } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
 
-  const { addEvent, removeEvent, refreshCurrentRange } = useCalendarEventsStore()
+  const { addEvent, removeEvent, refreshYears } = useCalendarEventsStore()
   const { defaultTagId, defaultNotificationSeconds } = useEventDefaultsStore()
 
   const defaultEventTime = (): EventTime => {
@@ -100,7 +109,7 @@ export function ScheduleFormPage() {
         repeating: repeating ?? undefined,
         notification_options: notifications.length > 0 ? notifications : null,
       })
-      await refreshCurrentRange()
+      await refreshYears(getAffectedYears(original?.event_time, eventTime))
     } else if (scope === 'this') {
       const turn = original.show_turns?.[0] ?? 0
       await scheduleApi.excludeRepeating(id, { exclude_repeatings: [...(original.exclude_repeatings ?? []), turn] })
@@ -111,7 +120,7 @@ export function ScheduleFormPage() {
         repeating: undefined,
         notification_options: notifications.length > 0 ? notifications : undefined,
       })
-      await refreshCurrentRange()
+      await refreshYears(getAffectedYears(original?.event_time, eventTime))
     } else {
       // scope === 'future'
       const cutoff = occurrenceStart(original) - 1
@@ -123,7 +132,7 @@ export function ScheduleFormPage() {
         repeating: repeating ?? undefined,
         notification_options: notifications.length > 0 ? notifications : undefined,
       })
-      await refreshCurrentRange()
+      await refreshYears(getAffectedYears(original?.event_time, eventTime))
     }
   }
 
@@ -137,17 +146,17 @@ export function ScheduleFormPage() {
       } else if (scope === 'all') {
         // Full repeating series: refresh calendar
         await scheduleApi.deleteSchedule(id)
-        await refreshCurrentRange()
+        await refreshYears(getAffectedYears(original?.event_time, eventTime))
       } else if (scope === 'this') {
         // show_turns[0]: 현재 화면에 표시된 반복 회차. 없으면 0(첫 번째 회차)으로 폴백
         const turn = original.show_turns?.[0] ?? 0
         await scheduleApi.excludeRepeating(id, { exclude_repeatings: [...(original.exclude_repeatings ?? []), turn] })
-        await refreshCurrentRange()
+        await refreshYears(getAffectedYears(original?.event_time, eventTime))
       } else {
         // scope === 'future'
         const cutoff = occurrenceStart(original) - 1
         await scheduleApi.updateSchedule(id, { repeating: { ...original.repeating, end: cutoff } })
-        await refreshCurrentRange()
+        await refreshYears(getAffectedYears(original?.event_time, eventTime))
       }
       navigate(-1)
     } catch (e) {

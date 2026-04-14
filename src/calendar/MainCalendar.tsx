@@ -5,7 +5,6 @@ import EventPreviewCard from '../components/EventPreviewCard'
 import { useUiStore } from '../stores/uiStore'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useHolidayStore } from '../stores/holidayStore'
-import { dayRange } from '../utils/eventTimeUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 
 interface PreviewState {
@@ -27,7 +26,7 @@ export default function MainCalendar({ today: todayProp }: MainCalendarProps) {
   }, [todayKey])
 
   const currentMonth = useUiStore(s => s.currentMonth)
-  const fetchEventsForRange = useCalendarEventsStore(s => s.fetchEventsForRange)
+  const fetchEventsForYear = useCalendarEventsStore(s => s.fetchEventsForYear)
   const fetchHolidays = useHolidayStore(s => s.fetchHolidays)
 
   const year = currentMonth.getFullYear()
@@ -38,12 +37,10 @@ export default function MainCalendar({ today: todayProp }: MainCalendarProps) {
 
   useEffect(() => {
     if (days.length === 0) return
-    const lower = dayRange(days[0].date).lower
-    const upper = dayRange(days[days.length - 1].date).upper
-    fetchEventsForRange(lower, upper)
     const years = new Set(days.map(d => d.date.getFullYear()))
+    years.forEach(y => fetchEventsForYear(y))
     years.forEach(y => fetchHolidays(y))
-  }, [days, fetchEventsForRange, fetchHolidays])
+  }, [days, fetchEventsForYear, fetchHolidays])
 
   function handleEventClick(calEvent: CalendarEvent, anchorRect: DOMRect) {
     setPreviewEvent({ calEvent, anchorRect })
