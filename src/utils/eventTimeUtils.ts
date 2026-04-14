@@ -54,6 +54,15 @@ export function monthRange(year: number, month: number): { lower: number; upper:
   }
 }
 
+export function yearRange(year: number): { lower: number; upper: number } {
+  const first = new Date(year, 0, 1)
+  const last = new Date(year, 11, 31)
+  return {
+    lower: dateToTimestamp(startOfDay(first)),
+    upper: dateToTimestamp(endOfDay(last)),
+  }
+}
+
 export type CalendarEvent = { type: 'todo'; event: Todo } | { type: 'schedule'; event: Schedule }
 
 export function eventTimeOverlapsRange(eventTime: EventTime, lower: number, upper: number): boolean {

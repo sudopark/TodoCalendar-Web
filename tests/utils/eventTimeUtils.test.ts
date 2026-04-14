@@ -5,6 +5,7 @@ import {
   dateToTimestamp,
   dayRange,
   monthRange,
+  yearRange,
   groupEventsByDate,
   formatDateKey,
   eventTimeOverlapsRange,
@@ -143,6 +144,16 @@ describe('groupEventsByDate', () => {
 
     const result = groupEventsByDate(todos, [], lower, upper)
     expect(result.size).toBe(0)
+  })
+})
+
+describe('yearRange', () => {
+  it('주어진 년도의 1월1일 00:00:00 ~ 12월31일 23:59:59 타임스탬프를 반환한다', () => {
+    const range = yearRange(2025)
+    const expectedLower = Math.floor(new Date(2025, 0, 1, 0, 0, 0, 0).getTime() / 1000)
+    const expectedUpper = Math.floor(new Date(2025, 11, 31, 23, 59, 59, 999).getTime() / 1000)
+    expect(range.lower).toBe(expectedLower)
+    expect(range.upper).toBe(expectedUpper)
   })
 })
 
