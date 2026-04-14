@@ -3,9 +3,9 @@ import { holidayApi } from '../api/holidayApi'
 
 const STORAGE_KEY = 'holiday_country'
 
-export interface HolidayCountry { locale: string; region: string }
+export interface HolidayCountry { locale: string; region: string; code: string }
 
-const DEFAULT_COUNTRY: HolidayCountry = { locale: 'ko', region: 'south_korea' }
+const DEFAULT_COUNTRY: HolidayCountry = { locale: 'ko', region: 'south_korea', code: 'KR' }
 
 function loadCountry(): HolidayCountry {
   try {
@@ -20,6 +20,7 @@ interface HolidayState {
   loadedYears: Set<number>
   setCountry: (country: HolidayCountry) => void
   fetchHolidays: (year: number) => Promise<void>
+  refreshHolidays: (years: number[]) => Promise<void>
   getHolidayNames: (dateKey: string) => string[]
 }
 
@@ -36,9 +37,9 @@ export const useHolidayStore = create<HolidayState>((set, get) => ({
 
   fetchHolidays: async (year: number) => {
     if (get().loadedYears.has(year)) return
-    const { locale, region } = get().country
+    const { locale, code } = get().country
     try {
-      const response = await holidayApi.getHolidays(year, locale, region)
+      const response = await holidayApi.getHolidays(year, locale, code)
       const newHolidays = new Map(get().holidays)
       for (const item of response.items) {
         const dateKey = item.start.date
@@ -51,6 +52,18 @@ export const useHolidayStore = create<HolidayState>((set, get) => ({
     } catch (e) {
       console.warn('공휴일 로드 실패:', e)
     }
+  },
+
+  refreshHolidays: async (years: number[]) => {
+    const newLoadedYears = new Set(get().loadedYears)
+    const newHolidays = new Map(get().holidays)
+    for (const [key] of newHolidays) {
+      const keyYear = parseInt(key.substring(0, 4), 10)
+      if (years.includes(keyYear)) newHolidays.delete(key)
+    }
+    years.forEach(y => newLoadedYears.delete(y))
+    set({ loadedYears: newLoadedYears, holidays: newHolidays })
+    await Promise.all(years.map(y => get().fetchHolidays(y)))
   },
 
   getHolidayNames: (dateKey: string) => {
