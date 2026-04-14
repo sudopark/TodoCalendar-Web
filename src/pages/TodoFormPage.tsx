@@ -11,18 +11,9 @@ import { TagSelector } from '../components/TagSelector'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { RepeatingScopeDialog, type RepeatScope } from '../components/RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
-import { eventTimeToStartDate } from '../utils/eventTimeUtils'
 import { NotificationPicker } from '../components/NotificationPicker'
 import { useEventDefaultsStore } from '../stores/eventDefaultsStore'
 import type { Todo, EventTime, Repeating, NotificationOption } from '../models'
-
-function getAffectedYears(...eventTimes: (EventTime | null | undefined)[]): number[] {
-  const years = new Set<number>()
-  for (const et of eventTimes) {
-    if (et) years.add(eventTimeToStartDate(et).getFullYear())
-  }
-  return Array.from(years)
-}
 
 export function TodoFormPage() {
   const { id } = useParams<{ id?: string }>()
@@ -30,7 +21,7 @@ export function TodoFormPage() {
   const { t } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
 
-  const { addEvent, removeEvent, refreshYears } = useCalendarEventsStore()
+  const { addEvent, removeEvent } = useCalendarEventsStore()
   const { addTodo, removeTodo, replaceTodo } = useCurrentTodosStore()
   const { defaultTagId, defaultNotificationSeconds } = useEventDefaultsStore()
 
@@ -148,27 +139,31 @@ export function TodoFormPage() {
       const next = original.event_time
         ? nextRepeatingTime(original.event_time, original.repeating_turn ?? 1, original.repeating, original.exclude_repeatings)
         : null
-      await todoApi.replaceTodo(id, {
+      const result = await todoApi.replaceTodo(id, {
         new: { name: name.trim(), event_tag_id: tagId, event_time: eventTime, notification_options: notifications.length > 0 ? notifications : undefined },
         origin_next_event_time: next?.time,
         next_repeating_turn: next?.turn,
       })
-      await refreshYears(getAffectedYears(original.event_time, eventTime))
+      removeEvent(id)
+      if (result.new_todo.event_time) addEvent({ type: 'todo', event: result.new_todo })
+      if (result.next_repeating?.event_time) addEvent({ type: 'todo', event: result.next_repeating })
     } else {
       // future: 원본 시리즈 종료 + 새 시리즈 생성
       const startTs = original.event_time ? getStartTimestamp(original.event_time) : 0
       const cutoff = startTs - 1
-      await todoApi.patchTodo(id, { repeating: { ...original.repeating, end: cutoff } })
+      const ended = await todoApi.patchTodo(id, { repeating: { ...original.repeating, end: cutoff } })
+      removeEvent(id)
+      if (ended.event_time) addEvent({ type: 'todo', event: ended })
       if (eventTime) {
-        await todoApi.createTodo({
+        const newSeries = await todoApi.createTodo({
           name: name.trim(),
           event_tag_id: tagId ?? undefined,
           event_time: eventTime,
           repeating: repeating ?? undefined,
           notification_options: notifications.length > 0 ? notifications : undefined,
         })
+        if (newSeries.event_time) addEvent({ type: 'todo', event: newSeries })
       }
-      await refreshYears(getAffectedYears(original.event_time, eventTime))
     }
   }
 
@@ -185,17 +180,21 @@ export function TodoFormPage() {
           ? nextRepeatingTime(original.event_time, original.repeating_turn ?? 1, original.repeating, original.exclude_repeatings)
           : null
         if (next) {
-          await todoApi.patchTodo(id, { event_time: next.time, repeating_turn: next.turn })
+          const updated = await todoApi.patchTodo(id, { event_time: next.time, repeating_turn: next.turn })
+          removeEvent(id)
+          if (updated.event_time) addEvent({ type: 'todo', event: updated })
         } else {
           await todoApi.deleteTodo(id)
+          removeEvent(id)
         }
-        await refreshYears(getAffectedYears(original.event_time, null))
+        removeTodo(id)
       } else {
         // future: 시리즈 종료
         const startTs = original.event_time ? getStartTimestamp(original.event_time) : 0
         const cutoff = startTs - 1
-        await todoApi.patchTodo(id, { repeating: { ...original.repeating, end: cutoff } })
-        await refreshYears(getAffectedYears(original.event_time, null))
+        const ended = await todoApi.patchTodo(id, { repeating: { ...original.repeating, end: cutoff } })
+        removeEvent(id)
+        if (ended.event_time) addEvent({ type: 'todo', event: ended })
       }
       navigate(-1)
     } catch (e) {
