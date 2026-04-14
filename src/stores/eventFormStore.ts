@@ -30,7 +30,7 @@ interface EventFormState {
   error: string | null
 
   // Actions
-  openForm: (anchorRect: DOMRect | null) => void
+  openForm: (anchorRect: DOMRect | null, eventType?: 'todo' | 'schedule') => void
   closeForm: () => void
   setEventType: (type: 'todo' | 'schedule') => void
   setName: (name: string) => void
@@ -79,7 +79,7 @@ export const useEventFormStore = create<EventFormState>((set, get) => ({
   saving: false,
   error: null,
 
-  openForm: (anchorRect) => {
+  openForm: (anchorRect, eventType = 'todo') => {
     const selectedDate = useUiStore.getState().selectedDate
     const { defaultTagId, defaultNotificationSeconds } = useEventDefaultsStore.getState()
 
@@ -94,7 +94,7 @@ export const useEventFormStore = create<EventFormState>((set, get) => ({
     set({
       isOpen: true,
       anchorRect,
-      eventType: 'todo',
+      eventType,
       name: '',
       eventTagId: defaultTagId,
       eventTime,

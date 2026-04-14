@@ -79,7 +79,6 @@ export default function LeftSidebar() {
   const [showCreateMenu, setShowCreateMenu] = useState(false)
   const createButtonRef = useRef<HTMLButtonElement>(null)
   const openForm = useEventFormStore(s => s.openForm)
-  const setEventType = useEventFormStore(s => s.setEventType)
   const sidebarOpen = useUiStore(s => s.sidebarOpen)
   const sidebarMonth = useUiStore(s => s.sidebarMonth)
   const selectedDate = useUiStore(s => s.selectedDate)
@@ -131,26 +130,24 @@ export default function LeftSidebar() {
             {showCreateMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowCreateMenu(false)} />
-                <div className="absolute top-full left-0 mt-1 z-50 w-full overflow-hidden rounded-xl bg-white shadow-xl">
+                <div className="absolute top-full left-0 mt-1 z-50 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-xl">
                   <button
-                    className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50"
+                    className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
                     onClick={() => {
                       setShowCreateMenu(false)
                       const rect = createButtonRef.current?.getBoundingClientRect() ?? null
-                      openForm(rect)
-                      setEventType('todo')
+                      openForm(rect, 'todo')
                     }}
                   >
                     Todo
                   </button>
-                  <div className="border-t border-gray-100" />
+                  <div className="border-t border-gray-100 dark:border-gray-700" />
                   <button
-                    className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50"
+                    className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
                     onClick={() => {
                       setShowCreateMenu(false)
                       const rect = createButtonRef.current?.getBoundingClientRect() ?? null
-                      openForm(rect)
-                      setEventType('schedule')
+                      openForm(rect, 'schedule')
                     }}
                   >
                     Schedule

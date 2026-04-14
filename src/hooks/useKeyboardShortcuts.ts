@@ -19,8 +19,7 @@ export function useKeyboardShortcuts() {
           // New event (Todo by default) — open popover instead of navigating
           const formStore = useEventFormStore.getState()
           if (formStore.isOpen) return  // 이미 폼 열림
-          formStore.openForm(null)
-          formStore.setEventType('todo')
+          formStore.openForm(null, 'todo')
           break
         }
         case 'Escape':
