@@ -31,7 +31,6 @@ import { useCurrentTodosStore } from '../../src/stores/currentTodosStore'
 const mockAddEvent = vi.fn()
 const mockRemoveEvent = vi.fn()
 const mockReplaceEvent = vi.fn()
-const mockRefreshCurrentRange = vi.fn()
 const mockAddTodo = vi.fn()
 const mockRemoveTodo = vi.fn()
 const mockReplaceTodo = vi.fn()
@@ -39,7 +38,7 @@ const mockReplaceTodo = vi.fn()
 function setupMocks() {
   vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({ tags: new Map(), getColorForTagId: () => null }))
   vi.mocked(useUiStore).mockImplementation((sel: any) => sel({ selectedDate: null }))
-  const calendarState = { addEvent: mockAddEvent, removeEvent: mockRemoveEvent, replaceEvent: mockReplaceEvent, refreshCurrentRange: mockRefreshCurrentRange }
+  const calendarState = { addEvent: mockAddEvent, removeEvent: mockRemoveEvent, replaceEvent: mockReplaceEvent }
   vi.mocked(useCalendarEventsStore).mockImplementation((sel?: any) =>
     sel ? sel(calendarState) : calendarState
   )

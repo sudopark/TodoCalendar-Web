@@ -30,8 +30,6 @@ import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
 const mockAddEvent = vi.fn()
 const mockRemoveEvent = vi.fn()
 const mockReplaceEvent = vi.fn()
-const mockRefreshCurrentRange = vi.fn()
-
 function setupMocks() {
   vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({ tags: new Map(), getColorForTagId: () => null }))
   vi.mocked(useUiStore).mockImplementation((sel: any) => sel({ selectedDate: new Date('2025-03-31') }))
@@ -39,7 +37,6 @@ function setupMocks() {
     addEvent: mockAddEvent,
     removeEvent: mockRemoveEvent,
     replaceEvent: mockReplaceEvent,
-    refreshCurrentRange: mockRefreshCurrentRange,
   }
   vi.mocked(useCalendarEventsStore).mockImplementation((sel?: any) =>
     sel ? sel(calendarState) : calendarState

@@ -10,7 +10,13 @@ const DEFAULT_COUNTRY: HolidayCountry = { locale: 'ko', region: 'south_korea', c
 function loadCountry(): HolidayCountry {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : DEFAULT_COUNTRY
+    if (!stored) return DEFAULT_COUNTRY
+    const parsed = JSON.parse(stored)
+    return {
+      locale: parsed.locale ?? DEFAULT_COUNTRY.locale,
+      region: parsed.region ?? DEFAULT_COUNTRY.region,
+      code: parsed.code ?? DEFAULT_COUNTRY.code,
+    }
   } catch { return DEFAULT_COUNTRY }
 }
 
