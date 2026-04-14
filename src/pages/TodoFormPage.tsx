@@ -11,9 +11,18 @@ import { TagSelector } from '../components/TagSelector'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { RepeatingScopeDialog, type RepeatScope } from '../components/RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
+import { eventTimeToStartDate } from '../utils/eventTimeUtils'
 import { NotificationPicker } from '../components/NotificationPicker'
 import { useEventDefaultsStore } from '../stores/eventDefaultsStore'
 import type { Todo, EventTime, Repeating, NotificationOption } from '../models'
+
+function getAffectedYears(...eventTimes: (EventTime | null | undefined)[]): number[] {
+  const years = new Set<number>()
+  for (const et of eventTimes) {
+    if (et) years.add(eventTimeToStartDate(et).getFullYear())
+  }
+  return Array.from(years)
+}
 
 export function TodoFormPage() {
   const { id } = useParams<{ id?: string }>()
@@ -21,7 +30,7 @@ export function TodoFormPage() {
   const { t } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
 
-  const { addEvent, removeEvent, refreshCurrentRange } = useCalendarEventsStore()
+  const { addEvent, removeEvent, refreshYears } = useCalendarEventsStore()
   const { addTodo, removeTodo, replaceTodo } = useCurrentTodosStore()
   const { defaultTagId, defaultNotificationSeconds } = useEventDefaultsStore()
 
@@ -144,7 +153,7 @@ export function TodoFormPage() {
         origin_next_event_time: next?.time,
         next_repeating_turn: next?.turn,
       })
-      await refreshCurrentRange()
+      await refreshYears(getAffectedYears(original.event_time, eventTime))
     } else {
       // future: 원본 시리즈 종료 + 새 시리즈 생성
       const startTs = original.event_time ? getStartTimestamp(original.event_time) : 0
@@ -159,7 +168,7 @@ export function TodoFormPage() {
           notification_options: notifications.length > 0 ? notifications : undefined,
         })
       }
-      await refreshCurrentRange()
+      await refreshYears(getAffectedYears(original.event_time, eventTime))
     }
   }
 
@@ -180,13 +189,13 @@ export function TodoFormPage() {
         } else {
           await todoApi.deleteTodo(id)
         }
-        await refreshCurrentRange()
+        await refreshYears(getAffectedYears(original.event_time, null))
       } else {
         // future: 시리즈 종료
         const startTs = original.event_time ? getStartTimestamp(original.event_time) : 0
         const cutoff = startTs - 1
         await todoApi.patchTodo(id, { repeating: { ...original.repeating, end: cutoff } })
-        await refreshCurrentRange()
+        await refreshYears(getAffectedYears(original.event_time, null))
       }
       navigate(-1)
     } catch (e) {

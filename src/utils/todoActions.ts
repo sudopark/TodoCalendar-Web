@@ -17,9 +17,12 @@ export async function skipRepeatingTodo(todo: Todo): Promise<void> {
 }
 
 export async function refreshAllTodoStores(): Promise<void> {
+  const loadedYears = Array.from(useCalendarEventsStore.getState().loadedYears)
   await Promise.all([
     useUncompletedTodosStore.getState().fetch(),
     useCurrentTodosStore.getState().fetch(),
-    useCalendarEventsStore.getState().refreshCurrentRange(),
+    loadedYears.length > 0
+      ? useCalendarEventsStore.getState().refreshYears(loadedYears)
+      : Promise.resolve(),
   ]).catch(e => console.warn('Todo stores refresh failed:', e))
 }
