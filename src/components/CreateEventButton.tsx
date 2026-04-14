@@ -20,20 +20,23 @@ export function CreateEventButton() {
         ref={buttonRef}
         data-testid="create-event-button"
         aria-label="새 이벤트"
-        className="flex items-center justify-center gap-2 rounded-[5px] bg-[#303646] px-3 py-2.5 w-full hover:brightness-110 transition-colors"
+        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-white border border-gray-200 px-4 py-2.5 w-full shadow-sm hover:shadow transition-shadow"
         onClick={() => setShowMenu(!showMenu)}
       >
-        <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="h-4 w-4 text-[#323232]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
-        <span className="text-sm text-white font-medium">
+        <span className="text-sm font-medium text-[#323232]">
           {t('main.create_event', 'Create')}
         </span>
+        <svg className="h-3 w-3 text-[#969696] ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+        </svg>
       </button>
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-          <div className="absolute top-full left-0 mt-1 z-50 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-xl">
+          <div className="absolute bottom-full left-0 mb-1 z-50 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-xl">
             <button
               className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
               onClick={() => handleSelect('todo')}
