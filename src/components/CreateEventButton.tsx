@@ -6,14 +6,12 @@ export function CreateEventButton() {
   const { t } = useTranslation()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const openForm = useEventFormStore(s => s.openForm)
-  const setEventType = useEventFormStore(s => s.setEventType)
   const [showMenu, setShowMenu] = useState(false)
 
   function handleSelect(type: 'todo' | 'schedule') {
     setShowMenu(false)
     const rect = buttonRef.current?.getBoundingClientRect() ?? null
-    openForm(rect)
-    setEventType(type)
+    openForm(rect, type)
   }
 
   return (
@@ -35,16 +33,16 @@ export function CreateEventButton() {
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-          <div className="absolute top-full left-0 mt-1 z-50 w-full overflow-hidden rounded-xl bg-white shadow-xl">
+          <div className="absolute top-full left-0 mt-1 z-50 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-xl">
             <button
-              className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50"
+              className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
               onClick={() => handleSelect('todo')}
             >
               Todo
             </button>
-            <div className="border-t border-gray-100" />
+            <div className="border-t border-gray-100 dark:border-gray-700" />
             <button
-              className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50"
+              className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
               onClick={() => handleSelect('schedule')}
             >
               Schedule

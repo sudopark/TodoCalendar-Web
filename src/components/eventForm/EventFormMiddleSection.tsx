@@ -7,15 +7,17 @@ import { Tag, Bell } from 'lucide-react'
 export function EventFormMiddleSection() {
   const { t } = useTranslation()
   const eventTagId = useEventFormStore(s => s.eventTagId)
+  const tags = useEventTagStore(s => s.tags)
+  const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
 
   const tagColor = eventTagId
-    ? (useEventTagStore.getState().getColorForTagId(eventTagId) ?? '#4A90D9')
+    ? (getColorForTagId(eventTagId) ?? '#4A90D9')
     : '#4A90D9'
 
   const isDefault = !eventTagId || eventTagId === DEFAULT_TAG_ID
   const tagName = isDefault
     ? t('tag.default_name', '기본')
-    : (useEventTagStore.getState().tags.get(eventTagId)?.name ?? t('tag.default_name', '기본'))
+    : (tags.get(eventTagId)?.name ?? t('tag.default_name', '기본'))
 
   return (
     <div className="space-y-3">

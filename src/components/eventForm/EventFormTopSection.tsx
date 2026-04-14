@@ -11,9 +11,10 @@ export function EventFormTopSection() {
   const name = useEventFormStore(s => s.name)
   const setName = useEventFormStore(s => s.setName)
   const eventTagId = useEventFormStore(s => s.eventTagId)
+  const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
 
   const tagColor = eventTagId
-    ? (useEventTagStore.getState().getColorForTagId(eventTagId) ?? '#4A90D9')
+    ? (getColorForTagId(eventTagId) ?? '#4A90D9')
     : '#4A90D9'
 
   return (
