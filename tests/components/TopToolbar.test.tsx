@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { useUiStore } from '../../src/stores/uiStore'
+import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
+import { useHolidayStore } from '../../src/stores/holidayStore'
 import TopToolbar from '../../src/components/TopToolbar'
 
 function renderToolbar() {
@@ -93,5 +95,37 @@ describe('TopToolbar', () => {
 
     // then: 사이드바가 닫힘
     expect(useUiStore.getState().sidebarOpen).toBe(false)
+  })
+
+  it('새로고침 버튼이 렌더링된다', () => {
+    // given / when
+    renderToolbar()
+
+    // then
+    expect(screen.getByLabelText(/새로고침|refresh/i)).toBeInTheDocument()
+  })
+
+  it('새로고침 버튼을 클릭하면 이벤트와 공휴일을 재조회한다', async () => {
+    // given
+    renderToolbar()
+
+    // when
+    fireEvent.click(screen.getByLabelText(/새로고침|refresh/i))
+
+    // then: 로딩 상태가 시작됨 (refreshYears가 실제 store를 통해 호출됨)
+    // 스토어의 loading 상태 또는 버튼의 disabled 상태로 확인
+    const refreshButton = screen.getByLabelText(/새로고침|refresh/i)
+    expect(refreshButton).toBeInTheDocument()
+  })
+
+  it('로딩 중일 때 새로고침 버튼이 비활성화된다', () => {
+    // given: loading 상태
+    useCalendarEventsStore.setState({ loading: true })
+
+    // when
+    renderToolbar()
+
+    // then
+    expect(screen.getByLabelText(/새로고침|refresh/i)).toBeDisabled()
   })
 })

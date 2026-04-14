@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useUiStore } from '../stores/uiStore'
-import { formatMonthTitle } from '../calendar/calendarUtils'
+import { formatMonthTitle, buildCalendarGrid } from '../calendar/calendarUtils'
+import { useCalendarEventsStore } from '../stores/calendarEventsStore'
+import { useHolidayStore } from '../stores/holidayStore'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
@@ -17,9 +19,21 @@ export default function TopToolbar() {
   const currentMonth = useUiStore(s => s.currentMonth)
   const sidebarOpen = useUiStore(s => s.sidebarOpen)
 
+  const refreshYears = useCalendarEventsStore(s => s.refreshYears)
+  const refreshHolidays = useHolidayStore(s => s.refreshHolidays)
+  const loading = useCalendarEventsStore(s => s.loading)
+
   const year = currentMonth.getFullYear()
   const month = currentMonth.getMonth()
   const title = formatMonthTitle(year, month)
+
+  function handleRefresh() {
+    const today = new Date()
+    const days = buildCalendarGrid(year, month, today)
+    const years = [...new Set(days.map(d => d.date.getFullYear()))]
+    refreshYears(years)
+    refreshHolidays(years)
+  }
 
   return (
     <div className="flex h-16 items-center bg-slate-50 shrink-0">
@@ -88,8 +102,18 @@ export default function TopToolbar() {
 
         <div className="flex-1" />
 
-        {/* 우측: Archive + Settings */}
+        {/* 우측: Refresh + Archive + Settings */}
         <div className="flex items-center gap-1">
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            aria-label={t('main.refresh', '새로고침')}
+            className="rounded-full p-2 hover:bg-gray-100 text-gray-500 disabled:opacity-50"
+          >
+            <svg className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
           <button
             onClick={() => navigate('/done')}
             aria-label="Archive"
