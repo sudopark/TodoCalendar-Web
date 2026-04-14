@@ -36,7 +36,7 @@ describe('MainCalendar', () => {
       selectedDate: null,
       currentMonth: new Date(2026, 2, 1), // March 2026
     })
-    useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false, lastRange: null })
+    useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false, loadedYears: new Set() })
     useHolidayStore.setState({ holidays: new Map(), loadedYears: new Set() })
     useEventTagStore.setState({ tags: new Map() })
   })
