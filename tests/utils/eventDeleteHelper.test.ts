@@ -95,6 +95,33 @@ describe('deleteTodoEvent', () => {
     expect(useCurrentTodosStore.getState().todos.some(t => t.uuid === 'todo-rep-1')).toBe(false)
   })
 
+  it('반복 todo를 "this" 범위로 삭제할 때 다음 턴이 없으면 완전히 삭제된다', async () => {
+    // given
+    const { todoApi } = await import('../../src/api/todoApi')
+    vi.mocked(todoApi.deleteTodo).mockResolvedValue({ status: 'ok' })
+
+    const currentTs = ts(2025, 3, 15)
+    const currentTurn = 5
+    const todo: Todo = {
+      uuid: 'todo-rep-last',
+      name: 'Repeating Todo Last Turn',
+      is_current: true,
+      event_time: atTime(currentTs),
+      repeating: { ...DAILY_REPEATING, end_count: currentTurn }, // 다음 턴(6) > end_count(5) → nextRepeatingTime returns null
+      repeating_turn: currentTurn,
+    }
+    useCalendarEventsStore.getState().addEvent({ type: 'todo', event: todo })
+    useCurrentTodosStore.getState().addTodo(todo)
+
+    // when
+    await deleteTodoEvent(todo, 'this')
+
+    // then: 완전히 삭제됨
+    const allEvents = [...useCalendarEventsStore.getState().eventsByDate.values()].flat()
+    expect(allEvents.some(e => e.event.uuid === 'todo-rep-last')).toBe(false)
+    expect(useCurrentTodosStore.getState().todos.some(t => t.uuid === 'todo-rep-last')).toBe(false)
+  })
+
   it('반복 todo "future" 삭제 → 시리즈 종료', async () => {
     // given
     const { todoApi } = await import('../../src/api/todoApi')
