@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { ForemostEventBanner } from '../../src/components/ForemostEventBanner'
 import { useForemostEventStore } from '../../src/stores/foremostEventStore'
 import { useEventTagStore } from '../../src/stores/eventTagStore'
+import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 
 vi.mock('../../src/stores/foremostEventStore', () => ({ useForemostEventStore: vi.fn() }))
 vi.mock('../../src/stores/eventTagStore', () => ({ useEventTagStore: vi.fn() }))
@@ -12,16 +13,12 @@ vi.mock('../../src/api/foremostApi', () => ({
   foremostApi: { getForemostEvent: async () => null },
 }))
 
-const mockNavigate = vi.fn()
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
-  return { ...actual, useNavigate: () => mockNavigate }
-})
+const mockOnEventClick = vi.fn()
 
-function renderComponent() {
+function renderComponent(onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void) {
   return render(
     <MemoryRouter>
-      <ForemostEventBanner />
+      <ForemostEventBanner onEventClick={onEventClick} />
     </MemoryRouter>
   )
 }
@@ -56,15 +53,17 @@ describe('ForemostEventBanner', () => {
     expect(screen.getByText('Foremost Event')).toBeInTheDocument()
   })
 
-  it('배너를 클릭하면 이벤트 상세 페이지로 이동한다', async () => {
+  it('배너를 클릭하면 onEventClick이 todo 타입으로 호출된다', async () => {
     const todo = { uuid: 'fe-nav', name: '고정 이벤트', is_current: false, event_time: null }
     vi.mocked(useForemostEventStore).mockImplementation((selector: any) =>
       selector({ foremostEvent: { event_id: 'fe-nav', is_todo: true, event: todo }, fetch: vi.fn() })
     )
 
-    renderComponent()
+    renderComponent(mockOnEventClick)
     await userEvent.click(screen.getByTestId('foremost-banner'))
 
-    expect(mockNavigate.mock.calls[0][0]).toBe('/events/fe-nav?type=todo')
+    expect(mockOnEventClick).toHaveBeenCalledOnce()
+    const [calEvent] = mockOnEventClick.mock.calls[0]
+    expect(calEvent).toMatchObject({ type: 'todo', event: todo })
   })
 })

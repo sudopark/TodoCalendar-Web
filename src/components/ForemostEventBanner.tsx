@@ -1,4 +1,3 @@
-import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useForemostEventStore } from '../stores/foremostEventStore'
 import { useEventTagStore } from '../stores/eventTagStore'
@@ -6,12 +5,15 @@ import { useTagName } from '../hooks/useTagName'
 import { TimeDescription } from './TimeDescription'
 import type { Todo } from '../models/Todo'
 import type { Schedule } from '../models/Schedule'
+import type { CalendarEvent } from '../utils/eventTimeUtils'
 
-export function ForemostEventBanner() {
+interface ForemostEventBannerProps {
+  onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
+}
+
+export function ForemostEventBanner({ onEventClick }: ForemostEventBannerProps) {
   const foremostEvent = useForemostEventStore(s => s.foremostEvent)
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
-  const navigate = useNavigate()
-  const location = useLocation()
   const { t } = useTranslation()
   const getTagName = useTagName()
 
@@ -23,7 +25,6 @@ export function ForemostEventBanner() {
     : '#3b82f6'
 
   const eventTime = 'event_time' in event ? event.event_time : undefined
-  const eventType = foremostEvent.is_todo ? 'todo' : 'schedule'
   const tagName = getTagName(event.event_tag_id)
 
   return (
@@ -34,9 +35,12 @@ export function ForemostEventBanner() {
       <button
         data-testid="foremost-banner"
         className="flex w-full items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] px-3 py-2.5 text-left hover:brightness-95"
-        onClick={() => navigate(`/events/${event.uuid}?type=${eventType}`, {
-          state: { background: location, eventType },
-        })}
+        onClick={(e) => {
+          const calEvent: CalendarEvent = foremostEvent.is_todo
+            ? { type: 'todo', event: event as Todo }
+            : { type: 'schedule', event: event as Schedule }
+          onEventClick?.(calEvent, e.currentTarget.getBoundingClientRect())
+        }}
       >
         {/* 컬러바 3px */}
         <div

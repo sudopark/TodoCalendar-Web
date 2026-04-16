@@ -5,6 +5,7 @@ import { todoApi } from '../api/todoApi'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useCurrentTodosStore } from '../stores/currentTodosStore'
 import { useUiStore } from '../stores/uiStore'
+import { deleteTodoEvent } from '../utils/eventDeleteHelper'
 import { EventTimePicker } from '../components/EventTimePicker'
 import { RepeatingPicker } from '../components/RepeatingPicker'
 import { TagSelector } from '../components/TagSelector'
@@ -170,32 +171,7 @@ export function TodoFormPage() {
   async function applyDelete(scope: RepeatScope) {
     if (!id || !original) return
     try {
-      if (!original.repeating) {
-        await todoApi.deleteTodo(id)
-        removeEvent(id)
-        removeTodo(id)
-      } else if (scope === 'this') {
-        // 이번만 삭제: 원본을 다음 턴으로 진행
-        const next = original.event_time
-          ? nextRepeatingTime(original.event_time, original.repeating_turn ?? 1, original.repeating, original.exclude_repeatings)
-          : null
-        if (next) {
-          const updated = await todoApi.patchTodo(id, { event_time: next.time, repeating_turn: next.turn })
-          removeEvent(id)
-          if (updated.event_time) addEvent({ type: 'todo', event: updated })
-        } else {
-          await todoApi.deleteTodo(id)
-          removeEvent(id)
-        }
-        removeTodo(id)
-      } else {
-        // future: 시리즈 종료
-        const startTs = original.event_time ? getStartTimestamp(original.event_time) : 0
-        const cutoff = startTs - 1
-        const ended = await todoApi.patchTodo(id, { repeating: { ...original.repeating, end: cutoff } })
-        removeEvent(id)
-        if (ended.event_time) addEvent({ type: 'todo', event: ended })
-      }
+      await deleteTodoEvent(original, scope)
       navigate(-1)
     } catch (e) {
       console.warn('삭제 실패:', e)
