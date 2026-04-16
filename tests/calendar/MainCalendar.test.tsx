@@ -21,10 +21,10 @@ vi.mock('../../src/api/holidayApi', () => ({
 
 const today = new Date(2026, 2, 15) // March 15, 2026
 
-function renderCalendar(todayProp = today) {
+function renderCalendar(todayProp = today, onEventClick?: (calEvent: unknown, anchorRect: DOMRect) => void) {
   return render(
     <MemoryRouter>
-      <MainCalendar today={todayProp} />
+      <MainCalendar today={todayProp} onEventClick={onEventClick as never} />
     </MemoryRouter>
   )
 }
@@ -91,9 +91,10 @@ describe('MainCalendar', () => {
     })
   })
 
-  it('이벤트 클릭 시 EventPreviewCard가 표시된다', async () => {
-    // given: 3월 10일에 이벤트가 있는 상태 (API가 반환)
+  it('이벤트 바 클릭 시 onEventClick 콜백이 호출된다', async () => {
+    // given: 3월 10일에 이벤트가 있는 상태, onEventClick 콜백이 전달된 상태
     const user = userEvent.setup()
+    const onEventClick = vi.fn()
     const march10Timestamp = Math.floor(new Date(2026, 2, 10, 9, 0, 0).getTime() / 1000)
     vi.mocked(todoApi.getTodos).mockResolvedValueOnce([
       {
@@ -105,7 +106,7 @@ describe('MainCalendar', () => {
       },
     ])
 
-    renderCalendar()
+    renderCalendar(today, onEventClick)
 
     // when: 이벤트 바 클릭 (fetch 완료 후 event-bar 나타남)
     await waitFor(() => {
@@ -114,40 +115,9 @@ describe('MainCalendar', () => {
     const eventBars = screen.getAllByTestId('event-bar')
     await user.click(eventBars[0])
 
-    // then: EventPreviewCard가 나타나고 이벤트 이름이 표시된다
+    // then: onEventClick 콜백이 호출된다
     await waitFor(() => {
-      expect(screen.getByTestId('event-preview-card')).toBeInTheDocument()
+      expect(onEventClick).toHaveBeenCalled()
     })
-    expect(screen.getByTestId('event-preview-card')).toHaveTextContent('미리보기 할 일')
-  })
-
-  it('EventPreviewCard의 백드롭 클릭 시 카드가 닫힌다', async () => {
-    // given: 이벤트가 있는 상태, 미리보기 카드가 열린 상태
-    const user = userEvent.setup()
-    const march10Timestamp = Math.floor(new Date(2026, 2, 10, 9, 0, 0).getTime() / 1000)
-    vi.mocked(todoApi.getTodos).mockResolvedValueOnce([
-      {
-        uuid: 'close-todo',
-        name: '닫기 테스트 할 일',
-        is_current: false,
-        event_tag_id: null,
-        event_time: { time_type: 'at', timestamp: march10Timestamp },
-      },
-    ])
-
-    renderCalendar()
-
-    await waitFor(() => {
-      expect(screen.getAllByTestId('event-bar').length).toBeGreaterThan(0)
-    })
-    const eventBars = screen.getAllByTestId('event-bar')
-    await user.click(eventBars[0])
-    await waitFor(() => expect(screen.getByTestId('event-preview-card')).toBeInTheDocument())
-
-    // when: 백드롭 클릭
-    await user.click(screen.getByTestId('preview-backdrop'))
-
-    // then: 카드가 사라진다
-    expect(screen.queryByTestId('event-preview-card')).not.toBeInTheDocument()
   })
 })
