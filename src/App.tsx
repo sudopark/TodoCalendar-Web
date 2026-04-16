@@ -9,7 +9,6 @@ import { LoginPage } from './pages/LoginPage'
 import { MainPage } from './pages/MainPage'
 import './stores/themeStore'
 
-const EventDetailPage = React.lazy(() => import('./pages/EventDetailPage').then(m => ({ default: m.EventDetailPage })))
 const TodoFormPage = React.lazy(() => import('./pages/TodoFormPage').then(m => ({ default: m.TodoFormPage })))
 const ScheduleFormPage = React.lazy(() => import('./pages/ScheduleFormPage').then(m => ({ default: m.ScheduleFormPage })))
 const TagManagementPage = React.lazy(() => import('./pages/TagManagementPage').then(m => ({ default: m.TagManagementPage })))
@@ -40,7 +39,6 @@ function AppRoutes() {
                 <ConditionalHeader />
                 <Routes>
                   <Route path="/" element={<MainPage />} />
-                  <Route path="/events/:id" element={<EventDetailPage />} />
                   <Route path="/todos/:id/edit" element={<TodoFormPage />} />
                   <Route path="/schedules/:id/edit" element={<ScheduleFormPage />} />
                   <Route path="/tags" element={<TagManagementPage />} />
@@ -54,7 +52,7 @@ function AppRoutes() {
         </Routes>
       </Suspense>
 
-      {/* 오버레이 렌더: background가 있을 때 EventDetailPage를 배경 위에 표시.
+      {/* 오버레이 렌더: background가 있을 때 폼 페이지를 배경 위에 표시.
           fixed inset-0 z-50 으로 뷰포트 전체를 덮어 스크롤 없이 보이도록 한다.
           배경 페이지의 Header가 이미 표시 중이므로 Header 불필요. */}
       {background && (
@@ -71,7 +69,6 @@ function AppRoutes() {
             <Suspense fallback={<LoadingSkeleton />}>
               <Routes>
                 {[
-                  ['/events/:id', <EventDetailPage />],
                   ['/todos/:id/edit', <TodoFormPage />],
                   ['/schedules/:id/edit', <ScheduleFormPage />],
                   ['/tags', <TagManagementPage />],

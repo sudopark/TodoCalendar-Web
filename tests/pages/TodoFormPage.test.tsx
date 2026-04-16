@@ -42,10 +42,12 @@ function setupMocks() {
   vi.mocked(useCalendarEventsStore).mockImplementation((sel?: any) =>
     sel ? sel(calendarState) : calendarState
   )
+  ;(useCalendarEventsStore as any).getState = () => calendarState
   const todosState = { addTodo: mockAddTodo, removeTodo: mockRemoveTodo, replaceTodo: mockReplaceTodo }
   vi.mocked(useCurrentTodosStore).mockImplementation((sel?: any) =>
     sel ? sel(todosState) : todosState
   )
+  ;(useCurrentTodosStore as any).getState = () => todosState
 }
 
 function renderCreate() {

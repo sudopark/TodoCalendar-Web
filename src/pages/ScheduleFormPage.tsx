@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { scheduleApi } from '../api/scheduleApi'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useUiStore } from '../stores/uiStore'
+import { deleteScheduleEvent } from '../utils/eventDeleteHelper'
 import { EventTimePicker } from '../components/EventTimePicker'
 import { RepeatingPicker } from '../components/RepeatingPicker'
 import { TagSelector } from '../components/TagSelector'
@@ -134,26 +135,7 @@ export function ScheduleFormPage() {
   async function applyDelete(scope: RepeatScope) {
     if (!id || !original) return
     try {
-      if (!original.repeating) {
-        // Non-repeating: optimistic removeEvent
-        await scheduleApi.deleteSchedule(id)
-        removeEvent(id)
-      } else if (scope === 'all') {
-        await scheduleApi.deleteSchedule(id)
-        removeEvent(id)
-      } else if (scope === 'this') {
-        // show_turns[0]: 현재 화면에 표시된 반복 회차. 없으면 0(첫 번째 회차)으로 폴백
-        const turn = original.show_turns?.[0] ?? 0
-        const excluded = await scheduleApi.excludeRepeating(id, { exclude_repeatings: [...(original.exclude_repeatings ?? []), turn] })
-        removeEvent(id)
-        addEvent({ type: 'schedule', event: excluded })
-      } else {
-        // scope === 'future'
-        const cutoff = occurrenceStart(original) - 1
-        const ended = await scheduleApi.updateSchedule(id, { repeating: { ...original.repeating, end: cutoff } })
-        removeEvent(id)
-        addEvent({ type: 'schedule', event: ended })
-      }
+      await deleteScheduleEvent(original, scope)
       navigate(-1)
     } catch (e) {
       console.warn('삭제 실패:', e)

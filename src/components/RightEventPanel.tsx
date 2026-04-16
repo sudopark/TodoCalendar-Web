@@ -56,11 +56,11 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
 
           {foremostEvent && (
             <div className="mb-4">
-              <ForemostEventBanner />
+              <ForemostEventBanner onEventClick={onEventClick} />
             </div>
           )}
 
-          <UncompletedTodoList />
+          <UncompletedTodoList onEventClick={onEventClick} />
 
           {/* TODO 섹션 */}
           <div className="mb-4">
