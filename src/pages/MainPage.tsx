@@ -86,7 +86,7 @@ export function MainPage() {
               rightPanelOpen ? 'translate-x-0' : 'translate-x-full'
             }`}
           >
-            <RightEventPanel />
+            <RightEventPanel onEventClick={handleEventClick} />
           </div>
         </div>
       </div>

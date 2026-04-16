@@ -1,26 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
 import { DayEventList } from '../../src/components/DayEventList'
 import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
 import { useEventTagStore } from '../../src/stores/eventTagStore'
+import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 
 vi.mock('../../src/stores/calendarEventsStore', () => ({ useCalendarEventsStore: vi.fn() }))
 vi.mock('../../src/stores/eventTagStore', () => ({ useEventTagStore: vi.fn() }))
 vi.mock('../../src/firebase', () => ({ auth: {}, db: {} }))
 
-const mockNavigate = vi.fn()
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
-  return { ...actual, useNavigate: () => mockNavigate }
-})
+const mockOnEventClick = vi.fn()
 
-function renderComponent(selectedDate: Date | null = null) {
+function renderComponent(selectedDate: Date | null = null, onEventClick = mockOnEventClick) {
   return render(
-    <MemoryRouter>
-      <DayEventList selectedDate={selectedDate} />
-    </MemoryRouter>
+    <DayEventList selectedDate={selectedDate} onEventClick={onEventClick} />
   )
 }
 
@@ -37,6 +31,7 @@ function mockEventTagStore(colorMap: Record<string, string> = {}) {
 describe('DayEventList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockOnEventClick.mockReset()
     mockEventTagStore()
   })
 
@@ -98,7 +93,7 @@ describe('DayEventList', () => {
     expect(screen.getByText('시간 없는 할 일')).toBeInTheDocument()
   })
 
-  it('이벤트를 클릭하면 해당 이벤트 상세 페이지로 이동한다', async () => {
+  it('이벤트를 클릭하면 onEventClick 콜백을 calEvent와 anchorRect와 함께 호출한다', async () => {
     const todo = { uuid: 'todo-abc', name: '상세 확인 할 일', is_current: false, event_time: null }
     const eventsByDate = new Map([
       ['2024-03-15', [{ type: 'todo' as const, event: todo }]],
@@ -109,7 +104,11 @@ describe('DayEventList', () => {
     renderComponent(new Date(2024, 2, 15))
     await userEvent.click(screen.getByText('상세 확인 할 일'))
 
-    expect(mockNavigate).toHaveBeenCalled()
+    expect(mockOnEventClick).toHaveBeenCalledOnce()
+    const [calEvent, anchorRect] = mockOnEventClick.mock.calls[0] as [CalendarEvent, DOMRect]
+    expect(calEvent.type).toBe('todo')
+    expect(calEvent.event.uuid).toBe('todo-abc')
+    expect(typeof anchorRect).toBe('object')
   })
 
 })

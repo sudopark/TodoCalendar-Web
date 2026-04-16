@@ -25,16 +25,12 @@ vi.mock('../../src/firebase', () => ({
   db: {},
 }))
 
-const mockNavigate = vi.fn()
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
-  return { ...actual, useNavigate: () => mockNavigate }
-})
+const mockOnEventClick = vi.fn()
 
 function renderComponent() {
   return render(
     <MemoryRouter>
-      <CurrentTodoList />
+      <CurrentTodoList onEventClick={mockOnEventClick} />
     </MemoryRouter>
   )
 }
@@ -42,6 +38,7 @@ function renderComponent() {
 describe('CurrentTodoList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockOnEventClick.mockReset()
     vi.mocked(useEventTagStore).mockImplementation((selector: any) =>
       selector({ getColorForTagId: () => null })
     )
@@ -69,14 +66,17 @@ describe('CurrentTodoList', () => {
     expect(screen.getByText('시간 없는 할 일 B')).toBeInTheDocument()
   })
 
-  it('항목을 클릭하면 해당 이벤트 상세 페이지로 이동한다', async () => {
+  it('항목을 클릭하면 onEventClick 콜백을 calEvent와 anchorRect와 함께 호출한다', async () => {
     const todos = [{ uuid: 'ct-nav', name: '이동 테스트', is_current: true, event_time: null }]
     useCurrentTodosStore.setState({ todos: todos as any })
 
     renderComponent()
     await userEvent.click(screen.getByText('이동 테스트'))
 
-    expect(mockNavigate).toHaveBeenCalled()
+    expect(mockOnEventClick).toHaveBeenCalledOnce()
+    const [calEvent] = mockOnEventClick.mock.calls[0]
+    expect(calEvent.type).toBe('todo')
+    expect(calEvent.event.uuid).toBe('ct-nav')
   })
 })
 
