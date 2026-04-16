@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { scheduleApi } from '../api/scheduleApi'
+import { eventDetailApi } from '../api/eventDetailApi'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useUiStore } from '../stores/uiStore'
+import { useToastStore } from '../stores/toastStore'
 import { deleteScheduleEvent } from '../utils/eventDeleteHelper'
 import { EventTimePicker } from '../components/EventTimePicker'
 import { RepeatingPicker } from '../components/RepeatingPicker'
@@ -37,6 +39,9 @@ export function ScheduleFormPage() {
   const [notifications, setNotifications] = useState<NotificationOption[]>(() =>
     !id && defaultNotificationSeconds != null ? [{ type: 'time' as const, seconds: defaultNotificationSeconds }] : []
   )
+  const [place, setPlace] = useState('')
+  const [url, setUrl] = useState('')
+  const [memo, setMemo] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showSaveScope, setShowSaveScope] = useState(false)
   const [showDeleteScope, setShowDeleteScope] = useState(false)
@@ -45,13 +50,19 @@ export function ScheduleFormPage() {
 
   useEffect(() => {
     if (!id) return
-    scheduleApi.getSchedule(id).then(sch => {
+    Promise.all([
+      scheduleApi.getSchedule(id),
+      eventDetailApi.getEventDetail(id).catch(() => null),
+    ]).then(([sch, detail]) => {
       setOriginal(sch)
       setName(sch.name)
       setTagId(sch.event_tag_id ?? null)
       setEventTime(sch.event_time)
       setRepeating(sch.repeating ?? null)
       setNotifications(sch.notification_options ?? [])
+      setPlace(detail?.place ?? '')
+      setUrl(detail?.url ?? '')
+      setMemo(detail?.memo ?? '')
       setLoading(false)
     }).catch((e) => { console.warn('일정 로드 실패:', e); setLoading(false) })
   }, [id])
@@ -77,6 +88,15 @@ export function ScheduleFormPage() {
       notification_options: notifications.length > 0 ? notifications : undefined,
     })
     addEvent({ type: 'schedule', event: created })
+    await saveEventDetail(created.uuid)
+  }
+
+  async function saveEventDetail(targetId: string) {
+    try {
+      await eventDetailApi.updateEventDetail(targetId, { place: place || null, url: url || null, memo: memo || null })
+    } catch {
+      useToastStore.getState().show('추가 정보 저장 실패', 'error')
+    }
   }
 
   async function applyUpdate(scope: RepeatScope) {
@@ -92,6 +112,7 @@ export function ScheduleFormPage() {
       })
       removeEvent(id)
       addEvent({ type: 'schedule', event: updated })
+      await saveEventDetail(id)
     } else if (scope === 'all') {
       const updated = await scheduleApi.updateSchedule(id, {
         name: name.trim(),
@@ -102,6 +123,7 @@ export function ScheduleFormPage() {
       })
       removeEvent(id)
       addEvent({ type: 'schedule', event: updated })
+      await saveEventDetail(id)
     } else if (scope === 'this') {
       const turn = original.show_turns?.[0] ?? 0
       const excluded = await scheduleApi.excludeRepeating(id, { exclude_repeatings: [...(original.exclude_repeatings ?? []), turn] })
@@ -115,6 +137,7 @@ export function ScheduleFormPage() {
       removeEvent(id)
       addEvent({ type: 'schedule', event: excluded })
       addEvent({ type: 'schedule', event: newSingle })
+      await saveEventDetail(newSingle.uuid)
     } else {
       // scope === 'future'
       const cutoff = occurrenceStart(original) - 1
@@ -129,6 +152,7 @@ export function ScheduleFormPage() {
       removeEvent(id)
       addEvent({ type: 'schedule', event: ended })
       addEvent({ type: 'schedule', event: newSeries })
+      await saveEventDetail(newSeries.uuid)
     }
   }
 
@@ -233,6 +257,40 @@ export function ScheduleFormPage() {
               isAllDay={eventTime.time_type === 'allday'}
             />
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="schedule-place" className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.place')}</label>
+          <input
+            id="schedule-place"
+            aria-label={t('event.place')}
+            className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
+            value={place}
+            onChange={e => setPlace(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="schedule-url" className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.url')}</label>
+          <input
+            id="schedule-url"
+            aria-label={t('event.url')}
+            className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="schedule-memo" className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.memo')}</label>
+          <textarea
+            id="schedule-memo"
+            aria-label={t('event.memo')}
+            className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
+            rows={3}
+            value={memo}
+            onChange={e => setMemo(e.target.value)}
+          />
         </div>
 
         {error && (
