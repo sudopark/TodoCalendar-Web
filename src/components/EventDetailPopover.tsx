@@ -166,7 +166,14 @@ export function EventDetailPopover({
   const notifications = event.notification_options ?? null
 
   useEffect(() => {
+    // detail은 선택적 정보 — 없어도 팝오버 표시에 지장 없음
     eventDetailApi.getEventDetail(event.uuid).then(setEventDetail).catch(() => {})
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [event.uuid])
 
   // Position calculation — show below if enough space, otherwise above
@@ -198,7 +205,7 @@ export function EventDetailPopover({
           <button
             className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
             data-testid="popover-edit-btn"
-            aria-label="수정"
+            aria-label={t('common.edit', '수정')}
             onClick={onEdit}
           >
             <PencilIcon />
@@ -206,7 +213,7 @@ export function EventDetailPopover({
           <button
             className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
             data-testid="popover-delete-btn"
-            aria-label="삭제"
+            aria-label={t('common.delete', '삭제')}
             onClick={onDelete}
           >
             <TrashIcon />
@@ -214,7 +221,7 @@ export function EventDetailPopover({
           <button
             className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
             data-testid="popover-close-btn"
-            aria-label="닫기"
+            aria-label={t('common.close', '닫기')}
             onClick={onClose}
           >
             <CloseIcon />
