@@ -174,7 +174,7 @@ export function EventDetailPopover({
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [event.uuid])
+  }, [event.uuid, onClose])
 
   // Position calculation — show below if enough space, otherwise above
   const THRESHOLD = 300
