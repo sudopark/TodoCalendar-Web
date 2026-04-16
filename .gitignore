@@ -32,6 +32,9 @@ e2e/.auth/
 # Claude Code
 .claude/
 
+# Superpowers docs (design specs, plans)
+docs/superpowers/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
