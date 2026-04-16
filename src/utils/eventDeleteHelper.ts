@@ -58,8 +58,7 @@ export async function deleteScheduleEvent(schedule: Schedule, scope?: RepeatScop
     addEvent({ type: 'schedule', event: excluded })
   } else {
     // future: 시리즈 종료
-    const et = schedule.event_time
-    const cutoff = (et.time_type === 'at' ? et.timestamp : et.period_start) - 1
+    const cutoff = getStartTimestamp(schedule.event_time) - 1
     const ended = await scheduleApi.updateSchedule(id, { repeating: { ...schedule.repeating, end: cutoff } })
     removeEvent(id)
     addEvent({ type: 'schedule', event: ended })
