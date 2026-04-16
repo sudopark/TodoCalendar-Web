@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
 import { todoApi } from '../api/todoApi'
 import { useCurrentTodosStore } from '../stores/currentTodosStore'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
@@ -10,18 +9,18 @@ import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
 import { refreshAllTodoStores } from '../utils/todoActions'
 import type { Todo } from '../models'
+import type { CalendarEvent } from '../utils/eventTimeUtils'
 
 interface CurrentTodoListProps {
   showHeader?: boolean
+  onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
 }
 
-export function CurrentTodoList({ showHeader = true }: CurrentTodoListProps) {
+export function CurrentTodoList({ showHeader = true, onEventClick }: CurrentTodoListProps) {
   const todos = useCurrentTodosStore(s => s.todos)
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
   const { isTagHidden } = useTagFilterStore()
   const getTagName = useTagName()
-  const navigate = useNavigate()
-  const location = useLocation()
   const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)
 
   async function handleComplete(todo: Todo) {
@@ -86,9 +85,7 @@ export function CurrentTodoList({ showHeader = true }: CurrentTodoListProps) {
             <div
               key={todo.uuid}
               className="flex items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] px-3 py-2.5 hover:brightness-95 cursor-pointer"
-              onClick={() => navigate(`/events/${todo.uuid}?type=todo`, {
-                state: { background: location, eventType: 'todo' },
-              })}
+              onClick={(e) => onEventClick?.({ type: 'todo', event: todo }, e.currentTarget.getBoundingClientRect())}
             >
               {/* 컬러바 3px */}
               <div

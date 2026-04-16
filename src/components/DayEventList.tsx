@@ -1,4 +1,3 @@
-import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useEventTagStore } from '../stores/eventTagStore'
@@ -8,7 +7,7 @@ import { TimeDescription } from './TimeDescription'
 import { formatDateKey } from '../utils/eventTimeUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 
-function EventItem({ calEvent, onNavigate }: { calEvent: CalendarEvent; onNavigate: () => void }) {
+function EventItem({ calEvent, onEventClick }: { calEvent: CalendarEvent; onEventClick: (calEvent: CalendarEvent, anchorRect: DOMRect) => void }) {
   const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
   const getTagName = useTagName()
 
@@ -22,7 +21,7 @@ function EventItem({ calEvent, onNavigate }: { calEvent: CalendarEvent; onNaviga
   return (
     <div
       className="flex items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] px-3 py-2.5 hover:brightness-95 cursor-pointer"
-      onClick={onNavigate}
+      onClick={(e) => onEventClick(calEvent, e.currentTarget.getBoundingClientRect())}
     >
       {/* 컬러바 3px */}
       <div
@@ -46,12 +45,11 @@ function EventItem({ calEvent, onNavigate }: { calEvent: CalendarEvent; onNaviga
 
 interface DayEventListProps {
   selectedDate: Date | null
+  onEventClick: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
 }
 
-export function DayEventList({ selectedDate }: DayEventListProps) {
+export function DayEventList({ selectedDate, onEventClick }: DayEventListProps) {
   const { t } = useTranslation()
-  const navigate = useNavigate()
-  const location = useLocation()
   const eventsByDate = useCalendarEventsStore(s => s.eventsByDate)
   const isTagHidden = useTagFilterStore(s => s.isTagHidden)
 
@@ -80,9 +78,7 @@ export function DayEventList({ selectedDate }: DayEventListProps) {
           <EventItem
             key={`${calEvent.event.uuid}-${i}`}
             calEvent={calEvent}
-            onNavigate={() => navigate(`/events/${calEvent.event.uuid}?type=${calEvent.type}`, {
-              state: { background: location, eventType: calEvent.type },
-            })}
+            onEventClick={onEventClick}
           />
         ))
       )}

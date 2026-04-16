@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useUiStore } from '../stores/uiStore'
+import type { CalendarEvent } from '../utils/eventTimeUtils'
 import { useForemostEventStore } from '../stores/foremostEventStore'
 import { ForemostEventBanner } from './ForemostEventBanner'
 import { UncompletedTodoList } from './UncompletedTodoList'
@@ -9,7 +10,11 @@ import { QuickTodoInput } from './QuickTodoInput'
 import { CreateEventButton } from './CreateEventButton'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
-export function RightEventPanel() {
+interface RightEventPanelProps {
+  onEventClick: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
+}
+
+export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
   const { t, i18n } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
   const foremostEvent = useForemostEventStore(s => s.foremostEvent)
@@ -61,7 +66,7 @@ export function RightEventPanel() {
           <div className="mb-4">
             <h3 className="text-xs font-semibold tracking-wider text-[#969696] mb-2">Current Todo</h3>
             <div className="border-t border-border-calendar pt-2">
-              <CurrentTodoList showHeader={false} />
+              <CurrentTodoList showHeader={false} onEventClick={onEventClick} />
             </div>
           </div>
 
@@ -72,7 +77,7 @@ export function RightEventPanel() {
                 {t('main.events_title', '이벤트')}
               </h3>
               <div className="border-t border-border-calendar pt-2">
-                <DayEventList selectedDate={selectedDate} />
+                <DayEventList selectedDate={selectedDate} onEventClick={onEventClick} />
               </div>
             </div>
           )}
