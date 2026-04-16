@@ -168,13 +168,15 @@ export function EventDetailPopover({
   useEffect(() => {
     // detail은 선택적 정보 — 없어도 팝오버 표시에 지장 없음
     eventDetailApi.getEventDetail(event.uuid).then(setEventDetail).catch(() => {})
+  }, [event.uuid])
 
+  useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [event.uuid, onClose])
+  }, [onClose])
 
   // Position calculation — show below if enough space, otherwise above
   const THRESHOLD = 300
