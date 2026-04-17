@@ -16,6 +16,10 @@ export async function deleteTodoEvent(todo: Todo, scope?: RepeatScope): Promise<
     await todoApi.deleteTodo(id)
     removeEvent(id)
     removeTodo(id)
+  } else if (scope === 'all') {
+    await todoApi.deleteTodo(id)
+    removeEvent(id)
+    removeTodo(id)
   } else if (scope === 'this') {
     const next = todo.event_time
       ? nextRepeatingTime(todo.event_time, todo.repeating_turn ?? 1, todo.repeating, todo.exclude_repeatings)
