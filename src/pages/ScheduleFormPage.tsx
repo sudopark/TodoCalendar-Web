@@ -225,7 +225,7 @@ export function ScheduleFormPage() {
 
   const currentSnapshot: EventFormSnapshot = { name, tagId, eventTime, repeating, notifications, place, url, memo }
   const isDirty = useEventFormDirty(originalSnapshot, currentSnapshot)
-  const canSave = name.trim() !== '' && !!eventTime && isDirty && !saving && !showSaveScope && !showDeleteScope
+  const canSave = name.trim() !== '' && !!eventTime && isDirty && !saving && !showSaveScope && !showDeleteScope && !showDeleteConfirm
 
   if (loading) {
     return (
