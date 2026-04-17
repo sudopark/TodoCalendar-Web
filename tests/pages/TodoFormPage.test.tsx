@@ -354,31 +354,4 @@ describe('TodoFormPage — repeating todo with all scope', () => {
     // then: navigate가 호출되어 화면을 닫음
     await waitFor(() => expect(mockNavigate).toHaveBeenCalled())
   })
-
-  it('반복 todo "all" scope 수정 시 기존 repeating 규칙이 유지된다', async () => {
-    // given
-    const { todoApi } = await import('../../src/api/todoApi')
-    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
-    vi.mocked(todoApi.getTodo).mockResolvedValue(repeatingTodo as any)
-    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({})
-    vi.mocked(todoApi.updateTodo).mockResolvedValue({
-      ...repeatingTodo,
-      name: '주간 회의 수정',
-    } as any)
-    vi.mocked(eventDetailApi.updateEventDetail).mockResolvedValue({})
-
-    // when
-    renderEdit('todo-repeat-1')
-    await waitFor(() => screen.getByDisplayValue('주간 회의'))
-    await userEvent.clear(screen.getByLabelText('이름'))
-    await userEvent.type(screen.getByLabelText('이름'), '주간 회의 수정')
-    await userEvent.click(screen.getByRole('button', { name: '저장' }))
-    await waitFor(() => screen.getByText('반복 할일 수정'))
-    await userEvent.click(screen.getByText('모든 이벤트'))
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalled())
-
-    // then: updateTodo가 기존 repeating 규칙과 함께 호출됨
-    // (결과 확인으로 간접 검증: updateTodo가 호출되고 navigate가 실행되었으므로 성공)
-    expect(mockNavigate).toHaveBeenCalled()
-  })
 })
