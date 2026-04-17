@@ -150,6 +150,30 @@ describe('deleteTodoEvent', () => {
     // endedTodo has event_time so it gets added back
     expect(allEvents.some(e => e.event.uuid === 'todo-rep-2')).toBe(true)
   })
+
+  it('반복 todo를 "all" 범위로 삭제하면 calendarEventsStore와 currentTodosStore에서 완전히 제거된다', async () => {
+    // given
+    const { todoApi } = await import('../../src/api/todoApi')
+    vi.mocked(todoApi.deleteTodo).mockResolvedValue(undefined as any)
+    const todo: Todo = {
+      uuid: 'todo-rep-all',
+      name: 'Daily',
+      is_current: true,
+      event_time: atTime(ts(2025, 3, 15)),
+      repeating: DAILY_REPEATING,
+      repeating_turn: 3,
+    }
+    useCalendarEventsStore.getState().addEvent({ type: 'todo', event: todo })
+    useCurrentTodosStore.getState().addTodo(todo)
+
+    // when
+    await deleteTodoEvent(todo, 'all')
+
+    // then
+    const allEvents = [...useCalendarEventsStore.getState().eventsByDate.values()].flat()
+    expect(allEvents.some(e => e.event.uuid === 'todo-rep-all')).toBe(false)
+    expect(useCurrentTodosStore.getState().todos.some(t => t.uuid === 'todo-rep-all')).toBe(false)
+  })
 })
 
 describe('deleteScheduleEvent', () => {
