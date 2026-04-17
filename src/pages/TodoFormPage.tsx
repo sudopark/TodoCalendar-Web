@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
+import { eventDetailApi } from '../api/eventDetailApi'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useCurrentTodosStore } from '../stores/currentTodosStore'
 import { useUiStore } from '../stores/uiStore'
+import { useToastStore } from '../stores/toastStore'
 import { deleteTodoEvent } from '../utils/eventDeleteHelper'
 import { EventTimePicker } from '../components/EventTimePicker'
 import { RepeatingPicker } from '../components/RepeatingPicker'
@@ -37,6 +39,9 @@ export function TodoFormPage() {
   const [notifications, setNotifications] = useState<NotificationOption[]>(() =>
     !id && defaultNotificationSeconds != null ? [{ type: 'time' as const, seconds: defaultNotificationSeconds }] : []
   )
+  const [place, setPlace] = useState('')
+  const [url, setUrl] = useState('')
+  const [memo, setMemo] = useState('')
   const [showConfirm, setShowConfirm] = useState(false)
   const [showSaveScope, setShowSaveScope] = useState(false)
   const [showDeleteScope, setShowDeleteScope] = useState(false)
@@ -52,15 +57,21 @@ export function TodoFormPage() {
 
   useEffect(() => {
     if (!id) return
-    todoApi.getTodo(id).then(todo => {
+    Promise.all([
+      todoApi.getTodo(id),
+      eventDetailApi.getEventDetail(id).catch(() => null),
+    ]).then(([todo, detail]) => {
       setOriginal(todo)
       setName(todo.name)
       setTagId(todo.event_tag_id ?? null)
       setEventTime(todo.event_time ?? null)
       setRepeating(todo.repeating ?? null)
       setNotifications(todo.notification_options ?? [])
+      setPlace(detail?.place ?? '')
+      setUrl(detail?.url ?? '')
+      setMemo(detail?.memo ?? '')
       setLoading(false)
-    }).catch(() => setLoading(false))
+    }).catch((e) => { console.warn('할 일 로드 실패:', e); setLoading(false) })
   }, [id])
 
   async function handleSave() {
@@ -106,6 +117,16 @@ export function TodoFormPage() {
     })
     if (created.event_time) addEvent({ type: 'todo', event: created })
     if (created.is_current) addTodo(created)
+    await saveEventDetail(created.uuid)
+  }
+
+  // detail 저장은 best-effort: 실패해도 basic 저장 결과를 유지하기 위해 예외를 흡수한다
+  async function saveEventDetail(targetId: string) {
+    try {
+      await eventDetailApi.updateEventDetail(targetId, { place: place || null, url: url || null, memo: memo || null })
+    } catch {
+      useToastStore.getState().show('추가 정보 저장 실패', 'error')
+    }
   }
 
   async function applyUpdate(scope?: RepeatScope) {
@@ -135,8 +156,10 @@ export function TodoFormPage() {
       } else if (!updated.is_current && original.is_current) {
         removeTodo(id)
       }
+      await saveEventDetail(id)
     } else if (scope === 'this') {
-      // 이번만: 원본을 다음 턴으로 진행 + 수정된 내용으로 새 비반복 Todo 생성
+      // 이 회차만 분리 → 새 단건 todo에 현재 폼 state로 detail 저장.
+      // 원본 반복 todo의 detail은 유지 (다른 회차 조회 시 유효한 정보로 쓰여야 하므로).
       const next = original.event_time
         ? nextRepeatingTime(original.event_time, original.repeating_turn ?? 1, original.repeating, original.exclude_repeatings)
         : null
@@ -148,8 +171,11 @@ export function TodoFormPage() {
       removeEvent(id)
       if (result.new_todo.event_time) addEvent({ type: 'todo', event: result.new_todo })
       if (result.next_repeating?.event_time) addEvent({ type: 'todo', event: result.next_repeating })
+      await saveEventDetail(result.new_todo.uuid)
     } else {
-      // future: 원본 시리즈 종료 + 새 시리즈 생성
+      // 이후 전체를 새 시리즈로 분리 → 새 시리즈에 detail 저장.
+      // 원본 시리즈의 detail은 유지 (종료 처리된 과거 회차 조회 시 유효한 정보).
+      // eventTime이 없으면 새 시리즈가 생성되지 않으므로 detail 저장도 생략.
       const startTs = original.event_time ? getStartTimestamp(original.event_time) : 0
       const cutoff = startTs - 1
       const ended = await todoApi.patchTodo(id, { repeating: { ...original.repeating, end: cutoff } })
@@ -164,6 +190,7 @@ export function TodoFormPage() {
           notification_options: notifications.length > 0 ? notifications : undefined,
         })
         if (newSeries.event_time) addEvent({ type: 'todo', event: newSeries })
+        await saveEventDetail(newSeries.uuid)
       }
     }
   }
@@ -246,6 +273,37 @@ export function TodoFormPage() {
             </div>
           </div>
         )}
+
+        <div>
+          <label htmlFor="todo-place" className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.place')}</label>
+          <input
+            id="todo-place"
+            className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
+            value={place}
+            onChange={e => setPlace(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="todo-url" className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.url')}</label>
+          <input
+            id="todo-url"
+            className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="todo-memo" className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.memo')}</label>
+          <textarea
+            id="todo-memo"
+            className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
+            rows={3}
+            value={memo}
+            onChange={e => setMemo(e.target.value)}
+          />
+        </div>
 
         {error && (
           <p className="text-sm text-red-600">{error}</p>
