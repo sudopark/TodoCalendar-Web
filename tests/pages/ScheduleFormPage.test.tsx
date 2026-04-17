@@ -262,4 +262,60 @@ describe('ScheduleFormPage — EventDetail (place/url/memo)', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalled())
     await waitFor(() => expect(screen.getByText('추가 정보 저장 실패')).toBeInTheDocument())
   })
+
+  it('편집 모드 진입 후 변경 없이 저장 버튼은 비활성이다', async () => {
+    // given
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(scheduleApi.getSchedule).mockResolvedValue(baseSchedule as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({ place: '', url: '', memo: '' })
+
+    // when
+    renderEdit('sch-1')
+    await waitFor(() => expect(screen.getByDisplayValue('팀 미팅')).toBeInTheDocument())
+
+    // then: 변경 없으면 저장 버튼 비활성
+    expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
+  })
+
+  it('편집 모드에서 이름을 변경하면 저장 버튼이 활성화된다', async () => {
+    // given
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(scheduleApi.getSchedule).mockResolvedValue(baseSchedule as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({ place: '', url: '', memo: '' })
+    renderEdit('sch-1')
+    await waitFor(() => screen.getByDisplayValue('팀 미팅'))
+
+    // when
+    await userEvent.type(screen.getByLabelText('이름'), ' 수정')
+
+    // then: 변경 후 저장 버튼 활성
+    expect(screen.getByRole('button', { name: '저장' })).not.toBeDisabled()
+  })
+
+  it('저장 중에는 저장 버튼이 비활성이다', async () => {
+    // given: updateSchedule이 pending 상태
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(scheduleApi.getSchedule).mockResolvedValue(baseSchedule as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({ place: '', url: '', memo: '' })
+    let resolveUpdate!: (v: any) => void
+    vi.mocked(scheduleApi.updateSchedule).mockImplementation(
+      () => new Promise(r => { resolveUpdate = r })
+    )
+    vi.mocked(eventDetailApi.updateEventDetail).mockResolvedValue({})
+    renderEdit('sch-1')
+    await waitFor(() => screen.getByDisplayValue('팀 미팅'))
+    await userEvent.type(screen.getByLabelText('이름'), ' 수정')
+
+    // when: 저장 클릭 (updateSchedule은 pending 상태)
+    await userEvent.click(screen.getByRole('button', { name: '저장' }))
+
+    // then: 저장 중에는 버튼 비활성
+    expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
+
+    // cleanup
+    resolveUpdate({ ...baseSchedule, name: '팀 미팅 수정' })
+  })
 })

@@ -16,6 +16,7 @@ import { RepeatingScopeDialog, type RepeatScope } from '../components/RepeatingS
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
 import { NotificationPicker } from '../components/NotificationPicker'
 import { useEventDefaultsStore } from '../stores/eventDefaultsStore'
+import { useEventFormDirty, type EventFormSnapshot } from '../hooks/useEventFormDirty'
 import type { Todo, EventTime, Repeating, NotificationOption } from '../models'
 
 export function TodoFormPage() {
@@ -30,6 +31,7 @@ export function TodoFormPage() {
 
   const [loading, setLoading] = useState(!!id)
   const [original, setOriginal] = useState<Todo | null>(null)
+  const [originalSnapshot, setOriginalSnapshot] = useState<EventFormSnapshot | null>(null)
   const [name, setName] = useState('')
   const [tagId, setTagId] = useState<string | null>(() => id ? null : defaultTagId)
   const [eventTime, setEventTime] = useState<EventTime | null>(() =>
@@ -61,15 +63,33 @@ export function TodoFormPage() {
       todoApi.getTodo(id),
       eventDetailApi.getEventDetail(id).catch(() => null),
     ]).then(([todo, detail]) => {
+      const loadedName = todo.name
+      const loadedTagId = todo.event_tag_id ?? null
+      const loadedEventTime = todo.event_time ?? null
+      const loadedRepeating = todo.repeating ?? null
+      const loadedNotifications = todo.notification_options ?? []
+      const loadedPlace = detail?.place ?? ''
+      const loadedUrl = detail?.url ?? ''
+      const loadedMemo = detail?.memo ?? ''
       setOriginal(todo)
-      setName(todo.name)
-      setTagId(todo.event_tag_id ?? null)
-      setEventTime(todo.event_time ?? null)
-      setRepeating(todo.repeating ?? null)
-      setNotifications(todo.notification_options ?? [])
-      setPlace(detail?.place ?? '')
-      setUrl(detail?.url ?? '')
-      setMemo(detail?.memo ?? '')
+      setName(loadedName)
+      setTagId(loadedTagId)
+      setEventTime(loadedEventTime)
+      setRepeating(loadedRepeating)
+      setNotifications(loadedNotifications)
+      setPlace(loadedPlace)
+      setUrl(loadedUrl)
+      setMemo(loadedMemo)
+      setOriginalSnapshot({
+        name: loadedName,
+        tagId: loadedTagId,
+        eventTime: loadedEventTime,
+        repeating: loadedRepeating,
+        notifications: loadedNotifications,
+        place: loadedPlace,
+        url: loadedUrl,
+        memo: loadedMemo,
+      })
       setLoading(false)
     }).catch((e) => { console.warn('할 일 로드 실패:', e); setLoading(false) })
   }, [id])
@@ -208,6 +228,11 @@ export function TodoFormPage() {
     }
   }
 
+  const currentSnapshot: EventFormSnapshot = { name, tagId, eventTime, repeating, notifications, place, url, memo }
+  const isDirty = useEventFormDirty(originalSnapshot, currentSnapshot)
+  // Todo는 eventTime이 optional이므로 isValidTime 가드 없이 name + isDirty + !saving만으로 canSave 판단
+  const canSave = name.trim() !== '' && isDirty && !saving && !showSaveScope && !showDeleteScope
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -312,7 +337,7 @@ export function TodoFormPage() {
           <button
             className="flex-1 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             onClick={handleSave}
-            disabled={saving || showSaveScope || showDeleteScope}
+            disabled={!canSave}
           >
             {t('common.save')}
           </button>

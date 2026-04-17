@@ -14,6 +14,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog'
 import { RepeatingScopeDialog, type RepeatScope } from '../components/RepeatingScopeDialog'
 import { NotificationPicker } from '../components/NotificationPicker'
 import { useEventDefaultsStore } from '../stores/eventDefaultsStore'
+import { useEventFormDirty, type EventFormSnapshot } from '../hooks/useEventFormDirty'
 import type { Schedule, EventTime, Repeating, NotificationOption } from '../models'
 
 export function ScheduleFormPage() {
@@ -32,6 +33,7 @@ export function ScheduleFormPage() {
 
   const [loading, setLoading] = useState(!!id)
   const [original, setOriginal] = useState<Schedule | null>(null)
+  const [originalSnapshot, setOriginalSnapshot] = useState<EventFormSnapshot | null>(null)
   const [name, setName] = useState('')
   const [tagId, setTagId] = useState<string | null>(() => id ? null : defaultTagId)
   const [eventTime, setEventTime] = useState<EventTime>(defaultEventTime)
@@ -54,15 +56,33 @@ export function ScheduleFormPage() {
       scheduleApi.getSchedule(id),
       eventDetailApi.getEventDetail(id).catch(() => null),
     ]).then(([sch, detail]) => {
+      const loadedName = sch.name
+      const loadedTagId = sch.event_tag_id ?? null
+      const loadedEventTime = sch.event_time
+      const loadedRepeating = sch.repeating ?? null
+      const loadedNotifications = sch.notification_options ?? []
+      const loadedPlace = detail?.place ?? ''
+      const loadedUrl = detail?.url ?? ''
+      const loadedMemo = detail?.memo ?? ''
       setOriginal(sch)
-      setName(sch.name)
-      setTagId(sch.event_tag_id ?? null)
-      setEventTime(sch.event_time)
-      setRepeating(sch.repeating ?? null)
-      setNotifications(sch.notification_options ?? [])
-      setPlace(detail?.place ?? '')
-      setUrl(detail?.url ?? '')
-      setMemo(detail?.memo ?? '')
+      setName(loadedName)
+      setTagId(loadedTagId)
+      setEventTime(loadedEventTime)
+      setRepeating(loadedRepeating)
+      setNotifications(loadedNotifications)
+      setPlace(loadedPlace)
+      setUrl(loadedUrl)
+      setMemo(loadedMemo)
+      setOriginalSnapshot({
+        name: loadedName,
+        tagId: loadedTagId,
+        eventTime: loadedEventTime,
+        repeating: loadedRepeating,
+        notifications: loadedNotifications,
+        place: loadedPlace,
+        url: loadedUrl,
+        memo: loadedMemo,
+      })
       setLoading(false)
     }).catch((e) => { console.warn('일정 로드 실패:', e); setLoading(false) })
   }, [id])
@@ -203,6 +223,10 @@ export function ScheduleFormPage() {
     }
   }
 
+  const currentSnapshot: EventFormSnapshot = { name, tagId, eventTime, repeating, notifications, place, url, memo }
+  const isDirty = useEventFormDirty(originalSnapshot, currentSnapshot)
+  const canSave = name.trim() !== '' && !!eventTime && isDirty && !saving && !showSaveScope && !showDeleteScope
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -301,7 +325,7 @@ export function ScheduleFormPage() {
           <button
             className="flex-1 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             onClick={handleSave}
-            disabled={saving}
+            disabled={!canSave}
           >
             {t('common.save')}
           </button>
