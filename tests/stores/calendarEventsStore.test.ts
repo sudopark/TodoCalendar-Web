@@ -155,6 +155,101 @@ describe('calendarEventsStore — mutation', () => {
     expect(events.find(e => e.event.uuid === 'todo-1')?.event.name).toBe('수정된 이름')
   })
 
+  // 이슈 #60 회귀 방지: 매일 반복 schedule이 매일 표시되는지 검증
+  it('매일 반복 schedule이 해당 년도의 모든 날짜에 표시된다 (issue #60)', async () => {
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+
+    // given: 2025-03-31 10:00부터 매일 반복되는 schedule
+    const startTs = Math.floor(new Date(2025, 2, 31, 10, 0, 0).getTime() / 1000)
+    vi.mocked(todoApi.getTodos).mockResolvedValue([])
+    vi.mocked(scheduleApi.getSchedules).mockResolvedValue([
+      {
+        uuid: 'daily-meeting',
+        name: '매일 10시 미팅',
+        event_time: { time_type: 'at' as const, timestamp: startTs },
+        repeating: {
+          start: startTs,
+          option: { optionType: 'every_day', interval: 1 },
+        },
+      },
+    ])
+
+    // when: 2025년 조회
+    await useCalendarEventsStore.getState().fetchEventsForYear(2025)
+
+    // then: 3/31뿐만 아니라 이후 모든 날짜에도 표시
+    const state = useCalendarEventsStore.getState()
+    expect(state.eventsByDate.get('2025-03-31')?.some(e => e.event.uuid === 'daily-meeting')).toBe(true)
+    expect(state.eventsByDate.get('2025-04-01')?.some(e => e.event.uuid === 'daily-meeting')).toBe(true)
+    expect(state.eventsByDate.get('2025-04-15')?.some(e => e.event.uuid === 'daily-meeting')).toBe(true)
+    expect(state.eventsByDate.get('2025-12-31')?.some(e => e.event.uuid === 'daily-meeting')).toBe(true)
+  })
+
+  it('매주 반복 schedule이 해당 년도의 모든 해당 요일에 표시된다 (issue #60)', async () => {
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+
+    // given: 2025-04-07 월요일 매주 월요일 반복
+    const startTs = Math.floor(new Date(2025, 3, 7, 10, 0, 0).getTime() / 1000)
+    vi.mocked(todoApi.getTodos).mockResolvedValue([])
+    vi.mocked(scheduleApi.getSchedules).mockResolvedValue([
+      {
+        uuid: 'weekly',
+        name: '매주 월요일',
+        event_time: { time_type: 'at' as const, timestamp: startTs },
+        repeating: {
+          start: startTs,
+          option: { optionType: 'every_week', interval: 1, dayOfWeek: [1], timeZone: 'Asia/Seoul' },
+        },
+      },
+    ])
+
+    // when
+    await useCalendarEventsStore.getState().fetchEventsForYear(2025)
+
+    // then: 4/7, 4/14, 4/21, 4/28 모두 표시
+    const state = useCalendarEventsStore.getState()
+    expect(state.eventsByDate.get('2025-04-07')?.some(e => e.event.uuid === 'weekly')).toBe(true)
+    expect(state.eventsByDate.get('2025-04-14')?.some(e => e.event.uuid === 'weekly')).toBe(true)
+    expect(state.eventsByDate.get('2025-04-21')?.some(e => e.event.uuid === 'weekly')).toBe(true)
+    expect(state.eventsByDate.get('2025-04-28')?.some(e => e.event.uuid === 'weekly')).toBe(true)
+    // 화요일/수요일 등에는 없어야 함
+    expect(state.eventsByDate.get('2025-04-08')?.some(e => e.event.uuid === 'weekly')).toBeFalsy()
+  })
+
+  it('반복 이벤트 각 인스턴스는 show_turns가 해당 턴으로 설정된다 (issue #60)', async () => {
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+
+    // given: 매일 반복, 2025-04-01 시작
+    const startTs = Math.floor(new Date(2025, 3, 1, 10, 0, 0).getTime() / 1000)
+    vi.mocked(todoApi.getTodos).mockResolvedValue([])
+    vi.mocked(scheduleApi.getSchedules).mockResolvedValue([
+      {
+        uuid: 'daily',
+        name: 'Daily',
+        event_time: { time_type: 'at' as const, timestamp: startTs },
+        repeating: {
+          start: startTs,
+          option: { optionType: 'every_day', interval: 1 },
+        },
+      },
+    ])
+
+    // when
+    await useCalendarEventsStore.getState().fetchEventsForYear(2025)
+
+    // then: 각 인스턴스가 해당 턴 번호를 가진다
+    const state = useCalendarEventsStore.getState()
+    const apr01 = state.eventsByDate.get('2025-04-01')?.find(e => e.event.uuid === 'daily')
+    const apr02 = state.eventsByDate.get('2025-04-02')?.find(e => e.event.uuid === 'daily')
+    const apr03 = state.eventsByDate.get('2025-04-03')?.find(e => e.event.uuid === 'daily')
+    expect((apr01?.event as import('../../src/models/Schedule').Schedule).show_turns).toEqual([1])
+    expect((apr02?.event as import('../../src/models/Schedule').Schedule).show_turns).toEqual([2])
+    expect((apr03?.event as import('../../src/models/Schedule').Schedule).show_turns).toEqual([3])
+  })
+
   it('reset 호출 시 초기 상태로 돌아간다', async () => {
     const { todoApi } = await import('../../src/api/todoApi')
     const { scheduleApi } = await import('../../src/api/scheduleApi')
