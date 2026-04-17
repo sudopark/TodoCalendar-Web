@@ -1,5 +1,3 @@
-import { useMemo } from 'react'
-
 export interface EventFormSnapshot {
   name: string
   tagId: string | null
@@ -17,8 +15,6 @@ export function useEventFormDirty(
   original: EventFormSnapshot | null,
   current: EventFormSnapshot
 ): boolean {
-  return useMemo(() => {
-    if (!original) return true
-    return JSON.stringify(original) !== JSON.stringify(current)
-  }, [original, current])
+  if (!original) return true
+  return JSON.stringify(original) !== JSON.stringify(current)
 }

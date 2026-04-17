@@ -231,7 +231,7 @@ export function TodoFormPage() {
   const currentSnapshot: EventFormSnapshot = { name, tagId, eventTime, repeating, notifications, place, url, memo }
   const isDirty = useEventFormDirty(originalSnapshot, currentSnapshot)
   // Todo는 eventTime이 optional이므로 isValidTime 가드 없이 name + isDirty + !saving만으로 canSave 판단
-  const canSave = name.trim() !== '' && isDirty && !saving && !showSaveScope && !showDeleteScope
+  const canSave = name.trim() !== '' && isDirty && !saving && !showSaveScope && !showDeleteScope && !showConfirm
 
   if (loading) {
     return (
