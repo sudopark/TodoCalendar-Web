@@ -1,4 +1,5 @@
 import type { EventTime, Todo, Schedule } from '../models'
+import { enumerateRepeatingTimes } from './repeatingTimeCalculator'
 
 export function eventTimeToStartDate(eventTime: EventTime): Date {
   switch (eventTime.time_type) {
@@ -93,7 +94,8 @@ export function groupEventsByDate(
     map.set(dateKey, list)
   }
 
-  const assignEvent = (eventTime: EventTime, calEvent: CalendarEvent) => {
+  // 단일 인스턴스(비반복 또는 반복의 한 turn)를 해당 기간 날짜들에 배치
+  const assignInstance = (eventTime: EventTime, calEvent: CalendarEvent) => {
     if (!eventTimeOverlapsRange(eventTime, lower, upper)) return
     const start = eventTimeToStartDate(eventTime)
     const end = eventTimeToEndDate(eventTime)
@@ -109,13 +111,58 @@ export function groupEventsByDate(
   }
 
   for (const todo of todos) {
-    if (todo.event_time) {
-      assignEvent(todo.event_time, { type: 'todo', event: todo })
+    if (!todo.event_time) continue
+    // 원본(첫 turn) 인스턴스 배치 — exclude 아닌 경우만
+    const firstTurn = todo.repeating_turn ?? 1
+    if (!todo.exclude_repeatings?.includes(firstTurn)) {
+      assignInstance(todo.event_time, {
+        type: 'todo',
+        event: { ...todo, repeating_turn: firstTurn },
+      })
+    }
+    // 반복이 있으면 기간 내 나머지 인스턴스들 확장
+    if (todo.repeating) {
+      const instances = enumerateRepeatingTimes(
+        todo.event_time,
+        firstTurn,
+        todo.repeating,
+        todo.exclude_repeatings,
+        upper,
+      )
+      for (const inst of instances) {
+        assignInstance(inst.time, {
+          type: 'todo',
+          event: { ...todo, event_time: inst.time, repeating_turn: inst.turn },
+        })
+      }
     }
   }
 
   for (const schedule of schedules) {
-    assignEvent(schedule.event_time, { type: 'schedule', event: schedule })
+    const firstTurn = schedule.show_turns?.[0] ?? 1
+    // 원본(첫 turn) 인스턴스 배치 — exclude 아닌 경우만
+    if (!schedule.exclude_repeatings?.includes(firstTurn)) {
+      assignInstance(schedule.event_time, {
+        type: 'schedule',
+        event: { ...schedule, show_turns: [firstTurn] },
+      })
+    }
+    // 반복이 있으면 기간 내 나머지 인스턴스들 확장
+    if (schedule.repeating) {
+      const instances = enumerateRepeatingTimes(
+        schedule.event_time,
+        firstTurn,
+        schedule.repeating,
+        schedule.exclude_repeatings,
+        upper,
+      )
+      for (const inst of instances) {
+        assignInstance(inst.time, {
+          type: 'schedule',
+          event: { ...schedule, event_time: inst.time, show_turns: [inst.turn] },
+        })
+      }
+    }
   }
 
   return map

@@ -145,6 +145,124 @@ describe('groupEventsByDate', () => {
     const result = groupEventsByDate(todos, [], lower, upper)
     expect(result.size).toBe(0)
   })
+
+  it('매일 반복 schedule을 기간 내 모든 날짜에 배치한다', () => {
+    // given: 2024-06-10 10시 매일 반복, 2024-06-30까지 조회
+    const lower = dateToTimestamp(new Date(2024, 5, 1))
+    const upper = dateToTimestamp(new Date(2024, 5, 30, 23, 59, 59))
+    const startTs = dateToTimestamp(new Date(2024, 5, 10, 10, 0))
+
+    const schedules: Schedule[] = [
+      {
+        uuid: 's-repeat',
+        name: 'Daily',
+        event_time: { time_type: 'at', timestamp: startTs },
+        repeating: {
+          start: startTs,
+          option: { optionType: 'every_day', interval: 1 },
+        },
+      },
+    ]
+
+    // when
+    const result = groupEventsByDate([], schedules, lower, upper)
+
+    // then: 6/10 ~ 6/30, 21일 모두 표시되어야 한다
+    for (let d = 10; d <= 30; d++) {
+      const key = `2024-06-${String(d).padStart(2, '0')}`
+      expect(result.get(key), `${key} should have the repeating event`).toHaveLength(1)
+    }
+  })
+
+  it('반복 todo도 기간 내 모든 날짜에 배치한다', () => {
+    // given
+    const lower = dateToTimestamp(new Date(2024, 5, 1))
+    const upper = dateToTimestamp(new Date(2024, 5, 30, 23, 59, 59))
+    const startTs = dateToTimestamp(new Date(2024, 5, 15, 9, 0))
+
+    const todos: Todo[] = [
+      {
+        uuid: 't-repeat',
+        name: 'Weekly Todo',
+        is_current: false,
+        event_time: { time_type: 'at', timestamp: startTs },
+        repeating: {
+          start: startTs,
+          option: { optionType: 'every_week', interval: 1, dayOfWeek: [6], timeZone: 'Asia/Seoul' },
+        },
+        repeating_turn: 1,
+      },
+    ]
+
+    // when
+    const result = groupEventsByDate(todos, [], lower, upper)
+
+    // then: 6/15(토), 6/22(토), 6/29(토) 표시
+    expect(result.get('2024-06-15')).toHaveLength(1)
+    expect(result.get('2024-06-22')).toHaveLength(1)
+    expect(result.get('2024-06-29')).toHaveLength(1)
+  })
+
+  it('반복 이벤트 각 인스턴스는 고유 turn을 가진다', () => {
+    // given: 매일 반복, 3개 인스턴스
+    const lower = dateToTimestamp(new Date(2024, 5, 1))
+    const upper = dateToTimestamp(new Date(2024, 5, 30, 23, 59, 59))
+    const startTs = dateToTimestamp(new Date(2024, 5, 10, 10, 0))
+
+    const schedules: Schedule[] = [
+      {
+        uuid: 's-turn',
+        name: 'Daily',
+        event_time: { time_type: 'at', timestamp: startTs },
+        repeating: {
+          start: startTs,
+          option: { optionType: 'every_day', interval: 1 },
+          end_count: 3,
+        },
+      },
+    ]
+
+    // when
+    const result = groupEventsByDate([], schedules, lower, upper)
+
+    // then: 각 인스턴스의 show_turns가 해당 turn 번호를 가진다
+    const e1 = result.get('2024-06-10')![0]
+    const e2 = result.get('2024-06-11')![0]
+    const e3 = result.get('2024-06-12')![0]
+    expect((e1.event as Schedule).show_turns).toEqual([1])
+    expect((e2.event as Schedule).show_turns).toEqual([2])
+    expect((e3.event as Schedule).show_turns).toEqual([3])
+  })
+
+  it('exclude_repeatings에 있는 turn은 건너뛴다', () => {
+    // given: 매일 반복, turn 2 제외
+    const lower = dateToTimestamp(new Date(2024, 5, 1))
+    const upper = dateToTimestamp(new Date(2024, 5, 30, 23, 59, 59))
+    const startTs = dateToTimestamp(new Date(2024, 5, 10, 10, 0))
+
+    const schedules: Schedule[] = [
+      {
+        uuid: 's-excl',
+        name: 'Daily excl',
+        event_time: { time_type: 'at', timestamp: startTs },
+        repeating: {
+          start: startTs,
+          option: { optionType: 'every_day', interval: 1 },
+          end_count: 4,
+        },
+        exclude_repeatings: [2],
+      },
+    ]
+
+    // when
+    const result = groupEventsByDate([], schedules, lower, upper)
+
+    // then: 6/10(turn1), 6/12(turn3), 6/13(turn4) — 6/11은 없어야 한다
+    expect(result.get('2024-06-10')).toHaveLength(1)
+    expect(result.get('2024-06-11')).toBeUndefined()
+    expect(result.get('2024-06-12')).toHaveLength(1)
+    expect(result.get('2024-06-13')).toHaveLength(1)
+  })
 })
 
 describe('yearRange', () => {
