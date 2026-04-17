@@ -212,8 +212,8 @@ describe('buildWeekEventStack', () => {
     expect(rowOfA).not.toBe(rowOfB)
   })
 
-  it('동일 이벤트가 여러 날짜에 중복 등록되어도 uuid 기준 dedup된다', () => {
-    // given: 같은 uuid의 이벤트가 3일에 걸쳐 등록
+  it('동일 이벤트가 여러 날짜에 중복 등록되어도 uuid+turn 기준 dedup된다 (multi-day)', () => {
+    // given: 같은 uuid + 같은 turn의 이벤트가 3일에 걸쳐 등록 (multi-day 이벤트)
     const ev = makeTodoEvent('t1', 'Duplicated')
     const eventsByDate = new Map<string, CalendarEvent[]>([
       ['2026-03-02', [ev]],
@@ -224,9 +224,66 @@ describe('buildWeekEventStack', () => {
     // when
     const result = buildWeekEventStack(weekDays, eventsByDate)
 
-    // then: 1개의 이벤트만 결과에 존재
+    // then: 1개의 span으로 병합
     const allUuids = result.rows.flatMap(row => row.map(e => e.event.event.uuid))
     expect(allUuids.filter(u => u === 't1').length).toBe(1)
+  })
+
+  it('같은 uuid의 다른 turn 인스턴스들은 각각 별도로 표시된다', () => {
+    // given: 같은 uuid의 반복 todo 인스턴스 3개 (turn 1, 2, 3)
+    const makeTurn = (turn: number): CalendarEvent => ({
+      type: 'todo',
+      event: {
+        uuid: 't1',
+        name: 'Daily',
+        is_current: false,
+        event_tag_id: null,
+        event_time: { time_type: 'at', timestamp: 0 },
+        repeating_turn: turn,
+      } as Todo,
+    })
+    const eventsByDate = new Map<string, CalendarEvent[]>([
+      ['2026-03-02', [makeTurn(1)]],
+      ['2026-03-03', [makeTurn(2)]],
+      ['2026-03-04', [makeTurn(3)]],
+    ])
+
+    // when
+    const result = buildWeekEventStack(weekDays, eventsByDate)
+
+    // then: 3개의 별도 이벤트로 표시 (span 1씩)
+    const flat = result.rows.flatMap(row => row)
+    expect(flat).toHaveLength(3)
+    expect(flat.every(e => e.event.event.uuid === 't1')).toBe(true)
+    // 각 이벤트의 span이 1 (startCol === endCol)
+    for (const e of flat) {
+      expect(e.startCol).toBe(e.endCol)
+    }
+  })
+
+  it('schedule 반복 인스턴스도 show_turns 기준으로 별도 표시된다', () => {
+    // given
+    const makeTurn = (turn: number): CalendarEvent => ({
+      type: 'schedule',
+      event: {
+        uuid: 's1',
+        name: 'Weekly',
+        event_tag_id: null,
+        event_time: { time_type: 'at', timestamp: 0 },
+        show_turns: [turn],
+      } as Schedule,
+    })
+    const eventsByDate = new Map<string, CalendarEvent[]>([
+      ['2026-03-02', [makeTurn(1)]],
+      ['2026-03-05', [makeTurn(2)]],
+    ])
+
+    // when
+    const result = buildWeekEventStack(weekDays, eventsByDate)
+
+    // then: 2개의 별도 이벤트
+    const flat = result.rows.flatMap(row => row)
+    expect(flat).toHaveLength(2)
   })
 
   it('주 경계를 넘는 이벤트는 해당 주 범위로 클램핑된다', () => {
