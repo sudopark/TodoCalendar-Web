@@ -3,13 +3,23 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { TodoFormPage } from '../../src/pages/TodoFormPage'
+import { ToastContainer } from '../../src/components/Toast'
 
 vi.mock('../../src/api/todoApi', () => ({
   todoApi: {
     getTodo: vi.fn(),
     createTodo: vi.fn(),
     updateTodo: vi.fn(),
+    patchTodo: vi.fn(),
+    replaceTodo: vi.fn(),
     deleteTodo: vi.fn(),
+  },
+}))
+vi.mock('../../src/api/eventDetailApi', () => ({
+  eventDetailApi: {
+    getEventDetail: vi.fn(),
+    updateEventDetail: vi.fn(),
+    deleteEventDetail: vi.fn(),
   },
 }))
 vi.mock('../../src/stores/eventTagStore', () => ({ useEventTagStore: vi.fn() }))
@@ -35,7 +45,10 @@ const mockAddTodo = vi.fn()
 const mockRemoveTodo = vi.fn()
 const mockReplaceTodo = vi.fn()
 
-function setupMocks() {
+async function setupMocks() {
+  const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+  vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({})
+  vi.mocked(eventDetailApi.updateEventDetail).mockResolvedValue({})
   vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({ tags: new Map(), getColorForTagId: () => null }))
   vi.mocked(useUiStore).mockImplementation((sel: any) => sel({ selectedDate: null }))
   const calendarState = { addEvent: mockAddEvent, removeEvent: mockRemoveEvent, replaceEvent: mockReplaceEvent }
@@ -54,6 +67,7 @@ function renderCreate() {
   return render(
     <MemoryRouter initialEntries={['/todos/new']}>
       <Routes><Route path="/todos/new" element={<TodoFormPage />} /></Routes>
+      <ToastContainer />
     </MemoryRouter>
   )
 }
@@ -62,14 +76,15 @@ function renderEdit(id: string) {
   return render(
     <MemoryRouter initialEntries={[`/todos/${id}/edit`]}>
       <Routes><Route path="/todos/:id/edit" element={<TodoFormPage />} /></Routes>
+      <ToastContainer />
     </MemoryRouter>
   )
 }
 
 describe('TodoFormPage — create', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
-    setupMocks()
+    await setupMocks()
   })
 
   it('"새 Todo" 제목을 표시한다', () => {
@@ -95,9 +110,9 @@ describe('TodoFormPage — create', () => {
 })
 
 describe('TodoFormPage — edit', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
-    setupMocks()
+    await setupMocks()
   })
 
   it('기존 todo를 불러와 이름 필드에 표시한다', async () => {
@@ -139,5 +154,119 @@ describe('TodoFormPage — edit', () => {
     const deleteButtons = screen.getAllByRole('button', { name: '삭제' })
     await userEvent.click(deleteButtons[deleteButtons.length - 1])
     await waitFor(() => expect(mockNavigate).toHaveBeenCalled())
+  })
+})
+
+describe('TodoFormPage — EventDetail (place/url/memo)', () => {
+  const baseTodo = {
+    uuid: 'todo-1',
+    name: '장보기',
+    is_current: true,
+    event_time: { time_type: 'at' as const, timestamp: 1743375600 },
+  }
+
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    await setupMocks()
+  })
+
+  it('편집 모드 진입 시 EventDetail이 입력 필드에 채워진다', async () => {
+    // given
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(todoApi.getTodo).mockResolvedValue(baseTodo as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({
+      place: '강남역', url: 'https://example.com', memo: '구매 목록 확인',
+    })
+
+    // when
+    renderEdit('todo-1')
+
+    // then
+    await waitFor(() => {
+      expect(screen.getByLabelText('장소')).toHaveValue('강남역')
+      expect(screen.getByLabelText('URL')).toHaveValue('https://example.com')
+      expect(screen.getByLabelText('메모')).toHaveValue('구매 목록 확인')
+    })
+  })
+
+  it('EventDetail API가 실패해도 폼은 정상 렌더되고 기본 정보가 표시된다', async () => {
+    // given
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(todoApi.getTodo).mockResolvedValue(baseTodo as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockRejectedValue(new Error('network error'))
+
+    // when
+    renderEdit('todo-1')
+
+    // then: 폼이 정상 렌더되고 이름 필드에 기존 값이 표시됨
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('장보기')).toBeInTheDocument()
+    })
+    // detail 필드는 빈 값으로 폴백
+    expect(screen.getByLabelText('장소')).toHaveValue('')
+    expect(screen.getByLabelText('URL')).toHaveValue('')
+    expect(screen.getByLabelText('메모')).toHaveValue('')
+  })
+
+  it('신규 생성 시 place/url/memo 입력 후 저장하면 화면을 닫는다', async () => {
+    // given
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(todoApi.createTodo).mockResolvedValue({
+      uuid: 'new-1', name: '마트 가기', is_current: true,
+    } as any)
+    vi.mocked(eventDetailApi.updateEventDetail).mockResolvedValue({})
+
+    // when
+    renderCreate()
+    await userEvent.type(screen.getByLabelText('이름'), '마트 가기')
+    await userEvent.type(screen.getByLabelText('장소'), '이마트')
+    await userEvent.type(screen.getByLabelText('URL'), 'https://emart.com')
+    await userEvent.type(screen.getByLabelText('메모'), '우유, 빵 구매')
+    await userEvent.click(screen.getByRole('button', { name: '저장' }))
+
+    // then: 저장 후 화면을 닫음
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalled())
+  })
+
+  it('수정 시 place/url/memo 입력 후 저장하면 화면을 닫는다', async () => {
+    // given
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(todoApi.getTodo).mockResolvedValue(baseTodo as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({ place: '', url: '', memo: '' })
+    vi.mocked(todoApi.updateTodo).mockResolvedValue({ ...baseTodo, name: '장보기 수정' } as any)
+    vi.mocked(eventDetailApi.updateEventDetail).mockResolvedValue({})
+
+    // when
+    renderEdit('todo-1')
+    await waitFor(() => screen.getByDisplayValue('장보기'))
+    await userEvent.clear(screen.getByLabelText('장소'))
+    await userEvent.type(screen.getByLabelText('장소'), '홈플러스')
+    await userEvent.click(screen.getByRole('button', { name: '저장' }))
+
+    // then
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalled())
+  })
+
+  it('detail 저장이 실패해도 기본 저장은 성공하고 에러 toast가 표시된다', async () => {
+    // given
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(todoApi.createTodo).mockResolvedValue({
+      uuid: 'new-2', name: '테스트', is_current: false,
+    } as any)
+    vi.mocked(eventDetailApi.updateEventDetail).mockRejectedValue(new Error('server error'))
+
+    // when
+    renderCreate()
+    await userEvent.type(screen.getByLabelText('이름'), '테스트')
+    await userEvent.click(screen.getByRole('button', { name: '저장' }))
+
+    // then: 기본 저장은 성공 → 화면을 닫고, detail 실패 toast가 표시됨
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalled())
+    await waitFor(() => expect(screen.getByText('추가 정보 저장 실패')).toBeInTheDocument())
   })
 })
