@@ -60,6 +60,9 @@ export const useCalendarEventsStore = create<CalendarEventsState>((set, get) => 
     await Promise.all(years.map(y => get().fetchEventsForYear(y)))
   },
 
+  // 반복 Schedule은 "시리즈 원본"(turn 1의 event_time + repeating 규칙)을 넘겨야 한다.
+  // groupEventsByDate가 기간 내 모든 인스턴스로 확장하고 각 turn의 show_turns를 부여한다.
+  // 반복 Todo는 한 번에 하나의 인스턴스만 존재하므로 확장 없이 현재 event_time 날짜에만 배치.
   addEvent: (event: CalendarEvent) => {
     const eventTime = event.type === 'todo'
       ? (event.event.event_time ?? null)
@@ -67,30 +70,18 @@ export const useCalendarEventsStore = create<CalendarEventsState>((set, get) => 
     if (!eventTime) return
 
     // 반복 이벤트면 loadedYears 범위 내 모든 인스턴스로 확장하여 배치
-    // groupEventsByDate가 turn 번호까지 올바르게 부여하므로 이를 재사용한다.
     if (event.event.repeating) {
       const loadedYears = get().loadedYears
-      if (loadedYears.size === 0) {
-        // loadedYears가 없으면 이벤트 시작 년도 하나만 기준으로 확장
-        const year = eventTimeToStartDate(eventTime).getFullYear()
-        const range = yearRange(year)
-        const todos = event.type === 'todo' ? [event.event] : []
-        const schedules = event.type === 'schedule' ? [event.event] : []
-        const yearEvents = groupEventsByDate(todos, schedules, range.lower, range.upper)
-        const updated = new Map(get().eventsByDate)
-        for (const [key, events] of yearEvents) {
-          updated.set(key, [...(updated.get(key) ?? []), ...events])
-        }
-        set({ eventsByDate: updated })
-        return
-      }
+      const targetYears = loadedYears.size > 0
+        ? Array.from(loadedYears)
+        : [eventTimeToStartDate(eventTime).getFullYear()]
       const updated = new Map(get().eventsByDate)
-      for (const year of loadedYears) {
+      for (const year of targetYears) {
         const range = yearRange(year)
         const todos = event.type === 'todo' ? [event.event] : []
         const schedules = event.type === 'schedule' ? [event.event] : []
-        const yearEvents = groupEventsByDate(todos, schedules, range.lower, range.upper)
-        for (const [key, events] of yearEvents) {
+        const expanded = groupEventsByDate(todos, schedules, range.lower, range.upper)
+        for (const [key, events] of expanded) {
           updated.set(key, [...(updated.get(key) ?? []), ...events])
         }
       }
