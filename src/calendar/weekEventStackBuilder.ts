@@ -1,6 +1,17 @@
 import type { CalendarDay } from './calendarUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 
+// 반복 이벤트의 각 인스턴스를 구분하기 위한 dedup 키.
+// 같은 uuid의 multi-day 이벤트는 같은 turn을 가지므로 하나의 span으로 병합되고,
+// 반복 이벤트의 서로 다른 턴은 별도의 인스턴스로 표시된다.
+function dedupKey(calEvent: CalendarEvent): string {
+  const uuid = calEvent.event.uuid
+  const turn = calEvent.type === 'todo'
+    ? calEvent.event.repeating_turn ?? 1
+    : calEvent.event.show_turns?.[0] ?? 1
+  return `${uuid}:${turn}`
+}
+
 export interface EventOnWeekRow {
   event: CalendarEvent
   startCol: number   // 1-based (1=일, 7=토)
@@ -42,7 +53,7 @@ export function buildWeekEventStack(
     dateKeyToCol.set(day.dateKey, i + 1)
   })
 
-  // 이벤트 수집 + uuid dedup + startCol/endCol 계산
+  // 이벤트 수집 + uuid+turn dedup + startCol/endCol 계산
   const eventMap = new Map<string, DeduplicatedEvent>()
 
   for (const day of weekDays) {
@@ -50,15 +61,15 @@ export function buildWeekEventStack(
     const col = dateKeyToCol.get(day.dateKey)!
 
     for (const ev of events) {
-      const uuid = ev.event.uuid
-      const existing = eventMap.get(uuid)
+      const key = dedupKey(ev)
+      const existing = eventMap.get(key)
       if (existing) {
         // 범위 확장
         existing.startCol = Math.min(existing.startCol, col)
         existing.endCol = Math.max(existing.endCol, col)
         existing.spanLength = existing.endCol - existing.startCol + 1
       } else {
-        eventMap.set(uuid, {
+        eventMap.set(key, {
           event: ev,
           startCol: col,
           endCol: col,
@@ -81,12 +92,12 @@ export function buildWeekEventStack(
 
   while (remaining.length > 0) {
     const row: EventOnWeekRow[] = []
-    const usedUuids = new Set<string>()
+    const usedKeys = new Set<string>()
 
-    fillRow(remaining, row, usedUuids, 1, weekDays.length)
+    fillRow(remaining, row, usedKeys, 1, weekDays.length)
 
     // remaining에서 used 제거
-    remaining = remaining.filter(e => !usedUuids.has(e.event.event.uuid))
+    remaining = remaining.filter(e => !usedKeys.has(dedupKey(e.event)))
 
     rows.push(row)
   }
@@ -112,7 +123,7 @@ export function buildWeekEventStack(
 function fillRow(
   candidates: DeduplicatedEvent[],
   row: EventOnWeekRow[],
-  usedUuids: Set<string>,
+  usedKeys: Set<string>,
   rangeStart: number,
   rangeEnd: number,
 ): void {
@@ -121,7 +132,7 @@ function fillRow(
   // 범위 내에 맞는 이벤트 중 가장 긴 것 찾기
   const fitting = candidates.filter(
     e => e.startCol >= rangeStart && e.endCol <= rangeEnd
-      && !usedUuids.has(e.event.event.uuid)
+      && !usedKeys.has(dedupKey(e.event))
   )
 
   if (fitting.length === 0) return
@@ -134,15 +145,15 @@ function fillRow(
     startCol: best.startCol,
     endCol: best.endCol,
   })
-  usedUuids.add(best.event.event.uuid)
+  usedKeys.add(dedupKey(best.event))
 
   // 왼쪽 빈 공간
   if (best.startCol > rangeStart) {
-    fillRow(candidates, row, usedUuids, rangeStart, best.startCol - 1)
+    fillRow(candidates, row, usedKeys, rangeStart, best.startCol - 1)
   }
 
   // 오른쪽 빈 공간
   if (best.endCol < rangeEnd) {
-    fillRow(candidates, row, usedUuids, best.endCol + 1, rangeEnd)
+    fillRow(candidates, row, usedKeys, best.endCol + 1, rangeEnd)
   }
 }

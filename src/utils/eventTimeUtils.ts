@@ -153,7 +153,7 @@ export function groupEventsByDate(
         schedule.event_time,
         firstTurn,
         schedule.repeating,
-        schedule.exclude_repeatings,
+        schedule.exclude_repeatings ?? undefined,
         upper,
       )
       for (const inst of instances) {
