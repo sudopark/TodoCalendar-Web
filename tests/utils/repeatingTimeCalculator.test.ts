@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   nextRepeatingTime,
+  enumerateRepeatingTimes,
   shiftEventTime,
   getStartTimestamp,
 } from '../../src/utils/repeatingTimeCalculator'
@@ -286,5 +287,106 @@ describe('nextRepeatingTime - excludeTurns', () => {
     expect(result).not.toBeNull()
     expect(result!.turn).toBe(4)
     expect(result!.time).toEqual({ time_type: 'at', timestamp: expectedTs })
+  })
+})
+
+describe('enumerateRepeatingTimes', () => {
+  it('매일 반복을 기간 끝(rangeEnd)까지 모든 인스턴스로 확장한다', () => {
+    // given: 2024-01-15부터 매일 반복, 2024-01-20까지 조회
+    const startTs = ts(2024, 1, 15, 9, 0, 0)
+    const rangeEnd = ts(2024, 1, 20, 23, 59, 59)
+    const time: EventTime = { time_type: 'at', timestamp: startTs }
+    const repeating: Repeating = {
+      start: startTs,
+      option: { optionType: 'every_day', interval: 1 },
+    }
+
+    // when
+    const result = enumerateRepeatingTimes(time, 1, repeating, undefined, rangeEnd)
+
+    // then: 다음 인스턴스 5개 (1/16, 1/17, 1/18, 1/19, 1/20), turn 2~6
+    expect(result).toHaveLength(5)
+    expect(result[0].turn).toBe(2)
+    expect(result[0].time).toEqual({ time_type: 'at', timestamp: ts(2024, 1, 16, 9, 0, 0) })
+    expect(result[4].turn).toBe(6)
+    expect(result[4].time).toEqual({ time_type: 'at', timestamp: ts(2024, 1, 20, 9, 0, 0) })
+  })
+
+  it('repeating.end로 종료되면 그 이후는 포함하지 않는다', () => {
+    // given: 2024-01-15부터 매일, 2024-01-17까지 종료
+    const startTs = ts(2024, 1, 15, 9, 0, 0)
+    const endTs = ts(2024, 1, 17, 23, 59, 59)
+    const rangeEnd = ts(2024, 1, 30, 23, 59, 59)
+    const time: EventTime = { time_type: 'at', timestamp: startTs }
+    const repeating: Repeating = {
+      start: startTs,
+      option: { optionType: 'every_day', interval: 1 },
+      end: endTs,
+    }
+
+    // when
+    const result = enumerateRepeatingTimes(time, 1, repeating, undefined, rangeEnd)
+
+    // then: 1/16, 1/17만 포함
+    expect(result).toHaveLength(2)
+    expect(result[0].time).toEqual({ time_type: 'at', timestamp: ts(2024, 1, 16, 9, 0, 0) })
+    expect(result[1].time).toEqual({ time_type: 'at', timestamp: ts(2024, 1, 17, 9, 0, 0) })
+  })
+
+  it('exclude_repeatings에 포함된 턴은 건너뛴다', () => {
+    // given: 2024-01-15부터 매일, turn 2와 4 제외, 2024-01-19까지 조회
+    const startTs = ts(2024, 1, 15, 9, 0, 0)
+    const rangeEnd = ts(2024, 1, 19, 23, 59, 59)
+    const time: EventTime = { time_type: 'at', timestamp: startTs }
+    const repeating: Repeating = {
+      start: startTs,
+      option: { optionType: 'every_day', interval: 1 },
+    }
+
+    // when
+    const result = enumerateRepeatingTimes(time, 1, repeating, [2, 4], rangeEnd)
+
+    // then: turn 3(1/17), turn 5(1/19)만 포함
+    expect(result).toHaveLength(2)
+    expect(result[0].turn).toBe(3)
+    expect(result[0].time).toEqual({ time_type: 'at', timestamp: ts(2024, 1, 17, 9, 0, 0) })
+    expect(result[1].turn).toBe(5)
+    expect(result[1].time).toEqual({ time_type: 'at', timestamp: ts(2024, 1, 19, 9, 0, 0) })
+  })
+
+  it('rangeEnd보다 첫 반복이 나중이면 빈 배열을 반환한다', () => {
+    // given: 2024-01-15 시작, 2024-01-14까지만 조회
+    const startTs = ts(2024, 1, 15, 9, 0, 0)
+    const rangeEnd = ts(2024, 1, 14, 23, 59, 59)
+    const time: EventTime = { time_type: 'at', timestamp: startTs }
+    const repeating: Repeating = {
+      start: startTs,
+      option: { optionType: 'every_day', interval: 1 },
+    }
+
+    // when
+    const result = enumerateRepeatingTimes(time, 1, repeating, undefined, rangeEnd)
+
+    // then
+    expect(result).toHaveLength(0)
+  })
+
+  it('매주 반복을 기간 내 인스턴스로 확장한다', () => {
+    // given: 2024-01-15(월)부터 매주 월요일, 2024-02-15까지
+    const startTs = ts(2024, 1, 15, 9, 0, 0)
+    const rangeEnd = ts(2024, 2, 15, 23, 59, 59)
+    const time: EventTime = { time_type: 'at', timestamp: startTs }
+    const repeating: Repeating = {
+      start: startTs,
+      option: { optionType: 'every_week', interval: 1, dayOfWeek: [1], timeZone: 'Asia/Seoul' },
+    }
+
+    // when
+    const result = enumerateRepeatingTimes(time, 1, repeating, undefined, rangeEnd)
+
+    // then: 1/22, 1/29, 2/5, 2/12 — 4개
+    expect(result).toHaveLength(4)
+    expect(result[0].time).toEqual({ time_type: 'at', timestamp: ts(2024, 1, 22, 9, 0, 0) })
+    expect(result[3].time).toEqual({ time_type: 'at', timestamp: ts(2024, 2, 12, 9, 0, 0) })
   })
 })
