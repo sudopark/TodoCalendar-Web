@@ -91,6 +91,7 @@ export function ScheduleFormPage() {
     await saveEventDetail(created.uuid)
   }
 
+  // detail 저장은 best-effort: 실패해도 basic 저장 결과를 유지하기 위해 예외를 흡수한다
   async function saveEventDetail(targetId: string) {
     try {
       await eventDetailApi.updateEventDetail(targetId, { place: place || null, url: url || null, memo: memo || null })
@@ -125,6 +126,8 @@ export function ScheduleFormPage() {
       addEvent({ type: 'schedule', event: updated })
       await saveEventDetail(id)
     } else if (scope === 'this') {
+      // 이 회차만 분리 → 새 단건 이벤트에 현재 폼 state로 detail 저장.
+      // 원본 반복 이벤트의 detail은 유지 (종료되지 않은 다른 회차들을 위해).
       const turn = original.show_turns?.[0] ?? 0
       const excluded = await scheduleApi.excludeRepeating(id, { exclude_repeatings: [...(original.exclude_repeatings ?? []), turn] })
       const newSingle = await scheduleApi.createSchedule({
@@ -139,7 +142,8 @@ export function ScheduleFormPage() {
       addEvent({ type: 'schedule', event: newSingle })
       await saveEventDetail(newSingle.uuid)
     } else {
-      // scope === 'future'
+      // scope === 'future': 이후 회차 전체를 새 시리즈로 분리 → 새 시리즈에 현재 폼 state로 detail 저장.
+      // 원본 시리즈의 detail은 유지 (종료 처리된 과거 회차 조회 시 유효한 정보로 쓰여야 하므로).
       const cutoff = occurrenceStart(original) - 1
       const ended = await scheduleApi.updateSchedule(id, { repeating: { ...original.repeating, end: cutoff } })
       const newSeries = await scheduleApi.createSchedule({
@@ -263,7 +267,6 @@ export function ScheduleFormPage() {
           <label htmlFor="schedule-place" className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.place')}</label>
           <input
             id="schedule-place"
-            aria-label={t('event.place')}
             className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
             value={place}
             onChange={e => setPlace(e.target.value)}
@@ -274,7 +277,6 @@ export function ScheduleFormPage() {
           <label htmlFor="schedule-url" className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.url')}</label>
           <input
             id="schedule-url"
-            aria-label={t('event.url')}
             className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
             value={url}
             onChange={e => setUrl(e.target.value)}
@@ -285,7 +287,6 @@ export function ScheduleFormPage() {
           <label htmlFor="schedule-memo" className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.memo')}</label>
           <textarea
             id="schedule-memo"
-            aria-label={t('event.memo')}
             className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
             rows={3}
             value={memo}
