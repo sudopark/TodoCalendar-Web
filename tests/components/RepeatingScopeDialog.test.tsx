@@ -41,4 +41,21 @@ describe('RepeatingScopeDialog', () => {
     await userEvent.click(screen.getByRole('button', { name: '취소' }))
     expect(onCancel).toHaveBeenCalled()
   })
+
+  describe('Todo에서 반복 scope 선택', () => {
+    it('반복 todo 수정 모드에서 "모든 이벤트" 옵션이 노출된다', () => {
+      render(<RepeatingScopeDialog mode="edit" eventType="todo" onSelect={vi.fn()} onCancel={vi.fn()} />)
+      expect(screen.getByText('모든 이벤트')).toBeInTheDocument()
+    })
+
+    it('반복 todo 삭제 모드에서 "모든 이벤트" 옵션이 노출된다', () => {
+      render(<RepeatingScopeDialog mode="delete" eventType="todo" onSelect={vi.fn()} onCancel={vi.fn()} />)
+      expect(screen.getByText('모든 이벤트')).toBeInTheDocument()
+    })
+
+    it('반복 todo 완료 모드에서 "모든 이벤트" 옵션이 노출된다', () => {
+      render(<RepeatingScopeDialog mode="complete" eventType="todo" onSelect={vi.fn()} onCancel={vi.fn()} />)
+      expect(screen.getByText('모든 이벤트')).toBeInTheDocument()
+    })
+  })
 })

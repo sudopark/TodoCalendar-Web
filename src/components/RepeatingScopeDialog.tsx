@@ -11,7 +11,6 @@ interface RepeatingScopeDialogProps {
 
 export function RepeatingScopeDialog({ mode, eventType = 'schedule', onSelect, onCancel }: RepeatingScopeDialogProps) {
   const { t } = useTranslation()
-  const isTodo = eventType === 'todo'
 
   function dialogTitle(): string {
     if (eventType === 'todo') {
@@ -43,14 +42,12 @@ export function RepeatingScopeDialog({ mode, eventType = 'schedule', onSelect, o
           >
             {t('repeat.future')}
           </button>
-          {!isTodo && (
-            <button
-              className="px-4 py-3 text-left text-sm text-gray-800 hover:bg-gray-50"
-              onClick={() => onSelect('all')}
-            >
-              {t('repeat.all')}
-            </button>
-          )}
+          <button
+            className="px-4 py-3 text-left text-sm text-gray-800 hover:bg-gray-50"
+            onClick={() => onSelect('all')}
+          >
+            {t('repeat.all')}
+          </button>
         </div>
         <button
           className="mt-4 w-full rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100"

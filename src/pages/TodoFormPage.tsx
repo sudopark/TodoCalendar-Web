@@ -132,13 +132,13 @@ export function TodoFormPage() {
   async function applyUpdate(scope?: RepeatScope) {
     if (!id || !original) return
 
-    if (!original.repeating) {
-      // 비반복: 기존 로직
+    if (!original.repeating || scope === 'all') {
+      // 비반복 또는 all scope: 반복 규칙을 유지한 채 기본 필드만 전체 업데이트
       const updated = await todoApi.updateTodo(id, {
         name: name.trim(),
         event_tag_id: tagId,
         event_time: eventTime,
-        repeating,
+        repeating: scope === 'all' ? original.repeating : repeating,
         notification_options: notifications.length > 0 ? notifications : null,
       })
       if (updated.event_time && !original.event_time) {
@@ -173,7 +173,7 @@ export function TodoFormPage() {
       if (result.next_repeating?.event_time) addEvent({ type: 'todo', event: result.next_repeating })
       await saveEventDetail(result.new_todo.uuid)
     } else {
-      // 이후 전체를 새 시리즈로 분리 → 새 시리즈에 detail 저장.
+      // future: 이후 전체를 새 시리즈로 분리 → 새 시리즈에 detail 저장.
       // 원본 시리즈의 detail은 유지 (종료 처리된 과거 회차 조회 시 유효한 정보).
       // eventTime이 없으면 새 시리즈가 생성되지 않으므로 detail 저장도 생략.
       const startTs = original.event_time ? getStartTimestamp(original.event_time) : 0
