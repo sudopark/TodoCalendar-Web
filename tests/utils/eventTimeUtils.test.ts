@@ -174,8 +174,8 @@ describe('groupEventsByDate', () => {
     }
   })
 
-  it('반복 todo도 기간 내 모든 날짜에 배치한다', () => {
-    // given
+  it('반복 todo는 현재 turn(event_time)에만 표시된다 — 완료/건너뛰기 시 서버가 다음 turn으로 이동', () => {
+    // given: iOS 앱과 동일하게 Todo는 한 번에 하나의 인스턴스만 존재
     const lower = dateToTimestamp(new Date(2024, 5, 1))
     const upper = dateToTimestamp(new Date(2024, 5, 30, 23, 59, 59))
     const startTs = dateToTimestamp(new Date(2024, 5, 15, 9, 0))
@@ -197,10 +197,10 @@ describe('groupEventsByDate', () => {
     // when
     const result = groupEventsByDate(todos, [], lower, upper)
 
-    // then: 6/15(토), 6/22(토), 6/29(토) 표시
+    // then: 현재 turn(6/15)에만 표시, 다른 주 토요일(6/22, 6/29)은 없다
     expect(result.get('2024-06-15')).toHaveLength(1)
-    expect(result.get('2024-06-22')).toHaveLength(1)
-    expect(result.get('2024-06-29')).toHaveLength(1)
+    expect(result.get('2024-06-22')).toBeUndefined()
+    expect(result.get('2024-06-29')).toBeUndefined()
   })
 
   it('반복 이벤트 각 인스턴스는 고유 turn을 가진다', () => {

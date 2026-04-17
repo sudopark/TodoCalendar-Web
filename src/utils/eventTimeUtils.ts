@@ -110,48 +110,29 @@ export function groupEventsByDate(
     }
   }
 
+  // Todo는 반복이 있어도 한 번에 하나의 인스턴스(현재 turn)만 존재한다.
+  // 완료/건너뛰기 시 서버가 다음 turn으로 이동시키므로 캘린더에는 현재 event_time에만 표시.
   for (const todo of todos) {
     if (!todo.event_time) continue
-    // 원본(첫 turn) 인스턴스 배치 — exclude 아닌 경우만
-    const firstTurn = todo.repeating_turn ?? 1
-    if (!todo.exclude_repeatings?.includes(firstTurn)) {
-      assignInstance(todo.event_time, {
-        type: 'todo',
-        event: { ...todo, repeating_turn: firstTurn },
-      })
-    }
-    // 반복이 있으면 기간 내 나머지 인스턴스들 확장
-    if (todo.repeating) {
-      const instances = enumerateRepeatingTimes(
-        todo.event_time,
-        firstTurn,
-        todo.repeating,
-        todo.exclude_repeatings,
-        upper,
-      )
-      for (const inst of instances) {
-        assignInstance(inst.time, {
-          type: 'todo',
-          event: { ...todo, event_time: inst.time, repeating_turn: inst.turn },
-        })
-      }
-    }
+    assignInstance(todo.event_time, { type: 'todo', event: todo })
   }
 
   for (const schedule of schedules) {
-    const firstTurn = schedule.show_turns?.[0] ?? 1
+    // Schedule의 event_time은 항상 반복 시리즈의 첫 인스턴스(turn 1) 시간이다.
+    // 서버가 제공하는 show_turns는 기간 필터링 힌트이지 첫 turn을 의미하지 않는다.
+    const FIRST_TURN = 1
     // 원본(첫 turn) 인스턴스 배치 — exclude 아닌 경우만
-    if (!schedule.exclude_repeatings?.includes(firstTurn)) {
+    if (!schedule.exclude_repeatings?.includes(FIRST_TURN)) {
       assignInstance(schedule.event_time, {
         type: 'schedule',
-        event: { ...schedule, show_turns: [firstTurn] },
+        event: { ...schedule, show_turns: [FIRST_TURN] },
       })
     }
     // 반복이 있으면 기간 내 나머지 인스턴스들 확장
     if (schedule.repeating) {
       const instances = enumerateRepeatingTimes(
         schedule.event_time,
-        firstTurn,
+        FIRST_TURN,
         schedule.repeating,
         schedule.exclude_repeatings ?? undefined,
         upper,
