@@ -49,6 +49,28 @@ export function nextRepeatingTime(
   return result
 }
 
+// 기간 내 모든 반복 인스턴스를 나열한다.
+// startTime은 이미 알려진 첫 인스턴스이며, 그 다음 턴부터 rangeEnd(포함)까지 수집한다.
+// startTime 자체는 반환값에 포함하지 않는다 — 호출자가 이미 가지고 있기 때문.
+export function enumerateRepeatingTimes(
+  startTime: EventTime,
+  startTurn: number,
+  repeating: Repeating,
+  excludeTurns: number[] | undefined,
+  rangeEnd: number,
+): RepeatingTimes[] {
+  const results: RepeatingTimes[] = []
+  let current: RepeatingTimes | null = { time: startTime, turn: startTurn }
+  while (true) {
+    const next = nextRepeatingTime(current.time, current.turn, repeating, excludeTurns)
+    if (next === null) break
+    if (getStartTimestamp(next.time) > rangeEnd) break
+    results.push(next)
+    current = next
+  }
+  return results
+}
+
 export function shiftEventTime(time: EventTime, intervalSeconds: number): EventTime {
   switch (time.time_type) {
     case 'at':
