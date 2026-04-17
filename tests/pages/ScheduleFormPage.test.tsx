@@ -37,7 +37,6 @@ import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
 
 const mockAddEvent = vi.fn()
 const mockRemoveEvent = vi.fn()
-const mockReplaceEvent = vi.fn()
 async function setupMocks() {
   const { eventDetailApi } = await import('../../src/api/eventDetailApi')
   vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({})
@@ -47,7 +46,6 @@ async function setupMocks() {
   const calendarState = {
     addEvent: mockAddEvent,
     removeEvent: mockRemoveEvent,
-    replaceEvent: mockReplaceEvent,
   }
   vi.mocked(useCalendarEventsStore).mockImplementation((sel?: any) =>
     sel ? sel(calendarState) : calendarState
