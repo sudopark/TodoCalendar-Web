@@ -178,6 +178,50 @@ describe('deleteScheduleEvent', () => {
     expect(allEvents.some(e => e.event.uuid === 'sch-1')).toBe(false)
   })
 
+  // 이슈 #60 관련: "this" 삭제 후에도 나머지 반복 인스턴스가 여러 날짜에 남아있어야 한다
+  it('반복 schedule "this" 삭제 후 나머지 turn들이 여러 날짜에 여전히 표시된다 (issue #60 regression)', async () => {
+    // given: 매일 반복, 현재 turn 2 삭제
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+    const eventTs = ts(2025, 4, 1)
+    const schedule: Schedule = {
+      uuid: 'sch-rep-multi',
+      name: 'Daily Repeating',
+      event_time: atTime(eventTs),
+      repeating: DAILY_REPEATING,
+      show_turns: [2],
+      exclude_repeatings: [],
+    }
+    const excludedSchedule: Schedule = {
+      ...schedule,
+      exclude_repeatings: [2],
+    }
+    vi.mocked(scheduleApi.excludeRepeating).mockResolvedValue(excludedSchedule)
+
+    // 여러 turn 인스턴스가 각 날짜에 있는 상태
+    for (let turn = 1; turn <= 5; turn++) {
+      const dayOffset = turn - 1
+      const instanceTs = eventTs + dayOffset * 86400
+      useCalendarEventsStore.getState().addEvent({
+        type: 'schedule',
+        event: { ...schedule, event_time: atTime(instanceTs), show_turns: [turn] },
+      })
+    }
+
+    // when: turn 2 삭제
+    await deleteScheduleEvent(schedule, 'this')
+
+    // then: 다른 turn들은 다른 날짜에 여전히 존재해야 한다
+    const state = useCalendarEventsStore.getState()
+    // 매일 반복이니까 4/1, 4/3, 4/4, 4/5 등 여러 날짜에 남아야 함 (4/2의 turn 2만 제외)
+    const daysWithEvent: string[] = []
+    for (const [key, events] of state.eventsByDate) {
+      if (events.some(e => e.event.uuid === 'sch-rep-multi')) {
+        daysWithEvent.push(key)
+      }
+    }
+    expect(daysWithEvent.length).toBeGreaterThanOrEqual(3)
+  })
+
   it('반복 schedule "this" 삭제 → excludeRepeating으로 회차 제외', async () => {
     // given
     const { scheduleApi } = await import('../../src/api/scheduleApi')

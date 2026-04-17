@@ -66,6 +66,39 @@ export const useCalendarEventsStore = create<CalendarEventsState>((set, get) => 
       : event.event.event_time
     if (!eventTime) return
 
+    // 반복 이벤트면 loadedYears 범위 내 모든 인스턴스로 확장하여 배치
+    // groupEventsByDate가 turn 번호까지 올바르게 부여하므로 이를 재사용한다.
+    if (event.event.repeating) {
+      const loadedYears = get().loadedYears
+      if (loadedYears.size === 0) {
+        // loadedYears가 없으면 이벤트 시작 년도 하나만 기준으로 확장
+        const year = eventTimeToStartDate(eventTime).getFullYear()
+        const range = yearRange(year)
+        const todos = event.type === 'todo' ? [event.event] : []
+        const schedules = event.type === 'schedule' ? [event.event] : []
+        const yearEvents = groupEventsByDate(todos, schedules, range.lower, range.upper)
+        const updated = new Map(get().eventsByDate)
+        for (const [key, events] of yearEvents) {
+          updated.set(key, [...(updated.get(key) ?? []), ...events])
+        }
+        set({ eventsByDate: updated })
+        return
+      }
+      const updated = new Map(get().eventsByDate)
+      for (const year of loadedYears) {
+        const range = yearRange(year)
+        const todos = event.type === 'todo' ? [event.event] : []
+        const schedules = event.type === 'schedule' ? [event.event] : []
+        const yearEvents = groupEventsByDate(todos, schedules, range.lower, range.upper)
+        for (const [key, events] of yearEvents) {
+          updated.set(key, [...(updated.get(key) ?? []), ...events])
+        }
+      }
+      set({ eventsByDate: updated })
+      return
+    }
+
+    // 비반복 이벤트: 기존 방식대로 event_time의 시작~종료 범위 날짜에 배치
     const updated = new Map(get().eventsByDate)
     const start = eventTimeToStartDate(eventTime)
     const end = eventTimeToEndDate(eventTime)
