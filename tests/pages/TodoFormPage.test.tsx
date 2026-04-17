@@ -269,6 +269,73 @@ describe('TodoFormPage — EventDetail (place/url/memo)', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalled())
     await waitFor(() => expect(screen.getByText('추가 정보 저장 실패')).toBeInTheDocument())
   })
+
+  it('편집 모드 진입 후 변경 없이 저장 버튼은 비활성이다', async () => {
+    // given
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(todoApi.getTodo).mockResolvedValue(baseTodo as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({ place: '', url: '', memo: '' })
+
+    // when
+    renderEdit('todo-1')
+    await waitFor(() => expect(screen.getByDisplayValue('장보기')).toBeInTheDocument())
+
+    // then: 변경 없으면 저장 버튼 비활성
+    expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
+  })
+
+  it('편집 모드에서 이름을 변경하면 저장 버튼이 활성화된다', async () => {
+    // given
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(todoApi.getTodo).mockResolvedValue(baseTodo as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({ place: '', url: '', memo: '' })
+    renderEdit('todo-1')
+    await waitFor(() => screen.getByDisplayValue('장보기'))
+
+    // when
+    await userEvent.type(screen.getByLabelText('이름'), ' 수정')
+
+    // then: 변경 후 저장 버튼 활성
+    expect(screen.getByRole('button', { name: '저장' })).not.toBeDisabled()
+  })
+
+  it('저장 중에는 저장 버튼이 비활성이다', async () => {
+    // given: updateTodo가 pending 상태
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(todoApi.getTodo).mockResolvedValue(baseTodo as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({ place: '', url: '', memo: '' })
+    let resolveUpdate!: (v: any) => void
+    vi.mocked(todoApi.updateTodo).mockImplementation(
+      () => new Promise(r => { resolveUpdate = r })
+    )
+    vi.mocked(eventDetailApi.updateEventDetail).mockResolvedValue({})
+    renderEdit('todo-1')
+    await waitFor(() => screen.getByDisplayValue('장보기'))
+    await userEvent.type(screen.getByLabelText('이름'), ' 수정')
+
+    // when: 저장 클릭 (updateTodo는 pending 상태)
+    await userEvent.click(screen.getByRole('button', { name: '저장' }))
+
+    // then: 저장 중에는 버튼 비활성
+    expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
+
+    // cleanup
+    resolveUpdate({ ...baseTodo, name: '장보기 수정' })
+  })
+
+  it('신규 모드에서 이름 입력 후 저장 버튼이 활성화된다', async () => {
+    // given
+    renderCreate()
+
+    // when
+    await userEvent.type(screen.getByLabelText('이름'), '새 할 일')
+
+    // then: 신규 모드에서 이름만 있으면 저장 가능
+    expect(screen.getByRole('button', { name: '저장' })).not.toBeDisabled()
+  })
 })
 
 describe('TodoFormPage — repeating todo with all scope', () => {
