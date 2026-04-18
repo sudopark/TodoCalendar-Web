@@ -46,4 +46,20 @@ describe('EventTimePicker', () => {
     render(<EventTimePicker value={null} onChange={vi.fn()} required={true} />)
     expect(screen.queryByRole('radio', { name: '시간 없음' })).not.toBeInTheDocument()
   })
+
+  it('시간이 설정된 상태에서는 현재 타임존 정보(GMT 오프셋 + 지역명)가 텍스트로 노출된다', () => {
+    // given: 테스트 환경 TZ=Asia/Seoul
+    // when: required=true이면 초기 time_type이 'at'으로 잡혀 시간이 설정된 상태
+    render(<EventTimePicker value={null} onChange={vi.fn()} required={true} />)
+    // then: 시안의 "(GMT+09:00) Korean Standard Time - Seoul" 형식 노출
+    expect(screen.getByText(/GMT\+09:00/)).toBeInTheDocument()
+    expect(screen.getByText(/Seoul/)).toBeInTheDocument()
+  })
+
+  it('"시간 없음" 상태에서는 타임존 정보를 숨긴다', () => {
+    // given/when: value=null, required=false → type='none'
+    render(<EventTimePicker value={null} onChange={vi.fn()} required={false} />)
+    // then: 시간이 설정되지 않은 상태이므로 타임존 의미 없음, 숨김
+    expect(screen.queryByText(/GMT/)).not.toBeInTheDocument()
+  })
 })
