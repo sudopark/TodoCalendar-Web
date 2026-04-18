@@ -43,13 +43,20 @@ describe('EventDetailsSection', () => {
     expect(screen.getByLabelText('메모')).toHaveValue('M')
   })
 
-  it('태그 섹션과 알림 섹션의 레이블이 노출된다', () => {
+  it('알림 섹션의 레이블이 노출된다', () => {
     // given / when
     renderWithRouter(<EventDetailsSection {...defaultProps()} />)
 
-    // then
-    expect(screen.getByText('태그')).toBeInTheDocument()
+    // then: 시안 정합으로 "태그" 중복 라벨은 제거되었고, 알림 라벨은 유지
     expect(screen.getByText('알림')).toBeInTheDocument()
+  })
+
+  it('태그 섹션은 라벨 없이 TagSelector로만 렌더된다', () => {
+    // given / when
+    renderWithRouter(<EventDetailsSection {...defaultProps()} />)
+
+    // then: TagSelector의 "없음" 기본 옵션이 존재 = 태그 섹션이 렌더됨
+    expect(screen.getByRole('button', { name: '없음' })).toBeInTheDocument()
   })
 
   it('장소 입력에 타이핑하면 onPlaceChange가 호출된다', async () => {
