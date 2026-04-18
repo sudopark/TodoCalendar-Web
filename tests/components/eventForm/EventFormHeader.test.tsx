@@ -11,6 +11,7 @@ function defaultProps(overrides: Partial<React.ComponentProps<typeof EventFormHe
     onSave: vi.fn(),
     onCopy: vi.fn(),
     saveDisabled: false,
+    idPrefix: 'schedule' as const,
     ...overrides,
   }
 }

@@ -268,6 +268,7 @@ export function TodoFormPage() {
         onSave={handleSave}
         onCopy={handleCopy}
         saveDisabled={!canSave}
+        idPrefix="todo"
       />
 
       {/* 페이지 제목: 기존 getByText 테스트 호환을 위해 sr-only 로 유지 */}
