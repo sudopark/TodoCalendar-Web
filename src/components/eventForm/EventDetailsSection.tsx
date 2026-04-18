@@ -84,12 +84,9 @@ export function EventDetailsSection({
         </div>
       </Row>
 
-      {/* Tag */}
+      {/* Tag — 시안 정합: 중복 "태그" 라벨 제거, 아이콘 + Selector만 한 줄로 */}
       <Row icon={<TagIcon className="h-4 w-4" />}>
-        <div className={labelClass}>{t('event.tag')}</div>
-        <div className="mt-1">
-          <TagSelector value={tagId} onChange={onTagChange} />
-        </div>
+        <TagSelector value={tagId} onChange={onTagChange} />
       </Row>
 
       {/* URL */}
