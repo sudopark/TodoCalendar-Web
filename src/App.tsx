@@ -39,7 +39,9 @@ function AppRoutes() {
                 <ConditionalHeader />
                 <Routes>
                   <Route path="/" element={<MainPage />} />
+                  <Route path="/todos/new" element={<TodoFormPage />} />
                   <Route path="/todos/:id/edit" element={<TodoFormPage />} />
+                  <Route path="/schedules/new" element={<ScheduleFormPage />} />
                   <Route path="/schedules/:id/edit" element={<ScheduleFormPage />} />
                   <Route path="/tags" element={<TagManagementPage />} />
                   <Route path="/done" element={<DoneTodosPage />} />
