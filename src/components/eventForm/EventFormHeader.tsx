@@ -30,7 +30,7 @@ export function EventFormHeader({
         type="button"
         aria-label={t('common.cancel')}
         onClick={onClose}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+        className="flex h-9 w-9 shrink-0 items-center justify-center text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
       >
         <X size={20} />
       </button>
@@ -40,7 +40,7 @@ export function EventFormHeader({
         id={nameInputId}
         aria-label={t('event.name')}
         placeholder={t('event.namePlaceholder', '이벤트 이름 추가')}
-        className="flex-1 min-w-0 border-b border-transparent bg-transparent text-lg text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500 placeholder:text-gray-400"
+        className="flex-1 min-w-0 border-b border-transparent bg-transparent text-2xl font-normal text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500 placeholder:text-gray-400"
         value={name}
         onChange={e => onNameChange(e.target.value)}
       />
