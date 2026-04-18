@@ -7,13 +7,11 @@ import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useUiStore } from '../stores/uiStore'
 import { useToastStore } from '../stores/toastStore'
 import { deleteScheduleEvent } from '../utils/eventDeleteHelper'
-import { EventTimePicker } from '../components/EventTimePicker'
-import { RepeatingPicker } from '../components/RepeatingPicker'
-import { TagSelector } from '../components/TagSelector'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { RepeatingScopeDialog, type RepeatScope } from '../components/RepeatingScopeDialog'
-import { NotificationPicker } from '../components/NotificationPicker'
-import { MoreActionsMenu } from '../components/eventForm/MoreActionsMenu'
+import { EventFormHeader } from '../components/eventForm/EventFormHeader'
+import { EventTimeSection } from '../components/eventForm/EventTimeSection'
+import { EventDetailsSection } from '../components/eventForm/EventDetailsSection'
 import { useEventDefaultsStore } from '../stores/eventDefaultsStore'
 import { useEventFormDirty, type EventFormSnapshot } from '../hooks/useEventFormDirty'
 import type { Schedule, EventTime, Repeating, NotificationOption } from '../models'
@@ -93,7 +91,8 @@ export function ScheduleFormPage() {
     }).catch((e) => { console.warn('일정 로드 실패:', e); setLoading(false) })
   }, [id])
 
-  function handleEventTimeChange(newTime: EventTime) {
+  function handleEventTimeChange(newTime: EventTime | null) {
+    if (!newTime) return
     const prevIsAllDay = eventTime.time_type === 'allday'
     const nextIsAllDay = newTime.time_type === 'allday'
     if (prevIsAllDay !== nextIsAllDay) setNotifications([])
@@ -255,111 +254,55 @@ export function ScheduleFormPage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-lg font-bold">{id ? t('schedule.edit') : t('schedule.new')}</h1>
-        <div className="flex items-center gap-2">
-          <MoreActionsMenu onCopy={handleCopy} />
-          <button className="text-sm text-gray-500" onClick={handleClose}>{t('common.cancel')}</button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <EventFormHeader
+        name={name}
+        onNameChange={setName}
+        onClose={handleClose}
+        onSave={handleSave}
+        onCopy={handleCopy}
+        saveDisabled={!canSave}
+      />
 
-      <div className="space-y-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.name')}</label>
-          <input
-            aria-label={t('event.name')}
-            className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
-            value={name}
-            onChange={e => setName(e.target.value)}
-          />
-        </div>
+      {/* 페이지 제목: 기존 getByText 테스트 호환을 위해 sr-only 로 유지 */}
+      <h1 className="sr-only">{id ? t('schedule.edit') : t('schedule.new')}</h1>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.tag')}</label>
-          <div className="mt-1"><TagSelector value={tagId} onChange={setTagId} /></div>
-        </div>
+      <div className="mx-auto max-w-5xl px-4 py-6 space-y-6">
+        <EventTimeSection
+          eventTime={eventTime}
+          onEventTimeChange={handleEventTimeChange}
+          repeating={repeating}
+          onRepeatingChange={setRepeating}
+          required={true}
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.time')}</label>
-          <div className="mt-1">
-            <EventTimePicker value={eventTime} onChange={v => v && handleEventTimeChange(v)} required={true} />
-          </div>
-        </div>
+        <EventDetailsSection
+          place={place}
+          onPlaceChange={setPlace}
+          url={url}
+          onUrlChange={setUrl}
+          memo={memo}
+          onMemoChange={setMemo}
+          tagId={tagId}
+          onTagChange={setTagId}
+          notifications={notifications}
+          onNotificationsChange={setNotifications}
+          isAllDay={eventTime.time_type === 'allday'}
+          fieldPrefix="schedule"
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.repeat')}</label>
-          <div className="mt-1">
-            <RepeatingPicker
-              value={repeating}
-              onChange={setRepeating}
-              startTimestamp={eventTime.time_type === 'at' ? eventTime.timestamp : eventTime.period_start}
-            />
-          </div>
-        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.notification')}</label>
-          <div className="mt-1">
-            <NotificationPicker
-              value={notifications}
-              onChange={setNotifications}
-              isAllDay={eventTime.time_type === 'allday'}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="schedule-place" className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.place')}</label>
-          <input
-            id="schedule-place"
-            className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
-            value={place}
-            onChange={e => setPlace(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="schedule-url" className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.url')}</label>
-          <input
-            id="schedule-url"
-            className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
-            value={url}
-            onChange={e => setUrl(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="schedule-memo" className="block text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.memo')}</label>
-          <textarea
-            id="schedule-memo"
-            className="mt-1 w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
-            rows={3}
-            value={memo}
-            onChange={e => setMemo(e.target.value)}
-          />
-        </div>
-
-        {error && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
-        <div className="flex gap-3 pt-2">
-          <button
-            className="flex-1 rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-            onClick={handleSave}
-            disabled={!canSave}
-          >
-            {t('common.save')}
-          </button>
-          {id && (
+        {id && (
+          <div className="flex justify-end">
             <button
-              className="rounded-lg border border-red-300 dark:border-red-700 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
+              className="rounded-lg border border-red-300 dark:border-red-700 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
               onClick={() => original?.repeating ? setShowDeleteScope(true) : setShowDeleteConfirm(true)}
             >
               {t('common.delete')}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {showDeleteConfirm && (
