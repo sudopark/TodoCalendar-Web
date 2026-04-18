@@ -142,7 +142,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
             id="at-input"
             aria-label={t('eventTime.time_label')}
             type="datetime-local"
-            className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
+            className="mt-1 rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-800 dark:focus:border-gray-500 outline-none"
             value={tsToDatetimeLocal(internal.timestamp)}
             onChange={e => {
               const ts = datetimeLocalToTs(e.target.value)
@@ -162,7 +162,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
                 id="period-start"
                 aria-label={t('eventTime.start')}
                 type="datetime-local"
-                className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
+                className="mt-1 rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-800 dark:focus:border-gray-500 outline-none"
                 value={tsToDatetimeLocal(internal.period_start)}
                 onChange={e => {
                   const newStart = datetimeLocalToTs(e.target.value)
@@ -178,7 +178,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
                 id="period-end"
                 aria-label={t('eventTime.end')}
                 type="datetime-local"
-                className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
+                className="mt-1 rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-800 dark:focus:border-gray-500 outline-none"
                 value={tsToDatetimeLocal(internal.period_end)}
                 onChange={e => {
                   const newEnd = datetimeLocalToTs(e.target.value)
@@ -200,7 +200,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
               id="allday-start"
               aria-label={t('eventTime.start_date')}
               type="date"
-              className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
+              className="mt-1 rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-800 dark:focus:border-gray-500 outline-none"
               value={tsToDateInput(internal.period_start + internal.seconds_from_gmt)}
               onChange={e => {
                 const ts = dateInputToTs(e.target.value)
@@ -215,7 +215,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
               id="allday-end"
               aria-label={t('eventTime.end_date')}
               type="date"
-              className="mt-1 rounded border border-gray-300 px-2 py-1 text-sm"
+              className="mt-1 rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-800 dark:focus:border-gray-500 outline-none"
               value={tsToDateInput(internal.period_end + internal.seconds_from_gmt)}
               onChange={e => {
                 const ts = dateInputToTs(e.target.value)
