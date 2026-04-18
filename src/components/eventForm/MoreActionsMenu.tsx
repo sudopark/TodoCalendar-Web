@@ -20,11 +20,22 @@ export function MoreActionsMenu({ onCopy }: MoreActionsMenuProps) {
     return () => document.removeEventListener('mousedown', handleOutside)
   }, [open])
 
+  useEffect(() => {
+    if (!open) return
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [open])
+
   return (
     <div className="relative" ref={ref}>
       <button
         type="button"
         aria-label={t('eventForm.more_actions')}
+        aria-haspopup="menu"
+        aria-expanded={open}
         className="rounded p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400"
         onClick={() => setOpen(v => !v)}
       >
