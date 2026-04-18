@@ -7,10 +7,10 @@ import { LoadingSkeleton } from './components/LoadingSkeleton'
 import { ToastContainer } from './components/Toast'
 import { LoginPage } from './pages/LoginPage'
 import { MainPage } from './pages/MainPage'
+import { TodoFormPage } from './pages/TodoFormPage'
+import { ScheduleFormPage } from './pages/ScheduleFormPage'
 import './stores/themeStore'
 
-const TodoFormPage = React.lazy(() => import('./pages/TodoFormPage').then(m => ({ default: m.TodoFormPage })))
-const ScheduleFormPage = React.lazy(() => import('./pages/ScheduleFormPage').then(m => ({ default: m.ScheduleFormPage })))
 const TagManagementPage = React.lazy(() => import('./pages/TagManagementPage').then(m => ({ default: m.TagManagementPage })))
 const DoneTodosPage = React.lazy(() => import('./pages/DoneTodosPage').then(m => ({ default: m.DoneTodosPage })))
 const SettingsPage = React.lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })))
