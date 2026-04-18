@@ -9,7 +9,7 @@ interface EventFormHeaderProps {
   onSave: () => void
   onCopy: () => void
   saveDisabled: boolean
-  title?: string
+  idPrefix: 'schedule' | 'todo'
 }
 
 export function EventFormHeader({
@@ -19,9 +19,10 @@ export function EventFormHeader({
   onSave,
   onCopy,
   saveDisabled,
-  title,
+  idPrefix,
 }: EventFormHeaderProps) {
   const { t } = useTranslation()
+  const nameInputId = `${idPrefix}-event-name`
 
   return (
     <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3">
@@ -34,11 +35,11 @@ export function EventFormHeader({
         <X size={20} />
       </button>
 
-      <label htmlFor="event-form-name" className="sr-only">{t('event.name')}</label>
+      <label htmlFor={nameInputId} className="sr-only">{t('event.name')}</label>
       <input
-        id="event-form-name"
+        id={nameInputId}
         aria-label={t('event.name')}
-        placeholder={title ?? t('event.namePlaceholder', '이벤트 이름 추가')}
+        placeholder={t('event.namePlaceholder', '이벤트 이름 추가')}
         className="flex-1 min-w-0 border-b border-transparent bg-transparent text-lg text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500 placeholder:text-gray-400"
         value={name}
         onChange={e => onNameChange(e.target.value)}
