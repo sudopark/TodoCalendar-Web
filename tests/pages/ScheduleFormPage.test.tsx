@@ -371,4 +371,59 @@ describe('ScheduleFormPage — EventDetail (place/url/memo)', () => {
     // then: 이전 화면으로 이동
     expect(mockNavigate).toHaveBeenCalled()
   })
+
+  it('더보기 > 복제 클릭 시 신규 Form으로 이동한다', async () => {
+    // given: 편집 모드 로드
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(scheduleApi.getSchedule).mockResolvedValue(baseSchedule as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({ place: '강남역', url: '', memo: '' })
+    renderEdit('sch-1')
+    await waitFor(() => screen.getByDisplayValue('팀 미팅'))
+
+    // when
+    await userEvent.click(screen.getByRole('button', { name: '더보기' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: '복제' }))
+
+    // then: navigate가 호출됨 (인자 세부 검증은 금지 패턴)
+    expect(mockNavigate).toHaveBeenCalled()
+  })
+})
+
+describe('ScheduleFormPage — prefilled 신규 모드', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    await setupMocks()
+  })
+
+  function renderCreateWithPrefilled(prefilled: Record<string, unknown>) {
+    return render(
+      <MemoryRouter initialEntries={[{ pathname: '/schedules/new', state: { prefilled } }]}>
+        <Routes><Route path="/schedules/new" element={<ScheduleFormPage />} /></Routes>
+        <ToastContainer />
+      </MemoryRouter>
+    )
+  }
+
+  it('신규 모드에서 prefilled state가 있으면 해당 값으로 초기화된다', () => {
+    // given
+    const prefilled = {
+      name: '복제된 회의',
+      place: '강남역',
+      url: '',
+      memo: '메모',
+      tagId: null,
+      eventTime: { time_type: 'at', timestamp: 1000 },
+      repeating: null,
+      notifications: [],
+    }
+
+    // when
+    renderCreateWithPrefilled(prefilled)
+
+    // then
+    expect(screen.getByDisplayValue('복제된 회의')).toBeInTheDocument()
+    expect(screen.getByLabelText('장소')).toHaveValue('강남역')
+    expect(screen.getByLabelText('메모')).toHaveValue('메모')
+  })
 })
