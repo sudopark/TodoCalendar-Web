@@ -47,6 +47,7 @@ export function ScheduleFormPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showSaveScope, setShowSaveScope] = useState(false)
   const [showDeleteScope, setShowDeleteScope] = useState(false)
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -227,6 +228,14 @@ export function ScheduleFormPage() {
   const isDirty = useEventFormDirty(originalSnapshot, currentSnapshot)
   const canSave = name.trim() !== '' && !!eventTime && isDirty && !saving && !showSaveScope && !showDeleteScope && !showDeleteConfirm
 
+  function handleClose() {
+    if (isDirty) {
+      setShowCloseConfirm(true)
+    } else {
+      navigate(-1)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -239,7 +248,7 @@ export function ScheduleFormPage() {
     <div className="mx-auto max-w-lg px-4 py-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-lg font-bold">{id ? t('schedule.edit') : t('schedule.new')}</h1>
-        <button className="text-sm text-gray-500" onClick={() => navigate(-1)}>{t('common.cancel')}</button>
+        <button className="text-sm text-gray-500" onClick={handleClose}>{t('common.cancel')}</button>
       </div>
 
       <div className="space-y-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm">
@@ -361,6 +370,16 @@ export function ScheduleFormPage() {
           mode="delete"
           onSelect={async scope => { setShowDeleteScope(false); await applyDelete(scope) }}
           onCancel={() => setShowDeleteScope(false)}
+        />
+      )}
+      {showCloseConfirm && (
+        <ConfirmDialog
+          title={t('eventForm.close_confirm_title')}
+          message={t('eventForm.close_confirm_message')}
+          confirmLabel={t('common.leave')}
+          onConfirm={() => { setShowCloseConfirm(false); navigate(-1) }}
+          onCancel={() => setShowCloseConfirm(false)}
+          danger={false}
         />
       )}
     </div>
