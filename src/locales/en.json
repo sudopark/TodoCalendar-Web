@@ -138,6 +138,8 @@
   "scheduleForm.delete_failed": "Failed to delete. Please try again.",
   "scheduleForm.delete_confirm_title": "Delete Schedule",
   "scheduleForm.delete_confirm_message": "Delete \"{{name}}\"?",
+  "eventForm.more_actions": "More actions",
+  "eventForm.copy": "Copy",
   "eventForm.close_confirm_title": "Unsaved changes",
   "eventForm.close_confirm_message": "If you leave now, your changes will be lost. Continue?",
   "common.leave": "Leave",

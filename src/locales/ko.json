@@ -138,6 +138,8 @@
   "scheduleForm.delete_failed": "삭제에 실패했습니다. 다시 시도해주세요.",
   "scheduleForm.delete_confirm_title": "Schedule 삭제",
   "scheduleForm.delete_confirm_message": "\"{{name}}\"을 삭제할까요?",
+  "eventForm.more_actions": "더보기",
+  "eventForm.copy": "복제",
   "eventForm.close_confirm_title": "변경사항이 저장되지 않았어요",
   "eventForm.close_confirm_message": "지금 닫으면 변경사항이 사라져요. 계속하시겠어요?",
   "common.leave": "떠나기",
