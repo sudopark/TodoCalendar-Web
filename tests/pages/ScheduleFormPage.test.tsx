@@ -427,3 +427,24 @@ describe('ScheduleFormPage — prefilled 신규 모드', () => {
     expect(screen.getByLabelText('메모')).toHaveValue('메모')
   })
 })
+
+describe('ScheduleFormPage — entry UX', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    await setupMocks()
+  })
+
+  it('id가 있고 API 응답이 오기 전에도 저장 버튼을 포함한 Form 레이아웃이 즉시 렌더된다', async () => {
+    // given: getSchedule과 getEventDetail이 영원히 pending (진입 직후 상태)
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(scheduleApi.getSchedule).mockReturnValue(new Promise(() => {}))
+    vi.mocked(eventDetailApi.getEventDetail).mockReturnValue(new Promise(() => {}))
+
+    // when
+    renderEdit('abc')
+
+    // then: 중앙 스피너만 보이는 게 아니라 Form 상단의 저장 버튼이 즉시 존재
+    expect(screen.getByRole('button', { name: '저장' })).toBeInTheDocument()
+  })
+})

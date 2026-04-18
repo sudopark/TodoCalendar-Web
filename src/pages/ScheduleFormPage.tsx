@@ -221,7 +221,7 @@ export function ScheduleFormPage() {
 
   const currentSnapshot: EventFormSnapshot = { name, tagId, eventTime, repeating, notifications, place, url, memo }
   const isDirty = useEventFormDirty(originalSnapshot, currentSnapshot)
-  const canSave = name.trim() !== '' && isDirty && !saving && !showSaveScope && !showDeleteScope && !showDeleteConfirm
+  const canSave = !loading && name.trim() !== '' && isDirty && !saving && !showSaveScope && !showDeleteScope && !showDeleteConfirm
 
   function handleClose() {
     if (isDirty) {
@@ -234,14 +234,6 @@ export function ScheduleFormPage() {
   function handleCopy() {
     const prefilledData: Partial<EventFormSnapshot> = { name, tagId, eventTime, repeating, notifications, place, url, memo }
     navigate('/schedules/new', { state: { prefilled: prefilledData } })
-  }
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-      </div>
-    )
   }
 
   return (
@@ -259,7 +251,7 @@ export function ScheduleFormPage() {
       {/* 페이지 제목: 기존 getByText 테스트 호환을 위해 sr-only 로 유지 */}
       <h1 className="sr-only">{id ? t('schedule.edit') : t('schedule.new')}</h1>
 
-      <div className="mx-auto max-w-5xl px-4 py-6 space-y-6">
+      <div className={`mx-auto max-w-5xl px-4 py-6 space-y-6 ${loading ? 'pointer-events-none opacity-60' : ''}`}>
         <EventTimeSection
           eventTime={eventTime}
           onEventTimeChange={handleEventTimeChange}
