@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MoreHorizontal } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 
 interface MoreActionsMenuProps {
   onCopy: () => void
@@ -36,10 +36,11 @@ export function MoreActionsMenu({ onCopy }: MoreActionsMenuProps) {
         aria-label={t('eventForm.more_actions')}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="rounded p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400"
+        className="flex items-center gap-1 rounded px-2 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
         onClick={() => setOpen(v => !v)}
       >
-        <MoreHorizontal size={20} />
+        {t('eventForm.more_actions')}
+        <ChevronDown size={16} aria-hidden="true" />
       </button>
       {open && (
         <div
