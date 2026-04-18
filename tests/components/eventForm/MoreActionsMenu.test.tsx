@@ -34,4 +34,17 @@ describe('MoreActionsMenu', () => {
     // then
     expect(screen.queryByRole('menuitem', { name: '복제' })).not.toBeInTheDocument()
   })
+
+  it('메뉴가 열린 상태에서 Escape 키를 누르면 메뉴가 닫힌다', async () => {
+    // given
+    render(<MoreActionsMenu onCopy={vi.fn()} />)
+    await userEvent.click(screen.getByRole('button', { name: '더보기' }))
+    expect(screen.getByRole('menuitem', { name: '복제' })).toBeInTheDocument()
+
+    // when
+    await userEvent.keyboard('{Escape}')
+
+    // then
+    expect(screen.queryByRole('menuitem', { name: '복제' })).not.toBeInTheDocument()
+  })
 })
