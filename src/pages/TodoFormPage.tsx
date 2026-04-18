@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
 import { eventDetailApi } from '../api/eventDetailApi'
@@ -15,6 +15,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog'
 import { RepeatingScopeDialog, type RepeatScope } from '../components/RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
 import { NotificationPicker } from '../components/NotificationPicker'
+import { MoreActionsMenu } from '../components/eventForm/MoreActionsMenu'
 import { useEventDefaultsStore } from '../stores/eventDefaultsStore'
 import { useEventFormDirty, type EventFormSnapshot } from '../hooks/useEventFormDirty'
 import type { Todo, EventTime, Repeating, NotificationOption } from '../models'
@@ -22,6 +23,7 @@ import type { Todo, EventTime, Repeating, NotificationOption } from '../models'
 export function TodoFormPage() {
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { t } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
 
@@ -29,21 +31,25 @@ export function TodoFormPage() {
   const { addTodo, removeTodo, replaceTodo } = useCurrentTodosStore()
   const { defaultTagId, defaultNotificationSeconds } = useEventDefaultsStore()
 
+  const prefilled = (location.state as { prefilled?: Partial<EventFormSnapshot> } | null)?.prefilled
+
   const [loading, setLoading] = useState(!!id)
   const [original, setOriginal] = useState<Todo | null>(null)
   const [originalSnapshot, setOriginalSnapshot] = useState<EventFormSnapshot | null>(null)
-  const [name, setName] = useState('')
-  const [tagId, setTagId] = useState<string | null>(() => id ? null : defaultTagId)
-  const [eventTime, setEventTime] = useState<EventTime | null>(() =>
-    selectedDate ? { time_type: 'at', timestamp: Math.floor(selectedDate.getTime() / 1000) } : null
-  )
-  const [repeating, setRepeating] = useState<Repeating | null>(null)
-  const [notifications, setNotifications] = useState<NotificationOption[]>(() =>
-    !id && defaultNotificationSeconds != null ? [{ type: 'time' as const, seconds: defaultNotificationSeconds }] : []
-  )
-  const [place, setPlace] = useState('')
-  const [url, setUrl] = useState('')
-  const [memo, setMemo] = useState('')
+  const [name, setName] = useState(() => prefilled?.name ?? '')
+  const [tagId, setTagId] = useState<string | null>(() => id ? null : (prefilled?.tagId !== undefined ? prefilled.tagId : defaultTagId))
+  const [eventTime, setEventTime] = useState<EventTime | null>(() => {
+    if (prefilled?.eventTime !== undefined) return prefilled.eventTime as EventTime | null
+    return selectedDate ? { time_type: 'at', timestamp: Math.floor(selectedDate.getTime() / 1000) } : null
+  })
+  const [repeating, setRepeating] = useState<Repeating | null>(() => (prefilled?.repeating as Repeating | null | undefined) ?? null)
+  const [notifications, setNotifications] = useState<NotificationOption[]>(() => {
+    if (prefilled?.notifications) return prefilled.notifications as NotificationOption[]
+    return !id && defaultNotificationSeconds != null ? [{ type: 'time' as const, seconds: defaultNotificationSeconds }] : []
+  })
+  const [place, setPlace] = useState(() => prefilled?.place ?? '')
+  const [url, setUrl] = useState(() => prefilled?.url ?? '')
+  const [memo, setMemo] = useState(() => prefilled?.memo ?? '')
   const [showConfirm, setShowConfirm] = useState(false)
   const [showSaveScope, setShowSaveScope] = useState(false)
   const [showDeleteScope, setShowDeleteScope] = useState(false)
@@ -242,6 +248,11 @@ export function TodoFormPage() {
     }
   }
 
+  function handleCopy() {
+    const prefilledData: Partial<EventFormSnapshot> = { name, tagId, eventTime, repeating, notifications, place, url, memo }
+    navigate('/todos/new', { state: { prefilled: prefilledData } })
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -254,7 +265,10 @@ export function TodoFormPage() {
     <div className="mx-auto max-w-lg px-4 py-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-lg font-bold">{id ? t('todo.edit') : t('todo.new')}</h1>
-        <button className="text-sm text-gray-500" onClick={handleClose}>{t('common.cancel')}</button>
+        <div className="flex items-center gap-2">
+          <MoreActionsMenu onCopy={handleCopy} />
+          <button className="text-sm text-gray-500" onClick={handleClose}>{t('common.cancel')}</button>
+        </div>
       </div>
 
       <div className="space-y-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm">

@@ -488,4 +488,59 @@ describe('TodoFormPage — dirty close confirm', () => {
     // then: 이전 화면으로 이동
     expect(mockNavigate).toHaveBeenCalled()
   })
+
+  it('더보기 > 복제 클릭 시 신규 Form으로 이동한다', async () => {
+    // given: 편집 모드 로드
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(todoApi.getTodo).mockResolvedValue({ ...baseTodo, name: '할 일' } as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({ place: '강남역', url: '', memo: '' })
+    renderEdit('todo-1')
+    await waitFor(() => screen.getByDisplayValue('할 일'))
+
+    // when
+    await userEvent.click(screen.getByRole('button', { name: '더보기' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: '복제' }))
+
+    // then: navigate가 호출됨 (인자 세부 검증은 금지 패턴)
+    expect(mockNavigate).toHaveBeenCalled()
+  })
+})
+
+describe('TodoFormPage — prefilled 신규 모드', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    await setupMocks()
+  })
+
+  function renderCreateWithPrefilled(prefilled: Record<string, unknown>) {
+    return render(
+      <MemoryRouter initialEntries={[{ pathname: '/todos/new', state: { prefilled } }]}>
+        <Routes><Route path="/todos/new" element={<TodoFormPage />} /></Routes>
+        <ToastContainer />
+      </MemoryRouter>
+    )
+  }
+
+  it('신규 모드에서 prefilled state가 있으면 해당 값으로 초기화된다', () => {
+    // given
+    const prefilled = {
+      name: '복제된 할 일',
+      place: '강남역',
+      url: '',
+      memo: '메모',
+      tagId: null,
+      eventTime: null,
+      repeating: null,
+      notifications: [],
+    }
+
+    // when
+    renderCreateWithPrefilled(prefilled)
+
+    // then
+    expect(screen.getByDisplayValue('복제된 할 일')).toBeInTheDocument()
+    expect(screen.getByLabelText('장소')).toHaveValue('강남역')
+    expect(screen.getByLabelText('메모')).toHaveValue('메모')
+  })
 })
