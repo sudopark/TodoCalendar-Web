@@ -121,14 +121,14 @@ export function ScheduleFormPage() {
     try {
       await eventDetailApi.updateEventDetail(targetId, { place: place || null, url: url || null, memo: memo || null })
     } catch {
-      useToastStore.getState().show('추가 정보 저장 실패', 'error')
+      useToastStore.getState().show(t('eventForm.save_detail_failed'), 'error')
     }
   }
 
   async function applyUpdate(scope: RepeatScope) {
     if (!id || !original) return
-    if (!original.repeating) {
-      // Non-repeating: event_time이 바뀌면 날짜 키가 달라질 수 있으므로 remove → add로 갱신
+    if (!original.repeating || scope === 'all') {
+      // Non-repeating or all scope: event_time이 바뀌면 날짜 키가 달라질 수 있으므로 remove → add로 갱신
       const updated = await scheduleApi.updateSchedule(id, {
         name: name.trim(),
         event_tag_id: tagId,
@@ -139,18 +139,9 @@ export function ScheduleFormPage() {
       removeEvent(id)
       addEvent({ type: 'schedule', event: updated })
       await saveEventDetail(id)
-    } else if (scope === 'all') {
-      const updated = await scheduleApi.updateSchedule(id, {
-        name: name.trim(),
-        event_tag_id: tagId,
-        event_time: eventTime,
-        repeating: repeating ?? undefined,
-        notification_options: notifications.length > 0 ? notifications : null,
-      })
-      removeEvent(id)
-      addEvent({ type: 'schedule', event: updated })
-      await saveEventDetail(id)
-    } else if (scope === 'this') {
+      return
+    }
+    if (scope === 'this') {
       // 이 회차만 분리 → 새 단건 이벤트에 현재 폼 state로 detail 저장.
       // 원본 반복 이벤트의 detail은 유지 (종료되지 않은 다른 회차들을 위해).
       const turn = original.show_turns?.[0] ?? 0
@@ -230,7 +221,7 @@ export function ScheduleFormPage() {
 
   const currentSnapshot: EventFormSnapshot = { name, tagId, eventTime, repeating, notifications, place, url, memo }
   const isDirty = useEventFormDirty(originalSnapshot, currentSnapshot)
-  const canSave = name.trim() !== '' && !!eventTime && isDirty && !saving && !showSaveScope && !showDeleteScope && !showDeleteConfirm
+  const canSave = name.trim() !== '' && isDirty && !saving && !showSaveScope && !showDeleteScope && !showDeleteConfirm
 
   function handleClose() {
     if (isDirty) {
