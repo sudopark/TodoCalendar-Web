@@ -150,7 +150,7 @@ export function TodoFormPage() {
     try {
       await eventDetailApi.updateEventDetail(targetId, { place: place || null, url: url || null, memo: memo || null })
     } catch {
-      useToastStore.getState().show('추가 정보 저장 실패', 'error')
+      useToastStore.getState().show(t('eventForm.save_detail_failed'), 'error')
     }
   }
 

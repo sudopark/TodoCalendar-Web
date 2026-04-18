@@ -142,6 +142,7 @@
   "eventForm.copy": "Copy",
   "eventForm.close_confirm_title": "Unsaved changes",
   "eventForm.close_confirm_message": "If you leave now, your changes will be lost. Continue?",
+  "eventForm.save_detail_failed": "Failed to save additional info",
   "common.leave": "Leave",
   "common.keep_editing": "Keep editing",
   "eventTime.none": "No time",
