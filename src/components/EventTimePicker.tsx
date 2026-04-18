@@ -33,6 +33,24 @@ function localSecondsFromGmt(): number {
   return -(new Date().getTimezoneOffset() * 60)
 }
 
+// 시안: "(GMT+09:00) Korean Standard Time - Seoul" 형식으로 현재 타임존을 노출
+function formatTimezoneLabel(): string {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const city = tz.split('/').pop()?.replace(/_/g, ' ') ?? tz
+  const offsetMin = -new Date().getTimezoneOffset()
+  const sign = offsetMin >= 0 ? '+' : '-'
+  const absMin = Math.abs(offsetMin)
+  const hh = String(Math.floor(absMin / 60)).padStart(2, '0')
+  const mm = String(absMin % 60).padStart(2, '0')
+  const longName =
+    new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'long' })
+      .formatToParts(new Date())
+      .find(p => p.type === 'timeZoneName')?.value ?? ''
+  return longName
+    ? `(GMT${sign}${hh}:${mm}) ${longName} - ${city}`
+    : `(GMT${sign}${hh}:${mm}) ${city}`
+}
+
 interface EventTimePickerProps {
   value: EventTime | null
   onChange: (value: EventTime | null) => void
@@ -191,6 +209,12 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
               }}
             />
           </div>
+        </div>
+      )}
+
+      {type !== 'none' && (
+        <div className="text-xs text-gray-500 dark:text-gray-400">
+          {formatTimezoneLabel()}
         </div>
       )}
     </div>
