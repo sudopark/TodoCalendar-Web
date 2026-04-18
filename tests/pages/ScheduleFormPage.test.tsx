@@ -318,4 +318,57 @@ describe('ScheduleFormPage — EventDetail (place/url/memo)', () => {
     // cleanup
     resolveUpdate({ ...baseSchedule, name: '팀 미팅 수정' })
   })
+
+  it('변경 없이 취소 버튼을 누르면 바로 이전 화면으로 돌아간다', async () => {
+    // given: 기존 schedule 로드 완료
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(scheduleApi.getSchedule).mockResolvedValue(baseSchedule as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({ place: '', url: '', memo: '' })
+    renderEdit('sch-1')
+    await waitFor(() => expect(screen.getByDisplayValue('팀 미팅')).toBeInTheDocument())
+
+    // when: 변경 없이 취소 버튼 클릭
+    await userEvent.click(screen.getByRole('button', { name: '취소' }))
+
+    // then: 바로 이전 화면으로 이동
+    expect(mockNavigate).toHaveBeenCalled()
+  })
+
+  it('변경 후 취소 버튼을 누르면 확인 다이얼로그가 표시된다', async () => {
+    // given: 기존 schedule 로드 완료
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(scheduleApi.getSchedule).mockResolvedValue(baseSchedule as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({ place: '', url: '', memo: '' })
+    renderEdit('sch-1')
+    await waitFor(() => expect(screen.getByDisplayValue('팀 미팅')).toBeInTheDocument())
+
+    // when: 이름 변경 후 취소 버튼 클릭
+    await userEvent.type(screen.getByLabelText('이름'), ' 수정')
+    await userEvent.click(screen.getByRole('button', { name: '취소' }))
+
+    // then: 확인 다이얼로그 표시
+    expect(screen.getByText('변경사항이 저장되지 않았어요')).toBeInTheDocument()
+    expect(screen.getByText('지금 닫으면 변경사항이 사라져요. 계속하시겠어요?')).toBeInTheDocument()
+    expect(mockNavigate).not.toHaveBeenCalled()
+  })
+
+  it('확인 다이얼로그에서 "떠나기"를 누르면 이전 화면으로 돌아간다', async () => {
+    // given: 변경 후 취소 → 다이얼로그 표시
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+    const { eventDetailApi } = await import('../../src/api/eventDetailApi')
+    vi.mocked(scheduleApi.getSchedule).mockResolvedValue(baseSchedule as any)
+    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({ place: '', url: '', memo: '' })
+    renderEdit('sch-1')
+    await waitFor(() => expect(screen.getByDisplayValue('팀 미팅')).toBeInTheDocument())
+    await userEvent.type(screen.getByLabelText('이름'), ' 수정')
+    await userEvent.click(screen.getByRole('button', { name: '취소' }))
+
+    // when: "떠나기" 버튼 클릭
+    await userEvent.click(screen.getByRole('button', { name: '떠나기' }))
+
+    // then: 이전 화면으로 이동
+    expect(mockNavigate).toHaveBeenCalled()
+  })
 })
