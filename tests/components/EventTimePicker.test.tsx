@@ -22,11 +22,25 @@ describe('EventTimePicker', () => {
     expect(screen.getByLabelText('종료')).toBeInTheDocument()
   })
 
-  it('"종일" 탭을 선택하면 날짜만 있는 시작/종료 필드가 표시된다', async () => {
-    render(<EventTimePicker value={null} onChange={vi.fn()} />)
-    await userEvent.click(screen.getByRole('radio', { name: '종일' }))
+  it('"종일" 체크박스를 선택하면 날짜만 있는 시작/종료 필드가 표시된다', async () => {
+    // given: required=true 상태로 진입해 초기 type='at'에서 종일 토글
+    render(<EventTimePicker value={null} onChange={vi.fn()} required={true} />)
+    // when
+    await userEvent.click(screen.getByRole('checkbox', { name: '종일' }))
+    // then
     expect(screen.getByLabelText('시작일')).toBeInTheDocument()
     expect(screen.getByLabelText('종료일')).toBeInTheDocument()
+  })
+
+  it('"종일" 체크를 해제하면 직전 시간 유형으로 복원된다', async () => {
+    // given: 초기 type='at'
+    render(<EventTimePicker value={null} onChange={vi.fn()} required={true} />)
+    await userEvent.click(screen.getByRole('checkbox', { name: '종일' }))
+    expect(screen.getByLabelText('시작일')).toBeInTheDocument()
+    // when: 종일 해제
+    await userEvent.click(screen.getByRole('checkbox', { name: '종일' }))
+    // then: 직전 유형(시점)의 입력 필드로 복원
+    expect(screen.getByLabelText('시각')).toBeInTheDocument()
   })
 
   it('기존 at 값이 있으면 "특정 시각" 타입으로 초기화된다', () => {
