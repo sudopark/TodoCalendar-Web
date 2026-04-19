@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import type { EventTime } from '../../../src/models'
 import { EventTimeSection } from '../../../src/components/eventForm/EventTimeSection'
 
@@ -46,5 +47,37 @@ describe('EventTimeSection', () => {
 
     // then
     expect(screen.queryByLabelText('반복')).not.toBeInTheDocument()
+  })
+
+  it('All day 체크박스 클릭 시 eventTime이 allday 타입으로 전환된다', async () => {
+    // given: at 타입의 eventTime
+    const onChange = vi.fn()
+    render(<EventTimeSection {...defaultProps({ onEventTimeChange: onChange })} />)
+
+    // when
+    await userEvent.click(screen.getByRole('checkbox', { name: '종일' }))
+
+    // then
+    const last = onChange.mock.calls.at(-1)?.[0]
+    expect(last.time_type).toBe('allday')
+  })
+
+  it('All day 체크 해제 시 직전 시간 유형으로 복원된다', async () => {
+    // given: allday 타입
+    const alldayValue: EventTime = {
+      time_type: 'allday',
+      period_start: 1743375600,
+      period_end: 1743375600,
+      seconds_from_gmt: 9 * 3600,
+    }
+    const onChange = vi.fn()
+    render(<EventTimeSection {...defaultProps({ eventTime: alldayValue, onEventTimeChange: onChange })} />)
+
+    // when
+    await userEvent.click(screen.getByRole('checkbox', { name: '종일' }))
+
+    // then: at (기본 prevNonAllday)으로 복원
+    const last = onChange.mock.calls.at(-1)?.[0]
+    expect(last.time_type).toBe('at')
   })
 })

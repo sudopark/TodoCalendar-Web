@@ -92,14 +92,9 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
 
   const [type, setType] = useState<TimeType>(initType)
   const [internal, setInternal] = useState<EventTime | null>(initInternal)
-  // All day 체크 해제 시 복원할 직전 시간 유형 (at 또는 period)
-  const [prevNonAllday, setPrevNonAllday] = useState<'at' | 'period'>(
-    initType() === 'period' ? 'period' : 'at'
-  )
 
   function handleTypeChange(nextType: TimeType) {
     setType(nextType)
-    if (nextType === 'at' || nextType === 'period') setPrevNonAllday(nextType)
     if (nextType === 'none') {
       setInternal(null)
       onChange(null)
@@ -113,10 +108,6 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
     onChange(next)
   }
 
-  function handleAllDayToggle(checked: boolean) {
-    handleTypeChange(checked ? 'allday' : prevNonAllday)
-  }
-
   function handleValueChange(next: EventTime) {
     setInternal(next)
     onChange(next)
@@ -124,34 +115,26 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex flex-wrap gap-3">
-          {!required && (
+      {type !== 'allday' && (
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap gap-3">
+            {!required && (
+              <label className="flex items-center gap-1 text-sm">
+                <input type="radio" name="time-type" checked={type === 'none'} onChange={() => handleTypeChange('none')} />
+                {t('eventTime.none')}
+              </label>
+            )}
             <label className="flex items-center gap-1 text-sm">
-              <input type="radio" name="time-type" checked={type === 'none'} onChange={() => handleTypeChange('none')} />
-              {t('eventTime.none')}
+              <input type="radio" name="time-type" checked={type === 'at'} onChange={() => handleTypeChange('at')} />
+              {t('eventTime.at')}
             </label>
-          )}
-          <label className="flex items-center gap-1 text-sm">
-            <input type="radio" name="time-type" checked={type === 'at'} onChange={() => handleTypeChange('at')} />
-            {t('eventTime.at')}
-          </label>
-          <label className="flex items-center gap-1 text-sm">
-            <input type="radio" name="time-type" checked={type === 'period'} onChange={() => handleTypeChange('period')} />
-            {t('eventTime.period')}
-          </label>
+            <label className="flex items-center gap-1 text-sm">
+              <input type="radio" name="time-type" checked={type === 'period'} onChange={() => handleTypeChange('period')} />
+              {t('eventTime.period')}
+            </label>
+          </div>
         </div>
-        {type !== 'none' && (
-          <label className="flex items-center gap-1 text-sm">
-            <input
-              type="checkbox"
-              checked={type === 'allday'}
-              onChange={e => handleAllDayToggle(e.target.checked)}
-            />
-            {t('eventTime.allday')}
-          </label>
-        )}
-      </div>
+      )}
 
       {type === 'at' && internal?.time_type === 'at' && (
         <div className="flex flex-wrap items-center gap-2">

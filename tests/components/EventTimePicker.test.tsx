@@ -26,28 +26,21 @@ describe('EventTimePicker', () => {
     expect(screen.getByLabelText('종료 날짜')).toBeInTheDocument()
   })
 
-  it('"종일" 체크박스를 선택하면 날짜만 있는 시작/종료 필드가 표시된다', async () => {
-    // given: required=true 상태로 진입해 초기 type='at'에서 종일 토글
-    render(<EventTimePicker value={null} onChange={vi.fn()} required={true} />)
+  it('allday 값이 주어지면 시간 입력은 숨기고 날짜만 노출한다', () => {
+    // given: allday 타입 값 (All day 전환 자체는 EventTimeSection에서 담당)
+    const value = {
+      time_type: 'allday' as const,
+      period_start: 1743375600,
+      period_end: 1743375600,
+      seconds_from_gmt: 9 * 3600,
+    }
     // when
-    await userEvent.click(screen.getByRole('checkbox', { name: '종일' }))
+    render(<EventTimePicker value={value} onChange={vi.fn()} />)
     // then: 시작/종료 날짜만 노출, 시간 입력은 숨김
     expect(screen.getByLabelText('시작 날짜')).toBeInTheDocument()
     expect(screen.getByLabelText('종료 날짜')).toBeInTheDocument()
     expect(screen.queryByLabelText('시작 시간')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('종료 시간')).not.toBeInTheDocument()
-  })
-
-  it('"종일" 체크를 해제하면 직전 시간 유형으로 복원된다', async () => {
-    // given: 초기 type='at' (required)
-    render(<EventTimePicker value={null} onChange={vi.fn()} required={true} />)
-    await userEvent.click(screen.getByRole('checkbox', { name: '종일' }))
-    // allday는 시간 입력이 없음
-    expect(screen.queryByLabelText('시작 시간')).not.toBeInTheDocument()
-    // when: 종일 해제
-    await userEvent.click(screen.getByRole('checkbox', { name: '종일' }))
-    // then: 직전 유형(시점)의 시간 입력이 복원됨
-    expect(screen.getByLabelText('시작 시간')).toBeInTheDocument()
   })
 
   it('기존 at 값이 있으면 "특정 시각" 타입으로 초기화된다', () => {
