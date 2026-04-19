@@ -4,9 +4,10 @@ import { ChevronDown } from 'lucide-react'
 
 interface MoreActionsMenuProps {
   onCopy: () => void
+  onDelete?: () => void
 }
 
-export function MoreActionsMenu({ onCopy }: MoreActionsMenuProps) {
+export function MoreActionsMenu({ onCopy, onDelete }: MoreActionsMenuProps) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -55,6 +56,16 @@ export function MoreActionsMenu({ onCopy }: MoreActionsMenuProps) {
           >
             {t('eventForm.copy')}
           </button>
+          {onDelete && (
+            <button
+              type="button"
+              role="menuitem"
+              className="block w-full px-3 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400"
+              onClick={() => { setOpen(false); onDelete() }}
+            >
+              {t('common.delete')}
+            </button>
+          )}
         </div>
       )}
     </div>

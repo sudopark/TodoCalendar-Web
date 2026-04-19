@@ -8,6 +8,7 @@ interface EventFormHeaderProps {
   onClose: () => void
   onSave: () => void
   onCopy: () => void
+  onDelete?: () => void
   saveDisabled: boolean
   idPrefix: 'schedule' | 'todo'
 }
@@ -18,6 +19,7 @@ export function EventFormHeader({
   onClose,
   onSave,
   onCopy,
+  onDelete,
   saveDisabled,
   idPrefix,
 }: EventFormHeaderProps) {
@@ -54,7 +56,7 @@ export function EventFormHeader({
         >
           {t('common.save')}
         </button>
-        <MoreActionsMenu onCopy={onCopy} />
+        <MoreActionsMenu onCopy={onCopy} onDelete={onDelete} />
       </div>
     </div>
   )

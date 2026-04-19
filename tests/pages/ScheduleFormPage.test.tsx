@@ -135,8 +135,9 @@ describe('ScheduleFormPage — edit (반복)', () => {
     const { scheduleApi } = await import('../../src/api/scheduleApi')
     vi.mocked(scheduleApi.getSchedule).mockResolvedValue(repeatingSch as any)
     renderEdit('sch-1')
-    await waitFor(() => screen.getByRole('button', { name: '삭제' }))
-    await userEvent.click(screen.getByRole('button', { name: '삭제' }))
+    await waitFor(() => screen.getByDisplayValue('주간 미팅'))
+    await userEvent.click(screen.getByRole('button', { name: '더보기' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: '삭제' }))
     expect(screen.getByText('반복 일정 삭제')).toBeInTheDocument()
   })
 
@@ -145,8 +146,9 @@ describe('ScheduleFormPage — edit (반복)', () => {
     const simpleSch = { uuid: 'sch-2', name: '단순 일정', event_time: { time_type: 'at' as const, timestamp: 1743375600 } }
     vi.mocked(scheduleApi.getSchedule).mockResolvedValue(simpleSch as any)
     renderEdit('sch-2')
-    await waitFor(() => screen.getByRole('button', { name: '삭제' }))
-    await userEvent.click(screen.getByRole('button', { name: '삭제' }))
+    await waitFor(() => screen.getByDisplayValue('단순 일정'))
+    await userEvent.click(screen.getByRole('button', { name: '더보기' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: '삭제' }))
     expect(screen.getByText(/삭제할까요/)).toBeInTheDocument()
   })
 })
