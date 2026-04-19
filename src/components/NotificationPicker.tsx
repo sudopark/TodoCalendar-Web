@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Plus, X } from 'lucide-react'
 import type { NotificationOption } from '../models'
 
 const TIME_PRESET_KEYS = [
@@ -23,72 +25,140 @@ const ALLDAY_PRESET_KEYS = [
   { key: 'notif.allday_1week_before_9am', dayOffset: -7, hour: 9, minute: 0 },
 ] as const
 
+type TimePreset = (typeof TIME_PRESET_KEYS)[number]
+type AllDayPreset = (typeof ALLDAY_PRESET_KEYS)[number]
+
 interface NotificationPickerProps {
   value: NotificationOption[]
   onChange: (options: NotificationOption[]) => void
   isAllDay: boolean
 }
 
-function matchesTimePreset(opt: NotificationOption, seconds: number): boolean {
-  return opt.type === 'time' && opt.seconds === seconds
+function matchTimePreset(opt: NotificationOption, p: TimePreset): boolean {
+  return opt.type === 'time' && opt.seconds === p.seconds
 }
 
-function matchesAllDayPreset(opt: NotificationOption, dayOffset: number, hour: number, minute: number): boolean {
-  return opt.type === 'allday' && opt.dayOffset === dayOffset && opt.hour === hour && opt.minute === minute
+function matchAllDayPreset(opt: NotificationOption, p: AllDayPreset): boolean {
+  return opt.type === 'allday' && opt.dayOffset === p.dayOffset && opt.hour === p.hour && opt.minute === p.minute
 }
 
 export function NotificationPicker({ value, onChange, isAllDay }: NotificationPickerProps) {
   const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
 
-  if (isAllDay) {
-    return (
-      <div className="space-y-1">
-        {ALLDAY_PRESET_KEYS.map((preset, i) => {
-          const selected = value.some(v => matchesAllDayPreset(v, preset.dayOffset, preset.hour, preset.minute))
-          return (
-            <label key={i} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={selected}
-                onChange={() => {
-                  if (selected) {
-                    onChange(value.filter(v => !matchesAllDayPreset(v, preset.dayOffset, preset.hour, preset.minute)))
-                  } else {
-                    onChange([...value, { type: 'allday', dayOffset: preset.dayOffset, hour: preset.hour, minute: preset.minute }])
-                  }
-                }}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              {t(preset.key)}
-            </label>
-          )
-        })}
-      </div>
-    )
+  useEffect(() => {
+    if (!open) return
+    function handleOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', handleOutside)
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.removeEventListener('mousedown', handleOutside)
+      document.removeEventListener('keydown', handleKey)
+    }
+  }, [open])
+
+  function optionLabel(opt: NotificationOption): string {
+    if (opt.type === 'time') {
+      const p = TIME_PRESET_KEYS.find(x => matchTimePreset(opt, x))
+      return p ? t(p.key) : `${opt.seconds}s`
+    }
+    const p = ALLDAY_PRESET_KEYS.find(x => matchAllDayPreset(opt, x))
+    return p ? t(p.key) : 'custom'
   }
 
+  function removeAt(idx: number) {
+    onChange(value.filter((_, i) => i !== idx))
+  }
+
+  function addTimePreset(p: TimePreset) {
+    onChange([...value, { type: 'time', seconds: p.seconds }])
+    setOpen(false)
+  }
+
+  function addAllDayPreset(p: AllDayPreset) {
+    onChange([...value, { type: 'allday', dayOffset: p.dayOffset, hour: p.hour, minute: p.minute }])
+    setOpen(false)
+  }
+
+  const availableTime = TIME_PRESET_KEYS.filter(p => !value.some(v => matchTimePreset(v, p)))
+  const availableAllDay = ALLDAY_PRESET_KEYS.filter(p => !value.some(v => matchAllDayPreset(v, p)))
+  const hasAvailable = isAllDay ? availableAllDay.length > 0 : availableTime.length > 0
+
   return (
-    <div className="space-y-1">
-      {TIME_PRESET_KEYS.map((preset, i) => {
-        const selected = value.some(v => matchesTimePreset(v, preset.seconds))
-        return (
-          <label key={i} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={selected}
-              onChange={() => {
-                if (selected) {
-                  onChange(value.filter(v => !matchesTimePreset(v, preset.seconds)))
-                } else {
-                  onChange([...value, { type: 'time', seconds: preset.seconds }])
-                }
-              }}
-              className="h-4 w-4 rounded border-gray-300"
-            />
-            {t(preset.key)}
-          </label>
-        )
-      })}
+    <div className="space-y-2">
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {value.map((opt, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+            >
+              {optionLabel(opt)}
+              <button
+                type="button"
+                onClick={() => removeAt(i)}
+                aria-label={t('notif.remove')}
+                className="ml-1 rounded-full p-0.5 hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="relative" ref={ref}>
+        <button
+          type="button"
+          onClick={() => setOpen(v => !v)}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          className="inline-flex items-center gap-1 rounded-md border border-dashed border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+        >
+          <Plus size={14} aria-hidden="true" />
+          {t('notif.add_button')}
+        </button>
+
+        {open && (
+          <div
+            role="listbox"
+            className="absolute left-0 z-10 mt-1 min-w-[220px] max-h-64 overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-md dark:bg-gray-800 dark:border-gray-700"
+          >
+            {!hasAvailable && (
+              <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">{t('notif.no_more_options')}</div>
+            )}
+            {isAllDay
+              ? availableAllDay.map(p => (
+                  <button
+                    key={p.key}
+                    type="button"
+                    role="option"
+                    onClick={() => addAllDayPreset(p)}
+                    className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                  >
+                    {t(p.key)}
+                  </button>
+                ))
+              : availableTime.map(p => (
+                  <button
+                    key={p.key}
+                    type="button"
+                    role="option"
+                    onClick={() => addTimePreset(p)}
+                    className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                  >
+                    {t(p.key)}
+                  </button>
+                ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
