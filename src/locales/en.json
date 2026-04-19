@@ -158,6 +158,7 @@
   "eventTime.end_time": "End time",
   "eventTime.to": "to",
   "repeating.enabled": "Repeat",
+  "repeating.not_repeat": "Does not repeat",
   "repeating.type": "Repeat type",
   "repeating.daily": "Daily",
   "repeating.weekly": "Weekly",
