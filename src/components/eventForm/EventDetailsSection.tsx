@@ -31,8 +31,8 @@ interface RowProps {
 
 function Row({ icon, children }: RowProps) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="mt-2 flex h-5 w-5 shrink-0 items-center justify-center text-gray-500 dark:text-gray-400" aria-hidden="true">
+    <div className="flex items-start gap-4">
+      <div className="mt-2 flex h-6 w-6 shrink-0 items-center justify-center text-gray-500 dark:text-gray-400" aria-hidden="true">
         {icon}
       </div>
       <div className="flex-1 min-w-0">{children}</div>
@@ -60,7 +60,7 @@ export function EventDetailsSection({
   const memoId = `${fieldPrefix}-memo`
 
   return (
-    <section className="space-y-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm">
+    <section className="space-y-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm">
       {/* Location */}
       <Row icon={<MapPin className="h-4 w-4" />}>
         <label htmlFor={placeId} className={labelClass}>{t('event.place')}</label>
