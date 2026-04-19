@@ -25,7 +25,7 @@ export function EventFormHeader({
   const nameInputId = `${idPrefix}-event-name`
 
   return (
-    <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3">
+    <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-4">
       <button
         type="button"
         aria-label={t('common.cancel')}
@@ -40,7 +40,7 @@ export function EventFormHeader({
         id={nameInputId}
         aria-label={t('event.name')}
         placeholder={t('event.namePlaceholder', '이벤트 이름 추가')}
-        className="flex-1 min-w-0 border-b border-transparent bg-transparent text-2xl font-normal text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500 placeholder:text-gray-400"
+        className="flex-1 min-w-0 border-b border-transparent bg-transparent text-2xl font-normal tracking-tight text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500 placeholder:text-gray-400"
         value={name}
         onChange={e => onNameChange(e.target.value)}
       />
@@ -50,7 +50,7 @@ export function EventFormHeader({
           type="button"
           onClick={onSave}
           disabled={saveDisabled}
-          className="rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-full bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
           {t('common.save')}
         </button>
