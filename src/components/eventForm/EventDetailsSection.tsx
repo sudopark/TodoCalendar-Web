@@ -61,17 +61,6 @@ export function EventDetailsSection({
 
   return (
     <section className="space-y-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm">
-      {/* Location */}
-      <Row icon={<MapPin className="h-4 w-4" />}>
-        <label htmlFor={placeId} className={labelClass}>{t('event.place')}</label>
-        <input
-          id={placeId}
-          className={`mt-1 ${inputClass}`}
-          value={place}
-          onChange={e => onPlaceChange(e.target.value)}
-        />
-      </Row>
-
       {/* Notifications */}
       <Row icon={<Bell className="h-4 w-4" />}>
         <div className={labelClass}>{t('event.notification')}</div>
@@ -87,6 +76,17 @@ export function EventDetailsSection({
       {/* Tag — 시안 정합: 중복 "태그" 라벨 제거, 아이콘 + Selector만 한 줄로 */}
       <Row icon={<TagIcon className="h-4 w-4" />}>
         <TagSelector value={tagId} onChange={onTagChange} />
+      </Row>
+
+      {/* Location — URL과 인접하도록 상단 배치 */}
+      <Row icon={<MapPin className="h-4 w-4" />}>
+        <label htmlFor={placeId} className={labelClass}>{t('event.place')}</label>
+        <input
+          id={placeId}
+          className={`mt-1 ${inputClass}`}
+          value={place}
+          onChange={e => onPlaceChange(e.target.value)}
+        />
       </Row>
 
       {/* URL */}

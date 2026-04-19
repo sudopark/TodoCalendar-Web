@@ -251,7 +251,7 @@ export function ScheduleFormPage() {
       {/* 페이지 제목: 기존 getByText 테스트 호환을 위해 sr-only 로 유지 */}
       <h1 className="sr-only">{id ? t('schedule.edit') : t('schedule.new')}</h1>
 
-      <div className={`mx-auto max-w-5xl px-4 py-6 space-y-6 ${loading ? 'pointer-events-none opacity-60' : ''}`}>
+      <div className={`max-w-5xl px-6 py-6 space-y-6 ${loading ? 'pointer-events-none opacity-60' : ''}`}>
         <EventTimeSection
           eventTime={eventTime}
           onEventTimeChange={handleEventTimeChange}
