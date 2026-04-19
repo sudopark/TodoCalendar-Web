@@ -236,6 +236,11 @@ export function ScheduleFormPage() {
     navigate('/schedules/new', { state: { prefilled: prefilledData } })
   }
 
+  function handleDelete() {
+    if (original?.repeating) setShowDeleteScope(true)
+    else setShowDeleteConfirm(true)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <EventFormHeader
@@ -244,6 +249,7 @@ export function ScheduleFormPage() {
         onClose={handleClose}
         onSave={handleSave}
         onCopy={handleCopy}
+        onDelete={id ? handleDelete : undefined}
         saveDisabled={!canSave}
         idPrefix="schedule"
       />
@@ -276,17 +282,6 @@ export function ScheduleFormPage() {
         />
 
         {error && <p className="text-sm text-red-600">{error}</p>}
-
-        {id && (
-          <div className="flex justify-end">
-            <button
-              className="rounded-lg border border-red-300 dark:border-red-700 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
-              onClick={() => original?.repeating ? setShowDeleteScope(true) : setShowDeleteConfirm(true)}
-            >
-              {t('common.delete')}
-            </button>
-          </div>
-        )}
       </div>
 
       {showDeleteConfirm && (

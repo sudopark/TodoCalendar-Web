@@ -122,12 +122,13 @@ describe('TodoFormPage — edit', () => {
     await waitFor(() => expect(screen.getByDisplayValue('기존 이름')).toBeInTheDocument())
   })
 
-  it('삭제 버튼 클릭 시 확인 다이얼로그가 표시된다', async () => {
+  it('더보기 > 삭제 클릭 시 확인 다이얼로그가 표시된다', async () => {
     const { todoApi } = await import('../../src/api/todoApi')
     vi.mocked(todoApi.getTodo).mockResolvedValue({ uuid: 'todo-1', name: '할 일', is_current: false })
     renderEdit('todo-1')
-    await waitFor(() => screen.getByRole('button', { name: '삭제' }))
-    await userEvent.click(screen.getByRole('button', { name: '삭제' }))
+    await waitFor(() => screen.getByDisplayValue('할 일'))
+    await userEvent.click(screen.getByRole('button', { name: '더보기' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: '삭제' }))
     expect(screen.getByText(/정말 삭제/)).toBeInTheDocument()
   })
 
@@ -143,16 +144,16 @@ describe('TodoFormPage — edit', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalled())
   })
 
-  it('삭제 확인 후 navigate가 호출된다', async () => {
+  it('더보기 > 삭제 확인 후 navigate가 호출된다', async () => {
     const { todoApi } = await import('../../src/api/todoApi')
     vi.mocked(todoApi.getTodo).mockResolvedValue({ uuid: 'todo-1', name: '할 일', is_current: false, event_time: null })
     vi.mocked(todoApi.deleteTodo).mockResolvedValue(undefined as any)
     renderEdit('todo-1')
-    await waitFor(() => screen.getByRole('button', { name: '삭제' }))
+    await waitFor(() => screen.getByDisplayValue('할 일'))
+    await userEvent.click(screen.getByRole('button', { name: '더보기' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: '삭제' }))
+    // ConfirmDialog 열리고 확인 버튼(유일한 "삭제" 버튼) 클릭
     await userEvent.click(screen.getByRole('button', { name: '삭제' }))
-    // ConfirmDialog 열린 후 두 개의 "삭제" 버튼 중 마지막(다이얼로그 확인) 버튼 클릭
-    const deleteButtons = screen.getAllByRole('button', { name: '삭제' })
-    await userEvent.click(deleteButtons[deleteButtons.length - 1])
     await waitFor(() => expect(mockNavigate).toHaveBeenCalled())
   })
 })
