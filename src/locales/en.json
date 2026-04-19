@@ -193,7 +193,7 @@
   "notif.allday_1day_before_9am": "1 day before at 9 AM",
   "notif.allday_2day_before_9am": "2 days before at 9 AM",
   "notif.allday_1week_before_9am": "1 week before at 9 AM",
-  "notif.add_button": "+ Add notification",
+  "notif.add_button": "Add notification",
   "notif.no_more_options": "No more options",
   "notif.remove": "Remove",
   "repeatingScope.todo_edit": "Edit repeating todo",

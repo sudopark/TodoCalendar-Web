@@ -193,7 +193,7 @@
   "notif.allday_1day_before_9am": "1일 전 오전 9시",
   "notif.allday_2day_before_9am": "2일 전 오전 9시",
   "notif.allday_1week_before_9am": "1주 전 오전 9시",
-  "notif.add_button": "+ 알림 추가",
+  "notif.add_button": "알림 추가",
   "notif.no_more_options": "추가할 옵션이 없습니다",
   "notif.remove": "제거",
   "repeatingScope.todo_edit": "반복 할일 수정",
