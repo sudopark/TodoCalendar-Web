@@ -102,10 +102,10 @@ describe('EventTimePickerShadcn', () => {
     render(<EventTimePickerShadcn />)
 
     // then
-    expect(screen.getByLabelText('시작일')).toBeInTheDocument()
-    expect(screen.getByLabelText('종료일')).toBeInTheDocument()
-    expect(screen.getByLabelText('시작일')).toHaveAttribute('type', 'date')
-    expect(screen.getByLabelText('종료일')).toHaveAttribute('type', 'date')
+    expect(screen.getByLabelText('시작 날짜')).toBeInTheDocument()
+    expect(screen.getByLabelText('종료 날짜')).toBeInTheDocument()
+    expect(screen.getByLabelText('시작 날짜')).toHaveAttribute('type', 'date')
+    expect(screen.getByLabelText('종료 날짜')).toHaveAttribute('type', 'date')
   })
 
   it('시간 유형을 변경하면 setEventTime이 호출된다', async () => {
