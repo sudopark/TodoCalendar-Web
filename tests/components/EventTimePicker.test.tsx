@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EventTimePicker } from '../../src/components/EventTimePicker'
 
@@ -90,5 +90,56 @@ describe('EventTimePicker', () => {
     render(<EventTimePicker value={null} onChange={vi.fn()} required={false} />)
     // then: 시간이 설정되지 않은 상태이므로 타임존 의미 없음, 숨김
     expect(screen.queryByText(/GMT/)).not.toBeInTheDocument()
+  })
+})
+
+describe('EventTimePicker — period 입력 상호작용', () => {
+  const KST = '+09:00'
+  const toTs = (iso: string) => Math.floor(new Date(iso + KST).getTime() / 1000)
+
+  it('시작 시간을 변경하면 종료와의 duration이 유지된다', () => {
+    // given: 5/3 15:30 ~ 16:30 (1시간 duration)
+    const start = toTs('2026-05-03T15:30:00')
+    const end = start + 3600
+    const onChange = vi.fn()
+    render(<EventTimePicker value={{ time_type: 'period', period_start: start, period_end: end }} onChange={onChange} />)
+
+    // when: 시작 시간을 17:00으로 변경
+    fireEvent.change(screen.getByLabelText('시작 시간'), { target: { value: '17:00' } })
+
+    // then: 종료도 18:00으로 이동해 duration 1시간 유지
+    const last = onChange.mock.calls.at(-1)?.[0]
+    expect(last.period_start).toBe(toTs('2026-05-03T17:00:00'))
+    expect(last.period_end - last.period_start).toBe(3600)
+  })
+
+  it('종료 시간을 시작 이전 시간으로 변경하면 다음 날로 자동 이동한다', () => {
+    // given: 5/3 15:30 ~ 16:30
+    const start = toTs('2026-05-03T15:30:00')
+    const end = start + 3600
+    const onChange = vi.fn()
+    render(<EventTimePicker value={{ time_type: 'period', period_start: start, period_end: end }} onChange={onChange} />)
+
+    // when: 종료 시간 10:00 (같은 날 기준 시작보다 이전)
+    fireEvent.change(screen.getByLabelText('종료 시간'), { target: { value: '10:00' } })
+
+    // then: 종료가 다음 날(5/4) 10:00으로 이동 (silent fail 금지, 사용자 입력 존중)
+    const last = onChange.mock.calls.at(-1)?.[0]
+    expect(last.period_end).toBe(toTs('2026-05-04T10:00:00'))
+  })
+
+  it('시작 날짜를 변경하면 종료와의 duration이 유지된다', () => {
+    // given: 5/3 15:30 ~ 5/3 18:30 (3시간 duration)
+    const start = toTs('2026-05-03T15:30:00')
+    const end = start + 3 * 3600
+    const onChange = vi.fn()
+    render(<EventTimePicker value={{ time_type: 'period', period_start: start, period_end: end }} onChange={onChange} />)
+
+    // when: 시작 날짜를 5/5로 변경
+    fireEvent.change(screen.getByLabelText('시작 날짜'), { target: { value: '2026-05-05' } })
+
+    // then: 종료도 5/5로 이동하고 duration 3시간 유지
+    const last = onChange.mock.calls.at(-1)?.[0]
+    expect(last.period_end - last.period_start).toBe(3 * 3600)
   })
 })

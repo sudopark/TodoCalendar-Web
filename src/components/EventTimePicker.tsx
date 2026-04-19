@@ -190,9 +190,10 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
             onChange={e => {
               const dateTs = dateInputToTs(e.target.value)
               if (dateTs === null) return
+              // 시작 날짜 변경 → duration 유지하며 종료 동반 이동
               const newStart = replaceDateOf(internal.period_start, dateTs)
-              const newEnd = newStart > internal.period_end ? newStart : internal.period_end
-              handleValueChange({ ...internal, period_start: newStart, period_end: newEnd })
+              const duration = Math.max(0, internal.period_end - internal.period_start)
+              handleValueChange({ ...internal, period_start: newStart, period_end: newStart + duration })
             }}
           />
           <input
@@ -203,9 +204,10 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
             onChange={e => {
               const parsed = parseTimeString(e.target.value)
               if (!parsed) return
+              // 시작 시간 변경 → duration 유지하며 종료 동반 이동
               const newStart = replaceTimeOf(internal.period_start, parsed.hh, parsed.mm)
-              const newEnd = newStart > internal.period_end ? newStart : internal.period_end
-              handleValueChange({ ...internal, period_start: newStart, period_end: newEnd })
+              const duration = Math.max(0, internal.period_end - internal.period_start)
+              handleValueChange({ ...internal, period_start: newStart, period_end: newStart + duration })
             }}
           />
           <span className="text-sm text-gray-500 dark:text-gray-400">{t('eventTime.to')}</span>
@@ -217,8 +219,9 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
             onChange={e => {
               const parsed = parseTimeString(e.target.value)
               if (!parsed) return
-              const newEnd = replaceTimeOf(internal.period_end, parsed.hh, parsed.mm)
-              if (newEnd < internal.period_start) return
+              // 종료 시간이 시작 이전이면 다음 날로 자동 이동 (사용자 입력 존중, silent fail 금지)
+              let newEnd = replaceTimeOf(internal.period_end, parsed.hh, parsed.mm)
+              if (newEnd < internal.period_start) newEnd += 86400
               handleValueChange({ ...internal, period_end: newEnd })
             }}
           />
@@ -230,6 +233,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
             onChange={e => {
               const dateTs = dateInputToTs(e.target.value)
               if (dateTs === null) return
+              // 종료 날짜는 명시적 입력이므로 시작 이전이면 거부
               const newEnd = replaceDateOf(internal.period_end, dateTs)
               if (newEnd < internal.period_start) return
               handleValueChange({ ...internal, period_end: newEnd })
