@@ -4,18 +4,6 @@ import type { EventTime } from '../models'
 
 type TimeType = 'none' | 'at' | 'period' | 'allday'
 
-function tsToDatetimeLocal(ts: number): string {
-  const d = new Date(ts * 1000)
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
-}
-
-function datetimeLocalToTs(v: string): number | null {
-  const ts = new Date(v).getTime()
-  if (isNaN(ts)) return null
-  return Math.floor(ts / 1000)
-}
-
 function tsToDateInput(ts: number): string {
   const d = new Date(ts * 1000)
   const p = (n: number) => String(n).padStart(2, '0')
@@ -27,6 +15,33 @@ function dateInputToTs(v: string): number | null {
   const ts = new Date(v + 'T00:00:00').getTime()
   if (isNaN(ts)) return null
   return Math.floor(ts / 1000)
+}
+
+function tsToTimeInput(ts: number): string {
+  const d = new Date(ts * 1000)
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
+function parseTimeString(v: string): { hh: number; mm: number } | null {
+  const [h, m] = v.split(':').map(Number)
+  if (isNaN(h) || isNaN(m)) return null
+  return { hh: h, mm: m }
+}
+
+// 주어진 ts의 날짜 부분만 dateTs의 날짜로 교체하고 시/분은 유지
+function replaceDateOf(ts: number, dateTs: number): number {
+  const source = new Date(ts * 1000)
+  const target = new Date(dateTs * 1000)
+  target.setHours(source.getHours(), source.getMinutes(), 0, 0)
+  return Math.floor(target.getTime() / 1000)
+}
+
+// 주어진 ts의 시/분만 (hh, mm)으로 교체하고 날짜는 유지
+function replaceTimeOf(ts: number, hh: number, mm: number): number {
+  const d = new Date(ts * 1000)
+  d.setHours(hh, mm, 0, 0)
+  return Math.floor(d.getTime() / 1000)
 }
 
 function localSecondsFromGmt(): number {
@@ -50,6 +65,9 @@ function formatTimezoneLabel(): string {
     ? `(GMT${sign}${hh}:${mm}) ${longName} - ${city}`
     : `(GMT${sign}${hh}:${mm}) ${city}`
 }
+
+const pillInput =
+  'rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-800 dark:focus:border-gray-500 outline-none'
 
 interface EventTimePickerProps {
   value: EventTime | null
@@ -79,17 +97,17 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
     initType() === 'period' ? 'period' : 'at'
   )
 
-  function handleTypeChange(t: TimeType) {
-    setType(t)
-    if (t === 'at' || t === 'period') setPrevNonAllday(t)
-    if (t === 'none') {
+  function handleTypeChange(nextType: TimeType) {
+    setType(nextType)
+    if (nextType === 'at' || nextType === 'period') setPrevNonAllday(nextType)
+    if (nextType === 'none') {
       setInternal(null)
       onChange(null)
       return
     }
     let next: EventTime
-    if (t === 'at') next = { time_type: 'at', timestamp: now }
-    else if (t === 'period') next = { time_type: 'period', period_start: now, period_end: now + 3600 }
+    if (nextType === 'at') next = { time_type: 'at', timestamp: now }
+    else if (nextType === 'period') next = { time_type: 'period', period_start: now, period_end: now + 3600 }
     else next = { time_type: 'allday', period_start: now, period_end: now, seconds_from_gmt: localSecondsFromGmt() }
     setInternal(next)
     onChange(next)
@@ -136,96 +154,117 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
       </div>
 
       {type === 'at' && internal?.time_type === 'at' && (
-        <div>
-          <label className="block text-xs text-gray-500" htmlFor="at-input">{t('eventTime.time_label')}</label>
+        <div className="flex flex-wrap items-center gap-2">
           <input
-            id="at-input"
-            aria-label={t('eventTime.time_label')}
-            type="datetime-local"
-            className="mt-1 rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-800 dark:focus:border-gray-500 outline-none"
-            value={tsToDatetimeLocal(internal.timestamp)}
+            aria-label={t('eventTime.start_date')}
+            type="date"
+            className={pillInput}
+            value={tsToDateInput(internal.timestamp)}
             onChange={e => {
-              const ts = datetimeLocalToTs(e.target.value)
-              if (ts === null) return
-              handleValueChange({ time_type: 'at', timestamp: ts })
+              const dateTs = dateInputToTs(e.target.value)
+              if (dateTs === null) return
+              handleValueChange({ time_type: 'at', timestamp: replaceDateOf(internal.timestamp, dateTs) })
+            }}
+          />
+          <input
+            aria-label={t('eventTime.start_time')}
+            type="time"
+            className={pillInput}
+            value={tsToTimeInput(internal.timestamp)}
+            onChange={e => {
+              const parsed = parseTimeString(e.target.value)
+              if (!parsed) return
+              handleValueChange({ time_type: 'at', timestamp: replaceTimeOf(internal.timestamp, parsed.hh, parsed.mm) })
             }}
           />
         </div>
       )}
 
       {type === 'period' && internal?.time_type === 'period' && (
-        <div className="space-y-1">
-          <div className="flex gap-3">
-            <div>
-              <label className="block text-xs text-gray-500" htmlFor="period-start">{t('eventTime.start')}</label>
-              <input
-                id="period-start"
-                aria-label={t('eventTime.start')}
-                type="datetime-local"
-                className="mt-1 rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-800 dark:focus:border-gray-500 outline-none"
-                value={tsToDatetimeLocal(internal.period_start)}
-                onChange={e => {
-                  const newStart = datetimeLocalToTs(e.target.value)
-                  if (newStart === null) return
-                  const newEnd = newStart > internal.period_end ? newStart : internal.period_end
-                  handleValueChange({ ...internal, period_start: newStart, period_end: newEnd })
-                }}
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500" htmlFor="period-end">{t('eventTime.end')}</label>
-              <input
-                id="period-end"
-                aria-label={t('eventTime.end')}
-                type="datetime-local"
-                className="mt-1 rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-800 dark:focus:border-gray-500 outline-none"
-                value={tsToDatetimeLocal(internal.period_end)}
-                onChange={e => {
-                  const newEnd = datetimeLocalToTs(e.target.value)
-                  if (newEnd === null) return
-                  if (newEnd < internal.period_start) return
-                  handleValueChange({ ...internal, period_end: newEnd })
-                }}
-              />
-            </div>
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            aria-label={t('eventTime.start_date')}
+            type="date"
+            className={pillInput}
+            value={tsToDateInput(internal.period_start)}
+            onChange={e => {
+              const dateTs = dateInputToTs(e.target.value)
+              if (dateTs === null) return
+              const newStart = replaceDateOf(internal.period_start, dateTs)
+              const newEnd = newStart > internal.period_end ? newStart : internal.period_end
+              handleValueChange({ ...internal, period_start: newStart, period_end: newEnd })
+            }}
+          />
+          <input
+            aria-label={t('eventTime.start_time')}
+            type="time"
+            className={pillInput}
+            value={tsToTimeInput(internal.period_start)}
+            onChange={e => {
+              const parsed = parseTimeString(e.target.value)
+              if (!parsed) return
+              const newStart = replaceTimeOf(internal.period_start, parsed.hh, parsed.mm)
+              const newEnd = newStart > internal.period_end ? newStart : internal.period_end
+              handleValueChange({ ...internal, period_start: newStart, period_end: newEnd })
+            }}
+          />
+          <span className="text-sm text-gray-500 dark:text-gray-400">{t('eventTime.to')}</span>
+          <input
+            aria-label={t('eventTime.end_time')}
+            type="time"
+            className={pillInput}
+            value={tsToTimeInput(internal.period_end)}
+            onChange={e => {
+              const parsed = parseTimeString(e.target.value)
+              if (!parsed) return
+              const newEnd = replaceTimeOf(internal.period_end, parsed.hh, parsed.mm)
+              if (newEnd < internal.period_start) return
+              handleValueChange({ ...internal, period_end: newEnd })
+            }}
+          />
+          <input
+            aria-label={t('eventTime.end_date')}
+            type="date"
+            className={pillInput}
+            value={tsToDateInput(internal.period_end)}
+            onChange={e => {
+              const dateTs = dateInputToTs(e.target.value)
+              if (dateTs === null) return
+              const newEnd = replaceDateOf(internal.period_end, dateTs)
+              if (newEnd < internal.period_start) return
+              handleValueChange({ ...internal, period_end: newEnd })
+            }}
+          />
         </div>
       )}
 
       {type === 'allday' && internal?.time_type === 'allday' && (
-        <div className="flex gap-3">
-          <div>
-            <label className="block text-xs text-gray-500" htmlFor="allday-start">{t('eventTime.start_date')}</label>
-            <input
-              id="allday-start"
-              aria-label={t('eventTime.start_date')}
-              type="date"
-              className="mt-1 rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-800 dark:focus:border-gray-500 outline-none"
-              value={tsToDateInput(internal.period_start + internal.seconds_from_gmt)}
-              onChange={e => {
-                const ts = dateInputToTs(e.target.value)
-                if (ts === null) return
-                handleValueChange({ ...internal, period_start: ts - internal.seconds_from_gmt })
-              }}
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500" htmlFor="allday-end">{t('eventTime.end_date')}</label>
-            <input
-              id="allday-end"
-              aria-label={t('eventTime.end_date')}
-              type="date"
-              className="mt-1 rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-800 dark:focus:border-gray-500 outline-none"
-              value={tsToDateInput(internal.period_end + internal.seconds_from_gmt)}
-              onChange={e => {
-                const ts = dateInputToTs(e.target.value)
-                if (ts === null) return
-                const newEnd = ts - internal.seconds_from_gmt
-                if (newEnd < internal.period_start) return
-                handleValueChange({ ...internal, period_end: newEnd })
-              }}
-            />
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            aria-label={t('eventTime.start_date')}
+            type="date"
+            className={pillInput}
+            value={tsToDateInput(internal.period_start + internal.seconds_from_gmt)}
+            onChange={e => {
+              const ts = dateInputToTs(e.target.value)
+              if (ts === null) return
+              handleValueChange({ ...internal, period_start: ts - internal.seconds_from_gmt })
+            }}
+          />
+          <span className="text-sm text-gray-500 dark:text-gray-400">{t('eventTime.to')}</span>
+          <input
+            aria-label={t('eventTime.end_date')}
+            type="date"
+            className={pillInput}
+            value={tsToDateInput(internal.period_end + internal.seconds_from_gmt)}
+            onChange={e => {
+              const ts = dateInputToTs(e.target.value)
+              if (ts === null) return
+              const newEnd = ts - internal.seconds_from_gmt
+              if (newEnd < internal.period_start) return
+              handleValueChange({ ...internal, period_end: newEnd })
+            }}
+          />
         </div>
       )}
 
