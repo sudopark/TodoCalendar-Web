@@ -64,11 +64,11 @@ describe('EventTimePicker', () => {
     expect(screen.getByRole('radio', { name: '기간' })).toBeChecked()
   })
 
-  it('"기간" 선택 시 시작/종료 사이에 "to" 구분자가 노출된다', async () => {
+  it('"기간" 선택 시 시작/종료 사이에 "부터" 구분자가 노출된다', async () => {
     render(<EventTimePicker value={null} onChange={vi.fn()} />)
     await userEvent.click(screen.getByRole('radio', { name: '기간' }))
-    // ko locale의 "~" 또는 en의 "to"
-    expect(screen.getByText('~')).toBeInTheDocument()
+    // ko locale의 "부터" (en은 "to")
+    expect(screen.getByText('부터')).toBeInTheDocument()
   })
 
   it('required=true이면 "시간 없음" 옵션이 표시되지 않는다', () => {

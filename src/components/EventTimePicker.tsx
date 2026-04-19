@@ -182,63 +182,71 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
 
       {type === 'period' && internal?.time_type === 'period' && (
         <div className="flex flex-wrap items-center gap-2">
-          <input
-            aria-label={t('eventTime.start_date')}
-            type="date"
-            className={pillInput}
-            value={tsToDateInput(internal.period_start)}
-            onChange={e => {
-              const dateTs = dateInputToTs(e.target.value)
-              if (dateTs === null) return
-              // 시작 날짜 변경 → duration 유지하며 종료 동반 이동
-              const newStart = replaceDateOf(internal.period_start, dateTs)
-              const duration = Math.max(0, internal.period_end - internal.period_start)
-              handleValueChange({ ...internal, period_start: newStart, period_end: newStart + duration })
-            }}
-          />
-          <input
-            aria-label={t('eventTime.start_time')}
-            type="time"
-            className={pillInput}
-            value={tsToTimeInput(internal.period_start)}
-            onChange={e => {
-              const parsed = parseTimeString(e.target.value)
-              if (!parsed) return
-              // 시작 시간 변경 → duration 유지하며 종료 동반 이동
-              const newStart = replaceTimeOf(internal.period_start, parsed.hh, parsed.mm)
-              const duration = Math.max(0, internal.period_end - internal.period_start)
-              handleValueChange({ ...internal, period_start: newStart, period_end: newStart + duration })
-            }}
-          />
-          <span className="px-2 text-base font-medium text-gray-700 dark:text-gray-300">{t('eventTime.to')}</span>
-          <input
-            aria-label={t('eventTime.end_date')}
-            type="date"
-            className={pillInput}
-            value={tsToDateInput(internal.period_end)}
-            onChange={e => {
-              const dateTs = dateInputToTs(e.target.value)
-              if (dateTs === null) return
-              // 종료 날짜는 명시적 입력이므로 시작 이전이면 거부
-              const newEnd = replaceDateOf(internal.period_end, dateTs)
-              if (newEnd < internal.period_start) return
-              handleValueChange({ ...internal, period_end: newEnd })
-            }}
-          />
-          <input
-            aria-label={t('eventTime.end_time')}
-            type="time"
-            className={pillInput}
-            value={tsToTimeInput(internal.period_end)}
-            onChange={e => {
-              const parsed = parseTimeString(e.target.value)
-              if (!parsed) return
-              // 종료 시간이 시작 이전이면 다음 날로 자동 이동 (사용자 입력 존중, silent fail 금지)
-              let newEnd = replaceTimeOf(internal.period_end, parsed.hh, parsed.mm)
-              if (newEnd < internal.period_start) newEnd += 86400
-              handleValueChange({ ...internal, period_end: newEnd })
-            }}
-          />
+          {/* 시작 그룹 */}
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              aria-label={t('eventTime.start_date')}
+              type="date"
+              className={pillInput}
+              value={tsToDateInput(internal.period_start)}
+              onChange={e => {
+                const dateTs = dateInputToTs(e.target.value)
+                if (dateTs === null) return
+                // 시작 날짜 변경 → duration 유지하며 종료 동반 이동
+                const newStart = replaceDateOf(internal.period_start, dateTs)
+                const duration = Math.max(0, internal.period_end - internal.period_start)
+                handleValueChange({ ...internal, period_start: newStart, period_end: newStart + duration })
+              }}
+            />
+            <input
+              aria-label={t('eventTime.start_time')}
+              type="time"
+              className={pillInput}
+              value={tsToTimeInput(internal.period_start)}
+              onChange={e => {
+                const parsed = parseTimeString(e.target.value)
+                if (!parsed) return
+                // 시작 시간 변경 → duration 유지하며 종료 동반 이동
+                const newStart = replaceTimeOf(internal.period_start, parsed.hh, parsed.mm)
+                const duration = Math.max(0, internal.period_end - internal.period_start)
+                handleValueChange({ ...internal, period_start: newStart, period_end: newStart + duration })
+              }}
+            />
+          </div>
+
+          <span className="px-3 text-sm font-medium text-gray-500 dark:text-gray-400">{t('eventTime.to')}</span>
+
+          {/* 종료 그룹 */}
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              aria-label={t('eventTime.end_date')}
+              type="date"
+              className={pillInput}
+              value={tsToDateInput(internal.period_end)}
+              onChange={e => {
+                const dateTs = dateInputToTs(e.target.value)
+                if (dateTs === null) return
+                // 종료 날짜는 명시적 입력이므로 시작 이전이면 거부
+                const newEnd = replaceDateOf(internal.period_end, dateTs)
+                if (newEnd < internal.period_start) return
+                handleValueChange({ ...internal, period_end: newEnd })
+              }}
+            />
+            <input
+              aria-label={t('eventTime.end_time')}
+              type="time"
+              className={pillInput}
+              value={tsToTimeInput(internal.period_end)}
+              onChange={e => {
+                const parsed = parseTimeString(e.target.value)
+                if (!parsed) return
+                // 종료 시간이 시작 이전이면 다음 날로 자동 이동 (사용자 입력 존중, silent fail 금지)
+                let newEnd = replaceTimeOf(internal.period_end, parsed.hh, parsed.mm)
+                if (newEnd < internal.period_start) newEnd += 86400
+                handleValueChange({ ...internal, period_end: newEnd })
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -255,7 +263,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
               handleValueChange({ ...internal, period_start: ts - internal.seconds_from_gmt })
             }}
           />
-          <span className="px-2 text-base font-medium text-gray-700 dark:text-gray-300">{t('eventTime.to')}</span>
+          <span className="px-3 text-sm font-medium text-gray-500 dark:text-gray-400">{t('eventTime.to')}</span>
           <input
             aria-label={t('eventTime.end_date')}
             type="date"
