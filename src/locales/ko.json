@@ -156,7 +156,7 @@
   "eventTime.end_date": "종료 날짜",
   "eventTime.start_time": "시작 시간",
   "eventTime.end_time": "종료 시간",
-  "eventTime.to": "~",
+  "eventTime.to": "부터",
   "repeating.enabled": "반복",
   "repeating.not_repeat": "반복 안 함",
   "repeating.type": "반복 유형",
