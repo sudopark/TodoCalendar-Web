@@ -158,6 +158,7 @@
   "eventTime.end_time": "종료 시간",
   "eventTime.to": "~",
   "repeating.enabled": "반복",
+  "repeating.not_repeat": "반복 안 함",
   "repeating.type": "반복 유형",
   "repeating.daily": "매일",
   "repeating.weekly": "매주",
