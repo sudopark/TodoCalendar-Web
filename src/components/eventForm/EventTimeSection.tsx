@@ -28,32 +28,30 @@ export function EventTimeSection({
     : 0
 
   return (
-    <section className="py-2">
-      <div className="flex flex-col gap-6 md:flex-row md:items-start">
-        {/* 시간 */}
-        <div className="flex flex-1 items-start gap-3">
-          <Clock className="mt-1 h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+    <section className="py-2 space-y-4">
+      {/* 시간 */}
+      <div className="flex items-start gap-3">
+        <Clock className="mt-1 h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+        <div className="flex-1">
+          <h2 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.time')}</h2>
+          <EventTimePicker value={eventTime} onChange={onEventTimeChange} required={required} />
+        </div>
+      </div>
+
+      {/* 반복: 시간이 설정되어 있을 때만, 시안 정합으로 시간 영역 하단 동일 컬럼에 배치 */}
+      {eventTime && (
+        <div className="flex items-start gap-3">
+          <Repeat className="mt-1 h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
           <div className="flex-1">
-            <h2 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.time')}</h2>
-            <EventTimePicker value={eventTime} onChange={onEventTimeChange} required={required} />
+            <h2 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.repeat')}</h2>
+            <RepeatingPicker
+              value={repeating}
+              onChange={onRepeatingChange}
+              startTimestamp={startTimestamp}
+            />
           </div>
         </div>
-
-        {/* 반복: 시간이 설정되어 있을 때만 */}
-        {eventTime && (
-          <div className="flex flex-1 items-start gap-3 md:pl-6">
-            <Repeat className="mt-1 h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
-            <div className="flex-1">
-              <h2 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">{t('event.repeat')}</h2>
-              <RepeatingPicker
-                value={repeating}
-                onChange={onRepeatingChange}
-                startTimestamp={startTimestamp}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </section>
   )
 }
