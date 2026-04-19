@@ -212,20 +212,6 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
           />
           <span className="text-sm text-gray-500 dark:text-gray-400">{t('eventTime.to')}</span>
           <input
-            aria-label={t('eventTime.end_time')}
-            type="time"
-            className={pillInput}
-            value={tsToTimeInput(internal.period_end)}
-            onChange={e => {
-              const parsed = parseTimeString(e.target.value)
-              if (!parsed) return
-              // 종료 시간이 시작 이전이면 다음 날로 자동 이동 (사용자 입력 존중, silent fail 금지)
-              let newEnd = replaceTimeOf(internal.period_end, parsed.hh, parsed.mm)
-              if (newEnd < internal.period_start) newEnd += 86400
-              handleValueChange({ ...internal, period_end: newEnd })
-            }}
-          />
-          <input
             aria-label={t('eventTime.end_date')}
             type="date"
             className={pillInput}
@@ -236,6 +222,20 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
               // 종료 날짜는 명시적 입력이므로 시작 이전이면 거부
               const newEnd = replaceDateOf(internal.period_end, dateTs)
               if (newEnd < internal.period_start) return
+              handleValueChange({ ...internal, period_end: newEnd })
+            }}
+          />
+          <input
+            aria-label={t('eventTime.end_time')}
+            type="time"
+            className={pillInput}
+            value={tsToTimeInput(internal.period_end)}
+            onChange={e => {
+              const parsed = parseTimeString(e.target.value)
+              if (!parsed) return
+              // 종료 시간이 시작 이전이면 다음 날로 자동 이동 (사용자 입력 존중, silent fail 금지)
+              let newEnd = replaceTimeOf(internal.period_end, parsed.hh, parsed.mm)
+              if (newEnd < internal.period_start) newEnd += 86400
               handleValueChange({ ...internal, period_end: newEnd })
             }}
           />
