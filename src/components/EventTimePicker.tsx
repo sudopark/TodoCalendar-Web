@@ -210,7 +210,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
               handleValueChange({ ...internal, period_start: newStart, period_end: newStart + duration })
             }}
           />
-          <span className="text-sm text-gray-500 dark:text-gray-400">{t('eventTime.to')}</span>
+          <span className="px-2 text-base font-medium text-gray-700 dark:text-gray-300">{t('eventTime.to')}</span>
           <input
             aria-label={t('eventTime.end_date')}
             type="date"
@@ -255,7 +255,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
               handleValueChange({ ...internal, period_start: ts - internal.seconds_from_gmt })
             }}
           />
-          <span className="text-sm text-gray-500 dark:text-gray-400">{t('eventTime.to')}</span>
+          <span className="px-2 text-base font-medium text-gray-700 dark:text-gray-300">{t('eventTime.to')}</span>
           <input
             aria-label={t('eventTime.end_date')}
             type="date"
