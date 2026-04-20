@@ -8,7 +8,7 @@ import { useCurrentTodosStore } from '../../src/stores/currentTodosStore'
 
 vi.mock('../../src/stores/foremostEventStore', () => ({ useForemostEventStore: vi.fn() }))
 vi.mock('../../src/stores/eventTagStore', () => ({
-  useEventTagStore: vi.fn((selector: any) => selector({ getColorForTagId: () => null, tags: new Map() })),
+  useEventTagStore: vi.fn((selector: any) => selector({ tags: new Map() })),
   DEFAULT_TAG_ID: 'default',
   HOLIDAY_TAG_ID: 'holiday',
 }))

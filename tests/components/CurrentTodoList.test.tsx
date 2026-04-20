@@ -19,7 +19,7 @@ vi.mock('../../src/api/scheduleApi', () => ({
   },
 }))
 vi.mock('../../src/stores/eventTagStore', () => ({
-  useEventTagStore: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null, getColorForTagId: () => null })),
+  useEventTagStore: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null })),
   DEFAULT_TAG_ID: '__default__',
   HOLIDAY_TAG_ID: '__holiday__',
 }))

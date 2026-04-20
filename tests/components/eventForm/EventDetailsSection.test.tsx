@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { EventDetailsSection } from '../../../src/components/eventForm/EventDetailsSection'
 
 vi.mock('../../../src/stores/eventTagStore', () => ({
-  useEventTagStore: (sel: any) => sel({ tags: new Map(), getColorForTagId: () => null }),
+  useEventTagStore: (sel: any) => sel({ tags: new Map() }),
 }))
 
 function defaultProps(overrides: Partial<React.ComponentProps<typeof EventDetailsSection>> = {}) {

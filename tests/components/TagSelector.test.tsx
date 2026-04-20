@@ -13,7 +13,7 @@ vi.mock('react-router-dom', async () => {
 })
 
 function mockTags(tags: Array<{ uuid: string; name: string; color_hex?: string }>) {
-  vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({ tags: new Map(tags.map(t => [t.uuid, t])), getColorForTagId: (id: string) => tags.find(t => t.uuid === id)?.color_hex }))
+  vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({ tags: new Map(tags.map(t => [t.uuid, t])) }))
 }
 
 describe('TagSelector', () => {
