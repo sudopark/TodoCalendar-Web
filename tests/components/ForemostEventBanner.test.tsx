@@ -8,9 +8,14 @@ import { useEventTagStore } from '../../src/stores/eventTagStore'
 import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 
 vi.mock('../../src/stores/foremostEventStore', () => ({ useForemostEventStore: vi.fn() }))
-vi.mock('../../src/stores/eventTagStore', () => ({ useEventTagStore: vi.fn() }))
 vi.mock('../../src/api/foremostApi', () => ({
   foremostApi: { getForemostEvent: async () => null },
+}))
+vi.mock('../../src/api/settingApi', () => ({
+  settingApi: { getDefaultTagColors: async () => null },
+}))
+vi.mock('../../src/api/eventTagApi', () => ({
+  eventTagApi: { getAllTags: async () => [] },
 }))
 
 const mockOnEventClick = vi.fn()
@@ -26,9 +31,7 @@ function renderComponent(onEventClick?: (calEvent: CalendarEvent, anchorRect: DO
 describe('ForemostEventBanner', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(useEventTagStore).mockImplementation((selector: any) =>
-      selector({ getColorForTagId: () => null })
-    )
+    useEventTagStore.getState().reset()
   })
 
   it('고정 이벤트가 없으면 아무것도 렌더링하지 않는다', () => {

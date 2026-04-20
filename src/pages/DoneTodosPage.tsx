@@ -2,16 +2,46 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDoneTodosStore } from '../stores/doneTodosStore'
 import { useCurrentTodosStore } from '../stores/currentTodosStore'
-import { useEventTagStore } from '../stores/eventTagStore'
 import { useToastStore } from '../stores/toastStore'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import type { DoneTodo } from '../models'
+
+interface DoneTodoRowProps {
+  item: DoneTodo
+  onRevert: (id: string) => void
+  onRequestDelete: (id: string) => void
+}
+
+function DoneTodoRow({ item, onRevert, onRequestDelete }: DoneTodoRowProps) {
+  const { t } = useTranslation()
+  const resolved = useResolvedEventTag(item.event_tag_id)
+  return (
+    <li key={item.uuid} className="flex items-center gap-3 py-3">
+      <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: resolved.color }} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm text-gray-900 dark:text-gray-100">{item.name}</p>
+      </div>
+      <button
+        className="rounded-md px-2 py-1 text-xs text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+        onClick={() => onRevert(item.uuid)}
+      >
+        {t('todo.revert')}
+      </button>
+      <button
+        className="rounded-md px-2 py-1 text-xs text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
+        onClick={() => onRequestDelete(item.uuid)}
+      >
+        {t('common.delete')}
+      </button>
+    </li>
+  )
+}
 
 export function DoneTodosPage() {
   const { t, i18n } = useTranslation()
   const { items, hasMore, fetchNext, revert, remove, reset } = useDoneTodosStore()
   const fetchCurrentTodos = useCurrentTodosStore(s => s.fetch)
-  const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
 
@@ -70,32 +100,14 @@ export function DoneTodosPage() {
             {dateKey}
           </h3>
           <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-            {groupItems.map(item => {
-              const color = item.event_tag_id
-                ? (getColorForTagId(item.event_tag_id) ?? '#9ca3af')
-                : '#9ca3af'
-
-              return (
-                <li key={item.uuid} className="flex items-center gap-3 py-3">
-                  <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: color }} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-gray-900 dark:text-gray-100">{item.name}</p>
-                  </div>
-                  <button
-                    className="rounded-md px-2 py-1 text-xs text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30"
-                    onClick={() => handleRevert(item.uuid)}
-                  >
-                    {t('todo.revert')}
-                  </button>
-                  <button
-                    className="rounded-md px-2 py-1 text-xs text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
-                    onClick={() => setConfirmId(item.uuid)}
-                  >
-                    {t('common.delete')}
-                  </button>
-                </li>
-              )
-            })}
+            {groupItems.map(item => (
+              <DoneTodoRow
+                key={item.uuid}
+                item={item}
+                onRevert={handleRevert}
+                onRequestDelete={setConfirmId}
+              />
+            ))}
           </ul>
         </div>
       ))}

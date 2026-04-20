@@ -5,7 +5,6 @@ import { MemoryRouter } from 'react-router-dom'
 import { DoneTodosPage } from '../../src/pages/DoneTodosPage'
 import { doneTodoApi } from '../../src/api/doneTodoApi'
 import { useDoneTodosStore } from '../../src/stores/doneTodosStore'
-import { useCurrentTodosStore } from '../../src/stores/currentTodosStore'
 import { useEventTagStore } from '../../src/stores/eventTagStore'
 import { todoApi } from '../../src/api/todoApi'
 import { useToastStore } from '../../src/stores/toastStore'
@@ -22,7 +21,13 @@ vi.mock('../../src/api/todoApi', () => ({
   todoApi: { getCurrentTodos: vi.fn() },
 }))
 
-vi.mock('../../src/stores/eventTagStore', () => ({ useEventTagStore: vi.fn() }))
+vi.mock('../../src/api/settingApi', () => ({
+  settingApi: { getDefaultTagColors: async () => null },
+}))
+
+vi.mock('../../src/api/eventTagApi', () => ({
+  eventTagApi: { getAllTags: async () => [] },
+}))
 
 // IntersectionObserver mock (jsdom 미지원)
 class MockIntersectionObserver {
@@ -43,11 +48,9 @@ describe('DoneTodosPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useDoneTodosStore.getState().reset()
+    useEventTagStore.getState().reset()
     useToastStore.setState({ toasts: [] })
     vi.stubGlobal('IntersectionObserver', MockIntersectionObserver)
-    vi.mocked(useEventTagStore).mockImplementation((selector: any) =>
-      selector({ getColorForTagId: () => null })
-    )
   })
 
   function renderPage() {
