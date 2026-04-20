@@ -4,22 +4,18 @@ import { EventTimePickerShadcn } from './EventTimePickerShadcn'
 import { DDayBadge } from './DDayBadge'
 import { RepeatingPickerShadcn } from './RepeatingPickerShadcn'
 import { useEventFormStore } from '../../stores/eventFormStore'
-import { useEventTagStore } from '../../stores/eventTagStore'
+import { useResolvedEventTag } from '../../hooks/useResolvedEventTag'
 
 export function EventFormTopSection() {
   const { t } = useTranslation()
   const name = useEventFormStore(s => s.name)
   const setName = useEventFormStore(s => s.setName)
   const eventTagId = useEventFormStore(s => s.eventTagId)
-  const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
-
-  const tagColor = eventTagId
-    ? (getColorForTagId(eventTagId) ?? '#4A90D9')
-    : '#4A90D9'
+  const resolved = useResolvedEventTag(eventTagId)
+  const tagColor = resolved.color
 
   return (
     <div className="space-y-4">
-      {/* Name input with tag color bar */}
       <div className="flex items-center gap-3">
         <div
           className="w-1 rounded-full shrink-0"
@@ -33,17 +29,9 @@ export function EventFormTopSection() {
           autoFocus
         />
       </div>
-
-      {/* Event type toggle */}
       <EventTypeToggle />
-
-      {/* Time picker */}
       <EventTimePickerShadcn />
-
-      {/* D-Day badge */}
       <DDayBadge />
-
-      {/* Repeating picker */}
       <RepeatingPickerShadcn />
     </div>
   )
