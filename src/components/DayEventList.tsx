@@ -1,22 +1,22 @@
 import { useTranslation } from 'react-i18next'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
-import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
-import { useTagName } from '../hooks/useTagName'
+import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
+import { tagDisplayName } from '../utils/tagDisplay'
 import { TimeDescription } from './TimeDescription'
 import { formatDateKey } from '../utils/eventTimeUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 
 function EventItem({ calEvent, onEventClick }: { calEvent: CalendarEvent; onEventClick: (calEvent: CalendarEvent, anchorRect: DOMRect) => void }) {
-  const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
-  const getTagName = useTagName()
+  const { t } = useTranslation()
 
   const { name, event_tag_id, event_time } = calEvent.type === 'todo'
     ? { ...calEvent.event, event_time: calEvent.event.event_time ?? undefined }
     : { ...calEvent.event, event_time: calEvent.event.event_time }
 
-  const color = event_tag_id ? (getColorForTagId(event_tag_id) ?? '#9ca3af') : '#9ca3af'
-  const tagName = getTagName(event_tag_id)
+  const resolved = useResolvedEventTag(event_tag_id)
+  const color = resolved.color
+  const tagName = tagDisplayName(resolved, t)
 
   return (
     <div

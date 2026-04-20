@@ -3,11 +3,17 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DayEventList } from '../../src/components/DayEventList'
 import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
-import { useEventTagStore } from '../../src/stores/eventTagStore'
 import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 
 vi.mock('../../src/stores/calendarEventsStore', () => ({ useCalendarEventsStore: vi.fn() }))
-vi.mock('../../src/stores/eventTagStore', () => ({ useEventTagStore: vi.fn() }))
+vi.mock('../../src/stores/eventTagStore', () => ({
+  useEventTagStore: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null, getColorForTagId: () => null })),
+  DEFAULT_TAG_ID: '__default__',
+  HOLIDAY_TAG_ID: '__holiday__',
+}))
+vi.mock('../../src/stores/eventDefaultsStore', () => ({
+  useEventDefaultsStore: vi.fn((selector: any) => selector({ defaultTagId: null })),
+}))
 vi.mock('../../src/firebase', () => ({ auth: {}, db: {} }))
 
 const mockOnEventClick = vi.fn()
@@ -22,17 +28,10 @@ function mockCalendarEventsStore(eventsByDate: Map<string, any[]>) {
   vi.mocked(useCalendarEventsStore).mockImplementation((selector: any) => selector({ eventsByDate }))
 }
 
-function mockEventTagStore(colorMap: Record<string, string> = {}) {
-  vi.mocked(useEventTagStore).mockImplementation((selector: any) =>
-    selector({ getColorForTagId: (id: string) => colorMap[id] ?? null })
-  )
-}
-
 describe('DayEventList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockOnEventClick.mockReset()
-    mockEventTagStore()
   })
 
   it('날짜가 선택되지 않으면 아무것도 표시하지 않는다', () => {

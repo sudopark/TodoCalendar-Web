@@ -5,7 +5,6 @@ import { MemoryRouter } from 'react-router-dom'
 import { CurrentTodoList } from '../../src/components/CurrentTodoList'
 import { useCurrentTodosStore } from '../../src/stores/currentTodosStore'
 import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
-import { useEventTagStore } from '../../src/stores/eventTagStore'
 
 vi.mock('../../src/api/todoApi', () => ({
   todoApi: {
@@ -19,7 +18,14 @@ vi.mock('../../src/api/scheduleApi', () => ({
     getSchedules: vi.fn().mockResolvedValue([]),
   },
 }))
-vi.mock('../../src/stores/eventTagStore', () => ({ useEventTagStore: vi.fn() }))
+vi.mock('../../src/stores/eventTagStore', () => ({
+  useEventTagStore: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null, getColorForTagId: () => null })),
+  DEFAULT_TAG_ID: '__default__',
+  HOLIDAY_TAG_ID: '__holiday__',
+}))
+vi.mock('../../src/stores/eventDefaultsStore', () => ({
+  useEventDefaultsStore: vi.fn((selector: any) => selector({ defaultTagId: null })),
+}))
 vi.mock('../../src/firebase', () => ({
   auth: {},
   db: {},
@@ -39,9 +45,6 @@ describe('CurrentTodoList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockOnEventClick.mockReset()
-    vi.mocked(useEventTagStore).mockImplementation((selector: any) =>
-      selector({ getColorForTagId: () => null })
-    )
     useCurrentTodosStore.setState({ todos: [] })
   })
 
@@ -83,9 +86,6 @@ describe('CurrentTodoList', () => {
 describe('CurrentTodoList — 완료', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(useEventTagStore).mockImplementation((selector: any) =>
-      selector({ getColorForTagId: () => null })
-    )
     useCurrentTodosStore.setState({ todos: [] })
     useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false, lastRange: null })
   })
