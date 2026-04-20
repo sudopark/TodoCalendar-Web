@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useForemostEventStore } from '../stores/foremostEventStore'
-import { useEventTagStore } from '../stores/eventTagStore'
-import { useTagName } from '../hooks/useTagName'
+import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
+import { tagDisplayName } from '../utils/tagDisplay'
 import { TimeDescription } from './TimeDescription'
 import type { Todo } from '../models/Todo'
 import type { Schedule } from '../models/Schedule'
@@ -13,19 +13,15 @@ interface ForemostEventBannerProps {
 
 export function ForemostEventBanner({ onEventClick }: ForemostEventBannerProps) {
   const foremostEvent = useForemostEventStore(s => s.foremostEvent)
-  const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
   const { t } = useTranslation()
-  const getTagName = useTagName()
 
-  if (!foremostEvent?.event) return null
+  const event = foremostEvent?.event as Todo | Schedule | undefined
+  const resolved = useResolvedEventTag(event?.event_tag_id ?? null)
 
-  const event = foremostEvent.event as Todo | Schedule
-  const color = event.event_tag_id
-    ? (getColorForTagId(event.event_tag_id) ?? '#3b82f6')
-    : '#3b82f6'
+  if (!foremostEvent?.event || !event) return null
 
   const eventTime = 'event_time' in event ? event.event_time : undefined
-  const tagName = getTagName(event.event_tag_id)
+  const tagName = tagDisplayName(resolved, t)
 
   return (
     <section>
@@ -42,13 +38,10 @@ export function ForemostEventBanner({ onEventClick }: ForemostEventBannerProps) 
           onEventClick?.(calEvent, e.currentTarget.getBoundingClientRect())
         }}
       >
-        {/* 컬러바 3px */}
         <div
           className="shrink-0 self-stretch rounded-full"
-          style={{ width: 3, backgroundColor: color }}
+          style={{ width: 3, backgroundColor: resolved.color }}
         />
-
-        {/* 이벤트 정보 3줄 */}
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-[#323232]">{event.name}</p>
           <p className="truncate text-xs text-[#646464]">
