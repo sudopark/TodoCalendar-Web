@@ -14,7 +14,6 @@ interface EventTagState {
   tags: Map<string, EventTag>
   defaultTagColors: DefaultTagColors | null
   fetchAll: () => Promise<void>
-  getColorForTagId: (id: string) => string | null | undefined
   createTag: (name: string, color_hex?: string) => Promise<EventTag>
   updateTag: (id: string, updates: { name?: string; color_hex?: string }) => Promise<EventTag>
   deleteTag: (id: string) => Promise<void>
@@ -39,13 +38,6 @@ export const useEventTagStore = create<EventTagState>((set, get) => ({
       console.warn('태그 로드 실패:', e)
       throw e
     }
-  },
-
-  getColorForTagId: (id: string) => {
-    const { tags, defaultTagColors } = get()
-    if (id === DEFAULT_TAG_ID) return defaultTagColors?.default
-    if (id === HOLIDAY_TAG_ID) return defaultTagColors?.holiday
-    return tags.get(id)?.color_hex
   },
 
   createTag: async (name: string, color_hex?: string) => {

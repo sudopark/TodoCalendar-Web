@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { useEventTagStore, DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../../src/stores/eventTagStore'
+import { useEventTagStore } from '../../src/stores/eventTagStore'
 
 vi.mock('../../src/firebase', () => ({ auth: {} }))
 
@@ -18,21 +18,13 @@ vi.mock('../../src/api/settingApi', () => ({
   },
 }))
 
-describe('eventTagStore', () => {
+describe('eventTagStore — fetchAll', () => {
   beforeEach(() => {
     useEventTagStore.setState({ tags: new Map(), defaultTagColors: null })
     vi.clearAllMocks()
   })
 
-  it('태그가 없는 상태에서는 어떤 ID로도 색상을 찾을 수 없다', () => {
-    // given: 빈 스토어
-    // when: 임의의 ID로 색상 조회
-    // then: 결과 없음
-    expect(useEventTagStore.getState().getColorForTagId('any-id')).toBeUndefined()
-  })
-
-  it('태그를 불러온 후 해당 태그의 ID로 색상을 조회할 수 있다', async () => {
-    // given: API가 태그 목록을 반환한다
+  it('API가 반환한 태그 목록과 디폴트 색상이 스토어에 저장된다', async () => {
     const { eventTagApi } = await import('../../src/api/eventTagApi')
     const { settingApi } = await import('../../src/api/settingApi')
     vi.mocked(eventTagApi.getAllTags).mockResolvedValue([
@@ -41,16 +33,15 @@ describe('eventTagStore', () => {
     ])
     vi.mocked(settingApi.getDefaultTagColors).mockResolvedValue({ default: '#aaaaaa', holiday: '#bbbbbb' })
 
-    // when: 태그 목록을 불러온다
     await useEventTagStore.getState().fetchAll()
 
-    // then: 각 태그 ID로 색상을 찾을 수 있다
-    expect(useEventTagStore.getState().getColorForTagId('tag-1')).toBe('#ff0000')
-    expect(useEventTagStore.getState().getColorForTagId('tag-2')).toBe('#00ff00')
+    const state = useEventTagStore.getState()
+    expect(state.tags.get('tag-1')?.color_hex).toBe('#ff0000')
+    expect(state.tags.get('tag-2')?.color_hex).toBe('#00ff00')
+    expect(state.defaultTagColors).toEqual({ default: '#aaaaaa', holiday: '#bbbbbb' })
   })
 
-  it('존재하지 않는 태그 ID는 색상을 찾을 수 없다', async () => {
-    // given: API가 특정 태그들을 반환한다
+  it('API 호출이 실패해도 이전에 불러온 태그 상태는 유지된다', async () => {
     const { eventTagApi } = await import('../../src/api/eventTagApi')
     const { settingApi } = await import('../../src/api/settingApi')
     vi.mocked(eventTagApi.getAllTags).mockResolvedValue([
@@ -59,75 +50,15 @@ describe('eventTagStore', () => {
     vi.mocked(settingApi.getDefaultTagColors).mockResolvedValue({ default: '#aaaaaa', holiday: '#bbbbbb' })
     await useEventTagStore.getState().fetchAll()
 
-    // when: 등록되지 않은 ID로 색상 조회
-    // then: 결과 없음
-    expect(useEventTagStore.getState().getColorForTagId('unknown-id')).toBeUndefined()
-  })
-
-  it('API 호출이 실패해도 이전에 불러온 태그 색상은 유지된다', async () => {
-    // given: 태그가 이미 로드되어 있다
-    const { eventTagApi } = await import('../../src/api/eventTagApi')
-    const { settingApi } = await import('../../src/api/settingApi')
-    vi.mocked(eventTagApi.getAllTags).mockResolvedValue([
-      { uuid: 'tag-1', name: 'Work', color_hex: '#ff0000' },
-    ])
-    vi.mocked(settingApi.getDefaultTagColors).mockResolvedValue({ default: '#aaaaaa', holiday: '#bbbbbb' })
-    await useEventTagStore.getState().fetchAll()
-
-    // when: 재로드가 실패한다
     vi.mocked(eventTagApi.getAllTags).mockRejectedValue(new Error('network'))
     await useEventTagStore.getState().fetchAll().catch(() => {})
 
-    // then: 이전 태그 색상은 여전히 조회 가능하다
-    expect(useEventTagStore.getState().getColorForTagId('tag-1')).toBe('#ff0000')
-  })
-})
-
-describe('eventTagStore — well-known 태그 ID 색상 처리', () => {
-  beforeEach(() => {
-    useEventTagStore.setState({ tags: new Map(), defaultTagColors: null })
-    vi.clearAllMocks()
-  })
-
-  it('fetchAll 후 default ID로 기본 태그 색상을 조회할 수 있다', async () => {
-    // given
-    const { eventTagApi } = await import('../../src/api/eventTagApi')
-    const { settingApi } = await import('../../src/api/settingApi')
-    vi.mocked(eventTagApi.getAllTags).mockResolvedValue([])
-    vi.mocked(settingApi.getDefaultTagColors).mockResolvedValue({ default: '#123456', holiday: '#abcdef' })
-
-    // when
-    await useEventTagStore.getState().fetchAll()
-
-    // then
-    expect(useEventTagStore.getState().getColorForTagId(DEFAULT_TAG_ID)).toBe('#123456')
-  })
-
-  it('fetchAll 후 holiday ID로 공휴일 태그 색상을 조회할 수 있다', async () => {
-    // given
-    const { eventTagApi } = await import('../../src/api/eventTagApi')
-    const { settingApi } = await import('../../src/api/settingApi')
-    vi.mocked(eventTagApi.getAllTags).mockResolvedValue([])
-    vi.mocked(settingApi.getDefaultTagColors).mockResolvedValue({ default: '#123456', holiday: '#abcdef' })
-
-    // when
-    await useEventTagStore.getState().fetchAll()
-
-    // then
-    expect(useEventTagStore.getState().getColorForTagId(HOLIDAY_TAG_ID)).toBe('#abcdef')
-  })
-
-  it('defaultTagColors가 없으면 well-known ID 색상도 찾을 수 없다', () => {
-    // given: defaultTagColors null 상태
-    // when / then
-    expect(useEventTagStore.getState().getColorForTagId(DEFAULT_TAG_ID)).toBeUndefined()
-    expect(useEventTagStore.getState().getColorForTagId(HOLIDAY_TAG_ID)).toBeUndefined()
+    expect(useEventTagStore.getState().tags.get('tag-1')?.color_hex).toBe('#ff0000')
   })
 })
 
 describe('eventTagStore — reset', () => {
-  it('reset 호출 시 초기 상태로 돌아간다', async () => {
-    // given: 태그가 있는 상태
+  it('reset 호출 시 tags/defaultTagColors가 초기 상태로 돌아간다', async () => {
     const { eventTagApi } = await import('../../src/api/eventTagApi')
     const { settingApi } = await import('../../src/api/settingApi')
     vi.mocked(eventTagApi.getAllTags).mockResolvedValue([
@@ -136,13 +67,11 @@ describe('eventTagStore — reset', () => {
     vi.mocked(settingApi.getDefaultTagColors).mockResolvedValue({ default: '#123456', holiday: '#abcdef' })
     await useEventTagStore.getState().fetchAll()
 
-    // when: reset 호출
     useEventTagStore.getState().reset()
 
-    // then: 빈 상태
-    expect(useEventTagStore.getState().getColorForTagId('tag-1')).toBeUndefined()
-    expect(useEventTagStore.getState().getColorForTagId(DEFAULT_TAG_ID)).toBeUndefined()
-    expect(useEventTagStore.getState().getColorForTagId(HOLIDAY_TAG_ID)).toBeUndefined()
+    const state = useEventTagStore.getState()
+    expect(state.tags.size).toBe(0)
+    expect(state.defaultTagColors).toBeNull()
   })
 })
 
@@ -152,35 +81,32 @@ describe('eventTagStore — CRUD', () => {
     vi.clearAllMocks()
   })
 
-  it('createTag를 호출하면 생성된 태그를 ID로 조회할 수 있다', async () => {
-    // given: API가 새 태그를 반환
+  it('createTag를 호출하면 생성된 태그가 스토어에 추가된다', async () => {
     const { eventTagApi } = await import('../../src/api/eventTagApi')
     vi.mocked(eventTagApi.createTag).mockResolvedValue({ uuid: 'tag-new', name: '업무', color_hex: '#ff0000' })
-    // when: 태그 생성
+
     await useEventTagStore.getState().createTag('업무', '#ff0000')
-    // then: 태그 조회 가능
-    expect(useEventTagStore.getState().getColorForTagId('tag-new')).toBe('#ff0000')
+
+    expect(useEventTagStore.getState().tags.get('tag-new')?.color_hex).toBe('#ff0000')
   })
 
-  it('updateTag를 호출하면 변경된 색상으로 조회된다', async () => {
-    // given: 태그가 있는 상태
+  it('updateTag를 호출하면 변경된 색상이 스토어에 반영된다', async () => {
     useEventTagStore.setState({ tags: new Map([['tag-1', { uuid: 'tag-1', name: '업무', color_hex: '#ff0000' }]]), defaultTagColors: null })
     const { eventTagApi } = await import('../../src/api/eventTagApi')
     vi.mocked(eventTagApi.updateTag).mockResolvedValue({ uuid: 'tag-1', name: '업무', color_hex: '#0000ff' })
-    // when: 색상 수정
+
     await useEventTagStore.getState().updateTag('tag-1', { name: '업무', color_hex: '#0000ff' })
-    // then: 새 색상으로 조회됨
-    expect(useEventTagStore.getState().getColorForTagId('tag-1')).toBe('#0000ff')
+
+    expect(useEventTagStore.getState().tags.get('tag-1')?.color_hex).toBe('#0000ff')
   })
 
-  it('deleteTag를 호출하면 해당 태그를 더 이상 조회할 수 없다', async () => {
-    // given: 태그가 있는 상태
+  it('deleteTag를 호출하면 해당 태그가 스토어에서 제거된다', async () => {
     useEventTagStore.setState({ tags: new Map([['tag-1', { uuid: 'tag-1', name: '업무', color_hex: '#ff0000' }]]), defaultTagColors: null })
     const { eventTagApi } = await import('../../src/api/eventTagApi')
     vi.mocked(eventTagApi.deleteTag).mockResolvedValue({ status: 'ok' })
-    // when: 삭제
+
     await useEventTagStore.getState().deleteTag('tag-1')
-    // then: 조회 불가
-    expect(useEventTagStore.getState().getColorForTagId('tag-1')).toBeUndefined()
+
+    expect(useEventTagStore.getState().tags.has('tag-1')).toBe(false)
   })
 })

@@ -63,7 +63,6 @@ function mockTagStore() {
   const tagState = {
     tags: new Map(),
     defaultTagColors: null,
-    getColorForTagId: () => '#4A90D9',
     fetchAll: vi.fn(),
     createTag: vi.fn(),
     updateTag: vi.fn(),

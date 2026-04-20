@@ -49,7 +49,7 @@ async function setupMocks() {
   const { eventDetailApi } = await import('../../src/api/eventDetailApi')
   vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({})
   vi.mocked(eventDetailApi.updateEventDetail).mockResolvedValue({})
-  vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({ tags: new Map(), getColorForTagId: () => null }))
+  vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({ tags: new Map() }))
   vi.mocked(useUiStore).mockImplementation((sel: any) => sel({ selectedDate: null }))
   const calendarState = { addEvent: mockAddEvent, removeEvent: mockRemoveEvent, replaceEvent: mockReplaceEvent }
   vi.mocked(useCalendarEventsStore).mockImplementation((sel?: any) =>
