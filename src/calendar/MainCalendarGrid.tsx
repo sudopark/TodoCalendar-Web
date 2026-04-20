@@ -7,9 +7,9 @@ import { buildWeekEventStack, type EventOnWeekRow } from './weekEventStackBuilde
 import { useUiStore } from '../stores/uiStore'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useHolidayStore } from '../stores/holidayStore'
-import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
+import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
 
@@ -30,13 +30,61 @@ interface MainCalendarGridProps {
   onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
 }
 
+function EventTagDot({ tagId }: { tagId: string | null | undefined }) {
+  const resolved = useResolvedEventTag(tagId)
+  return (
+    <span
+      className="inline-block h-1 w-1 rounded-full"
+      style={{ backgroundColor: resolved.color }}
+    />
+  )
+}
+
+interface EventBarProps {
+  ev: EventOnWeekRow
+  timeType: 'at' | 'period' | 'allday'
+  showEventNames: boolean
+  onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
+}
+
+function EventBar({ ev, timeType, showEventNames, onEventClick }: EventBarProps) {
+  const resolved = useResolvedEventTag(ev.event.event.event_tag_id)
+  const color = resolved.color
+  const isAtTime = timeType === 'at'
+
+  return (
+    <div
+      className={`flex items-center rounded px-1.5 py-0.5 text-[10px] leading-tight cursor-pointer pointer-events-auto overflow-hidden ${
+        isAtTime ? 'text-[#45454a]' : 'text-white'
+      }`}
+      data-testid="event-bar"
+      style={{
+        gridColumn: `${ev.startCol} / ${ev.endCol + 1}`,
+        backgroundColor: isAtTime ? 'transparent' : color,
+      }}
+      onClick={(e) => {
+        e.stopPropagation()
+        onEventClick?.(ev.event, e.currentTarget.getBoundingClientRect())
+      }}
+    >
+      <span
+        className="inline-block h-[6px] w-[6px] rounded-full mr-1 shrink-0"
+        style={{ backgroundColor: isAtTime ? color : 'rgba(255,255,255,0.8)' }}
+      />
+      {isAtTime
+        ? <span className="truncate min-w-0">{showEventNames ? ev.event.event.name : '\u00A0'}</span>
+        : (showEventNames ? ev.event.event.name : '\u00A0')
+      }
+    </div>
+  )
+}
+
 export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGridProps) {
   const { t } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
   const setSelectedDate = useUiStore(s => s.setSelectedDate)
   const eventsByDate = useCalendarEventsStore(s => s.eventsByDate)
   const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
-  const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
   const isTagHidden = useTagFilterStore(s => s.isTagHidden)
   const { rowHeight, fontSize, showEventNames } = useCalendarAppearanceStore()
 
@@ -129,12 +177,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
 
                 // 해당 날짜의 이벤트 (모바일 dots용)
                 const dayEvents = filteredEventsByDate.get(day.dateKey) ?? []
-                const dotColors: string[] = []
-                for (const ev of dayEvents.slice(0, 3)) {
-                  const tagId = ev.event.event_tag_id
-                  const color = tagId ? getColorForTagId(tagId) : undefined
-                  dotColors.push(color ?? '#9ca3af')
-                }
+                const visibleDayEvents = dayEvents.slice(0, 3)
 
                 // 날짜 숫자 원형 배경 결정
                 const circleBg = isSelected
@@ -174,14 +217,10 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                     </div>
 
                     {/* Mobile: dots */}
-                    {dotColors.length > 0 && (
+                    {visibleDayEvents.length > 0 && (
                       <div className="md:hidden mt-0.5 flex gap-0.5" data-testid="event-dots">
-                        {dotColors.map((color, j) => (
-                          <span
-                            key={j}
-                            className="inline-block h-1 w-1 rounded-full"
-                            style={{ backgroundColor: color }}
-                          />
+                        {visibleDayEvents.map((ev, j) => (
+                          <EventTagDot key={j} tagId={ev.event.event_tag_id} />
                         ))}
                       </div>
                     )}
@@ -202,34 +241,14 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                   >
                     {row.map((ev) => {
                       const timeType = getEventTimeType(ev)
-                      const color = getEventColor(ev, getColorForTagId)
-                      const isAtTime = timeType === 'at'
-
                       return (
-                        <div
+                        <EventBar
                           key={ev.event.event.uuid}
-                          className={`flex items-center rounded px-1.5 py-0.5 text-[10px] leading-tight cursor-pointer pointer-events-auto overflow-hidden ${
-                            isAtTime ? 'text-[#45454a]' : 'text-white'
-                          }`}
-                          data-testid="event-bar"
-                          style={{
-                            gridColumn: `${ev.startCol} / ${ev.endCol + 1}`,
-                            backgroundColor: isAtTime ? 'transparent' : color,
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onEventClick?.(ev.event, e.currentTarget.getBoundingClientRect())
-                          }}
-                        >
-                          <span
-                            className="inline-block h-[6px] w-[6px] rounded-full mr-1 shrink-0"
-                            style={{ backgroundColor: isAtTime ? color : 'rgba(255,255,255,0.8)' }}
-                          />
-                          {isAtTime
-                            ? <span className="truncate min-w-0">{showEventNames ? ev.event.event.name : '\u00A0'}</span>
-                            : (showEventNames ? ev.event.event.name : '\u00A0')
-                          }
-                        </div>
+                          ev={ev}
+                          timeType={timeType}
+                          showEventNames={showEventNames}
+                          onEventClick={onEventClick}
+                        />
                       )
                     })}
                   </div>
@@ -250,17 +269,6 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
       </div>
     </div>
   )
-}
-
-function getEventColor(
-  ev: EventOnWeekRow,
-  getColorForTagId: (tagId: string) => string | null | undefined,
-): string {
-  const tagId = ev.event.event.event_tag_id
-  if (tagId) {
-    return getColorForTagId(tagId) ?? '#9ca3af'
-  }
-  return '#9ca3af'
 }
 
 export function getEventTimeType(ev: EventOnWeekRow): 'at' | 'period' | 'allday' {
