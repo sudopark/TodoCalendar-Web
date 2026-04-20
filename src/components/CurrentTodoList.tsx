@@ -1,15 +1,50 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
 import { useCurrentTodosStore } from '../stores/currentTodosStore'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
-import { useEventTagStore } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
-import { useTagName } from '../hooks/useTagName'
+import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
+import { tagDisplayName } from '../utils/tagDisplay'
 import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
 import { refreshAllTodoStores } from '../utils/todoActions'
 import type { Todo } from '../models'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
+
+interface CurrentTodoRowProps {
+  todo: Todo
+  onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
+  onComplete: (todo: Todo) => void
+}
+
+function CurrentTodoRow({ todo, onEventClick, onComplete }: CurrentTodoRowProps) {
+  const { t } = useTranslation()
+  const resolved = useResolvedEventTag(todo.event_tag_id)
+  const color = resolved.color
+  const tagName = tagDisplayName(resolved, t)
+
+  return (
+    <div
+      className="flex items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] px-3 py-2.5 hover:brightness-95 cursor-pointer"
+      onClick={(e) => onEventClick?.({ type: 'todo', event: todo }, e.currentTarget.getBoundingClientRect())}
+    >
+      <div className="shrink-0 self-stretch rounded-full" style={{ width: 3, backgroundColor: color }} />
+      <div className="flex-1 min-w-0">
+        <p className="truncate text-sm font-semibold text-[#323232]">{todo.name}</p>
+        <p className="truncate text-xs text-[#646464]">Todo</p>
+        {tagName && (
+          <p className="truncate text-[11px] text-[#969696]">{tagName}</p>
+        )}
+      </div>
+      <button
+        aria-label={todo.name}
+        className="shrink-0 h-5 w-5 rounded-full border-2 border-[#ccd0dc] hover:border-[#323232] transition-colors self-center"
+        onClick={(e) => { e.stopPropagation(); onComplete(todo) }}
+      />
+    </div>
+  )
+}
 
 interface CurrentTodoListProps {
   showHeader?: boolean
@@ -18,9 +53,7 @@ interface CurrentTodoListProps {
 
 export function CurrentTodoList({ showHeader = true, onEventClick }: CurrentTodoListProps) {
   const todos = useCurrentTodosStore(s => s.todos)
-  const getColorForTagId = useEventTagStore(s => s.getColorForTagId)
   const { isTagHidden } = useTagFilterStore()
-  const getTagName = useTagName()
   const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)
 
   async function handleComplete(todo: Todo) {
@@ -76,41 +109,14 @@ export function CurrentTodoList({ showHeader = true, onEventClick }: CurrentTodo
         </h3>
       )}
       <div className="flex flex-col gap-1.5">
-        {visibleTodos.map(todo => {
-          const color = todo.event_tag_id
-            ? (getColorForTagId(todo.event_tag_id) ?? '#9ca3af')
-            : '#9ca3af'
-          const tagName = getTagName(todo.event_tag_id)
-          return (
-            <div
-              key={todo.uuid}
-              className="flex items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] px-3 py-2.5 hover:brightness-95 cursor-pointer"
-              onClick={(e) => onEventClick?.({ type: 'todo', event: todo }, e.currentTarget.getBoundingClientRect())}
-            >
-              {/* 컬러바 3px */}
-              <div
-                className="shrink-0 self-stretch rounded-full"
-                style={{ width: 3, backgroundColor: color }}
-              />
-
-              {/* 이벤트 정보 3줄 */}
-              <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-semibold text-[#323232]">{todo.name}</p>
-                <p className="truncate text-xs text-[#646464]">Todo</p>
-                {tagName && (
-                  <p className="truncate text-[11px] text-[#969696]">{tagName}</p>
-                )}
-              </div>
-
-              {/* 완료 버튼 */}
-              <button
-                aria-label={todo.name}
-                className="shrink-0 h-5 w-5 rounded-full border-2 border-[#ccd0dc] hover:border-[#323232] transition-colors self-center"
-                onClick={(e) => { e.stopPropagation(); handleComplete(todo) }}
-              />
-            </div>
-          )
-        })}
+        {visibleTodos.map(todo => (
+          <CurrentTodoRow
+            key={todo.uuid}
+            todo={todo}
+            onEventClick={onEventClick}
+            onComplete={handleComplete}
+          />
+        ))}
       </div>
       {scopeTarget && (
         <RepeatingScopeDialog
