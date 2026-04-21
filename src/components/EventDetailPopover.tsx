@@ -5,6 +5,7 @@ import type { TFunction } from 'i18next'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 import type { Repeating, NotificationOption } from '../models'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
+import { tagDisplayName } from '../utils/tagDisplay'
 import { EventTimeDisplay } from './EventTimeDisplay'
 import { eventDetailApi } from '../api/eventDetailApi'
 import type { EventDetail } from '../models'
@@ -161,6 +162,7 @@ export function EventDetailPopover({
   const event = calEvent.event
   const resolved = useResolvedEventTag(event.event_tag_id)
   const tagColor = resolved.color
+  const tagName = tagDisplayName(resolved, t)
   const eventTime = event.event_time ?? null
   const repeating = event.repeating ?? null
   const notifications = event.notification_options ?? null
@@ -242,6 +244,16 @@ export function EventDetailPopover({
             {event.name}
           </h3>
         </div>
+
+        {/* Tag name row */}
+        {tagName && (
+          <div
+            className="ml-5 mb-2 text-xs text-gray-500 dark:text-gray-400"
+            data-testid="popover-tag-name"
+          >
+            {tagName}
+          </div>
+        )}
 
         {/* Time row */}
         {eventTime && (
