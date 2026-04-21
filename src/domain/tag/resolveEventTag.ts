@@ -1,13 +1,13 @@
 import { DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../../stores/eventTagStore'
 import type { EventTag, DefaultTagColors } from '../../models'
 
-export const FALLBACK_TAG_COLOR = '#9ca3af'
+export const DEFAULT_EVENT_COLOR = '#4A90D9'
+export const HOLIDAY_EVENT_COLOR = '#ef4444'
 
 export type ResolvedTag =
   | { kind: 'explicit'; tag: EventTag; color: string }
   | { kind: 'default'; color: string }
   | { kind: 'holiday'; color: string }
-  | { kind: 'none'; color: string }
 
 export interface ResolveContext {
   tags: Map<string, EventTag>
@@ -20,14 +20,14 @@ export function resolveEventTag(
   ctx: ResolveContext,
 ): ResolvedTag {
   if (eventTagId === HOLIDAY_TAG_ID) {
-    return { kind: 'holiday', color: ctx.defaultColors?.holiday ?? FALLBACK_TAG_COLOR }
+    return { kind: 'holiday', color: ctx.defaultColors?.holiday || HOLIDAY_EVENT_COLOR }
   }
   if (eventTagId === DEFAULT_TAG_ID) {
-    return { kind: 'default', color: ctx.defaultColors?.default ?? FALLBACK_TAG_COLOR }
+    return { kind: 'default', color: ctx.defaultColors?.default || DEFAULT_EVENT_COLOR }
   }
   if (eventTagId) {
     const tag = ctx.tags.get(eventTagId)
-    if (tag) return { kind: 'explicit', tag, color: tag.color_hex ?? FALLBACK_TAG_COLOR }
+    if (tag) return { kind: 'explicit', tag, color: tag.color_hex || DEFAULT_EVENT_COLOR }
   }
   const { defaultTagId } = ctx
   if (
@@ -41,12 +41,9 @@ export function resolveEventTag(
       return {
         kind: 'explicit',
         tag: fallbackTag,
-        color: fallbackTag.color_hex ?? FALLBACK_TAG_COLOR,
+        color: fallbackTag.color_hex || DEFAULT_EVENT_COLOR,
       }
     }
   }
-  if (ctx.defaultColors?.default) {
-    return { kind: 'default', color: ctx.defaultColors.default }
-  }
-  return { kind: 'none', color: FALLBACK_TAG_COLOR }
+  return { kind: 'default', color: ctx.defaultColors?.default || DEFAULT_EVENT_COLOR }
 }

@@ -160,7 +160,7 @@ export function EventDetailPopover({
 
   const event = calEvent.event
   const resolved = useResolvedEventTag(event.event_tag_id)
-  const tagColor = resolved.kind === 'none' ? null : resolved.color
+  const tagColor = resolved.color
   const eventTime = event.event_time ?? null
   const repeating = event.repeating ?? null
   const notifications = event.notification_options ?? null
@@ -232,13 +232,12 @@ export function EventDetailPopover({
 
         {/* Event name row */}
         <div className="flex items-start gap-2 mb-2">
-          {tagColor && (
-            <span
-              className="mt-1 inline-block h-3 w-3 flex-shrink-0 rounded-full"
-              style={{ backgroundColor: tagColor }}
-              data-testid="tag-color-dot"
-            />
-          )}
+          <span
+            className="mt-1 inline-block h-3 w-3 flex-shrink-0 rounded-full"
+            style={{ backgroundColor: tagColor }}
+            data-testid="tag-color-dot"
+          />
+
           <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 break-words">
             {event.name}
           </h3>

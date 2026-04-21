@@ -20,9 +20,4 @@ describe('tagDisplayName', () => {
     const r: ResolvedTag = { kind: 'holiday', color: '#222' }
     expect(tagDisplayName(r, t)).toBe('Holiday')
   })
-
-  it('kind=none이면 빈 문자열이 반환된다', () => {
-    const r: ResolvedTag = { kind: 'none', color: '#9ca3af' }
-    expect(tagDisplayName(r, t)).toBe('')
-  })
 })
