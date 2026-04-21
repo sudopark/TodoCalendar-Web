@@ -22,7 +22,11 @@ vi.mock('../../src/api/eventDetailApi', () => ({
     deleteEventDetail: vi.fn(),
   },
 }))
-vi.mock('../../src/stores/eventTagStore', () => ({ useEventTagStore: vi.fn() }))
+vi.mock('../../src/stores/eventTagStore', () => ({
+  useEventTagStore: vi.fn(),
+  DEFAULT_TAG_ID: 'default',
+  HOLIDAY_TAG_ID: 'holiday',
+}))
 vi.mock('../../src/stores/uiStore', () => ({ useUiStore: vi.fn() }))
 vi.mock('../../src/stores/calendarEventsStore', () => ({ useCalendarEventsStore: vi.fn() }))
 vi.mock('../../src/stores/currentTodosStore', () => ({ useCurrentTodosStore: vi.fn() }))
@@ -49,7 +53,7 @@ async function setupMocks() {
   const { eventDetailApi } = await import('../../src/api/eventDetailApi')
   vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({})
   vi.mocked(eventDetailApi.updateEventDetail).mockResolvedValue({})
-  vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({ tags: new Map() }))
+  vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({ tags: new Map(), defaultTagColors: null }))
   vi.mocked(useUiStore).mockImplementation((sel: any) => sel({ selectedDate: null }))
   const calendarState = { addEvent: mockAddEvent, removeEvent: mockRemoveEvent, replaceEvent: mockReplaceEvent }
   vi.mocked(useCalendarEventsStore).mockImplementation((sel?: any) =>

@@ -1,6 +1,8 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useEventTagStore } from '../stores/eventTagStore'
+import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
+import { tagDisplayName } from '../utils/tagDisplay'
 
 interface TagSelectorProps {
   value: string | null | undefined
@@ -12,19 +14,19 @@ export function TagSelector({ value, onChange }: TagSelectorProps) {
   const location = useLocation()
   const { t } = useTranslation()
   const tags = useEventTagStore(s => s.tags)
+  const resolvedDefault = useResolvedEventTag(null)
+  const defaultLabel = tagDisplayName(resolvedDefault, t) || t('settings.none')
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         <button
-          className={`rounded-full border px-3 py-1 text-xs ${!value ? 'border-gray-700 bg-gray-700 text-white' : 'border-gray-300 text-gray-600'}`}
+          className={`flex items-center gap-1 rounded-full border px-3 py-1 text-xs ${!value ? 'border-gray-700 bg-gray-700 text-white' : 'border-gray-300 text-gray-600'}`}
           onClick={() => onChange(null)}
         >
-          {t('settings.none')}
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: resolvedDefault.color }} />
+          {defaultLabel}
         </button>
-        {tags.size === 0 && (
-          <span className="text-xs text-gray-400">{t('common.loading') ?? '...'}</span>
-        )}
         {Array.from(tags.values()).map(tag => (
           <button
             key={tag.uuid}

@@ -5,7 +5,9 @@ import { MemoryRouter } from 'react-router-dom'
 import { EventDetailsSection } from '../../../src/components/eventForm/EventDetailsSection'
 
 vi.mock('../../../src/stores/eventTagStore', () => ({
-  useEventTagStore: (sel: any) => sel({ tags: new Map() }),
+  useEventTagStore: (sel: any) => sel({ tags: new Map(), defaultTagColors: null }),
+  DEFAULT_TAG_ID: 'default',
+  HOLIDAY_TAG_ID: 'holiday',
 }))
 
 function defaultProps(overrides: Partial<React.ComponentProps<typeof EventDetailsSection>> = {}) {
@@ -55,8 +57,8 @@ describe('EventDetailsSection', () => {
     // given / when
     renderWithRouter(<EventDetailsSection {...defaultProps()} />)
 
-    // then: TagSelector의 "없음" 기본 옵션이 존재 = 태그 섹션이 렌더됨
-    expect(screen.getByRole('button', { name: '없음' })).toBeInTheDocument()
+    // then: TagSelector의 "태그 관리 >" 링크가 존재 = 태그 섹션이 렌더됨
+    expect(screen.getByRole('button', { name: /태그 관리/ })).toBeInTheDocument()
   })
 
   it('장소 입력에 타이핑하면 onPlaceChange가 호출된다', async () => {
