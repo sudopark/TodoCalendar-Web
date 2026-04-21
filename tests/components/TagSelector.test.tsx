@@ -5,7 +5,11 @@ import { MemoryRouter } from 'react-router-dom'
 import { TagSelector } from '../../src/components/TagSelector'
 import { useEventTagStore } from '../../src/stores/eventTagStore'
 
-vi.mock('../../src/stores/eventTagStore', () => ({ useEventTagStore: vi.fn() }))
+vi.mock('../../src/stores/eventTagStore', () => ({
+  useEventTagStore: vi.fn(),
+  DEFAULT_TAG_ID: 'default',
+  HOLIDAY_TAG_ID: 'holiday',
+}))
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
@@ -13,7 +17,10 @@ vi.mock('react-router-dom', async () => {
 })
 
 function mockTags(tags: Array<{ uuid: string; name: string; color_hex?: string }>) {
-  vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({ tags: new Map(tags.map(t => [t.uuid, t])) }))
+  vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({
+    tags: new Map(tags.map(t => [t.uuid, t])),
+    defaultTagColors: null,
+  }))
 }
 
 describe('TagSelector', () => {
