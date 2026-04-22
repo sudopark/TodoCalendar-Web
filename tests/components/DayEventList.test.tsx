@@ -8,8 +8,8 @@ import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 vi.mock('../../src/stores/calendarEventsStore', () => ({ useCalendarEventsStore: vi.fn() }))
 vi.mock('../../src/stores/eventTagStore', () => ({
   useEventTagStore: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null })),
-  DEFAULT_TAG_ID: '__default__',
-  HOLIDAY_TAG_ID: '__holiday__',
+  DEFAULT_TAG_ID: 'default',
+  HOLIDAY_TAG_ID: 'holiday',
 }))
 vi.mock('../../src/stores/eventDefaultsStore', () => ({
   useEventDefaultsStore: vi.fn((selector: any) => selector({ defaultTagId: null })),
