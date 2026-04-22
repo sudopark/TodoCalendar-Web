@@ -30,7 +30,10 @@ export function TagManagementPage() {
     })
   }, [fetchAll, t])
 
-  const rows = useMemo(() => buildTagRows(tags, defaultTagColors, t), [tags, defaultTagColors, t])
+  const rows = useMemo(
+    () => buildTagRows(tags, defaultTagColors, (key: string, fallback?: string) => t(key, fallback ?? key)),
+    [tags, defaultTagColors, t],
+  )
 
   const panelOpen = panel.kind !== 'closed'
 
