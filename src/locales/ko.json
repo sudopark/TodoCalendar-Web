@@ -4,6 +4,7 @@
   "nav.settings": "설정",
   "common.save": "저장",
   "common.cancel": "취소",
+  "common.color_select": "색상 선택: {{hex}}",
   "common.delete": "삭제",
   "common.edit": "편집",
   "common.back": "← 뒤로",
