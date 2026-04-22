@@ -4,7 +4,7 @@
   "nav.settings": "Settings",
   "common.save": "Save",
   "common.cancel": "Cancel",
-  "common.color_select": "Select color: {{hex}}",
+  "common.select_color": "Select color: {{hex}}",
   "common.delete": "Delete",
   "common.edit": "Edit",
   "common.back": "← Back",

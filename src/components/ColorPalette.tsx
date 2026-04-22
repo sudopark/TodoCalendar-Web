@@ -20,7 +20,7 @@ export function ColorPalette({ colors = PRESET_COLORS, selected, onChange }: Col
           key={color}
           type="button"
           title={color}
-          aria-label={t('common.color_select', { hex: color })}
+          aria-label={t('common.select_color', { hex: color })}
           aria-pressed={selected === color}
           onClick={() => onChange(color)}
           className={`h-7 w-7 rounded-full border-2 transition-transform ${
