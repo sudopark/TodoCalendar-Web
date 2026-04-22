@@ -1,146 +1,84 @@
 import { test, expect } from '@playwright/test'
+import type { Page } from '@playwright/test'
 import { setupAuthContext } from '../helpers/auth'
 
 test.beforeEach(async ({ context }) => {
   await setupAuthContext(context)
 })
 
-test('/tags 진입 시 태그 관리 페이지가 렌더된다', async ({ page }) => {
-  // given / when
+async function mockTagEndpoints(page: Page, tags: { uuid: string; name: string; color_hex?: string | null }[]) {
+  await page.route('**/v1/tags/all', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(tags),
+    })
+  })
+  await page.route('**/v1/setting/event/tag/default/color', async route => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ default: '#4A90D9', holiday: '#ef4444' }),
+      })
+    } else {
+      await route.continue()
+    }
+  })
+}
+
+test('/tags 진입 시 헤더와 기본/휴일 행, 유저 태그가 순서대로 렌더된다', async ({ page }) => {
+  await mockTagEndpoints(page, [{ uuid: 'u-1', name: '업무' }])
+
   await page.goto('/')
   await page.waitForLoadState('networkidle')
   await page.goto('/tags')
 
-  // then
-  await expect(page.getByRole('heading', { name: '태그 관리' })).toBeVisible()
-  await expect(page.getByPlaceholder('새 태그 이름')).toBeVisible()
-  await expect(page.getByRole('button', { name: '추가' })).toBeVisible()
-  await expect(page.getByRole('button', { name: '닫기' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '이벤트 종류' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '새 태그 추가' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '태그 관리 닫기' })).toBeVisible()
+
+  await expect(page.getByText('기본')).toBeVisible()
+  await expect(page.getByText('공휴일')).toBeVisible()
+  await expect(page.getByText('업무')).toBeVisible()
 })
 
-test('새 태그 이름을 입력하고 추가하면 목록에 나타난다', async ({ page }) => {
-  // given
-  await page.goto('/')
-  await page.waitForLoadState('networkidle')
-
-  // API 라우트 모킹 — 태그 생성
-  const newTag = { uuid: 'new-tag-uuid', name: 'E2E 태그' }
+test('"+" 버튼으로 새 태그를 생성하면 리스트에 즉시 추가된다', async ({ page }) => {
+  await mockTagEndpoints(page, [])
   await page.route('**/v1/tags/tag', async route => {
     if (route.request().method() === 'POST') {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(newTag),
+        body: JSON.stringify({ uuid: 'new-id', name: '신규 태그', color_hex: '#22c55e' }),
       })
     } else {
       await route.continue()
     }
   })
 
-  await page.goto('/tags')
-  await expect(page.getByRole('heading', { name: '태그 관리' })).toBeVisible()
-
-  // when
-  await page.getByPlaceholder('새 태그 이름').fill('E2E 태그')
-  await page.getByRole('button', { name: '추가' }).click()
-
-  // then
-  await expect(page.getByText('E2E 태그')).toBeVisible()
-})
-
-test('태그 이름이 비어있으면 추가해도 아무 변화가 없다', async ({ page }) => {
-  // given
-  const existingTag = { uuid: 'existing-tag-uuid', name: '기존 태그' }
-  await page.route('**/v1/tags/all', async route => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([existingTag]),
-    })
-  })
-
   await page.goto('/')
   await page.waitForLoadState('networkidle')
   await page.goto('/tags')
-  await expect(page.getByText('기존 태그')).toBeVisible()
 
-  const initialTagCount = await page.getByRole('listitem').count()
+  await page.getByRole('button', { name: '새 태그 추가' }).click()
+  await expect(page.getByRole('heading', { name: '새 태그' })).toBeVisible()
 
-  // when — 빈 입력으로 추가 버튼 클릭
-  await page.getByRole('button', { name: '추가' }).click()
+  await page.getByLabel('이름').fill('신규 태그')
+  await page.getByTitle('#22c55e').click()
+  await page.getByRole('button', { name: '저장' }).click()
 
-  // then — 태그 목록에 변화가 없다
-  await expect(page.getByRole('listitem')).toHaveCount(initialTagCount)
-  await expect(page.getByText('기존 태그')).toBeVisible()
+  await expect(page.getByText('신규 태그')).toBeVisible()
 })
 
-test('편집 버튼을 누르면 인라인 수정 UI가 표시된다', async ({ page }) => {
-  // given — 페이지 로드 전에 태그 목록 모킹 (AuthGuard가 fetchAll을 최초 1회 호출)
-  const existingTag = { uuid: 'editable-tag-uuid', name: '수정할 태그' }
-  await page.route('**/v1/tags/all', async route => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([existingTag]),
-    })
-  })
-
-  await page.goto('/')
-  await page.waitForLoadState('networkidle')
-  await page.goto('/tags')
-  await expect(page.getByText('수정할 태그')).toBeVisible()
-
-  // when
-  await page.getByRole('button', { name: '편집' }).click()
-
-  // then — 인라인 편집 입력 필드가 열린다
-  await expect(page.locator('input:not([type="color"]):not([placeholder])')).toBeVisible()
-  await expect(page.getByRole('button', { name: '저장' })).toBeVisible()
-  await expect(page.getByRole('button', { name: '취소' })).toBeVisible()
-})
-
-test('편집 취소 버튼을 누르면 인라인 수정 UI가 닫힌다', async ({ page }) => {
-  // given — 페이지 로드 전에 태그 목록 모킹
-  const existingTag = { uuid: 'cancel-edit-tag', name: '편집취소 태그' }
-  await page.route('**/v1/tags/all', async route => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([existingTag]),
-    })
-  })
-
-  await page.goto('/')
-  await page.waitForLoadState('networkidle')
-  await page.goto('/tags')
-  await page.getByRole('button', { name: '편집' }).click()
-  await expect(page.locator('input:not([type="color"]):not([placeholder])')).toBeVisible()
-
-  // when
-  await page.getByRole('button', { name: '취소' }).click()
-
-  // then — 수정 UI가 닫히고 태그 이름이 텍스트로 다시 표시된다
-  await expect(page.getByText('편집취소 태그')).toBeVisible()
-  await expect(page.locator('input:not([type="color"]):not([placeholder])')).not.toBeVisible()
-})
-
-test('태그 이름을 수정하고 저장하면 API가 호출된다', async ({ page }) => {
-  // given — 페이지 로드 전에 태그 목록 모킹
-  const existingTag = { uuid: 'save-edit-tag', name: '원래 이름' }
-  await page.route('**/v1/tags/all', async route => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([existingTag]),
-    })
-  })
-
-  await page.route('**/v1/tags/tag/save-edit-tag', async route => {
+test('유저 태그 편집: 이름/색상 수정 후 저장하면 스토어에 반영된다', async ({ page }) => {
+  await mockTagEndpoints(page, [{ uuid: 'u-1', name: '원래', color_hex: '#ff0000' }])
+  await page.route('**/v1/tags/tag/u-1', async route => {
     if (route.request().method() === 'PUT') {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ ...existingTag, name: '바뀐 이름' }),
+        body: JSON.stringify({ uuid: 'u-1', name: '바뀐', color_hex: '#3b82f6' }),
       })
     } else {
       await route.continue()
@@ -150,76 +88,106 @@ test('태그 이름을 수정하고 저장하면 API가 호출된다', async ({ 
   await page.goto('/')
   await page.waitForLoadState('networkidle')
   await page.goto('/tags')
-  await page.getByRole('button', { name: '편집' }).click()
+  await expect(page.getByText('원래')).toBeVisible()
 
-  // when
-  await page.locator('input:not([type="color"]):not([placeholder])').fill('바뀐 이름')
+  const infoButtons = page.getByRole('button', { name: '태그 상세 열기' })
+  await infoButtons.nth(2).click()
+
+  await expect(page.getByRole('heading', { name: '태그 편집' })).toBeVisible()
+  await page.getByLabel('이름').fill('바뀐')
+  await page.getByTitle('#3b82f6').click()
   await page.getByRole('button', { name: '저장' }).click()
 
-  // then — 편집 UI가 닫힌다 (저장 성공 후 editingId가 null로 리셋)
-  await expect(page.locator('input:not([type="color"]):not([placeholder])')).not.toBeVisible()
+  await expect(page.getByText('바뀐')).toBeVisible()
 })
 
-test('삭제 버튼을 누르면 태그 삭제 확인 다이얼로그가 표시된다', async ({ page }) => {
-  // given — 페이지 로드 전에 태그 목록 모킹
-  const existingTag = { uuid: 'delete-tag-uuid', name: '삭제할 태그' }
-  await page.route('**/v1/tags/all', async route => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([existingTag]),
-    })
+test('기본 태그 편집 패널: 이름은 readonly, 삭제 버튼은 없으며 색상만 저장 가능', async ({ page }) => {
+  await mockTagEndpoints(page, [])
+  await page.route('**/v1/setting/event/tag/default/color', async route => {
+    if (route.request().method() === 'PATCH') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ default: '#22c55e', holiday: '#ef4444' }),
+      })
+    } else if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ default: '#4A90D9', holiday: '#ef4444' }),
+      })
+    } else {
+      await route.continue()
+    }
   })
 
   await page.goto('/')
   await page.waitForLoadState('networkidle')
   await page.goto('/tags')
-  await expect(page.getByText('삭제할 태그')).toBeVisible()
+  await expect(page.getByText('기본')).toBeVisible()
 
-  // when
-  await page.getByRole('button', { name: '삭제' }).click()
+  const infoButtons = page.getByRole('button', { name: '태그 상세 열기' })
+  await infoButtons.nth(0).click()
 
-  // then — 모달 다이얼로그가 표시된다
-  await expect(page.getByText('태그 삭제')).toBeVisible()
-  await expect(page.getByText('"삭제할 태그" 태그를 어떻게 삭제할까요?')).toBeVisible()
-  await expect(page.getByRole('button', { name: '태그만 삭제' })).toBeVisible()
-  await expect(page.getByRole('button', { name: '태그 + 연관 이벤트 모두 삭제' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '태그 편집' })).toBeVisible()
+  const nameInput = page.getByLabel('이름')
+  await expect(nameInput).toHaveAttribute('readonly', '')
+  await expect(nameInput).toHaveValue('기본')
+  await expect(page.getByRole('button', { name: '삭제', exact: true })).toHaveCount(0)
+
+  await page.getByTitle('#22c55e').click()
+  await page.getByRole('button', { name: '저장' }).click()
+
+  await expect(page.getByRole('heading', { name: '태그 편집' })).toBeHidden()
 })
 
-test('태그 삭제 다이얼로그에서 취소를 누르면 닫힌다', async ({ page }) => {
-  // given — 페이지 로드 전에 태그 목록 모킹
-  const existingTag = { uuid: 'cancel-delete-tag', name: '취소 삭제 태그' }
-  await page.route('**/v1/tags/all', async route => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([existingTag]),
-    })
+test('유저 태그 삭제: 태그만 삭제 경로', async ({ page }) => {
+  await mockTagEndpoints(page, [{ uuid: 'u-1', name: '삭제대상' }])
+  await page.route('**/v1/tags/tag/u-1', async route => {
+    if (route.request().method() === 'DELETE') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'ok' }) })
+    } else {
+      await route.continue()
+    }
   })
 
   await page.goto('/')
   await page.waitForLoadState('networkidle')
   await page.goto('/tags')
-  await page.getByRole('button', { name: '삭제' }).click()
+  await expect(page.getByText('삭제대상')).toBeVisible()
+
+  await page.getByRole('button', { name: '태그 상세 열기' }).nth(2).click()
+  await page.getByRole('button', { name: '삭제', exact: true }).click()
   await expect(page.getByText('태그 삭제')).toBeVisible()
+  await page.getByRole('button', { name: '태그만 삭제' }).click()
 
-  // when
-  await page.getByRole('button', { name: '취소' }).click()
-
-  // then
-  await expect(page.getByText('태그 삭제')).not.toBeVisible()
-  await expect(page.getByText('취소 삭제 태그')).toBeVisible()
+  await expect(page.getByText('삭제대상', { exact: true })).toBeHidden()
 })
 
-test('닫기 버튼을 누르면 이전 페이지로 돌아간다', async ({ page }) => {
-  // given
+test('태그 on/off 토글이 localStorage에 즉시 기록된다', async ({ page }) => {
+  await mockTagEndpoints(page, [{ uuid: 'u-1', name: '공유토글' }])
+
+  await page.goto('/')
+  await page.waitForLoadState('networkidle')
+  await page.goto('/tags')
+  await expect(page.getByText('공유토글')).toBeVisible()
+
+  await page.getByRole('button', { name: '태그 표시 전환' }).nth(2).click()
+
+  const hidden = await page.evaluate(() => {
+    try { return JSON.parse(localStorage.getItem('hidden_tag_ids') ?? '[]') } catch { return [] }
+  })
+  expect(hidden).toContain('u-1')
+})
+
+test('닫기 버튼은 이전 페이지로 복귀시킨다', async ({ page }) => {
+  await mockTagEndpoints(page, [])
+
   await page.goto('/')
   await page.waitForLoadState('networkidle')
   await page.goto('/tags')
 
-  // when
-  await page.getByRole('button', { name: '닫기' }).click()
+  await page.getByRole('button', { name: '태그 관리 닫기' }).click()
 
-  // then
   await expect(page).not.toHaveURL('/tags')
 })
