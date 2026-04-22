@@ -7,8 +7,7 @@ import { useUncompletedTodosStore } from './uncompletedTodosStore'
 import type { EventTag } from '../models'
 import type { DefaultTagColors } from '../models'
 
-export const DEFAULT_TAG_ID = 'default'
-export const HOLIDAY_TAG_ID = 'holiday'
+export { DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../domain/tag/constants'
 
 interface EventTagState {
   tags: Map<string, EventTag>

@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   resolveEventTag,
-  DEFAULT_EVENT_COLOR,
-  HOLIDAY_EVENT_COLOR,
+  APP_FALLBACK_DEFAULT_COLOR,
+  APP_FALLBACK_HOLIDAY_COLOR,
 } from '../../../src/domain/tag/resolveEventTag'
 import { DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../../../src/stores/eventTagStore'
 import type { EventTag, DefaultTagColors } from '../../../src/models'
@@ -36,7 +36,7 @@ describe('resolveEventTag', () => {
   it('id가 HOLIDAY_TAG_ID이고 서버 색상이 없으면 앱 내장 공휴일 색상으로 폴백한다', () => {
     const r = resolveEventTag(HOLIDAY_TAG_ID, ctx())
     expect(r.kind).toBe('holiday')
-    expect(r.color).toBe(HOLIDAY_EVENT_COLOR)
+    expect(r.color).toBe(APP_FALLBACK_HOLIDAY_COLOR)
   })
 
   it('id가 DEFAULT_TAG_ID이고 서버 default 색상이 있으면 그 색상을 사용한다', () => {
@@ -48,7 +48,7 @@ describe('resolveEventTag', () => {
   it('id가 DEFAULT_TAG_ID이고 서버 색상이 없으면 앱 내장 기본 색상으로 폴백한다', () => {
     const r = resolveEventTag(DEFAULT_TAG_ID, ctx())
     expect(r.kind).toBe('default')
-    expect(r.color).toBe(DEFAULT_EVENT_COLOR)
+    expect(r.color).toBe(APP_FALLBACK_DEFAULT_COLOR)
   })
 
   it('id가 null이고 defaultTagId가 실제 태그를 가리키면 그 태그로 해석된다', () => {
@@ -67,7 +67,7 @@ describe('resolveEventTag', () => {
   it('id가 null이고 defaultTagId/defaultColors 모두 없으면 kind=default + 앱 내장 기본 색상으로 폴백한다', () => {
     const r = resolveEventTag(null, ctx())
     expect(r.kind).toBe('default')
-    expect(r.color).toBe(DEFAULT_EVENT_COLOR)
+    expect(r.color).toBe(APP_FALLBACK_DEFAULT_COLOR)
   })
 
   it('id가 UUID지만 태그 맵에 없으면(삭제됨) defaultTagId 경로로 폴백한다', () => {
@@ -86,6 +86,6 @@ describe('resolveEventTag', () => {
   it('태그 색상이 비어있으면(tag.color_hex == null) 앱 내장 기본 색상으로 채워진다', () => {
     const tag: EventTag = { uuid: 't1', name: 'NoColor', color_hex: null as unknown as string }
     const r = resolveEventTag('t1', ctx({ tags: new Map([['t1', tag]]) }))
-    expect(r.color).toBe(DEFAULT_EVENT_COLOR)
+    expect(r.color).toBe(APP_FALLBACK_DEFAULT_COLOR)
   })
 })

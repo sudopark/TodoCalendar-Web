@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
 import { useCurrentTodosStore } from '../stores/currentTodosStore'
-import { useEventDefaultsStore } from '../stores/eventDefaultsStore'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { useToastStore } from '../stores/toastStore'
 
@@ -10,7 +9,6 @@ export function QuickTodoInput() {
   const { t } = useTranslation()
   const [value, setValue] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const defaultTagId = useEventDefaultsStore(s => s.defaultTagId)
   const resolved = useResolvedEventTag(null)
   const tagColor = resolved.color
 
@@ -23,7 +21,7 @@ export function QuickTodoInput() {
     try {
       const created = await todoApi.createTodo({
         name: trimmed,
-        event_tag_id: defaultTagId ?? undefined,
+        event_tag_id: undefined,
         is_current: true,
       })
       useCurrentTodosStore.getState().addTodo(created)
