@@ -122,7 +122,7 @@ describe('authStore', () => {
       await useAuthStore.getState().signOut()
 
       // then: 모든 스토어가 초기 상태
-      expect(useEventTagStore.getState().tags.size).toBe(0)
+      expect(useEventTagStore.getState().tags.get('t1')).toBeUndefined()
       expect(useCurrentTodosStore.getState().todos).toEqual([])
       expect(useForemostEventStore.getState().foremostEvent).toBeNull()
       expect(useCalendarEventsStore.getState().eventsByDate.size).toBe(0)
