@@ -15,6 +15,7 @@ interface TagFilterState {
   hiddenTagIds: Set<string>
   isTagHidden: (tagId: string | null | undefined) => boolean
   toggleTag: (tagId: string) => void
+  removeTag: (tagId: string) => void
   showAllTags: () => void
 }
 
@@ -32,6 +33,15 @@ export const useTagFilterStore = create<TagFilterState>((set, get) => ({
     else current.add(tagId)
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...current]))
     set({ hiddenTagIds: current })
+  },
+
+  removeTag: (tagId) => {
+    const current = get().hiddenTagIds
+    if (!current.has(tagId)) return
+    const next = new Set(current)
+    next.delete(tagId)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...next]))
+    set({ hiddenTagIds: next })
   },
 
   showAllTags: () => {
