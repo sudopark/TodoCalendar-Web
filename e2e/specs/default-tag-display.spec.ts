@@ -99,21 +99,25 @@ test('서버 디폴트 색상이 비어있어도 이벤트는 정상 렌더되�
   await page.route('**/v1/tags/all', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
   })
-  await page.route('**/v1/todos/current', async route => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([
-        { uuid: 'todo-no-tag', name: '태그 미지정 할일', is_current: true, event_tag_id: null },
-      ]),
-    })
+  await page.route('**/v1/todos', async route => {
+    if (route.request().method() === 'GET' && !route.request().url().includes('?')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          { uuid: 'todo-no-tag', name: '태그 미지정 할일', is_current: true, event_tag_id: null },
+        ]),
+      })
+    } else {
+      await route.continue()
+    }
   })
   await page.route('**/v1/todos/uncompleted', async route => { await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }) })
   await page.route('**/v1/schedules**', async route => {
     if (route.request().method() === 'GET') await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     else await route.continue()
   })
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v1/todos/**', async route => {
     if (route.request().method() === 'GET') await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     else await route.continue()
   })
