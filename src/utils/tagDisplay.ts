@@ -6,5 +6,9 @@ export function tagDisplayName(resolved: ResolvedTag, t: TFunction): string {
     case 'explicit': return resolved.tag.name
     case 'default':  return t('tag.default_name', 'Default')
     case 'holiday':  return t('tag.holiday_name', 'Holiday')
+    default: {
+      const _exhaustive: never = resolved
+      return _exhaustive
+    }
   }
 }
