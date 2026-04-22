@@ -1,38 +1,67 @@
-import { describe, it, expect, vi } from 'vitest'
+import { useState } from 'react'
+import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ColorPalette } from '../../src/components/ColorPalette'
+import { ColorPalette, PRESET_COLORS } from '../../src/components/ColorPalette'
 
-const COLORS = ['#ef4444', '#3b82f6', '#22c55e']
+function labelPattern(hex: string) {
+  return new RegExp(`색상 선택.*${hex}|Select color.*${hex}`)
+}
 
 describe('ColorPalette', () => {
-  it('전달된 색상 버튼을 렌더한다', () => {
+  it('각 프리셋 색상이 aria-label 로 식별 가능한 버튼으로 렌더된다', () => {
     // given / when
-    render(<ColorPalette colors={COLORS} selected="#ef4444" onChange={vi.fn()} />)
-
-    // then: 각 색상마다 버튼이 존재
-    expect(screen.getAllByRole('button')).toHaveLength(3)
-  })
-
-  it('색상 버튼 클릭 시 onChange가 호출된다', async () => {
-    // given
-    const onChange = vi.fn()
-    render(<ColorPalette colors={COLORS} selected="#ef4444" onChange={onChange} />)
-
-    // when: 두 번째 버튼(#3b82f6) 클릭
-    await userEvent.click(screen.getAllByRole('button')[1])
+    render(<ColorPalette selected={PRESET_COLORS[0]} onChange={() => {}} />)
 
     // then
-    expect(onChange).toHaveBeenCalled()
+    for (const hex of PRESET_COLORS) {
+      expect(screen.getByRole('button', { name: labelPattern(hex) })).toBeInTheDocument()
+    }
   })
 
-  it('selected 색상 버튼에 강조 테두리 클래스가 적용된다', () => {
+  it('선택된 색상 버튼은 aria-pressed="true" 가 되고 그 외는 "false" 다', () => {
     // given / when
-    render(<ColorPalette colors={COLORS} selected="#3b82f6" onChange={vi.fn()} />)
+    render(<ColorPalette selected="#22c55e" onChange={() => {}} />)
+
+    // then
+    expect(screen.getByRole('button', { name: labelPattern('#22c55e') })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: labelPattern('#ef4444') })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('모든 버튼은 type="button" 이라 form 내부에서도 submit 을 유발하지 않는다', () => {
+    // given / when
+    render(<ColorPalette selected={PRESET_COLORS[0]} onChange={() => {}} />)
 
     // then
     const buttons = screen.getAllByRole('button')
-    expect(buttons[1]).toHaveClass('border-gray-800')
-    expect(buttons[0]).not.toHaveClass('border-gray-800')
+    for (const b of buttons) expect(b).toHaveAttribute('type', 'button')
+  })
+
+  it('색상 버튼을 클릭하면 해당 색이 선택 상태로 전환된다', async () => {
+    // given — 실제 상태를 가진 Wrapper 로 렌더
+    function Wrapper() {
+      const [selected, setSelected] = useState('#ef4444')
+      return <ColorPalette selected={selected} onChange={setSelected} />
+    }
+    const user = userEvent.setup()
+    render(<Wrapper />)
+    expect(screen.getByRole('button', { name: labelPattern('#ef4444') })).toHaveAttribute('aria-pressed', 'true')
+
+    // when — 다른 색 클릭
+    await user.click(screen.getByRole('button', { name: labelPattern('#22c55e') }))
+
+    // then — 선택 상태가 새 색으로 이동 (사용자 관점 결과)
+    expect(screen.getByRole('button', { name: labelPattern('#22c55e') })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: labelPattern('#ef4444') })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('custom colors prop 이 주어지면 해당 색상만 렌더한다 (기본 PRESET 무시)', () => {
+    // given / when
+    render(<ColorPalette colors={['#000000', '#ffffff']} selected="#000000" onChange={() => {}} />)
+
+    // then
+    expect(screen.getAllByRole('button')).toHaveLength(2)
+    expect(screen.getByRole('button', { name: labelPattern('#000000') })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: labelPattern('#ffffff') })).toBeInTheDocument()
   })
 })
