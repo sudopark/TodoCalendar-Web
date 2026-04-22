@@ -136,7 +136,6 @@
   "tag.readonly_name_notice": "Default tags cannot be renamed",
   "tag.color_update_failed": "Failed to save color",
   "tag.add_new": "Add new tag",
-  "tag.edit_tag": "Edit tag",
   "tag.close_panel": "Close panel",
   "tag.close_page": "Close tag manager",
   "tag.toggle_visibility": "Toggle tag visibility",
