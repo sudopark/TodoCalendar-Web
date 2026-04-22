@@ -15,6 +15,7 @@ vi.mock('../../src/api/eventTagApi', () => ({
 vi.mock('../../src/api/settingApi', () => ({
   settingApi: {
     getDefaultTagColors: vi.fn(),
+    updateDefaultTagColors: vi.fn(),
   },
 }))
 
@@ -108,5 +109,39 @@ describe('eventTagStore — CRUD', () => {
     await useEventTagStore.getState().deleteTag('tag-1')
 
     expect(useEventTagStore.getState().tags.has('tag-1')).toBe(false)
+  })
+})
+
+describe('eventTagStore — updateDefaultTagColor', () => {
+  beforeEach(() => {
+    useEventTagStore.setState({ tags: new Map(), defaultTagColors: { default: '#111111', holiday: '#222222' } })
+    vi.clearAllMocks()
+  })
+
+  it("'default' kind와 색상을 넘기면 settingApi가 호출되고 응답 색상이 store에 반영된다", async () => {
+    const { settingApi } = await import('../../src/api/settingApi')
+    vi.mocked(settingApi.updateDefaultTagColors).mockResolvedValue({ default: '#00ff00', holiday: '#222222' })
+
+    await useEventTagStore.getState().updateDefaultTagColor('default', '#00ff00')
+
+    expect(useEventTagStore.getState().defaultTagColors).toEqual({ default: '#00ff00', holiday: '#222222' })
+  })
+
+  it("'holiday' kind를 넘기면 holiday 색상만 업데이트된다", async () => {
+    const { settingApi } = await import('../../src/api/settingApi')
+    vi.mocked(settingApi.updateDefaultTagColors).mockResolvedValue({ default: '#111111', holiday: '#abcdef' })
+
+    await useEventTagStore.getState().updateDefaultTagColor('holiday', '#abcdef')
+
+    expect(useEventTagStore.getState().defaultTagColors).toEqual({ default: '#111111', holiday: '#abcdef' })
+  })
+
+  it('API가 실패하면 예외가 전파되고 store 색상은 변경되지 않는다', async () => {
+    const { settingApi } = await import('../../src/api/settingApi')
+    vi.mocked(settingApi.updateDefaultTagColors).mockRejectedValue(new Error('boom'))
+
+    await expect(useEventTagStore.getState().updateDefaultTagColor('default', '#ff0000')).rejects.toThrow('boom')
+
+    expect(useEventTagStore.getState().defaultTagColors).toEqual({ default: '#111111', holiday: '#222222' })
   })
 })
