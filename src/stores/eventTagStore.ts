@@ -17,6 +17,7 @@ interface EventTagState {
   updateTag: (id: string, updates: { name?: string; color_hex?: string }) => Promise<EventTag>
   deleteTag: (id: string) => Promise<void>
   deleteTagAndEvents: (id: string) => Promise<void>
+  updateDefaultTagColor: (kind: 'default' | 'holiday', color_hex: string) => Promise<void>
   reset: () => void
 }
 
@@ -70,6 +71,11 @@ export const useEventTagStore = create<EventTagState>((set, get) => ({
     }
     useCurrentTodosStore.getState().fetch().catch(() => {})
     useUncompletedTodosStore.getState().fetch().catch(() => {})
+  },
+
+  updateDefaultTagColor: async (kind, color_hex) => {
+    const updated = await settingApi.updateDefaultTagColors({ [kind]: color_hex })
+    set({ defaultTagColors: updated })
   },
 
   reset: () => set({ tags: new Map(), defaultTagColors: null }),
