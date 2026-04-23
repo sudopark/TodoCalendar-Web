@@ -18,8 +18,9 @@ export function EventFormTopSection() {
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <div
-          className="w-1 rounded-full shrink-0"
-          style={{ backgroundColor: tagColor, height: '28px' }}
+          className="w-4 h-4 rounded-md shrink-0"
+          style={{ backgroundColor: tagColor }}
+          data-testid="event-form-tag-swatch"
         />
         <input
           className="flex-1 text-base font-medium bg-transparent outline-none placeholder:text-muted-foreground"
