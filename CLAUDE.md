@@ -2,6 +2,23 @@
 
 This file provides guidance for the React web client.
 
+## ⚠️ 임시 오버라이드 (2026-04-23 ~ 개발 안정화 전까지)
+
+현재 스펙이 활발히 바뀌는 단계라 아래 프로세스는 **당분간 생략**한다. 이 섹션의 규칙은 하단의 일반 규칙보다 **우선**한다.
+
+**생략 대상:**
+- **E2E 테스트 실행**: 개별 작업/PR마다 `npm run test:e2e`, `npx playwright test` 실행 불필요. PR 전 E2E 통과 조건도 현재 면제.
+- **스펙정리 작업**: 기획서/요구사항 문서나 CLAUDE.md 업데이트가 **명시적으로 필요한 작업이 아니면** 별도 스펙 정리·원장 작성 단계를 건너뛰고 구현으로 진행. (CLAUDE.md/기획서 변경이 작업 범위에 포함된 경우는 평소대로 정리)
+
+**유지 대상:**
+- Vitest 기반 단위/컴포넌트 테스트 + TDD 루프
+- 이슈 기반 브랜치·단계적 커밋·PR 리뷰 사이클
+- 기타 모든 설계/코딩/Git 규칙
+
+**해제 조건:** 개발이 안정화되면 이 섹션을 제거하고 일괄 E2E 검증 라운드를 진행.
+
+---
+
 ## Commands
 
 All commands run from the project root directory:
