@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { SettingsMenu } from './SettingsMenu'
@@ -38,8 +39,21 @@ export function SettingsPage() {
   const selected: SettingCategoryId = hasExplicitCategory ? categoryId : DEFAULT_SETTING_CATEGORY
   const category = findSettingCategory(selected)
 
+  // 유효하지 않은 categoryId로 진입하면 기본 경로로 정규화 (히스토리에 잘못된 URL 남지 않도록)
+  useEffect(() => {
+    if (categoryId !== undefined && !isSettingCategoryId(categoryId)) {
+      navigate('/settings', { replace: true })
+    }
+  }, [categoryId, navigate])
+
   const handleSelect = (id: SettingCategoryId) => {
     navigate(`/settings/${id}`)
+  }
+
+  // 히스토리에 이전 항목이 있으면 뒤로, 없으면(딥링크 진입) 홈으로 이동
+  const handleBack = () => {
+    if (window.history.length > 1) navigate(-1)
+    else navigate('/')
   }
 
   return (
@@ -55,7 +69,7 @@ export function SettingsPage() {
           <SettingsMenu
             selected={selected}
             onSelect={handleSelect}
-            onBack={() => navigate(-1)}
+            onBack={handleBack}
           />
         </aside>
 
