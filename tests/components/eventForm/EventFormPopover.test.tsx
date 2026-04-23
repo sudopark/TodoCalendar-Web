@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { EventFormPopover } from '../../../src/components/eventForm/EventFormPopover'
 import { useEventFormStore } from '../../../src/stores/eventFormStore'
@@ -128,5 +129,92 @@ describe('EventFormPopover', () => {
 
     // then
     expect(screen.getByRole('button', { name: '저장' })).toBeInTheDocument()
+  })
+
+  it('백드롭을 클릭해도 팝오버는 닫히지 않는다', async () => {
+    // given
+    mockStore({ isOpen: true })
+
+    // when
+    render(
+      <MemoryRouter>
+        <EventFormPopover />
+      </MemoryRouter>
+    )
+    await userEvent.click(screen.getByTestId('event-form-backdrop'))
+
+    // then: 팝오버가 닫히지 않아 backdrop이 여전히 존재하고 닫기 콜백도 호출되지 않음
+    expect(screen.getByTestId('event-form-backdrop')).toBeInTheDocument()
+    expect(mockCloseForm).not.toHaveBeenCalled()
+  })
+
+  it('이름이 비어있을 때 X 버튼 클릭 시 컨펌 없이 즉시 닫힌다', async () => {
+    // given
+    mockStore({ isOpen: true, name: '' })
+
+    // when
+    render(
+      <MemoryRouter>
+        <EventFormPopover />
+      </MemoryRouter>
+    )
+    await userEvent.click(screen.getByTestId('event-form-close-btn'))
+
+    // then: 컨펌 없이 closeForm 호출
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(mockCloseForm).toHaveBeenCalled()
+  })
+
+  it('이름이 입력된 상태에서 X 버튼 클릭 시 컨펌 다이얼로그가 표시된다', async () => {
+    // given
+    mockStore({ isOpen: true, name: '회식' })
+
+    // when
+    render(
+      <MemoryRouter>
+        <EventFormPopover />
+      </MemoryRouter>
+    )
+    await userEvent.click(screen.getByTestId('event-form-close-btn'))
+
+    // then: 컨펌 다이얼로그 표시, closeForm은 아직 호출되지 않음
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(mockCloseForm).not.toHaveBeenCalled()
+  })
+
+  it('컨펌 다이얼로그에서 "떠나기"를 누르면 팝오버가 닫힌다', async () => {
+    // given
+    mockStore({ isOpen: true, name: '회식' })
+
+    // when
+    render(
+      <MemoryRouter>
+        <EventFormPopover />
+      </MemoryRouter>
+    )
+    await userEvent.click(screen.getByTestId('event-form-close-btn'))
+    await userEvent.click(screen.getByRole('button', { name: '떠나기' }))
+
+    // then
+    expect(mockCloseForm).toHaveBeenCalled()
+  })
+
+  it('컨펌 다이얼로그에서 "취소"를 누르면 컨펌만 사라지고 팝오버는 유지된다', async () => {
+    // given
+    mockStore({ isOpen: true, name: '회식' })
+
+    // when
+    render(
+      <MemoryRouter>
+        <EventFormPopover />
+      </MemoryRouter>
+    )
+    await userEvent.click(screen.getByTestId('event-form-close-btn'))
+    await userEvent.click(screen.getByRole('button', { name: '취소' }))
+
+    // then
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(mockCloseForm).not.toHaveBeenCalled()
+    expect(screen.getByTestId('event-form-backdrop')).toBeInTheDocument()
   })
 })
