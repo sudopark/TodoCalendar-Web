@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { EventFormPopover } from '../../../src/components/eventForm/EventFormPopover'
 import { useEventFormStore } from '../../../src/stores/eventFormStore'
 import { useEventTagStore } from '../../../src/stores/eventTagStore'
@@ -90,7 +91,7 @@ describe('EventFormPopover', () => {
     mockStore({ isOpen: false })
 
     // when
-    const { container } = render(<EventFormPopover />)
+    const { container } = render(<MemoryRouter><EventFormPopover /></MemoryRouter>)
 
     // then
     expect(container).toBeEmptyDOMElement()
@@ -101,7 +102,7 @@ describe('EventFormPopover', () => {
     mockStore({ isOpen: true })
 
     // when
-    render(<EventFormPopover />)
+    render(<MemoryRouter><EventFormPopover /></MemoryRouter>)
 
     // then
     expect(screen.getByTestId('event-form-backdrop')).toBeInTheDocument()
@@ -112,7 +113,7 @@ describe('EventFormPopover', () => {
     mockStore({ isOpen: true })
 
     // when
-    render(<EventFormPopover />)
+    render(<MemoryRouter><EventFormPopover /></MemoryRouter>)
 
     // then
     expect(screen.getByPlaceholderText('이벤트 이름 추가')).toBeInTheDocument()
@@ -123,7 +124,7 @@ describe('EventFormPopover', () => {
     mockStore({ isOpen: true })
 
     // when
-    render(<EventFormPopover />)
+    render(<MemoryRouter><EventFormPopover /></MemoryRouter>)
 
     // then
     expect(screen.getByRole('button', { name: '저장' })).toBeInTheDocument()
