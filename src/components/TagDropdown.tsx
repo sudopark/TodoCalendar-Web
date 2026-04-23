@@ -31,8 +31,8 @@ export function TagDropdown({ value, onChange, showManageLink = false }: TagDrop
   const currentName = tagDisplayName(resolvedCurrent, t)
   const currentColor = resolvedCurrent.color
 
-  function handleValueChange(next: string) {
-    onChange(next === DEFAULT_SENTINEL ? null : next)
+  function handleValueChange(next: string | null) {
+    onChange(next === DEFAULT_SENTINEL || next === null ? null : next)
   }
 
   return (

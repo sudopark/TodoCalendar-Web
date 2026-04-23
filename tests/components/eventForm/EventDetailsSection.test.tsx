@@ -53,11 +53,12 @@ describe('EventDetailsSection', () => {
     expect(screen.getByText('알림')).toBeInTheDocument()
   })
 
-  it('태그 섹션은 라벨 없이 TagSelector로만 렌더된다', () => {
+  it('태그 섹션은 드랍다운 트리거 + "태그 관리 >" 링크로 렌더된다', () => {
     // given / when
     renderWithRouter(<EventDetailsSection {...defaultProps()} />)
 
-    // then: TagSelector의 "태그 관리 >" 링크가 존재 = 태그 섹션이 렌더됨
+    // then: TagDropdown 트리거 존재 + "태그 관리" 링크 존재
+    expect(screen.getByTestId('tag-dropdown-trigger')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /태그 관리/ })).toBeInTheDocument()
   })
 
