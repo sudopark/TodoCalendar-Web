@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { EventFormMiddleSection } from '../../../src/components/eventForm/EventFormMiddleSection'
 import { useEventFormStore } from '../../../src/stores/eventFormStore'
 import { useEventTagStore } from '../../../src/stores/eventTagStore'
@@ -33,10 +34,14 @@ describe('EventFormMiddleSection — 디폴트 태그 표시', () => {
     useEventFormStore.setState({ eventTagId: null } as any)
 
     // when
-    render(<EventFormMiddleSection />)
+    render(
+      <MemoryRouter>
+        <EventFormMiddleSection />
+      </MemoryRouter>
+    )
 
-    // then: 유저가 지정한 디폴트 태그의 이름이 그대로 노출
-    expect(screen.getByText('개인')).toBeInTheDocument()
+    // then: 드랍다운 트리거에 유저 디폴트 태그명이 표시
+    expect(screen.getByTestId('tag-dropdown-trigger')).toHaveTextContent('개인')
   })
 
   it('폼이 명시적 태그 UUID를 가지면 해당 태그명이 표시된다', () => {
@@ -52,11 +57,16 @@ describe('EventFormMiddleSection — 디폴트 태그 표시', () => {
     useEventFormStore.setState({ eventTagId: 'tag-work' } as any)
 
     // when
-    render(<EventFormMiddleSection />)
+    render(
+      <MemoryRouter>
+        <EventFormMiddleSection />
+      </MemoryRouter>
+    )
 
-    // then: 디폴트(개인)가 아닌 명시 태그(업무)가 노출
-    expect(screen.getByText('업무')).toBeInTheDocument()
-    expect(screen.queryByText('개인')).not.toBeInTheDocument()
+    // then: 드랍다운 트리거에 명시 태그명이 표시, 디폴트(개인)는 트리거에 없음
+    const trigger = screen.getByTestId('tag-dropdown-trigger')
+    expect(trigger).toHaveTextContent('업무')
+    expect(trigger).not.toHaveTextContent('개인')
   })
 
   it('디폴트 태그도 지정되지 않고 eventTagId도 null이지만 디폴트 색상은 있으면 디폴트 명이 i18n 번역으로 표시된다', () => {
@@ -69,10 +79,14 @@ describe('EventFormMiddleSection — 디폴트 태그 표시', () => {
     useEventFormStore.setState({ eventTagId: null } as any)
 
     // when
-    render(<EventFormMiddleSection />)
+    render(
+      <MemoryRouter>
+        <EventFormMiddleSection />
+      </MemoryRouter>
+    )
 
-    // then: 태그명 영역이 빈 문자열이 아닌 어떤 문자열(i18n 번역 결과)을 노출
-    // 핵심 검증: 과거 "기본" 하드코딩 버그가 사라졌고, 디폴트 케이스에서 무언가 표시됨
+    // then: 트리거 자체가 존재하고 document.body에 어떤 텍스트가 포함 (i18n 번역 결과)
+    expect(screen.getByTestId('tag-dropdown-trigger')).toBeInTheDocument()
     const allText = document.body.textContent ?? ''
     expect(allText.length).toBeGreaterThan(0)
   })
