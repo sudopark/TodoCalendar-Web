@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { MapPin, Bell, Tag as TagIcon, Link as LinkIcon, FileText } from 'lucide-react'
-import { TagSelector } from '../TagSelector'
+import { TagDropdown } from '../TagDropdown'
 import { NotificationPicker } from '../NotificationPicker'
 import type { NotificationOption } from '../../models'
 
@@ -75,7 +75,7 @@ export function EventDetailsSection({
 
       {/* Tag — 시안 정합: 중복 "태그" 라벨 제거, 아이콘 + Selector만 한 줄로 */}
       <Row icon={<TagIcon className="h-4 w-4" />}>
-        <TagSelector value={tagId} onChange={onTagChange} />
+        <TagDropdown value={tagId} onChange={onTagChange} showManageLink />
       </Row>
 
       {/* Location — URL과 인접하도록 상단 배치 */}
