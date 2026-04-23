@@ -17,8 +17,7 @@ export function EventFormPopover() {
   const closeForm = useEventFormStore(s => s.closeForm)
   const save = useEventFormStore(s => s.save)
 
-  const store = useEventFormStore()
-  const isSavable = canSave(store)
+  const isSavable = useEventFormStore(canSave)
 
   const [showCloseConfirm, setShowCloseConfirm] = useState(false)
 
@@ -75,12 +74,12 @@ export function EventFormPopover() {
   }, [isOpen])
 
   const handleCloseRequest = useCallback(() => {
-    if (canSave(store)) {
+    if (isSavable) {
       setShowCloseConfirm(true)
     } else {
       closeForm()
     }
-  }, [store, closeForm])
+  }, [isSavable, closeForm])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') handleCloseRequest()
