@@ -1,9 +1,10 @@
 import { useEffect, useCallback, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
+import { X } from 'lucide-react'
 import { useEventFormStore, canSave } from '../../stores/eventFormStore'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '../ConfirmDialog'
 import { EventFormTopSection } from './EventFormTopSection'
 import { EventFormMiddleSection } from './EventFormMiddleSection'
 import { EventFormBottomSection } from './EventFormBottomSection'
@@ -19,17 +20,18 @@ export function EventFormPopover() {
   const store = useEventFormStore()
   const isSavable = canSave(store)
 
-  // 드래그 이동
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
+
   const cardRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [initialized, setInitialized] = useState(false)
   const dragging = useRef(false)
   const dragOffset = useRef({ x: 0, y: 0 })
 
-  // 화면 중앙 초기 위치
   useEffect(() => {
     if (!isOpen) {
       setInitialized(false)
+      setShowCloseConfirm(false)
       return
     }
     const cardWidth = 420
@@ -41,9 +43,7 @@ export function EventFormPopover() {
     setInitialized(true)
   }, [isOpen])
 
-  // 드래그 핸들러
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // 입력 필드 등에서는 드래그 시작 안 함
     const tag = (e.target as HTMLElement).tagName
     if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'LABEL'].includes(tag)) return
     if ((e.target as HTMLElement).closest('button, input, textarea, select, [role="checkbox"]')) return
@@ -74,29 +74,35 @@ export function EventFormPopover() {
     }
   }, [isOpen])
 
-  // Escape 키
+  const handleCloseRequest = useCallback(() => {
+    if (canSave(store)) {
+      setShowCloseConfirm(true)
+    } else {
+      closeForm()
+    }
+  }, [store, closeForm])
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') closeForm()
-  }, [closeForm])
+    if (e.key === 'Escape') handleCloseRequest()
+  }, [handleCloseRequest])
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen || showCloseConfirm) return
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, handleKeyDown])
+  }, [isOpen, showCloseConfirm, handleKeyDown])
 
   if (!isOpen || !initialized) return null
 
+  const closeDisabled = saving || showCloseConfirm
+
   return createPortal(
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 z-50 bg-black/20"
-        onClick={closeForm}
         data-testid="event-form-backdrop"
       />
 
-      {/* Draggable Card */}
       <div
         ref={cardRef}
         className="fixed z-50 select-none"
@@ -108,23 +114,50 @@ export function EventFormPopover() {
             className="flex-1 overflow-y-auto min-h-0 overscroll-contain"
             onWheel={e => e.stopPropagation()}
           >
-            <CardContent className="px-5 pt-5 pb-6 space-y-10">
+            <CardContent className="px-5 pt-3 pb-6 space-y-6">
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  aria-label={t('common.close')}
+                  data-testid="event-form-close-btn"
+                  disabled={closeDisabled}
+                  className="p-1.5 rounded text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 disabled:opacity-40"
+                  onClick={handleCloseRequest}
+                >
+                  <X size={18} />
+                </button>
+              </div>
               <EventFormTopSection />
               <EventFormMiddleSection />
               <EventFormBottomSection />
               {error && <p className="text-sm text-destructive">{error}</p>}
             </CardContent>
           </div>
-          <CardFooter className="px-5 py-4 border-t bg-card shrink-0">
-            <Button
-              className="w-full"
+          <CardFooter className="px-5 py-3 border-t bg-card shrink-0">
+            <button
+              type="button"
+              className="w-full py-2 text-sm font-medium text-brand hover:text-brand-dark disabled:opacity-40 disabled:hover:text-brand"
               disabled={!isSavable || saving}
               onClick={() => save()}
             >
-              {t('common.save', '저장')}
-            </Button>
+              {t('common.save')}
+            </button>
           </CardFooter>
         </Card>
+
+        {showCloseConfirm && (
+          <ConfirmDialog
+            title={t('eventForm.close_confirm_title')}
+            message={t('eventForm.close_confirm_message')}
+            confirmLabel={t('common.leave')}
+            danger={false}
+            onConfirm={() => {
+              setShowCloseConfirm(false)
+              closeForm()
+            }}
+            onCancel={() => setShowCloseConfirm(false)}
+          />
+        )}
       </div>
     </>,
     document.body,
