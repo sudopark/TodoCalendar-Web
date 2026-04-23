@@ -18,15 +18,15 @@ test("메인 페이지에서 'n' 키를 누르면 이벤트 생성 팝오버가 
   await expect(page.getByRole('button', { name: '저장' })).toBeVisible()
 })
 
-test("팝오버가 열린 상태에서 백드롭을 클릭하면 팝오버가 닫힌다", async ({ page }) => {
+test("팝오버가 열린 상태에서 Escape 키를 누르면 팝오버가 닫힌다", async ({ page }) => {
   // given
   await page.goto('/')
   await page.waitForLoadState('networkidle')
   await page.locator('body').press('n')
   await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
 
-  // when — 카드에 가려지지 않는 좌상단 모서리를 클릭
-  await page.getByTestId('event-form-backdrop').click({ position: { x: 10, y: 10 } })
+  // when — 이름 미입력 상태에서 Escape 키 입력 → 컨펌 없이 즉시 닫힘
+  await page.keyboard.press('Escape')
 
   // then — 팝오버가 닫힌다
   await expect(page.getByTestId('event-form-backdrop')).not.toBeVisible()

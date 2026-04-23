@@ -65,7 +65,7 @@ test('이름 없이 저장 버튼은 비활성화된다 (Schedule)', async ({ pa
   await expect(page.getByRole('button', { name: '저장' })).toBeDisabled()
 })
 
-test('백드롭 클릭 시 Schedule 팝오버가 닫힌다', async ({ page }) => {
+test('X 버튼 클릭 시 Schedule 팝오버가 닫힌다', async ({ page }) => {
   // given
   await page.goto('/')
   await page.waitForLoadState('networkidle')
@@ -73,8 +73,8 @@ test('백드롭 클릭 시 Schedule 팝오버가 닫힌다', async ({ page }) =>
   await page.getByRole('button', { name: 'Schedule', exact: true }).click()
   await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
 
-  // when — 카드에 가려지지 않는 좌상단 모서리를 클릭
-  await page.getByTestId('event-form-backdrop').click({ position: { x: 10, y: 10 } })
+  // when — 이름 미입력 상태 → X 클릭 시 컨펌 없이 즉시 닫힘
+  await page.getByTestId('event-form-close-btn').click()
 
   // then
   await expect(page.getByTestId('event-form-backdrop')).not.toBeVisible()
