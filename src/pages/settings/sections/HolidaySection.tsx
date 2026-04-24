@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useHolidayStore, type HolidayCountry } from '../../../stores/holidayStore'
+import { SettingsSection, settingsInput } from '../SettingsSection'
 
 export function HolidaySection() {
   const { t } = useTranslation()
@@ -18,10 +19,9 @@ export function HolidaySection() {
   ], [t])
 
   return (
-    <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm space-y-3">
-      <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('settings.holiday_country')}</h2>
+    <SettingsSection title={t('settings.holiday_country')}>
       <select
-        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
+        className={settingsInput}
         value={`${holidayCountry.locale}:${holidayCountry.region}`}
         onChange={e => {
           const [locale, region] = e.target.value.split(':')
@@ -32,6 +32,6 @@ export function HolidaySection() {
           <option key={c.region} value={`${c.locale}:${c.region}`}>{c.label}</option>
         ))}
       </select>
-    </section>
+    </SettingsSection>
   )
 }

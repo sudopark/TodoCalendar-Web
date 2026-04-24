@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTimezoneStore } from '../../../stores/timezoneStore'
+import { SettingsSection, settingsInput } from '../SettingsSection'
 
 export function TimezoneSection() {
   const { t } = useTranslation()
@@ -18,10 +19,9 @@ export function TimezoneSection() {
   ], [t])
 
   return (
-    <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm space-y-3">
-      <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('settings.timezone')}</h2>
+    <SettingsSection title={t('settings.timezone')}>
       <select
-        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
+        className={settingsInput}
         value={isCustom ? timezone : ''}
         onChange={e => setTimezone(e.target.value || null)}
       >
@@ -29,9 +29,9 @@ export function TimezoneSection() {
           <option key={tz.value} value={tz.value}>{tz.label}</option>
         ))}
       </select>
-      <p className="text-xs text-gray-400 dark:text-gray-500">
+      <p className="text-xs text-[#969696]">
         {t('settings.current_tz', { tz: timezone })}
       </p>
-    </section>
+    </SettingsSection>
   )
 }

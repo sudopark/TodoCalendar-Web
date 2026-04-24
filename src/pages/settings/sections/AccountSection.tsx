@@ -4,6 +4,7 @@ import { useAuthStore } from '../../../stores/authStore'
 import { useToastStore } from '../../../stores/toastStore'
 import { accountApi } from '../../../api/accountApi'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
+import { SettingsSection, settingsBtnSecondary, settingsBtnDanger } from '../SettingsSection'
 
 export function AccountSection() {
   const { t } = useTranslation()
@@ -28,30 +29,29 @@ export function AccountSection() {
   }
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm space-y-3">
-        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('settings.account')}</h2>
+    <div className="space-y-10">
+      <SettingsSection title={t('settings.account')}>
         {account && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">{account.email ?? account.uid}</p>
+          <p className="text-sm text-[#6b6b6b]">{account.email ?? account.uid}</p>
         )}
-        <button
-          className="rounded-lg border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-          onClick={signOut}
-        >
-          {t('settings.logout')}
-        </button>
-      </section>
+        <div>
+          <button className={settingsBtnSecondary} onClick={signOut}>
+            {t('settings.logout')}
+          </button>
+        </div>
+      </SettingsSection>
 
-      <section className="rounded-xl border border-red-100 dark:border-red-900 bg-white dark:bg-gray-800 p-5 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-red-500">{t('settings.danger')}</h2>
-        <button
-          className="rounded-lg border border-red-200 dark:border-red-800 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={() => setShowDeleteConfirm(true)}
-          disabled={deleting}
-        >
-          {t('settings.delete_account')}
-        </button>
-      </section>
+      <SettingsSection title={t('settings.danger')} tone="danger">
+        <div>
+          <button
+            className={settingsBtnDanger}
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={deleting}
+          >
+            {t('settings.delete_account')}
+          </button>
+        </div>
+      </SettingsSection>
 
       {showDeleteConfirm && (
         <ConfirmDialog

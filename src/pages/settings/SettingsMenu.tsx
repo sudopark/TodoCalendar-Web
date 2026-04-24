@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next'
+import { ChevronLeft } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { SETTING_CATEGORIES, type SettingCategoryId } from './settingCategory'
 
 interface Props {
@@ -12,21 +14,19 @@ export function SettingsMenu({ selected, onSelect, onBack }: Props) {
 
   return (
     <nav className="flex flex-col" aria-label={t('settings.title')}>
-      <div className="flex items-center gap-2 px-4 py-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center gap-2 px-4 py-4 border-b border-gray-100">
         <button
           type="button"
           onClick={onBack}
           aria-label={t('settings.back')}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5" aria-hidden="true">
-            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
+          <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('settings.title')}</h1>
+        <h1 className="text-lg font-semibold text-[#1f1f1f]">{t('settings.title')}</h1>
       </div>
 
-      <ul className="flex flex-col py-2">
+      <ul className="flex flex-col py-3">
         {SETTING_CATEGORIES.map(cat => {
           const isSelected = cat.id === selected
           return (
@@ -35,15 +35,15 @@ export function SettingsMenu({ selected, onSelect, onBack }: Props) {
                 type="button"
                 onClick={() => onSelect(cat.id)}
                 aria-current={isSelected ? 'page' : undefined}
-                className={[
+                className={cn(
                   'relative flex w-full items-center px-6 py-2.5 text-left text-sm transition-colors',
                   isSelected
-                    ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                    : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800',
-                ].join(' ')}
+                    ? 'font-semibold text-[#1f1f1f]'
+                    : 'font-medium text-[#6b6b6b] hover:text-[#1f1f1f] hover:bg-gray-50',
+                )}
               >
                 {isSelected && (
-                  <span className="absolute left-0 top-0 h-full w-1 rounded-r bg-blue-500" aria-hidden="true" />
+                  <span className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-[#1f1f1f]" aria-hidden="true" />
                 )}
                 {t(cat.labelKey)}
               </button>

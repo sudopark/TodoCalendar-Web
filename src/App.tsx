@@ -19,6 +19,7 @@ const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage').then(m => (
 function ConditionalHeader() {
   const { pathname } = useLocation()
   if (pathname === '/') return null
+  if (pathname === '/settings' || pathname.startsWith('/settings/')) return null
   return <Header />
 }
 
