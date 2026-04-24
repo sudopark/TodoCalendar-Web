@@ -1,13 +1,25 @@
 import { useEffect, useCallback, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { X } from 'lucide-react'
+import { GripHorizontal, Loader2, X } from 'lucide-react'
 import { useEventFormStore, canSave } from '../../stores/eventFormStore'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '../ConfirmDialog'
 import { EventFormTopSection } from './EventFormTopSection'
 import { EventFormMiddleSection } from './EventFormMiddleSection'
 import { EventFormBottomSection } from './EventFormBottomSection'
+import { cn } from '@/lib/utils'
+
+const TITLE_ID = 'event-form-title'
+
+function getFocusable(root: HTMLElement): HTMLElement[] {
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter(el => !el.hasAttribute('data-focus-skip'))
+}
 
 export function EventFormPopover() {
   const { t } = useTranslation()
@@ -33,20 +45,16 @@ export function EventFormPopover() {
       setShowCloseConfirm(false)
       return
     }
-    const cardWidth = 420
+    const cardWidth = Math.min(440, window.innerWidth - 32)
     const cardHeight = 560
     setPosition({
-      x: Math.max(8, (window.innerWidth - cardWidth) / 2),
-      y: Math.max(8, (window.innerHeight - cardHeight) / 2),
+      x: Math.max(16, (window.innerWidth - cardWidth) / 2),
+      y: Math.max(16, (window.innerHeight - cardHeight) / 2),
     })
     setInitialized(true)
   }, [isOpen])
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    const tag = (e.target as HTMLElement).tagName
-    if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'LABEL'].includes(tag)) return
-    if ((e.target as HTMLElement).closest('button, input, textarea, select, [role="checkbox"]')) return
-
+  const handleDragMouseDown = useCallback((e: React.MouseEvent) => {
     dragging.current = true
     dragOffset.current = {
       x: e.clientX - position.x,
@@ -81,15 +89,31 @@ export function EventFormPopover() {
     }
   }, [isSavable, closeForm])
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') handleCloseRequest()
-  }, [handleCloseRequest])
-
+  // Esc 닫기 + Focus trap (Tab / Shift+Tab 순환)
   useEffect(() => {
     if (!isOpen || showCloseConfirm) return
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, showCloseConfirm, handleKeyDown])
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleCloseRequest()
+        return
+      }
+      if (e.key !== 'Tab' || !cardRef.current) return
+      const focusables = getFocusable(cardRef.current)
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      const active = document.activeElement as HTMLElement | null
+      if (e.shiftKey && active === first) {
+        last.focus()
+        e.preventDefault()
+      } else if (!e.shiftKey && active === last) {
+        first.focus()
+        e.preventDefault()
+      }
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [isOpen, showCloseConfirm, handleCloseRequest])
 
   if (!isOpen || !initialized) return null
 
@@ -98,49 +122,77 @@ export function EventFormPopover() {
   return createPortal(
     <>
       <div
-        className="fixed inset-0 z-50 bg-black/20"
+        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] animate-in fade-in-0 duration-150"
         data-testid="event-form-backdrop"
       />
 
       <div
         ref={cardRef}
-        className="fixed z-50 select-none"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={TITLE_ID}
+        className="fixed z-50 select-none animate-in fade-in-0 zoom-in-95 duration-200"
         style={{ left: `${position.x}px`, top: `${position.y}px` }}
-        onMouseDown={handleMouseDown}
       >
-        <Card className="w-[420px] shadow-2xl cursor-move flex flex-col max-h-[80vh]">
+        <Card className="w-[min(440px,calc(100vw-32px))] shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+          {/* Header: drag handle + title + close */}
+          <div
+            onMouseDown={handleDragMouseDown}
+            className="shrink-0 flex items-center gap-2 px-5 py-3 border-b border-border-light bg-surface-sunken/60 cursor-move"
+          >
+            <GripHorizontal
+              className="h-4 w-4 text-text-tertiary shrink-0"
+              aria-label={t('eventForm.drag_handle', '드래그하여 이동')}
+              data-focus-skip
+            />
+            <h2 id={TITLE_ID} className="flex-1 text-sm font-semibold text-text-primary select-none">
+              {t('eventForm.title_new', '새 이벤트 추가')}
+            </h2>
+            <button
+              type="button"
+              aria-label={t('common.close')}
+              data-testid="event-form-close-btn"
+              disabled={closeDisabled}
+              className="shrink-0 p-1 rounded text-text-tertiary hover:text-text-primary hover:bg-surface-sunken disabled:opacity-40 transition-colors"
+              onClick={handleCloseRequest}
+            >
+              <X size={16} />
+            </button>
+          </div>
+
           <div
             className="flex-1 overflow-y-auto min-h-0 overscroll-contain"
             onWheel={e => e.stopPropagation()}
           >
-            <CardContent className="px-5 pt-3 pb-6 space-y-6">
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  aria-label={t('common.close')}
-                  data-testid="event-form-close-btn"
-                  disabled={closeDisabled}
-                  className="p-1.5 rounded text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 disabled:opacity-40"
-                  onClick={handleCloseRequest}
-                >
-                  <X size={18} />
-                </button>
-              </div>
+            <CardContent className="px-5 py-5 space-y-6">
               <EventFormTopSection />
               <EventFormMiddleSection />
               <EventFormBottomSection />
-              {error && <p className="text-sm text-destructive">{error}</p>}
             </CardContent>
           </div>
-          <CardFooter className="px-5 py-3 border-t bg-card shrink-0">
-            <button
+
+          <CardFooter className="px-5 py-3 border-t border-border-light bg-card shrink-0 flex-col items-stretch gap-2">
+            {error && (
+              <p className="text-xs text-destructive text-center" role="alert">
+                {error}
+              </p>
+            )}
+            <Button
               type="button"
-              className="w-full py-2 text-sm font-medium text-brand hover:text-brand-dark disabled:opacity-40 disabled:hover:text-brand"
+              size="lg"
+              className={cn('w-full h-10 rounded-full font-semibold')}
               disabled={!isSavable || saving}
               onClick={() => save()}
             >
-              {t('common.save')}
-            </button>
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {t('eventForm.saving', '저장 중…')}
+                </>
+              ) : (
+                t('common.save')
+              )}
+            </Button>
           </CardFooter>
         </Card>
 
