@@ -20,14 +20,13 @@ function EventItem({ calEvent, onEventClick }: { calEvent: CalendarEvent; onEven
 
   return (
     <div
-      className="flex items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] px-3 py-2.5 hover:brightness-95 cursor-pointer"
+      className="flex items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] px-2.5 py-1 hover:brightness-95 cursor-pointer"
       onClick={(e) => onEventClick(calEvent, e.currentTarget.getBoundingClientRect())}
     >
-      {/* 컬러바 3px */}
-      <div
-        className="shrink-0 self-stretch rounded-full"
-        style={{ width: 3, backgroundColor: color }}
-      />
+      {/* 컬러바 */}
+      <div className="self-stretch py-1.5 flex items-stretch">
+        <div className="rounded-full w-1.5" style={{ backgroundColor: color }} />
+      </div>
 
       {/* 이벤트 정보 3줄 */}
       <div className="flex-1 min-w-0">
