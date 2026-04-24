@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { MapPin, Bell, Tag as TagIcon, Link as LinkIcon, FileText } from 'lucide-react'
 import { TagDropdown } from '../TagDropdown'
-import { NotificationPicker } from '../NotificationPicker'
+import { NotificationPickerCore } from './NotificationPickerCore'
 import type { NotificationOption } from '../../models'
 
 interface EventDetailsSectionProps {
@@ -67,7 +67,7 @@ export function EventDetailsSection({
 
       {/* Notifications */}
       <Row icon={<Bell className="h-4 w-4" />}>
-        <NotificationPicker
+        <NotificationPickerCore
           value={notifications}
           onChange={onNotificationsChange}
           isAllDay={isAllDay}
