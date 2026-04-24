@@ -37,26 +37,24 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
     : ''
 
   return (
-    <div className="w-full h-full flex flex-col bg-white">
-      {/* 닫기 버튼 */}
-      <div className="flex items-center justify-end px-3 pt-3">
-        <button
-          onClick={toggleRightPanel}
-          aria-label="패널 닫기"
-          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
-      </div>
+    <div className="w-full h-full flex flex-col bg-white relative">
+      {/* 닫기 버튼 — 우상단 absolute 고정 */}
+      <button
+        onClick={toggleRightPanel}
+        aria-label="패널 닫기"
+        className="absolute top-2 right-3 z-10 p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
 
       {/* 스크롤 영역 */}
       <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="px-6 pb-4 flex flex-col">
-          {/* 날짜 헤더 */}
+        <div className="px-6 pt-2 pb-4 flex flex-col">
+          {/* 날짜 헤더 — 우측 padding으로 X 버튼 영역 회피 */}
           {selectedDate && (
-            <div className="mb-6">
+            <div className="mb-6 pr-10">
               <h1 className="text-2xl font-bold text-[#323232]">{dateTitle}</h1>
               <p className="text-sm text-[#969696] mt-0.5">{weekdayText}</p>
             </div>
