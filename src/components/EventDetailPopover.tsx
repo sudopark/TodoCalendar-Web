@@ -2,6 +2,7 @@ import { createPortal } from 'react-dom'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
+import { Pencil, Trash2, X, Clock, Repeat, Bell, MapPin, FileText, Link2 } from 'lucide-react'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 import type { Repeating, NotificationOption } from '../models'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
@@ -10,91 +11,6 @@ import { EventTimeDisplay } from './EventTimeDisplay'
 import { eventDetailApi } from '../api/eventDetailApi'
 import type { EventDetail } from '../models'
 
-// SVG Icons
-function PencilIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-  )
-}
-
-function TrashIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </svg>
-  )
-}
-
-function CloseIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  )
-}
-
-function ClockIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  )
-}
-
-function RepeatIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 4 23 10 17 10" />
-      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-    </svg>
-  )
-}
-
-function BellIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-    </svg>
-  )
-}
-
-function MapPinIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
-  )
-}
-
-function FileTextIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14 2 14 8 20 8" />
-      <line x1="16" y1="13" x2="8" y2="13" />
-      <line x1="16" y1="17" x2="8" y2="17" />
-    </svg>
-  )
-}
-
-function LinkIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-    </svg>
-  )
-}
-
-// Helpers
 function repeatingLabel(repeating: Repeating, t: TFunction): string {
   const { option } = repeating
   switch (option.optionType) {
@@ -140,7 +56,10 @@ function formatNotification(option: NotificationOption, t: TFunction): string {
   return preset ? t(preset.key) : `${Math.abs(option.dayOffset)}일 전 ${option.hour}:${String(option.minute).padStart(2, '0')}`
 }
 
-// Props
+const ACTION_BTN = 'p-1.5 rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors'
+const INFO_ROW = 'flex items-start gap-2 text-[13px] text-[#6b6b6b] leading-snug'
+const INFO_ICON = 'h-4 w-4 text-[#bbb] mt-0.5 shrink-0'
+
 export interface EventDetailPopoverProps {
   calEvent: CalendarEvent
   anchorRect: DOMRect
@@ -168,7 +87,6 @@ export function EventDetailPopover({
   const notifications = event.notification_options ?? null
 
   useEffect(() => {
-    // detail은 선택적 정보 — 없어도 팝오버 표시에 지장 없음
     eventDetailApi.getEventDetail(event.uuid).then(setEventDetail).catch(() => {})
   }, [event.uuid])
 
@@ -180,153 +98,133 @@ export function EventDetailPopover({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
-  // Position calculation — show below if enough space, otherwise above
+  // Position — show below if enough space, otherwise above
   const THRESHOLD = 300
   const showBelow = window.innerHeight - anchorRect.bottom > THRESHOLD
   const top = showBelow ? anchorRect.bottom + 4 : anchorRect.top - 4
   const translateY = showBelow ? '0' : '-100%'
-  // Prevent overflow on the right
-  const POPOVER_WIDTH = 300
+  const POPOVER_WIDTH = 320
   const leftRaw = anchorRect.left
   const left = Math.min(leftRaw, window.innerWidth - POPOVER_WIDTH - 8)
 
   const popover = (
     <>
-      {/* Transparent backdrop */}
       <div
         className="fixed inset-0 z-30"
         data-testid="popover-backdrop"
         onClick={onClose}
       />
-      {/* Popover card */}
       <div
-        className="fixed z-40 rounded-lg shadow-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 min-w-[260px] max-w-[300px]"
+        className="fixed z-40 rounded-xl shadow-xl bg-white border border-gray-100 overflow-hidden min-w-[280px] max-w-[320px] animate-in fade-in-0 duration-150"
         style={{ top, left, transform: `translateY(${translateY})` }}
         data-testid="event-detail-popover"
       >
-        {/* Top action buttons */}
-        <div className="flex justify-end gap-1 mb-3">
-          <button
-            className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
-            data-testid="popover-edit-btn"
-            aria-label={t('common.edit', '수정')}
-            onClick={onEdit}
-          >
-            <PencilIcon />
-          </button>
-          <button
-            className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
-            data-testid="popover-delete-btn"
-            aria-label={t('common.delete', '삭제')}
-            onClick={onDelete}
-          >
-            <TrashIcon />
-          </button>
-          <button
-            className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
-            data-testid="popover-close-btn"
-            aria-label={t('common.close', '닫기')}
-            onClick={onClose}
-          >
-            <CloseIcon />
-          </button>
-        </div>
-
-        {/* Event name row */}
-        <div className="flex items-start gap-2 mb-2">
-          <span
-            className="mt-1 inline-block h-3 w-3 flex-shrink-0 rounded-full"
-            style={{ backgroundColor: tagColor }}
-            data-testid="tag-color-dot"
-          />
-
-          <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 break-words">
-            {event.name}
-          </h3>
-        </div>
-
-        {/* Tag name row */}
-        {tagName && (
-          <div
-            className="ml-5 mb-2 text-xs text-gray-500 dark:text-gray-400"
-            data-testid="popover-tag-name"
-          >
-            {tagName}
+        {/* 헤더 — 이벤트 이름 + 액션 3버튼 */}
+        <div className="flex items-start gap-2 px-4 pt-3.5 pb-3 border-b border-gray-100">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span
+              className="h-2 w-2 shrink-0 rounded-full ring-2 ring-white"
+              style={{ backgroundColor: tagColor }}
+              data-testid="tag-color-dot"
+            />
+            <h3 className="text-[15px] font-semibold text-[#1f1f1f] leading-snug break-words min-w-0">
+              {event.name}
+            </h3>
           </div>
-        )}
-
-        {/* Time row */}
-        {eventTime && (
-          <div className="flex items-start gap-2 mb-2 text-sm text-gray-600 dark:text-gray-400">
-            <span className="mt-0.5 flex-shrink-0 text-gray-400">
-              <ClockIcon />
-            </span>
-            <span>
-              <EventTimeDisplay eventTime={eventTime} />
-            </span>
-          </div>
-        )}
-
-        {/* Repeating row */}
-        {repeating && (
-          <div
-            className="flex items-start gap-2 mb-2 text-sm text-gray-600 dark:text-gray-400"
-            data-testid="repeating-info"
-          >
-            <span className="mt-0.5 flex-shrink-0 text-gray-400">
-              <RepeatIcon />
-            </span>
-            <span>{repeatingLabel(repeating, t)}</span>
-          </div>
-        )}
-
-        {/* Notifications row */}
-        {notifications && notifications.length > 0 && (
-          <div
-            className="flex items-start gap-2 mb-2 text-sm text-gray-600 dark:text-gray-400"
-            data-testid="notification-info"
-          >
-            <span className="mt-0.5 flex-shrink-0 text-gray-400">
-              <BellIcon />
-            </span>
-            <span>{notifications.map(n => formatNotification(n, t)).join(', ')}</span>
-          </div>
-        )}
-
-        {/* Additional info from API */}
-        {eventDetail?.place && (
-          <div className="flex items-start gap-2 mb-2 text-sm text-gray-600 dark:text-gray-400">
-            <span className="mt-0.5 flex-shrink-0 text-gray-400">
-              <MapPinIcon />
-            </span>
-            <span className="break-words">{eventDetail.place}</span>
-          </div>
-        )}
-
-        {eventDetail?.url && (
-          <div className="flex items-start gap-2 mb-2 text-sm text-gray-600 dark:text-gray-400">
-            <span className="mt-0.5 flex-shrink-0 text-gray-400">
-              <LinkIcon />
-            </span>
-            <a
-              href={eventDetail.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:underline break-all"
+          <div className="flex gap-0.5 shrink-0 -mr-1">
+            <button
+              className={ACTION_BTN}
+              data-testid="popover-edit-btn"
+              aria-label={t('common.edit', '수정')}
+              onClick={onEdit}
             >
-              {eventDetail.url}
-            </a>
+              <Pencil className="h-4 w-4" />
+            </button>
+            <button
+              className={ACTION_BTN}
+              data-testid="popover-delete-btn"
+              aria-label={t('common.delete', '삭제')}
+              onClick={onDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+            <button
+              className={ACTION_BTN}
+              data-testid="popover-close-btn"
+              aria-label={t('common.close', '닫기')}
+              onClick={onClose}
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-        )}
+        </div>
 
-        {eventDetail?.memo && (
-          <div className="flex items-start gap-2 mb-2 text-sm text-gray-600 dark:text-gray-400">
-            <span className="mt-0.5 flex-shrink-0 text-gray-400">
-              <FileTextIcon />
-            </span>
-            <span className="whitespace-pre-wrap break-words">{eventDetail.memo}</span>
-          </div>
-        )}
+        {/* 바디 — 태그 pill + info rows */}
+        <div className="px-4 py-3 space-y-2.5">
+          {tagName && (
+            <div data-testid="popover-tag-name">
+              <span
+                className="inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
+                style={{ color: tagColor, backgroundColor: `${tagColor}22` }}
+              >
+                {tagName}
+              </span>
+            </div>
+          )}
+
+          {eventTime && (
+            <div className={INFO_ROW}>
+              <Clock className={INFO_ICON} />
+              <span className="min-w-0">
+                <EventTimeDisplay eventTime={eventTime} />
+              </span>
+            </div>
+          )}
+
+          {repeating && (
+            <div className={INFO_ROW} data-testid="repeating-info">
+              <Repeat className={INFO_ICON} />
+              <span className="min-w-0">{repeatingLabel(repeating, t)}</span>
+            </div>
+          )}
+
+          {notifications && notifications.length > 0 && (
+            <div className={INFO_ROW} data-testid="notification-info">
+              <Bell className={INFO_ICON} />
+              <span className="min-w-0 break-words">
+                {notifications.map(n => formatNotification(n, t)).join(', ')}
+              </span>
+            </div>
+          )}
+
+          {eventDetail?.place && (
+            <div className={INFO_ROW}>
+              <MapPin className={INFO_ICON} />
+              <span className="min-w-0 break-words">{eventDetail.place}</span>
+            </div>
+          )}
+
+          {eventDetail?.url && (
+            <div className={INFO_ROW}>
+              <Link2 className={INFO_ICON} />
+              <a
+                href={eventDetail.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-w-0 text-[#1f1f1f] underline underline-offset-2 hover:opacity-60 transition-opacity break-all"
+              >
+                {eventDetail.url}
+              </a>
+            </div>
+          )}
+
+          {eventDetail?.memo && (
+            <div className={INFO_ROW}>
+              <FileText className={INFO_ICON} />
+              <span className="min-w-0 whitespace-pre-wrap break-words">{eventDetail.memo}</span>
+            </div>
+          )}
+        </div>
       </div>
     </>
   )
