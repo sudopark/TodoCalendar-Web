@@ -251,6 +251,7 @@ export function ScheduleFormPage() {
         onCopy={handleCopy}
         onDelete={id ? handleDelete : undefined}
         saveDisabled={!canSave}
+        isDirty={isDirty}
         idPrefix="schedule"
       />
 

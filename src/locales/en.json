@@ -171,6 +171,7 @@
   "repeating.summary_off": "No repeat",
   "repeating.summary_on": "Repeating",
   "repeating.edit": "Edit",
+  "eventForm.unsaved_changes": "Unsaved changes",
   "eventForm.close_confirm_title": "Unsaved changes",
   "eventForm.close_confirm_message": "If you leave now, your changes will be lost. Continue?",
   "eventForm.save_detail_failed": "Failed to save additional info",

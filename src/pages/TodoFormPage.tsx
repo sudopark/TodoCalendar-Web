@@ -266,6 +266,7 @@ export function TodoFormPage() {
         onCopy={handleCopy}
         onDelete={id ? handleDelete : undefined}
         saveDisabled={!canSave}
+        isDirty={isDirty}
         idPrefix="todo"
       />
 

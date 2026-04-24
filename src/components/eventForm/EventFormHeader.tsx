@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { MoreActionsMenu } from './MoreActionsMenu'
 
 interface EventFormHeaderProps {
@@ -10,6 +11,7 @@ interface EventFormHeaderProps {
   onCopy: () => void
   onDelete?: () => void
   saveDisabled: boolean
+  isDirty?: boolean
   idPrefix: 'schedule' | 'todo'
 }
 
@@ -21,41 +23,51 @@ export function EventFormHeader({
   onCopy,
   onDelete,
   saveDisabled,
+  isDirty = false,
   idPrefix,
 }: EventFormHeaderProps) {
   const { t } = useTranslation()
   const nameInputId = `${idPrefix}-event-name`
 
   return (
-    <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-4">
+    <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-border-light bg-background px-4 py-4">
       <button
         type="button"
         aria-label={t('common.cancel')}
         onClick={onClose}
-        className="flex h-9 w-9 shrink-0 items-center justify-center text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-text-secondary hover:text-text-primary hover:bg-surface-sunken transition-colors"
       >
         <X size={20} />
       </button>
 
       <label htmlFor={nameInputId} className="sr-only">{t('event.name')}</label>
-      <input
-        id={nameInputId}
-        aria-label={t('event.name')}
-        placeholder={t('event.namePlaceholder', '이벤트 이름 추가')}
-        className="flex-1 min-w-0 border-b border-transparent bg-transparent text-2xl font-normal tracking-tight text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500 placeholder:text-gray-400"
-        value={name}
-        onChange={e => onNameChange(e.target.value)}
-      />
+      <div className="relative flex-1 min-w-0">
+        <input
+          id={nameInputId}
+          aria-label={t('event.name')}
+          placeholder={t('event.namePlaceholder', '이벤트 이름 추가')}
+          className="w-full border-b border-transparent bg-transparent pr-6 text-2xl font-normal tracking-tight text-text-primary outline-none focus:border-text-primary placeholder:text-text-tertiary transition-colors"
+          value={name}
+          onChange={e => onNameChange(e.target.value)}
+        />
+        {isDirty && (
+          <span
+            aria-label={t('eventForm.unsaved_changes', '저장되지 않은 변경사항이 있어요')}
+            title={t('eventForm.unsaved_changes', '저장되지 않은 변경사항이 있어요')}
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-brand"
+          />
+        )}
+      </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        <button
+        <Button
           type="button"
           onClick={onSave}
           disabled={saveDisabled}
-          className="rounded-full bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-full px-6 h-9 font-semibold"
         >
           {t('common.save')}
-        </button>
+        </Button>
         <MoreActionsMenu onCopy={onCopy} onDelete={onDelete} />
       </div>
     </div>
