@@ -21,9 +21,8 @@ const DATE_NUMBER_HEIGHT = 28
 // 날짜 숫자 아래 이벤트 바 시작 오프셋(px)
 const EVENT_AREA_TOP_OFFSET = 4
 
-// 셀 강조 색상 (iOS 레퍼런스)
-const SELECTED_BG = '#303646'
-const TODAY_BG = '#f4f4f4'
+// 셀 강조 색상
+const TODAY_BG = '#1f1f1f'
 
 interface MainCalendarGridProps {
   days: CalendarDay[]
@@ -54,13 +53,11 @@ function EventBar({ ev, timeType, showEventNames, onEventClick }: EventBarProps)
 
   return (
     <div
-      className={`flex items-center rounded px-1.5 py-0.5 text-[10px] leading-tight cursor-pointer pointer-events-auto overflow-hidden ${
-        isAtTime ? 'text-[#45454a]' : 'text-white'
-      }`}
+      className="flex items-center h-5 rounded px-1.5 py-0.5 text-[10px] leading-tight cursor-pointer pointer-events-auto overflow-hidden text-[#1f1f1f]"
       data-testid="event-bar"
       style={{
         gridColumn: `${ev.startCol} / ${ev.endCol + 1}`,
-        backgroundColor: isAtTime ? 'transparent' : color,
+        backgroundColor: isAtTime ? 'transparent' : `${color}22`,
       }}
       onClick={(e) => {
         e.stopPropagation()
@@ -69,12 +66,11 @@ function EventBar({ ev, timeType, showEventNames, onEventClick }: EventBarProps)
     >
       <span
         className="inline-block h-[6px] w-[6px] rounded-full mr-1 shrink-0"
-        style={{ backgroundColor: isAtTime ? color : 'rgba(255,255,255,0.8)' }}
+        style={{ backgroundColor: color }}
       />
-      {isAtTime
-        ? <span className="truncate min-w-0">{showEventNames ? ev.event.event.name : '\u00A0'}</span>
-        : (showEventNames ? ev.event.event.name : '\u00A0')
-      }
+      <span className="flex-1 min-w-0 truncate font-medium">
+        {showEventNames ? ev.event.event.name : ' '}
+      </span>
     </div>
   )
 }
@@ -138,16 +134,19 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
 
   return (
     <div className="flex h-full flex-col">
-      {/* 요일 헤더 — 하단 보더만, 외곽 보더 없음 */}
-      <div className="grid grid-cols-7 border-b border-border-calendar shrink-0">
-        {WEEKDAY_KEYS.map((key, i) => (
-          <div
-            key={key}
-            className={`px-3 py-2 text-xs font-medium uppercase tracking-wide ${i === 0 ? 'text-red-400' : 'text-text-secondary'}`}
-          >
-            {t(`calendar.weekdays.${key}`, key.toUpperCase())}
-          </div>
-        ))}
+      {/* 요일 헤더 — SectionHeader와 같은 타이포 언어 */}
+      <div className="grid grid-cols-7 pb-2 shrink-0">
+        {WEEKDAY_KEYS.map((key, i) => {
+          const isWeekend = i === 0 || i === 6
+          return (
+            <div
+              key={key}
+              className={`px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest ${isWeekend ? 'text-[#e8a5a5]' : 'text-[#bbb]'}`}
+            >
+              {t(`calendar.weekdays.${key}`, key.toUpperCase())}
+            </div>
+          )
+        })}
       </div>
 
       {/* 주 단위 반복 */}
@@ -165,42 +164,40 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
             <div
               key={wi}
               ref={wi === 0 ? firstWeekRef : undefined}
-              className={`flex-1 relative grid grid-cols-7 ${!isLastWeek ? 'border-b border-border-calendar' : ''}`}
+              className={`flex-1 relative grid grid-cols-7 ${!isLastWeek ? 'border-b border-gray-100' : ''}`}
               style={{ minHeight: `${rowHeight}px` }}
             >
               {weekDays.map((day, di) => {
                 const isSelected = selectedDate != null && formatDateKey(selectedDate) === day.dateKey
                 const holidayNames = getHolidayNames(day.dateKey)
                 const isHoliday = holidayNames.length > 0
-                const isSunday = day.date.getDay() === 0
-                const isLastCol = di === 6
+                const isWeekend = day.date.getDay() === 0 || day.date.getDay() === 6
 
                 // 해당 날짜의 이벤트 (모바일 dots용)
                 const dayEvents = filteredEventsByDate.get(day.dateKey) ?? []
                 const visibleDayEvents = dayEvents.slice(0, 3)
 
-                // 날짜 숫자 원형 배경 결정
-                const circleBg = isSelected
-                  ? SELECTED_BG
-                  : day.isToday
-                    ? TODAY_BG
-                    : undefined
+                // 날짜 숫자 스타일 결정
+                // today: 블랙 fill + 흰 숫자 (강조)
+                // selected: 링 아웃라인 (오늘과 차별화)
+                // 일반: 텍스트만
+                const circleBg = day.isToday ? TODAY_BG : undefined
+                const ringClass = isSelected && !day.isToday
+                  ? 'ring-2 ring-[#1f1f1f] ring-offset-1 ring-offset-white'
+                  : ''
 
-                // 날짜 텍스트 색 결정
-                const dateTextColor = isSelected
-                  ? 'text-white'
-                  : day.isToday
-                    ? 'text-[#323232] font-semibold'
-                    : !day.isCurrentMonth
-                      ? 'text-gray-300'
-                      : (isHoliday || isSunday)
-                        ? 'text-red-500'
-                        : 'text-[#323232]'
+                const dateTextColor = day.isToday
+                  ? 'text-white font-semibold'
+                  : !day.isCurrentMonth
+                    ? 'text-gray-300'
+                    : (isHoliday || isWeekend)
+                      ? 'text-red-400'
+                      : 'text-[#1f1f1f]'
 
                 return (
                   <div
                     key={di}
-                    className={`flex flex-col pt-1.5 px-1.5 pb-1 cursor-pointer hover:brightness-95 transition-[filter] ${isLastCol ? '' : 'border-r border-border-calendar'} ${!day.isCurrentMonth ? 'bg-surface-alt' : ''}`}
+                    className="flex flex-col pt-1.5 px-1.5 pb-1 cursor-pointer transition-colors hover:bg-gray-50"
                     data-testid="day-cell"
                     data-today={day.isToday || undefined}
                     data-selected={isSelected || undefined}
@@ -208,9 +205,9 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                     onClick={() => setSelectedDate(day.date)}
                     title={holidayNames.join(', ') || undefined}
                   >
-                    {/* 날짜 숫자 — 선택/오늘은 원형 배경 */}
+                    {/* 날짜 숫자 — today는 fill, selected는 outline */}
                     <div
-                      className={`flex h-7 w-7 items-center justify-center text-sm font-medium rounded-full ${dateTextColor}`}
+                      className={`flex h-7 w-7 items-center justify-center text-sm rounded-full transition-all ${dateTextColor} ${ringClass}`}
                       style={{ backgroundColor: circleBg }}
                     >
                       {day.dayOfMonth}
@@ -241,9 +238,12 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                   >
                     {row.map((ev) => {
                       const timeType = getEventTimeType(ev)
+                      const turn = ev.event.type === 'todo'
+                        ? ev.event.event.repeating_turn ?? 1
+                        : ev.event.event.show_turns?.[0] ?? 1
                       return (
                         <EventBar
-                          key={ev.event.event.uuid}
+                          key={`${ev.event.event.uuid}:${turn}:${ev.startCol}`}
                           ev={ev}
                           timeType={timeType}
                           showEventNames={showEventNames}
@@ -257,7 +257,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                 {/* +N more 표시 */}
                 {hiddenCount > 0 && (
                   <div className="grid grid-cols-7">
-                    <div className="col-span-7 text-[9px] text-text-secondary px-2 pointer-events-auto">
+                    <div className="col-span-7 text-[10px] font-medium text-[#969696] px-2 pointer-events-auto">
                       +{hiddenCount} more
                     </div>
                   </div>

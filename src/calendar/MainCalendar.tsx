@@ -36,7 +36,7 @@ export default function MainCalendar({ today: todayProp, onEventClick }: MainCal
   }, [days, fetchEventsForYear, fetchHolidays])
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden border border-border-calendar rounded-lg shadow-sm bg-white m-4">
+    <div className="flex-1 flex flex-col overflow-hidden bg-white px-2 pt-2 pb-4">
       <MainCalendarGrid days={days} onEventClick={onEventClick} />
     </div>
   )
