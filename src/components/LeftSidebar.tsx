@@ -42,30 +42,30 @@ function MiniCalendarDayButton({
   const isToday = modifiers.today
   const isSelected = modifiers.selected
 
-  // 선택된 날: 오늘이든 아니든 #303646 배경 + 흰색 텍스트
-  // 오늘(미선택): #f4f4f4 배경 + #323232 텍스트
-  // 이전/다음 달: 회색
-  // 일/공휴일(미선택): 빨간색
-  // 일반: #323232
+  // 선택된 날: text-primary 톤 배경(soft slate) + 흰색 텍스트
+  // 오늘(미선택): surface-sunken 배경
+  // 이전/다음 달: tertiary gray
+  // 일/공휴일(미선택): danger-soft (탁한 red)
+  // 일반: text-primary
   const bgStyle = isSelected
-    ? 'bg-[#303646] rounded-full'
+    ? 'bg-text-primary rounded-full'
     : isToday
-      ? 'bg-[#f4f4f4] rounded-full'
-      : ''
+      ? 'bg-surface-sunken rounded-full'
+      : 'hover:bg-surface-sunken hover:rounded-full'
 
   const textColor = isSelected
     ? 'text-white font-semibold'
     : isOutside
-      ? 'text-gray-400'
+      ? 'text-text-tertiary'
       : isSunday || isHoliday
-        ? 'text-red-500'
-        : 'text-[#323232]'
+        ? 'text-danger-soft'
+        : 'text-text-primary'
 
   return (
     <button
       {...props}
       className={cn(
-        'flex h-6 w-6 items-center justify-center text-[11px] mx-auto cursor-pointer bg-transparent border-0 p-0',
+        'flex h-7 w-7 items-center justify-center text-[12px] mx-auto cursor-pointer bg-transparent border-0 p-0 transition-colors',
         bgStyle,
         textColor,
         className
@@ -174,10 +174,10 @@ export default function LeftSidebar() {
                   month_caption: 'flex h-7 w-full items-center justify-center px-7',
                   caption_label: 'text-sm font-semibold text-text-primary select-none',
                   nav: 'absolute inset-x-0 top-0 flex w-full items-center justify-between',
-                  button_previous: 'rounded p-0.5 hover:bg-gray-100 text-text-secondary h-7 w-7 flex items-center justify-center',
-                  button_next: 'rounded p-0.5 hover:bg-gray-100 text-text-secondary h-7 w-7 flex items-center justify-center',
+                  button_previous: 'rounded p-0.5 hover:bg-surface-sunken text-text-secondary h-7 w-7 flex items-center justify-center transition-colors',
+                  button_next: 'rounded p-0.5 hover:bg-surface-sunken text-text-secondary h-7 w-7 flex items-center justify-center transition-colors',
                   weekdays: 'flex',
-                  weekday: 'flex-1 text-center text-[10px] font-medium uppercase text-text-secondary py-1',
+                  weekday: 'flex-1 text-center text-[10px] font-normal uppercase tracking-wide text-text-tertiary py-1',
                   week: 'mt-0.5 flex w-full',
                   day: 'flex-1 flex items-center justify-center py-0.5',
                   today: '',
