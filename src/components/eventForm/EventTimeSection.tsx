@@ -1,5 +1,5 @@
 import { EventTimePickerCore } from './EventTimePickerCore'
-import { RepeatingPicker } from '../RepeatingPicker'
+import { RepeatingSection } from './RepeatingSection'
 import type { EventTime, Repeating } from '../../models'
 
 interface EventTimeSectionProps {
@@ -17,12 +17,6 @@ export function EventTimeSection({
   onRepeatingChange,
   required,
 }: EventTimeSectionProps) {
-  const startTimestamp = eventTime
-    ? eventTime.time_type === 'at'
-      ? eventTime.timestamp
-      : eventTime.period_start
-    : 0
-
   return (
     <section className="rounded-xl border border-border-light bg-background p-5 shadow-sm space-y-4">
       <EventTimePickerCore
@@ -30,15 +24,11 @@ export function EventTimeSection({
         onChange={onEventTimeChange}
         allowNone={!required}
       />
-      {eventTime && (
-        <div className="pl-7">
-          <RepeatingPicker
-            value={repeating}
-            onChange={onRepeatingChange}
-            startTimestamp={startTimestamp}
-          />
-        </div>
-      )}
+      <RepeatingSection
+        eventTime={eventTime}
+        repeating={repeating}
+        onRepeatingChange={onRepeatingChange}
+      />
     </section>
   )
 }

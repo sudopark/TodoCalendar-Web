@@ -3,12 +3,16 @@ import { useTranslation } from 'react-i18next'
 import { Repeat } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { RepeatingPickerShadcn } from './RepeatingPickerShadcn'
-import { useEventFormStore } from '../../stores/eventFormStore'
+import type { EventTime, Repeating } from '../../models'
 
-export function RepeatingSection() {
+interface RepeatingSectionProps {
+  eventTime: EventTime | null
+  repeating: Repeating | null
+  onRepeatingChange: (v: Repeating | null) => void
+}
+
+export function RepeatingSection({ eventTime, repeating, onRepeatingChange }: RepeatingSectionProps) {
   const { t } = useTranslation()
-  const eventTime = useEventFormStore(s => s.eventTime)
-  const repeating = useEventFormStore(s => s.repeating)
   const [open, setOpen] = useState(false)
 
   if (!eventTime) return null
@@ -33,7 +37,11 @@ export function RepeatingSection() {
           </span>
         </PopoverTrigger>
         <PopoverContent className="w-[320px] max-h-[60vh] overflow-y-auto p-4" side="bottom" align="start">
-          <RepeatingPickerShadcn />
+          <RepeatingPickerShadcn
+            eventTime={eventTime}
+            repeating={repeating}
+            onRepeatingChange={onRepeatingChange}
+          />
         </PopoverContent>
       </Popover>
     </div>

@@ -11,6 +11,9 @@ export function EventFormTopSection() {
   const name = useEventFormStore(s => s.name)
   const setName = useEventFormStore(s => s.setName)
   const eventTagId = useEventFormStore(s => s.eventTagId)
+  const eventTime = useEventFormStore(s => s.eventTime)
+  const repeating = useEventFormStore(s => s.repeating)
+  const setRepeating = useEventFormStore(s => s.setRepeating)
   const resolved = useResolvedEventTag(eventTagId)
   const tagColor = resolved.color
 
@@ -34,7 +37,11 @@ export function EventFormTopSection() {
       </div>
       <EventTypeToggle />
       <EventTimePickerShadcn />
-      <RepeatingSection />
+      <RepeatingSection
+        eventTime={eventTime}
+        repeating={repeating}
+        onRepeatingChange={setRepeating}
+      />
     </div>
   )
 }

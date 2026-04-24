@@ -4,8 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { useEventFormStore } from '../../stores/eventFormStore'
-import type { RepeatingOption } from '../../models'
+import type { EventTime, Repeating, RepeatingOption } from '../../models'
 
 const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -31,12 +30,15 @@ function defaultOption(type: string, startTs: number): RepeatingOption {
   }
 }
 
-export function RepeatingPickerShadcn() {
-  const { t, i18n } = useTranslation()
+interface RepeatingPickerShadcnProps {
+  eventTime: EventTime | null
+  repeating: Repeating | null
+  onRepeatingChange: (v: Repeating | null) => void
+}
 
-  const eventTime = useEventFormStore(s => s.eventTime)
-  const repeating = useEventFormStore(s => s.repeating)
-  const setRepeating = useEventFormStore(s => s.setRepeating)
+export function RepeatingPickerShadcn({ eventTime, repeating, onRepeatingChange }: RepeatingPickerShadcnProps) {
+  const { t, i18n } = useTranslation()
+  const setRepeating = onRepeatingChange
 
   const startTimestamp = eventTime
     ? (eventTime.time_type === 'at' ? eventTime.timestamp : eventTime.period_start)
