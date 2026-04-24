@@ -104,9 +104,9 @@ export function ArchivePanel() {
 
   return (
     <div className="w-full h-full flex flex-col bg-white relative">
-      {/* 닫기(X) — 우측 상단 absolute, 클릭 시 '오늘 이벤트' 모드 복귀 (요구사항) */}
+      {/* 닫기(X) — 우측 상단 absolute, 아카이브 모드에서도 패널 전체 닫기 */}
       <button
-        onClick={exitArchivePanel}
+        onClick={toggleRightPanel}
         aria-label={t('common.close')}
         className="absolute top-2 right-3 z-10 p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
       >
@@ -155,17 +155,6 @@ export function ArchivePanel() {
             {!hasMore && items.length > 0 && t('todo.all_shown')}
           </div>
         </div>
-      </div>
-
-      {/* 하단: 패널 완전 닫기 (todayEvents 모드 X와 대칭) */}
-      <div className="shrink-0 border-t border-border-calendar p-4">
-        <button
-          type="button"
-          onClick={toggleRightPanel}
-          className="w-full text-xs font-semibold uppercase tracking-[0.15em] text-[#6b6b6b] hover:text-[#1f1f1f] py-2 rounded-full hover:bg-gray-50 transition-colors"
-        >
-          {t('common.close')}
-        </button>
       </div>
 
       {confirmId && (
