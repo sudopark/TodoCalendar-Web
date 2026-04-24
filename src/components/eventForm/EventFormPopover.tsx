@@ -12,6 +12,32 @@ import { EventFormBottomSection } from './EventFormBottomSection'
 import { cn } from '@/lib/utils'
 
 const TITLE_ID = 'event-form-title'
+const POSITION_STORAGE_KEY = 'event-form:last-position'
+
+function loadSavedPosition(): { x: number; y: number } | null {
+  try {
+    const raw = localStorage.getItem(POSITION_STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { x: unknown; y: unknown }
+    if (typeof parsed.x !== 'number' || typeof parsed.y !== 'number') return null
+    const maxX = window.innerWidth - 100 // 최소 100px은 화면에 남도록
+    const maxY = window.innerHeight - 100
+    return {
+      x: Math.min(Math.max(0, parsed.x), maxX),
+      y: Math.min(Math.max(0, parsed.y), maxY),
+    }
+  } catch {
+    return null
+  }
+}
+
+function savePosition(pos: { x: number; y: number }): void {
+  try {
+    localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(pos))
+  } catch {
+    // quota / private mode — silently ignore
+  }
+}
 
 function getFocusable(root: HTMLElement): HTMLElement[] {
   return Array.from(
@@ -38,6 +64,7 @@ export function EventFormPopover() {
   const [initialized, setInitialized] = useState(false)
   const dragging = useRef(false)
   const dragOffset = useRef({ x: 0, y: 0 })
+  const positionRef = useRef(position)
 
   useEffect(() => {
     if (!isOpen) {
@@ -45,12 +72,17 @@ export function EventFormPopover() {
       setShowCloseConfirm(false)
       return
     }
-    const cardWidth = Math.min(440, window.innerWidth - 32)
-    const cardHeight = 560
-    setPosition({
-      x: Math.max(16, (window.innerWidth - cardWidth) / 2),
-      y: Math.max(16, (window.innerHeight - cardHeight) / 2),
-    })
+    const saved = loadSavedPosition()
+    const initial = saved ?? (() => {
+      const cardWidth = Math.min(440, window.innerWidth - 32)
+      const cardHeight = 560
+      return {
+        x: Math.max(16, (window.innerWidth - cardWidth) / 2),
+        y: Math.max(16, (window.innerHeight - cardHeight) / 2),
+      }
+    })()
+    positionRef.current = initial
+    setPosition(initial)
     setInitialized(true)
   }, [isOpen])
 
@@ -67,12 +99,19 @@ export function EventFormPopover() {
     if (!isOpen) return
     const handleMouseMove = (e: MouseEvent) => {
       if (!dragging.current) return
-      setPosition({
+      const next = {
         x: Math.max(0, e.clientX - dragOffset.current.x),
         y: Math.max(0, e.clientY - dragOffset.current.y),
-      })
+      }
+      positionRef.current = next
+      setPosition(next)
     }
-    const handleMouseUp = () => { dragging.current = false }
+    const handleMouseUp = () => {
+      if (dragging.current) {
+        dragging.current = false
+        savePosition(positionRef.current)
+      }
+    }
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
     return () => {
