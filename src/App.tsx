@@ -11,7 +11,6 @@ import { TodoFormPage } from './pages/TodoFormPage'
 import { ScheduleFormPage } from './pages/ScheduleFormPage'
 import './stores/themeStore'
 
-const DoneTodosPage = React.lazy(() => import('./pages/DoneTodosPage').then(m => ({ default: m.DoneTodosPage })))
 const SettingsPage = React.lazy(() => import('./pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
 
@@ -44,7 +43,7 @@ function AppRoutes() {
                   <Route path="/schedules/new" element={<ScheduleFormPage />} />
                   <Route path="/schedules/:id/edit" element={<ScheduleFormPage />} />
                   <Route path="/tags" element={<Navigate to="/settings/editEvent/tags" replace />} />
-                  <Route path="/done" element={<DoneTodosPage />} />
+                  <Route path="/done" element={<Navigate to="/" replace />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/settings/:categoryId" element={<SettingsPage />} />
                   <Route path="/settings/:categoryId/:subView" element={<SettingsPage />} />

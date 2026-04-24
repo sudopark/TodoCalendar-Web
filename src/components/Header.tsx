@@ -13,7 +13,6 @@ export function Header() {
       <span className="text-sm font-bold text-gray-900 dark:text-gray-100">TodoCalendar</span>
       <nav className="flex gap-1">
         <NavLink to="/" end className={linkClass}>{t('nav.calendar')}</NavLink>
-        <NavLink to="/done" className={linkClass}>{t('nav.done')}</NavLink>
         <NavLink to="/settings" className={linkClass}>{t('nav.settings')}</NavLink>
       </nav>
     </header>

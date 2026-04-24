@@ -8,6 +8,7 @@ import { CurrentTodoList } from './CurrentTodoList'
 import { DayEventList } from './DayEventList'
 import { QuickTodoInput } from './QuickTodoInput'
 import { CreateEventButton } from './CreateEventButton'
+import { ArchivePanel } from './ArchivePanel'
 
 function SectionHeader({ label }: { label: string }) {
   return (
@@ -27,7 +28,12 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
   const selectedDate = useUiStore(s => s.selectedDate)
   const foremostEvent = useForemostEventStore(s => s.foremostEvent)
   const toggleRightPanel = useUiStore(s => s.toggleRightPanel)
+  const rightPanelMode = useUiStore(s => s.rightPanelMode)
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
+
+  if (rightPanelMode === 'archive') {
+    return <ArchivePanel />
+  }
 
   const dateTitle = selectedDate
     ? selectedDate.toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric' })
