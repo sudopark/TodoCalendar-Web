@@ -20,19 +20,18 @@ interface EventDetailsSectionProps {
 }
 
 const inputClass =
-  'w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500'
-
-const labelClass = 'block text-sm font-medium text-gray-700 dark:text-gray-200'
+  'w-full rounded-md border border-border-light bg-transparent px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-tertiary focus:border-text-primary transition-colors'
 
 interface RowProps {
   icon: React.ReactNode
   children: React.ReactNode
+  align?: 'start' | 'center'
 }
 
-function Row({ icon, children }: RowProps) {
+function Row({ icon, children, align = 'center' }: RowProps) {
   return (
-    <div className="flex items-start gap-4">
-      <div className="mt-2 flex h-6 w-6 shrink-0 items-center justify-center text-gray-500 dark:text-gray-400" aria-hidden="true">
+    <div className={`flex gap-3 ${align === 'start' ? 'items-start' : 'items-center'}`}>
+      <div className={`flex h-6 w-6 shrink-0 items-center justify-center text-text-tertiary ${align === 'start' ? 'mt-2' : ''}`} aria-hidden="true">
         {icon}
       </div>
       <div className="flex-1 min-w-0">{children}</div>
@@ -60,30 +59,28 @@ export function EventDetailsSection({
   const memoId = `${fieldPrefix}-memo`
 
   return (
-    <section className="space-y-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm">
-      {/* Notifications */}
-      <Row icon={<Bell className="h-4 w-4" />}>
-        <div className={labelClass}>{t('event.notification')}</div>
-        <div className="mt-1">
-          <NotificationPicker
-            value={notifications}
-            onChange={onNotificationsChange}
-            isAllDay={isAllDay}
-          />
-        </div>
-      </Row>
-
-      {/* Tag — 시안 정합: 중복 "태그" 라벨 제거, 아이콘 + Selector만 한 줄로 */}
+    <section className="space-y-4 rounded-xl border border-border-light bg-background p-5 shadow-sm">
+      {/* Tag */}
       <Row icon={<TagIcon className="h-4 w-4" />}>
         <TagDropdown value={tagId} onChange={onTagChange} showManageLink />
       </Row>
 
-      {/* Location — URL과 인접하도록 상단 배치 */}
+      {/* Notifications */}
+      <Row icon={<Bell className="h-4 w-4" />}>
+        <NotificationPicker
+          value={notifications}
+          onChange={onNotificationsChange}
+          isAllDay={isAllDay}
+        />
+      </Row>
+
+      {/* Place */}
       <Row icon={<MapPin className="h-4 w-4" />}>
-        <label htmlFor={placeId} className={labelClass}>{t('event.place')}</label>
+        <label htmlFor={placeId} className="sr-only">{t('event.place')}</label>
         <input
           id={placeId}
-          className={`mt-1 ${inputClass}`}
+          className={inputClass}
+          placeholder={t('event.place')}
           value={place}
           onChange={e => onPlaceChange(e.target.value)}
         />
@@ -91,21 +88,24 @@ export function EventDetailsSection({
 
       {/* URL */}
       <Row icon={<LinkIcon className="h-4 w-4" />}>
-        <label htmlFor={urlId} className={labelClass}>{t('event.url')}</label>
+        <label htmlFor={urlId} className="sr-only">{t('event.url')}</label>
         <input
           id={urlId}
-          className={`mt-1 ${inputClass}`}
+          type="url"
+          className={inputClass}
+          placeholder={t('event.url')}
           value={url}
           onChange={e => onUrlChange(e.target.value)}
         />
       </Row>
 
       {/* Memo */}
-      <Row icon={<FileText className="h-4 w-4" />}>
-        <label htmlFor={memoId} className={labelClass}>{t('event.memo')}</label>
+      <Row icon={<FileText className="h-4 w-4" />} align="start">
+        <label htmlFor={memoId} className="sr-only">{t('event.memo')}</label>
         <textarea
           id={memoId}
-          className={`mt-1 ${inputClass}`}
+          className={`${inputClass} resize-y`}
+          placeholder={t('event.memo')}
           rows={3}
           value={memo}
           onChange={e => onMemoChange(e.target.value)}
