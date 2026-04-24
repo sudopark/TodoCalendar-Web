@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useEventFormStore } from '../stores/eventFormStore'
+import { cn } from '@/lib/utils'
 
 export function CreateEventButton() {
   const { t } = useTranslation()
@@ -19,35 +20,53 @@ export function CreateEventButton() {
       <button
         ref={buttonRef}
         data-testid="create-event-button"
-        aria-label="새 이벤트"
-        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-white border border-gray-200 px-4 py-2.5 w-full shadow-sm hover:shadow transition-shadow"
+        aria-label={t('main.create_event', 'Create')}
+        aria-haspopup="menu"
+        aria-expanded={showMenu}
+        className="flex w-full items-center justify-between rounded-full bg-white border border-border-light px-4 py-2.5 shadow-sm hover:shadow transition-shadow"
         onClick={() => setShowMenu(!showMenu)}
       >
-        <svg className="h-4 w-4 text-[#323232]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-        <span className="text-sm font-medium text-[#323232]">
-          {t('main.create_event', 'Create')}
+        <span className="flex items-center gap-2 text-text-primary">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="text-sm font-medium">{t('main.create_event', 'Create')}</span>
         </span>
-        <svg className="h-3 w-3 text-[#969696] ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className={cn('h-3.5 w-3.5 text-text-tertiary transition-transform', showMenu && 'rotate-180')}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-          <div className="absolute bottom-full left-0 mb-1 z-50 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-xl">
+          <div
+            role="menu"
+            className="absolute bottom-full left-0 mb-1.5 z-50 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-border-light shadow-lg"
+          >
             <button
-              className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
+              role="menuitem"
+              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
               onClick={() => handleSelect('todo')}
             >
+              <svg className="h-4 w-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
               Todo
             </button>
-            <div className="border-t border-gray-100 dark:border-gray-700" />
+            <div className="border-t border-border-light dark:border-gray-700" />
             <button
-              className="flex w-full px-4 py-3 text-left text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
+              role="menuitem"
+              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
               onClick={() => handleSelect('schedule')}
             >
+              <svg className="h-4 w-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
               Schedule
             </button>
           </div>
