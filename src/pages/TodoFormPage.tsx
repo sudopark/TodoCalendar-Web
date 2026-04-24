@@ -257,7 +257,7 @@ export function TodoFormPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-surface-sunken">
       <EventFormHeader
         name={name}
         onNameChange={setName}
@@ -272,6 +272,15 @@ export function TodoFormPage() {
 
       {/* 페이지 제목: 기존 getByText 테스트 호환을 위해 sr-only 로 유지 */}
       <h1 className="sr-only">{id ? t('todo.edit') : t('todo.new')}</h1>
+
+      {error && (
+        <div
+          role="alert"
+          className="border-b border-destructive/20 bg-destructive/10 px-6 py-2 text-sm text-destructive"
+        >
+          {error}
+        </div>
+      )}
 
       <div className={`max-w-5xl px-6 py-6 space-y-6 ${loading ? 'pointer-events-none opacity-60' : ''}`}>
         <EventTimeSection
@@ -297,7 +306,6 @@ export function TodoFormPage() {
           fieldPrefix="todo"
         />
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
 
       {showConfirm && (
