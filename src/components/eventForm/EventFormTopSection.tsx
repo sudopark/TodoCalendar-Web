@@ -16,23 +16,24 @@ export function EventFormTopSection() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
+      {/* Name input + DDay inline chip */}
+      <div className="flex items-center gap-3 pb-2 border-b border-border-light focus-within:border-text-primary transition-colors">
         <div
-          className="w-4 h-4 rounded-md shrink-0"
+          className="w-3 h-3 rounded-full shrink-0"
           style={{ backgroundColor: tagColor }}
           data-testid="event-form-tag-swatch"
         />
         <input
-          className="flex-1 text-base font-medium bg-transparent outline-none placeholder:text-muted-foreground"
-          placeholder={t('event.namePlaceholder', '이벤트 이름 추가')}
+          className="flex-1 min-w-0 text-lg font-semibold bg-transparent outline-none placeholder:text-text-tertiary placeholder:font-normal"
+          placeholder={t('event.namePlaceholder', '이벤트 이름')}
           value={name}
           onChange={e => setName(e.target.value)}
           autoFocus
         />
+        <DDayBadge />
       </div>
       <EventTypeToggle />
       <EventTimePickerShadcn />
-      <DDayBadge />
       <RepeatingPickerShadcn />
     </div>
   )
