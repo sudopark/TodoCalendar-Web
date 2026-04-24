@@ -16,6 +16,9 @@
   --color-border-calendar: #e5e7eb;
   --color-text-primary: #334155;
   --color-text-secondary: #64748b;
+  --color-text-tertiary: #94a3b8;
+  --color-surface-sunken: #f1f5f9;
+  --color-danger-soft: #e11d48;
 }
 
 html {
