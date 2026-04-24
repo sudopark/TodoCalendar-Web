@@ -25,12 +25,9 @@ export function ForemostEventBanner({ onEventClick }: ForemostEventBannerProps) 
 
   return (
     <section>
-      <h3 className="px-1 py-2 text-[22px] font-semibold text-[#323232]">
-        {t('event.foremost', 'Foremost Event')}
-      </h3>
       <button
         data-testid="foremost-banner"
-        className="flex w-full items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] px-3 py-2.5 text-left hover:brightness-95"
+        className="flex w-full gap-3 cursor-pointer group text-left"
         onClick={(e) => {
           const calEvent: CalendarEvent = foremostEvent.is_todo
             ? { type: 'todo', event: event as Todo }
@@ -38,18 +35,27 @@ export function ForemostEventBanner({ onEventClick }: ForemostEventBannerProps) 
           onEventClick?.(calEvent, e.currentTarget.getBoundingClientRect())
         }}
       >
-        <div
-          className="shrink-0 self-stretch rounded-full"
-          style={{ width: 3, backgroundColor: resolved.color }}
-        />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-[#323232]">{event.name}</p>
-          <p className="truncate text-xs text-[#646464]">
-            <TimeDescription eventTime={eventTime} />
-          </p>
-          {tagName && (
-            <p className="truncate text-[11px] text-[#969696]">{tagName}</p>
-          )}
+        <div className="flex flex-col items-center shrink-0 w-3">
+          <div
+            className="w-2 h-2 rounded-full shrink-0 mt-1.5 ring-2 ring-white group-hover:scale-125 transition-transform duration-150"
+            style={{ backgroundColor: resolved.color }}
+          />
+        </div>
+        <div className="flex-1 min-w-0 py-0.5">
+          <p className="truncate text-sm font-semibold text-[#1f1f1f] leading-snug group-hover:text-black transition-colors duration-150">{event.name}</p>
+          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+            <span className="text-xs text-[#aaa] leading-none">
+              <TimeDescription eventTime={eventTime} />
+            </span>
+            {tagName && (
+              <span
+                className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
+                style={{ color: resolved.color, backgroundColor: `${resolved.color}22` }}
+              >
+                {tagName}
+              </span>
+            )}
+          </div>
         </div>
       </button>
     </section>

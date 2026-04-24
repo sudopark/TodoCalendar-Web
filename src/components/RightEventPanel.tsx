@@ -8,7 +8,15 @@ import { CurrentTodoList } from './CurrentTodoList'
 import { DayEventList } from './DayEventList'
 import { QuickTodoInput } from './QuickTodoInput'
 import { CreateEventButton } from './CreateEventButton'
-import { ScrollArea } from '@/components/ui/scroll-area'
+
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-3">
+      <span className="text-[11px] font-semibold uppercase tracking-widest text-[#bbb] shrink-0">{label}</span>
+      <div className="flex-1 h-px bg-gray-100" />
+    </div>
+  )
+}
 
 interface RightEventPanelProps {
   onEventClick: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
@@ -44,7 +52,7 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
       </div>
 
       {/* 스크롤 영역 */}
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <div className="px-6 pb-4 flex flex-col">
           {/* 날짜 헤더 */}
           {selectedDate && (
@@ -54,35 +62,26 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
             </div>
           )}
 
-          {foremostEvent && (
-            <div className="mb-4">
+          {foremostEvent?.event && (
+            <div className="mb-6">
+              <SectionHeader label={t('event.foremost', 'Foremost')} />
               <ForemostEventBanner onEventClick={onEventClick} />
             </div>
           )}
 
           <UncompletedTodoList onEventClick={onEventClick} />
 
-          {/* TODO 섹션 */}
-          <div className="mb-4">
-            <h3 className="text-xs font-semibold tracking-wider text-[#969696] mb-2">Current Todo</h3>
-            <div className="border-t border-border-calendar pt-2">
-              <CurrentTodoList showHeader={false} onEventClick={onEventClick} />
-            </div>
-          </div>
+          <CurrentTodoList onEventClick={onEventClick} />
 
           {/* 이벤트 섹션 */}
           {selectedDate && (
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-[#969696] mb-2">
-                {t('main.events_title', '이벤트')}
-              </h3>
-              <div className="border-t border-border-calendar pt-2">
-                <DayEventList selectedDate={selectedDate} onEventClick={onEventClick} />
-              </div>
+              <SectionHeader label={t('main.events_title', 'Events')} />
+              <DayEventList selectedDate={selectedDate} onEventClick={onEventClick} />
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* 하단 고정 */}
       <div className="shrink-0 border-t border-border-calendar p-4 flex flex-col gap-2">

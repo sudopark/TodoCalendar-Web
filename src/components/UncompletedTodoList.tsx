@@ -16,9 +16,10 @@ interface UncompletedTodoRowProps {
   todo: Todo
   onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
   onComplete: (todo: Todo) => void
+  isLast: boolean
 }
 
-function UncompletedTodoRow({ todo, onEventClick, onComplete }: UncompletedTodoRowProps) {
+function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: UncompletedTodoRowProps) {
   const { t } = useTranslation()
   const resolved = useResolvedEventTag(todo.event_tag_id)
   const color = resolved.color
@@ -26,24 +27,42 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete }: UncompletedTodoR
 
   return (
     <div
-      className="flex items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] px-2.5 py-1 hover:brightness-95 cursor-pointer"
+      className={`flex gap-3 cursor-pointer group ${!isLast ? 'pb-5' : ''}`}
       onClick={(e) => onEventClick?.({ type: 'todo', event: todo }, e.currentTarget.getBoundingClientRect())}
     >
-      <div className="self-stretch py-1.5 flex items-stretch">
-        <div className="rounded-full w-1.5" style={{ backgroundColor: color }} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="truncate text-sm font-semibold text-[#ea4444]">{todo.name}</p>
-        <p className="truncate text-xs text-[#646464]">Todo</p>
-        {tagName && (
-          <p className="truncate text-[11px] text-[#969696]">{tagName}</p>
+      {/* 타임라인: 도트 + 연결선 */}
+      <div className="flex flex-col items-center shrink-0 w-3">
+        <div
+          className="w-2 h-2 rounded-full shrink-0 mt-1.5 ring-2 ring-white group-hover:scale-125 transition-transform duration-150"
+          style={{ backgroundColor: color }}
+        />
+        {!isLast && (
+          <div className="flex-1 w-px bg-gray-200 mt-1.5" />
         )}
       </div>
-      <button
-        aria-label={todo.name}
-        className="shrink-0 h-5 w-5 rounded-full border-2 border-[#ccd0dc] hover:border-[#323232] transition-colors self-center"
-        onClick={(e) => { e.stopPropagation(); onComplete(todo) }}
-      />
+
+      {/* 이벤트 내용 + 완료 버튼 */}
+      <div className="flex-1 min-w-0 py-0.5 flex items-start gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="truncate text-sm font-semibold text-[#ea4444] leading-snug">{todo.name}</p>
+          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+            <span className="text-xs text-[#aaa] leading-none">Todo</span>
+            {tagName && (
+              <span
+                className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
+                style={{ color, backgroundColor: `${color}22` }}
+              >
+                {tagName}
+              </span>
+            )}
+          </div>
+        </div>
+        <button
+          aria-label={todo.name}
+          className="shrink-0 h-5 w-5 rounded-full border-2 border-[#ccd0dc] hover:border-[#323232] transition-colors mt-0.5"
+          onClick={(e) => { e.stopPropagation(); onComplete(todo) }}
+        />
+      </div>
     </div>
   )
 }
@@ -105,28 +124,30 @@ export function UncompletedTodoList({ onEventClick }: UncompletedTodoListProps) 
   if (visibleTodos.length === 0) return null
 
   return (
-    <section>
-      <div className="flex items-center justify-between px-1 py-2">
-        <h3 className="text-[22px] font-semibold text-[#323232]">
+    <section className="mb-6">
+      <div className="flex items-center gap-3 mb-3">
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-[#bbb] shrink-0">
           {t('todo.uncompleted')}
-        </h3>
+        </span>
+        <div className="flex-1 h-px bg-gray-100" />
         <button
           onClick={() => reload()}
-          className="text-[#969696] hover:text-[#646464] transition-colors"
+          className="shrink-0 text-[#ccc] hover:text-[#999] transition-colors"
           aria-label="refresh"
         >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
         </button>
       </div>
-      <div className="flex flex-col gap-1.5">
-        {visibleTodos.map(todo => (
+      <div className="flex flex-col">
+        {visibleTodos.map((todo, i) => (
           <UncompletedTodoRow
             key={todo.uuid}
             todo={todo}
             onEventClick={onEventClick}
             onComplete={handleComplete}
+            isLast={i === visibleTodos.length - 1}
           />
         ))}
       </div>
