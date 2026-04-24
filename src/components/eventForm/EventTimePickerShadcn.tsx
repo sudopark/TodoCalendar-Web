@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useEventFormStore } from '../../stores/eventFormStore'
 import type { EventTime } from '../../models'
 import { Clock } from 'lucide-react'
@@ -85,22 +86,25 @@ export function EventTimePickerShadcn() {
       {/* Row 1: Time type + allday toggle */}
       <div className="flex items-center gap-3">
         <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-        <select
-          aria-label="시간 유형"
-          className={`${inputClass} min-w-0`}
+        <Select
           value={selectedType}
-          onChange={e => handleTypeChange(e.target.value as TimeType)}
+          onValueChange={(v) => { if (v) handleTypeChange(v as TimeType) }}
         >
-          {eventType === 'todo' && (
-            <option value="none">{t('eventTime.none')}</option>
-          )}
-          <option value="at">{t('eventTime.at')}</option>
-          <option value="period">{t('eventTime.period')}</option>
-          <option value="allday">{t('eventTime.allday')}</option>
-        </select>
+          <SelectTrigger className="h-8 text-sm flex-1 min-w-0" aria-label={t('eventTime.time_label', '시각')}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {eventType === 'todo' && (
+              <SelectItem value="none">{t('eventTime.none')}</SelectItem>
+            )}
+            <SelectItem value="at">{t('eventTime.at')}</SelectItem>
+            <SelectItem value="period">{t('eventTime.period')}</SelectItem>
+            <SelectItem value="allday">{t('eventTime.allday')}</SelectItem>
+          </SelectContent>
+        </Select>
 
         {selectedType !== 'none' && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <Checkbox
               id="allday-toggle"
               checked={isAllDay}
