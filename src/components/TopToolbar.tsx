@@ -7,6 +7,7 @@ import { useHolidayStore } from '../stores/holidayStore'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
+import TestDataSeederButton from './dev/TestDataSeederButton'
 
 export default function TopToolbar() {
   const { t } = useTranslation()
@@ -104,6 +105,7 @@ export default function TopToolbar() {
 
         {/* 우측: Refresh + Archive + Settings */}
         <div className="flex items-center gap-1">
+          {import.meta.env.DEV && <TestDataSeederButton />}
           <button
             onClick={handleRefresh}
             disabled={loading}
