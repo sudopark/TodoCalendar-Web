@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useEventTagStore, DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../stores/eventTagStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import type { EventTag } from '../models'
@@ -8,7 +8,6 @@ import type { EventTag } from '../models'
 export default function CalendarList() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const location = useLocation()
 
   const tags = useEventTagStore(s => s.tags)
   const defaultTagColors = useEventTagStore(s => s.defaultTagColors)
@@ -33,7 +32,7 @@ export default function CalendarList() {
           {t('main.event_types', '이벤트 종류')}
         </p>
         <button
-          onClick={() => navigate('/tags', { state: { background: location } })}
+          onClick={() => navigate('/settings/editEvent/tags')}
           className="flex items-center gap-1 rounded px-1.5 py-0.5 text-text-tertiary hover:text-text-secondary hover:bg-surface-sunken transition-colors"
           aria-label={t('tag.manage', '태그 관리')}
         >

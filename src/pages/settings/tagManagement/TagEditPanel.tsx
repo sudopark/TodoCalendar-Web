@@ -1,11 +1,18 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ChevronLeft } from 'lucide-react'
 import { ColorPalette, PRESET_COLORS } from '../../../components/ColorPalette'
 import { useEventTagStore } from '../../../stores/eventTagStore'
 import { useTagFilterStore } from '../../../stores/tagFilterStore'
 import { useToastStore } from '../../../stores/toastStore'
 import { DeleteTagDialog } from './DeleteTagDialog'
 import type { TagRowModel } from '../../../domain/tag/buildTagRows'
+import {
+  settingsBtnPrimary,
+  settingsBtnDanger,
+  settingsInput,
+  settingsLabel,
+} from '../SettingsSection'
 
 export type TagEditPanelMode =
   | { kind: 'create' }
@@ -13,10 +20,10 @@ export type TagEditPanelMode =
 
 interface TagEditPanelProps {
   mode: TagEditPanelMode
-  onClose: () => void
+  onBack: () => void
 }
 
-export function TagEditPanel({ mode, onClose }: TagEditPanelProps) {
+export function TagEditPanel({ mode, onBack }: TagEditPanelProps) {
   const { t } = useTranslation()
   const initialName = mode.kind === 'edit' ? mode.row.name : ''
   const initialColor = mode.kind === 'edit' ? mode.row.color : PRESET_COLORS[0]
@@ -50,10 +57,14 @@ export function TagEditPanel({ mode, onClose }: TagEditPanelProps) {
         if (!name.trim()) { setSaving(false); return }
         await updateTag(mode.row.id, { name: name.trim(), color_hex: color })
       }
-      onClose()
+      onBack()
     } catch (e) {
       console.warn('태그 저장 실패:', e)
-      const key = mode.kind === 'create' ? 'tag.create_failed' : isReadonlyName ? 'tag.color_update_failed' : 'tag.update_failed'
+      const key = mode.kind === 'create'
+        ? 'tag.create_failed'
+        : isReadonlyName
+          ? 'tag.color_update_failed'
+          : 'tag.update_failed'
       useToastStore.getState().show(t(key), 'error')
     } finally {
       setSaving(false)
@@ -66,7 +77,7 @@ export function TagEditPanel({ mode, onClose }: TagEditPanelProps) {
       await deleteTag(mode.row.id)
       removeFromFilter(mode.row.id)
       setShowDelete(false)
-      onClose()
+      onBack()
     } catch (e) {
       console.warn('태그 삭제 실패:', e)
       useToastStore.getState().show(t('tag.delete_failed'), 'error')
@@ -79,7 +90,7 @@ export function TagEditPanel({ mode, onClose }: TagEditPanelProps) {
       await deleteTagAndEvents(mode.row.id)
       removeFromFilter(mode.row.id)
       setShowDelete(false)
-      onClose()
+      onBack()
     } catch (e) {
       console.warn('태그+이벤트 삭제 실패:', e)
       useToastStore.getState().show(t('tag.delete_events_failed'), 'error')
@@ -87,48 +98,48 @@ export function TagEditPanel({ mode, onClose }: TagEditPanelProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-5 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 h-full">
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center gap-2">
         <button
           type="button"
+          onClick={onBack}
           aria-label={t('tag.close_panel', 'Close panel')}
-          onClick={onClose}
-          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors"
         >
-          {t('common.cancel', '취소')}
+          <ChevronLeft className="h-5 w-5" />
         </button>
+        <h2 className="flex-1 text-lg font-semibold text-[#1f1f1f]">{title}</h2>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label className="text-xs text-gray-500 dark:text-gray-400" htmlFor="tag-edit-name">
+      <div className="space-y-2">
+        <label className={settingsLabel} htmlFor="tag-edit-name">
           {t('tag.name_label', '이름')}
         </label>
         <input
           id="tag-edit-name"
-          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 disabled:opacity-70 read-only:bg-gray-50 read-only:text-gray-600 dark:read-only:bg-gray-800/50"
+          className={`${settingsInput} read-only:bg-gray-50 read-only:text-[#6b6b6b]`}
           value={name}
           onChange={e => setName(e.target.value)}
           readOnly={isReadonlyName}
           placeholder={t('tag.new_placeholder', '새 태그 이름')}
         />
         {isReadonlyName && (
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-[#969696]">
             {t('tag.readonly_name_notice', '기본 태그 이름은 변경할 수 없습니다')}
           </p>
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <p className="text-xs text-gray-500 dark:text-gray-400">{t('tag.color_label', '색상')}</p>
+      <div className="space-y-2">
+        <p className={settingsLabel}>{t('tag.color_label', '색상')}</p>
         <ColorPalette selected={color} onChange={setColor} />
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-2">
-        {canDelete && mode.kind === 'edit' && (
+      <div className="flex items-center gap-2 pt-2">
+        {canDelete && (
           <button
             type="button"
-            className="rounded-lg px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+            className={settingsBtnDanger}
             onClick={() => setShowDelete(true)}
           >
             {t('common.delete', '삭제')}
@@ -137,7 +148,7 @@ export function TagEditPanel({ mode, onClose }: TagEditPanelProps) {
         <button
           type="button"
           disabled={saving}
-          className="ml-auto rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-60"
+          className={`${settingsBtnPrimary} ml-auto`}
           onClick={handleSave}
         >
           {t('common.save', '저장')}

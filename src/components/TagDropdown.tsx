@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   Select,
@@ -22,7 +22,6 @@ interface TagDropdownProps {
 export function TagDropdown({ value, onChange, showManageLink = false }: TagDropdownProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const location = useLocation()
   const tags = useEventTagStore(s => s.tags)
   const resolvedDefault = useResolvedEventTag(null)
   const resolvedCurrent = useResolvedEventTag(value ?? null)
@@ -76,8 +75,8 @@ export function TagDropdown({ value, onChange, showManageLink = false }: TagDrop
       {showManageLink && (
         <button
           type="button"
-          className="text-xs text-blue-500 hover:underline"
-          onClick={() => navigate('/tags', { state: { background: location } })}
+          className="text-xs text-[#1f1f1f] underline underline-offset-2 hover:opacity-60 transition-opacity"
+          onClick={() => navigate('/settings/editEvent/tags')}
         >
           {t('tag.manage')} &gt;
         </button>

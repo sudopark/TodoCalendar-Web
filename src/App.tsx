@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react'
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AuthGuard } from './components/AuthGuard'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Header } from './components/Header'
@@ -11,7 +11,6 @@ import { TodoFormPage } from './pages/TodoFormPage'
 import { ScheduleFormPage } from './pages/ScheduleFormPage'
 import './stores/themeStore'
 
-const TagManagementPage = React.lazy(() => import('./pages/tagManagement/TagManagementPage').then(m => ({ default: m.TagManagementPage })))
 const DoneTodosPage = React.lazy(() => import('./pages/DoneTodosPage').then(m => ({ default: m.DoneTodosPage })))
 const SettingsPage = React.lazy(() => import('./pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
@@ -44,10 +43,11 @@ function AppRoutes() {
                   <Route path="/todos/:id/edit" element={<TodoFormPage />} />
                   <Route path="/schedules/new" element={<ScheduleFormPage />} />
                   <Route path="/schedules/:id/edit" element={<ScheduleFormPage />} />
-                  <Route path="/tags" element={<TagManagementPage />} />
+                  <Route path="/tags" element={<Navigate to="/settings/editEvent/tags" replace />} />
                   <Route path="/done" element={<DoneTodosPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/settings/:categoryId" element={<SettingsPage />} />
+                  <Route path="/settings/:categoryId/:subView" element={<SettingsPage />} />
                   <Route path="*" element={<Suspense fallback={null}><NotFoundPage /></Suspense>} />
                 </Routes>
               </AuthGuard>
@@ -75,7 +75,6 @@ function AppRoutes() {
                 {[
                   ['/todos/:id/edit', <TodoFormPage />],
                   ['/schedules/:id/edit', <ScheduleFormPage />],
-                  ['/tags', <TagManagementPage />],
                 ].map(([path, element]) => (
                   <Route key={path as string} path={path as string} element={<AuthGuard>{element as React.ReactElement}</AuthGuard>} />
                 ))}

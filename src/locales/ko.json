@@ -47,6 +47,7 @@
   "settings.timezone": "타임존",
   "settings.timezone_system": "시스템 기본",
   "settings.defaults": "이벤트 기본값",
+  "settings.management": "관리",
   "settings.default_tag": "기본 태그",
   "settings.default_notification": "기본 알림",
   "settings.none": "없음",

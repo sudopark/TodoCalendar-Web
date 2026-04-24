@@ -47,6 +47,7 @@
   "settings.timezone": "Timezone",
   "settings.timezone_system": "System Default",
   "settings.defaults": "Event Defaults",
+  "settings.management": "Management",
   "settings.default_tag": "Default Tag",
   "settings.default_notification": "Default Notification",
   "settings.none": "None",

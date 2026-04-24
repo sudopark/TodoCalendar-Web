@@ -18,6 +18,7 @@ import { LanguageSection } from './sections/LanguageSection'
 import { NotificationSection } from './sections/NotificationSection'
 import { GoogleCalendarSection } from './sections/GoogleCalendarSection'
 import { AccountSection } from './sections/AccountSection'
+import { TagManagementPanel } from './tagManagement/TagManagementPanel'
 
 function renderSection(id: SettingCategoryId) {
   switch (id) {
@@ -35,11 +36,12 @@ function renderSection(id: SettingCategoryId) {
 export function SettingsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { categoryId } = useParams<{ categoryId?: string }>()
+  const { categoryId, subView } = useParams<{ categoryId?: string; subView?: string }>()
 
   const hasExplicitCategory = isSettingCategoryId(categoryId)
   const selected: SettingCategoryId = hasExplicitCategory ? categoryId : DEFAULT_SETTING_CATEGORY
   const category = findSettingCategory(selected)
+  const tagsPanelOpen = selected === 'editEvent' && subView === 'tags'
 
   useEffect(() => {
     if (categoryId !== undefined && !isSettingCategoryId(categoryId)) {
@@ -55,25 +57,41 @@ export function SettingsPage() {
     navigate('/')
   }
 
+  const handleCloseTags = () => {
+    navigate('/settings/editEvent')
+  }
+
   return (
     <div className="min-h-screen bg-white">
-      <div className="md:grid md:grid-cols-[15rem_minmax(0,1fr)] md:max-w-5xl">
+      <div
+        className={cn(
+          'md:grid',
+          tagsPanelOpen
+            ? 'md:grid-cols-[15rem_minmax(0,1fr)_minmax(0,1fr)] md:max-w-7xl'
+            : 'md:grid-cols-[15rem_minmax(0,1fr)] md:max-w-5xl',
+        )}
+      >
+        {/* 좌측 메뉴 */}
         <aside
           className={cn(
             'border-r border-gray-100',
-            hasExplicitCategory ? 'hidden md:block' : 'block',
+            !hasExplicitCategory ? 'block' : 'hidden md:block',
           )}
         >
           <SettingsMenu selected={selected} onSelect={handleSelect} onBack={handleBack} />
         </aside>
 
+        {/* 중앙 콘텐츠 (카테고리 섹션) */}
         <main
           className={cn(
             'px-4 py-6 md:px-10 md:py-10',
-            hasExplicitCategory ? 'block' : 'hidden md:block',
+            tagsPanelOpen ? 'md:border-r md:border-gray-100' : '',
+            // mobile 표시 규칙: 카테고리 선택됨 AND tags 패널이 mobile에서 가리는 중이 아님
+            hasExplicitCategory && !tagsPanelOpen ? 'block' : 'hidden',
+            'md:block',
           )}
         >
-          {hasExplicitCategory && (
+          {hasExplicitCategory && !tagsPanelOpen && (
             <div className="md:hidden flex items-center gap-2 mb-8 -mx-4 px-4 pb-3 border-b border-gray-100">
               <button
                 type="button"
@@ -88,9 +106,15 @@ export function SettingsPage() {
               </h2>
             </div>
           )}
-
           {renderSection(selected)}
         </main>
+
+        {/* 우측 TagManagement 패널 — editEvent/tags 서브뷰에서만 */}
+        {tagsPanelOpen && (
+          <aside className="px-4 py-6 md:px-10 md:py-10 block">
+            <TagManagementPanel onClose={handleCloseTags} />
+          </aside>
+        )}
       </div>
     </div>
   )
