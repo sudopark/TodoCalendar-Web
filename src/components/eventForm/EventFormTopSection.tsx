@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { EventTypeToggle } from './EventTypeToggle'
 import { EventTimePickerShadcn } from './EventTimePickerShadcn'
 import { DDayBadge } from './DDayBadge'
-import { RepeatingPickerShadcn } from './RepeatingPickerShadcn'
+import { RepeatingSection } from './RepeatingSection'
 import { useEventFormStore } from '../../stores/eventFormStore'
 import { useResolvedEventTag } from '../../hooks/useResolvedEventTag'
 
@@ -34,7 +34,7 @@ export function EventFormTopSection() {
       </div>
       <EventTypeToggle />
       <EventTimePickerShadcn />
-      <RepeatingPickerShadcn />
+      <RepeatingSection />
     </div>
   )
 }
