@@ -87,6 +87,8 @@ export function EventFormPopover() {
   }, [isOpen])
 
   const handleDragMouseDown = useCallback((e: React.MouseEvent) => {
+    // 헤더 내부의 인터랙티브 엘리먼트(X 버튼 등) 클릭 시 드래그 시작 안 함
+    if ((e.target as HTMLElement).closest('button, input, textarea, select, a')) return
     dragging.current = true
     dragOffset.current = {
       x: e.clientX - position.x,
