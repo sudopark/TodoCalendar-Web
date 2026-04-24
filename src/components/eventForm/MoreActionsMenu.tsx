@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronDown } from 'lucide-react'
+import { MoreHorizontal, Copy, Trash2 } from 'lucide-react'
 
 interface MoreActionsMenuProps {
   onCopy: () => void
@@ -37,36 +37,43 @@ export function MoreActionsMenu({ onCopy, onDelete }: MoreActionsMenuProps) {
         aria-label={t('eventForm.more_actions')}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-1 rounded px-2 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+        className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary hover:text-text-primary hover:bg-surface-sunken transition-colors"
         onClick={() => setOpen(v => !v)}
       >
-        {t('eventForm.more_actions')}
-        <ChevronDown size={16} aria-hidden="true" />
+        <MoreHorizontal size={18} aria-hidden="true" />
       </button>
       {open && (
-        <div
-          role="menu"
-          className="absolute right-0 z-10 mt-1 min-w-[8rem] rounded-md border border-gray-200 bg-white shadow-md dark:bg-gray-800 dark:border-gray-700"
-        >
-          <button
-            type="button"
-            role="menuitem"
-            className="block w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
-            onClick={() => { setOpen(false); onCopy() }}
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            role="menu"
+            className="absolute right-0 z-50 mt-1.5 min-w-[10rem] overflow-hidden rounded-xl border border-border-light bg-background shadow-lg"
           >
-            {t('eventForm.copy')}
-          </button>
-          {onDelete && (
             <button
               type="button"
               role="menuitem"
-              className="block w-full px-3 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400"
-              onClick={() => { setOpen(false); onDelete() }}
+              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-surface-sunken transition-colors"
+              onClick={() => { setOpen(false); onCopy() }}
             >
-              {t('common.delete')}
+              <Copy className="h-4 w-4 text-text-secondary" />
+              {t('eventForm.copy')}
             </button>
-          )}
-        </div>
+            {onDelete && (
+              <>
+                <div className="border-t border-border-light" />
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                  onClick={() => { setOpen(false); onDelete() }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {t('common.delete')}
+                </button>
+              </>
+            )}
+          </div>
+        </>
       )}
     </div>
   )
