@@ -1,27 +1,38 @@
 import { useTranslation } from 'react-i18next'
+import { CheckCircle2, CalendarDays } from 'lucide-react'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useEventFormStore } from '../../stores/eventFormStore'
-import { Flag } from 'lucide-react'
 
 export function EventTypeToggle() {
   const { t } = useTranslation()
   const eventType = useEventFormStore(s => s.eventType)
   const setEventType = useEventFormStore(s => s.setEventType)
 
-  const isTodo = eventType === 'todo'
-
   return (
-    <div className="flex items-center gap-3">
-      <Flag className="w-4 h-4 text-muted-foreground shrink-0" />
-      <span className="text-sm">
-        {t('eventType.is_todo', 'Todo')}
-      </span>
-      <button
-        type="button"
-        className="ml-1 rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground hover:bg-muted/80 transition-colors"
-        onClick={() => setEventType(isTodo ? 'schedule' : 'todo')}
+    <ToggleGroup
+      value={[eventType]}
+      onValueChange={(values: string[]) => {
+        // 빈 배열(현재 선택 해제) 방지 — 둘 중 하나는 반드시 선택
+        const next = values[0]
+        if (next === 'todo' || next === 'schedule') setEventType(next)
+      }}
+      aria-label={t('eventType.label', '이벤트 유형')}
+      className="w-full rounded-full bg-surface-sunken p-0.5"
+    >
+      <ToggleGroupItem
+        value="todo"
+        className="flex-1 h-8 gap-1.5 rounded-full text-xs font-medium text-text-secondary aria-pressed:bg-white aria-pressed:text-text-primary aria-pressed:shadow-sm transition-all"
       >
-        {isTodo ? t('common.yes', '예') : t('common.no', '아니오')}
-      </button>
-    </div>
+        <CheckCircle2 className="h-3.5 w-3.5" />
+        {t('eventType.todo', 'Todo')}
+      </ToggleGroupItem>
+      <ToggleGroupItem
+        value="schedule"
+        className="flex-1 h-8 gap-1.5 rounded-full text-xs font-medium text-text-secondary aria-pressed:bg-white aria-pressed:text-text-primary aria-pressed:shadow-sm transition-all"
+      >
+        <CalendarDays className="h-3.5 w-3.5" />
+        {t('eventType.schedule', 'Schedule')}
+      </ToggleGroupItem>
+    </ToggleGroup>
   )
 }
