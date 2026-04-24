@@ -29,7 +29,7 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
     : ''
 
   return (
-    <div className="w-full h-full flex flex-col bg-white border-l border-border-calendar shadow-lg">
+    <div className="w-full h-full flex flex-col bg-white">
       {/* 닫기 버튼 */}
       <div className="flex items-center justify-end px-3 pt-3">
         <button
@@ -38,7 +38,7 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
           className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 5l7 7-7 7" />
+            <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>
       </div>

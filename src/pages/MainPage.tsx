@@ -76,17 +76,21 @@ export function MainPage() {
     <div className="h-screen bg-slate-50">
       <div className="flex h-full flex-col overflow-hidden">
         <TopToolbar />
-        <div className="flex flex-1 min-h-0 relative">
+        <div className="flex flex-1 min-h-0">
           <LeftSidebar />
           <MainCalendar onEventClick={handleEventClick} />
 
-          {/* 오버레이: 중앙 캘린더를 덮는 패널 */}
+          {/* 인라인 패널: 열리면 중앙 캘린더가 줄어듦 */}
           <div
-            className={`absolute right-0 top-0 bottom-0 w-[408px] z-10 transition-transform duration-300 ease-in-out ${
-              rightPanelOpen ? 'translate-x-0' : 'translate-x-full'
+            className={`shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${
+              rightPanelOpen ? 'w-[408px]' : 'w-0'
             }`}
           >
-            <RightEventPanel onEventClick={handleEventClick} />
+            <div className="w-[408px] h-full py-4 pr-4">
+              <div className="h-full rounded-lg border border-border-calendar bg-white shadow-sm overflow-hidden">
+                <RightEventPanel onEventClick={handleEventClick} />
+              </div>
+            </div>
           </div>
         </div>
       </div>

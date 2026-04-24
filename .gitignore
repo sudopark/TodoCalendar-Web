@@ -34,6 +34,7 @@ e2e/.auth/
 
 # Superpowers docs (design specs, plans)
 docs/superpowers/
+.superpowers/
 
 # Editor directories and files
 .vscode/*
