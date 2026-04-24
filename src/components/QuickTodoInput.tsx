@@ -38,7 +38,7 @@ export function QuickTodoInput() {
     <div className="flex items-stretch gap-2 rounded-[5px] bg-[#f3f4f7] border border-gray-200 px-3 py-2.5">
       <div
         className="shrink-0 self-stretch rounded-full"
-        style={{ width: 3, backgroundColor: tagColor }}
+        style={{ width: 4, backgroundColor: tagColor }}
       />
       <input
         className="flex-1 bg-transparent text-sm text-[#323232] placeholder:text-[#ccd0dc] outline-none"
