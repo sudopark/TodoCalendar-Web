@@ -15,6 +15,7 @@ import { EventFormHeader } from '../components/eventForm/EventFormHeader'
 import { EventTimeSection } from '../components/eventForm/EventTimeSection'
 import { EventDetailsSection } from '../components/eventForm/EventDetailsSection'
 import { useEventDefaultsStore } from '../stores/eventDefaultsStore'
+import { defaultNotificationsForEventTime } from '../stores/eventFormStore'
 import { useEventFormDirty, type EventFormSnapshot } from '../hooks/useEventFormDirty'
 import type { Todo, EventTime, Repeating, NotificationOption } from '../models'
 
@@ -27,7 +28,7 @@ export function TodoFormPage() {
 
   const { addEvent, removeEvent } = useCalendarEventsStore()
   const { addTodo, removeTodo, replaceTodo } = useCurrentTodosStore()
-  const { defaultTagId, defaultNotificationSeconds } = useEventDefaultsStore()
+  const { defaultTagId } = useEventDefaultsStore()
 
   const prefilled = (location.state as { prefilled?: Partial<EventFormSnapshot> } | null)?.prefilled
 
@@ -43,7 +44,11 @@ export function TodoFormPage() {
   const [repeating, setRepeating] = useState<Repeating | null>(() => (prefilled?.repeating as Repeating | null | undefined) ?? null)
   const [notifications, setNotifications] = useState<NotificationOption[]>(() => {
     if (prefilled?.notifications) return prefilled.notifications as NotificationOption[]
-    return !id && defaultNotificationSeconds != null ? [{ type: 'time' as const, seconds: defaultNotificationSeconds }] : []
+    if (id) return []
+    const initialTime = prefilled?.eventTime !== undefined
+      ? (prefilled.eventTime as EventTime | null)
+      : (selectedDate ? { time_type: 'at' as const, timestamp: Math.floor(selectedDate.getTime() / 1000) } : null)
+    return defaultNotificationsForEventTime(initialTime)
   })
   const [place, setPlace] = useState(() => prefilled?.place ?? '')
   const [url, setUrl] = useState(() => prefilled?.url ?? '')
@@ -58,7 +63,9 @@ export function TodoFormPage() {
   function handleEventTimeChange(newTime: EventTime | null) {
     const prevIsAllDay = eventTime?.time_type === 'allday'
     const nextIsAllDay = newTime?.time_type === 'allday'
-    if (prevIsAllDay !== nextIsAllDay) setNotifications([])
+    if (prevIsAllDay !== nextIsAllDay) {
+      setNotifications(id ? [] : defaultNotificationsForEventTime(newTime))
+    }
     setEventTime(newTime)
   }
 
