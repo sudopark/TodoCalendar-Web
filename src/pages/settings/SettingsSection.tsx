@@ -10,14 +10,14 @@ export function SettingsSection({ title, children, tone = 'default' }: SettingsS
   const titleColor = tone === 'danger' ? 'text-red-400' : 'text-[#bbb]'
   const ruleColor = tone === 'danger' ? 'bg-red-100' : 'bg-gray-100'
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       <div className="flex items-center gap-3">
         <span className={`text-[11px] font-semibold uppercase tracking-widest shrink-0 ${titleColor}`}>
           {title}
         </span>
         <div className={`flex-1 h-px ${ruleColor}`} />
       </div>
-      <div className="space-y-4">{children}</div>
+      <div className="space-y-7">{children}</div>
     </section>
   )
 }

@@ -60,7 +60,7 @@ export function EventDisplayPreview() {
   }
 
   return (
-    <div className="rounded-lg border border-gray-100 bg-white p-3">
+    <div className="rounded-lg border border-gray-100 bg-white p-4">
       <div className="grid grid-cols-7 gap-1">
         {SAMPLE_EVENTS_BY_DAY.map((events, i) => (
           <div key={i} className="min-h-[60px] p-1 border-r border-gray-50 last:border-r-0">

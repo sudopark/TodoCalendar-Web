@@ -41,7 +41,7 @@ export function CalendarAppearancePreview() {
   )
 
   return (
-    <div className="rounded-lg border border-gray-100 bg-white p-3">
+    <div className="rounded-lg border border-gray-100 bg-white p-4">
       <div className="grid grid-cols-7 mb-1">
         {weekdayKeys.map((k, i) => {
           const dow = (weekStartDay + i) % 7

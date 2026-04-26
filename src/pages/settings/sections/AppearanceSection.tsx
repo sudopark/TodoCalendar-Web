@@ -59,6 +59,19 @@ function ToggleSwitch({ on, onChange, ariaLabel }: { on: boolean; onChange: () =
   )
 }
 
+interface FieldProps {
+  label: string
+  children: React.ReactNode
+}
+function Field({ label, children }: FieldProps) {
+  return (
+    <div className="space-y-3">
+      <p className={settingsLabel}>{label}</p>
+      {children}
+    </div>
+  )
+}
+
 export function AppearanceSection() {
   const { t } = useTranslation()
   const theme = useThemeStore(s => s.theme)
@@ -107,13 +120,12 @@ export function AppearanceSection() {
   ]
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-14">
       {/* === 캘린더 외관 === */}
       <SettingsSection title={t('settings.calendar_appearance', '캘린더 외관')}>
         <CalendarAppearancePreview />
 
-        <div className="space-y-2">
-          <p className={settingsLabel}>{t('settings.week_start_day', '주 시작 요일')}</p>
+        <Field label={t('settings.week_start_day', '주 시작 요일')}>
           <div className="flex gap-1.5 flex-wrap">
             {WEEKDAY_OPTIONS.map(opt => (
               <button
@@ -131,11 +143,10 @@ export function AppearanceSection() {
               </button>
             ))}
           </div>
-        </div>
+        </Field>
 
-        <div className="space-y-2">
-          <p className={settingsLabel}>{t('settings.accent_days', '강조 날짜')}</p>
-          <div className="space-y-1.5">
+        <Field label={t('settings.accent_days', '강조 날짜')}>
+          <div className="space-y-3">
             {(['holiday', 'sunday', 'saturday'] as const).map(key => (
               <div key={key} className="flex items-center justify-between">
                 <span className="text-sm text-[#1f1f1f]">{t(`settings.accent_${key}`, key)}</span>
@@ -147,10 +158,9 @@ export function AppearanceSection() {
               </div>
             ))}
           </div>
-        </div>
+        </Field>
 
-        <div className="space-y-2">
-          <p className={settingsLabel}>{t('settings.theme', '테마')}</p>
+        <Field label={t('settings.theme', '테마')}>
           <div className="flex gap-2">
             {themeOptions.map(opt => (
               <button
@@ -167,15 +177,14 @@ export function AppearanceSection() {
               </button>
             ))}
           </div>
-        </div>
+        </Field>
       </SettingsSection>
 
       {/* === 캘린더 내 이벤트 표시 === */}
       <SettingsSection title={t('settings.event_display_section', '캘린더 이벤트 표시')}>
         <EventDisplayPreview />
 
-        <div className="space-y-2">
-          <p className={settingsLabel}>{t('settings.event_display_level', '이벤트 표시 레벨')}</p>
+        <Field label={t('settings.event_display_level', '이벤트 표시 레벨')}>
           <div className="flex gap-2">
             {EVENT_DISPLAY_OPTIONS.map(opt => (
               <button
@@ -193,9 +202,9 @@ export function AppearanceSection() {
               </button>
             ))}
           </div>
-        </div>
+        </Field>
 
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className={settingsLabel}>{t('settings.event_font_size', '이벤트 글꼴 크기 가중치')}</span>
             <span className={settingsLabel}>{eventFontSizeWeight > 0 ? `+${eventFontSizeWeight}` : eventFontSizeWeight}</span>
@@ -218,19 +227,13 @@ export function AppearanceSection() {
             ariaLabel={t('settings.show_event_names', '이벤트 이름 표시')}
           />
         </div>
-
-        <div className="pt-2">
-          <button className={settingsBtnSecondary} onClick={resetToDefaults}>
-            {t('settings.reset_defaults')}
-          </button>
-        </div>
       </SettingsSection>
 
       {/* === 이벤트 리스트(우측 패널) 옵션 === */}
       <SettingsSection title={t('settings.event_list_section', '이벤트 리스트 표시')}>
         <EventListPreview />
 
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className={settingsLabel}>{t('settings.event_list_font_size', '리스트 글꼴 크기 가중치')}</span>
             <span className={settingsLabel}>{eventListFontSizeWeight > 0 ? `+${eventListFontSizeWeight}` : eventListFontSizeWeight}</span>
@@ -245,7 +248,7 @@ export function AppearanceSection() {
           />
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           {[
             { key: 'showHolidayInEventList', label: t('settings.show_holidays_in_list', '공휴일 표시'), value: showHolidayInEventList },
             { key: 'showLunarCalendar', label: t('settings.show_lunar_calendar', '음력 표시'), value: showLunarCalendar },
@@ -267,21 +270,19 @@ export function AppearanceSection() {
       <SettingsSection title={t('settings.tag_colors')}>
         {editColors && (
           <>
-            <div className="space-y-2">
-              <p className={settingsLabel}>{t('settings.holiday_color')}</p>
+            <Field label={t('settings.holiday_color')}>
               <ColorPalette
                 selected={editColors.holiday}
                 onChange={hex => setEditColors(c => c ? { ...c, holiday: hex } : c)}
               />
-            </div>
-            <div className="space-y-2">
-              <p className={settingsLabel}>{t('settings.default_color')}</p>
+            </Field>
+            <Field label={t('settings.default_color')}>
               <ColorPalette
                 selected={editColors.default}
                 onChange={hex => setEditColors(c => c ? { ...c, default: hex } : c)}
               />
-            </div>
-            <div className="pt-2">
+            </Field>
+            <div>
               <button className={settingsBtnPrimary} onClick={handleSaveColors}>
                 {t('settings.save_colors')}
               </button>
@@ -289,6 +290,13 @@ export function AppearanceSection() {
           </>
         )}
       </SettingsSection>
+
+      {/* === 외관 전체 초기화 (페이지 푸터) === */}
+      <div className="pt-2">
+        <button className={settingsBtnSecondary} onClick={resetToDefaults}>
+          {t('settings.reset_defaults')}
+        </button>
+      </div>
     </div>
   )
 }
