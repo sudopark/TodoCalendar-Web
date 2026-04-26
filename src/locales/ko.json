@@ -90,6 +90,7 @@
   "settings.notif_1hour": "1시간 전",
   "settings.country_search": "국가 검색",
   "settings.country_no_results": "검색 결과 없음",
+  "settings.country_current": "현재 선택",
   "settings.colors_load_failed": "색상 로드에 실패했습니다",
   "settings.colors_saved": "색상이 저장되었습니다",
   "settings.colors_save_failed": "색상 저장에 실패했습니다",

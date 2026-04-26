@@ -90,6 +90,7 @@
   "settings.notif_1hour": "1 hour before",
   "settings.country_search": "Search country",
   "settings.country_no_results": "No matching country",
+  "settings.country_current": "Currently selected",
   "settings.colors_load_failed": "Failed to load colors",
   "settings.colors_saved": "Colors saved",
   "settings.colors_save_failed": "Failed to save colors",
