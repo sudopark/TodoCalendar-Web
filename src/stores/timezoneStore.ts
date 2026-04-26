@@ -4,6 +4,7 @@ const STORAGE_KEY = 'custom_timezone'
 
 interface TimezoneState {
   timezone: string
+  systemTimezone: string
   isCustom: boolean
   setTimezone: (tz: string | null) => void
 }
@@ -25,6 +26,7 @@ export const useTimezoneStore = create<TimezoneState>((set) => {
   const initial = loadTimezone()
   return {
     timezone: initial.timezone,
+    systemTimezone: systemTz,
     isCustom: initial.isCustom,
     setTimezone: (tz) => {
       if (tz) {
