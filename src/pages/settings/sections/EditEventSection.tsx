@@ -24,23 +24,23 @@ function useNotificationPresets(): NotificationPreset[] {
   ], [t])
 }
 
-interface TagChipProps {
+interface SelectedTagChipProps {
   name: string
   color: string
-  selected: boolean
+  active: boolean
   onClick: () => void
 }
 
-function TagChip({ name, color, selected, onClick }: TagChipProps) {
+function SelectedTagChip({ name, color, active, onClick }: SelectedTagChipProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-pressed={selected}
+      aria-current={active ? 'page' : undefined}
       className={cn(
-        'inline-flex items-center gap-2 rounded-full px-3 h-8 text-sm font-medium transition-colors',
-        selected
-          ? 'bg-[#1f1f1f] text-white'
+        'inline-flex items-center gap-2 rounded-full px-3 h-8 text-sm font-medium transition-colors max-w-full',
+        active
+          ? 'bg-gray-100 text-[#1f1f1f]'
           : 'bg-gray-100 text-[#1f1f1f] hover:bg-gray-200',
       )}
     >
@@ -50,6 +50,7 @@ function TagChip({ name, color, selected, onClick }: TagChipProps) {
         aria-hidden="true"
       />
       <span className="truncate">{name}</span>
+      <ChevronRight className="h-3.5 w-3.5 text-gray-500 shrink-0" />
     </button>
   )
 }
@@ -69,36 +70,29 @@ export function EditEventSection() {
 
   const notificationPresets = useNotificationPresets()
   const tagsOpen = subView === 'tags'
+  const defaultTagOpen = subView === 'defaultTag'
 
   const baseDefaultColor =
     (defaultTagColors?.default && defaultTagColors.default.length > 0
       ? defaultTagColors.default
       : APP_FALLBACK_DEFAULT_COLOR)
 
-  const tagList = Array.from(tags.values())
+  const selectedTag = defaultTagId ? tags.get(defaultTagId) : undefined
+  const selectedName = selectedTag?.name ?? t('tag.default_name', '기본')
+  const selectedColor =
+    selectedTag?.color_hex ?? (defaultTagId ? APP_FALLBACK_DEFAULT_COLOR : baseDefaultColor)
 
   return (
     <div className="space-y-14">
       <SettingsSection title={t('settings.defaults')}>
-        <div className="flex items-start justify-between gap-4">
-          <p className={cn(settingsLabel, 'pt-1.5 shrink-0')}>{t('settings.default_tag')}</p>
-          <div className="flex flex-wrap justify-end gap-2 max-w-[70%]">
-            <TagChip
-              name={t('tag.default_name', '기본')}
-              color={baseDefaultColor}
-              selected={defaultTagId == null}
-              onClick={() => setDefaults({ defaultTagId: null })}
-            />
-            {tagList.map(tag => (
-              <TagChip
-                key={tag.uuid}
-                name={tag.name}
-                color={tag.color_hex ?? APP_FALLBACK_DEFAULT_COLOR}
-                selected={defaultTagId === tag.uuid}
-                onClick={() => setDefaults({ defaultTagId: tag.uuid })}
-              />
-            ))}
-          </div>
+        <div className="flex items-center justify-between gap-4">
+          <p className={cn(settingsLabel, 'shrink-0')}>{t('settings.default_tag')}</p>
+          <SelectedTagChip
+            name={selectedName}
+            color={selectedColor}
+            active={defaultTagOpen}
+            onClick={() => navigate('/settings/editEvent/defaultTag')}
+          />
         </div>
 
         <div className="flex items-center justify-between gap-4">
