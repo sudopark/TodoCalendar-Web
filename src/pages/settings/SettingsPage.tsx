@@ -19,6 +19,7 @@ import { NotificationSection } from './sections/NotificationSection'
 import { GoogleCalendarSection } from './sections/GoogleCalendarSection'
 import { AccountSection } from './sections/AccountSection'
 import { TagManagementPanel } from './tagManagement/TagManagementPanel'
+import { DefaultTagPickerPanel } from './sections/DefaultTagPickerPanel'
 
 function renderSection(id: SettingCategoryId) {
   switch (id) {
@@ -42,6 +43,8 @@ export function SettingsPage() {
   const selected: SettingCategoryId = hasExplicitCategory ? categoryId : DEFAULT_SETTING_CATEGORY
   const category = findSettingCategory(selected)
   const tagsPanelOpen = selected === 'editEvent' && subView === 'tags'
+  const defaultTagPanelOpen = selected === 'editEvent' && subView === 'defaultTag'
+  const subPanelOpen = tagsPanelOpen || defaultTagPanelOpen
 
   useEffect(() => {
     if (categoryId !== undefined && !isSettingCategoryId(categoryId)) {
@@ -57,7 +60,7 @@ export function SettingsPage() {
     navigate('/')
   }
 
-  const handleCloseTags = () => {
+  const handleCloseSubPanel = () => {
     navigate('/settings/editEvent')
   }
 
@@ -66,7 +69,7 @@ export function SettingsPage() {
       <div
         className={cn(
           'md:grid',
-          tagsPanelOpen
+          subPanelOpen
             ? 'md:grid-cols-[15rem_minmax(0,1fr)_minmax(0,1fr)] md:max-w-7xl'
             : 'md:grid-cols-[15rem_minmax(0,1fr)] md:max-w-5xl',
         )}
@@ -85,13 +88,13 @@ export function SettingsPage() {
         <main
           className={cn(
             'px-4 py-6 md:px-10 md:py-10',
-            tagsPanelOpen ? 'md:border-r md:border-gray-100' : '',
-            // mobile 표시 규칙: 카테고리 선택됨 AND tags 패널이 mobile에서 가리는 중이 아님
-            hasExplicitCategory && !tagsPanelOpen ? 'block' : 'hidden',
+            subPanelOpen ? 'md:border-r md:border-gray-100' : '',
+            // mobile 표시 규칙: 카테고리 선택됨 AND 서브 패널이 mobile에서 가리는 중이 아님
+            hasExplicitCategory && !subPanelOpen ? 'block' : 'hidden',
             'md:block',
           )}
         >
-          {hasExplicitCategory && !tagsPanelOpen && (
+          {hasExplicitCategory && !subPanelOpen && (
             <div className="md:hidden flex items-center gap-2 mb-8 -mx-4 px-4 pb-3 border-b border-gray-100">
               <button
                 type="button"
@@ -109,10 +112,15 @@ export function SettingsPage() {
           {renderSection(selected)}
         </main>
 
-        {/* 우측 TagManagement 패널 — editEvent/tags 서브뷰에서만 */}
+        {/* 우측 서브 패널 — editEvent의 tags / defaultTag 서브뷰 */}
         {tagsPanelOpen && (
           <aside className="px-4 py-6 md:px-10 md:py-10 block">
-            <TagManagementPanel onClose={handleCloseTags} />
+            <TagManagementPanel onClose={handleCloseSubPanel} />
+          </aside>
+        )}
+        {defaultTagPanelOpen && (
+          <aside className="px-4 py-6 md:px-10 md:py-10 block">
+            <DefaultTagPickerPanel onClose={handleCloseSubPanel} />
           </aside>
         )}
       </div>
