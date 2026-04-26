@@ -5,9 +5,14 @@ const STORAGE_KEY = 'event_defaults'
 interface EventDefaults {
   defaultTagId: string | null
   defaultNotificationSeconds: number | null
+  defaultAllDayNotificationSeconds: number | null
 }
 
-const DEFAULT_VALUES: EventDefaults = { defaultTagId: null, defaultNotificationSeconds: null }
+const DEFAULT_VALUES: EventDefaults = {
+  defaultTagId: null,
+  defaultNotificationSeconds: null,
+  defaultAllDayNotificationSeconds: null,
+}
 
 function load(): EventDefaults {
   try {
@@ -24,7 +29,11 @@ export const useEventDefaultsStore = create<EventDefaultsState>((set, get) => ({
   ...load(),
   setDefaults: (updates) => {
     const next = { ...get(), ...updates }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ defaultTagId: next.defaultTagId, defaultNotificationSeconds: next.defaultNotificationSeconds }))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      defaultTagId: next.defaultTagId,
+      defaultNotificationSeconds: next.defaultNotificationSeconds,
+      defaultAllDayNotificationSeconds: next.defaultAllDayNotificationSeconds,
+    }))
     set(updates)
   },
 }))
