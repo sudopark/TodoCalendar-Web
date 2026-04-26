@@ -108,6 +108,37 @@ describe('calendarEventsStore — refreshYears', () => {
     expect(events.some(e => e.event.uuid === 'new')).toBe(true)
     expect(events.some(e => e.event.uuid === 'old')).toBe(false)
   })
+
+  it('년도 경계를 넘는 multi-day 이벤트가 새로고침 시 중복되지 않는다 (#76)', async () => {
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+    // 2025-12-31 ~ 2026-01-02 까지 걸친 schedule
+    const crossYear = {
+      uuid: 'cross',
+      name: 'Cross-year',
+      event_time: {
+        time_type: 'period' as const,
+        period_start: Math.floor(new Date(2025, 11, 31, 10, 0).getTime() / 1000),
+        period_end: Math.floor(new Date(2026, 0, 2, 18, 0).getTime() / 1000),
+      },
+    }
+    vi.mocked(todoApi.getTodos).mockResolvedValue([])
+    vi.mocked(scheduleApi.getSchedules).mockResolvedValue([crossYear])
+
+    // 양쪽 년도를 모두 로드한 상태
+    await useCalendarEventsStore.getState().fetchEventsForYear(2025)
+    await useCalendarEventsStore.getState().fetchEventsForYear(2026)
+    expect(useCalendarEventsStore.getState().eventsByDate.get('2025-12-31')).toHaveLength(1)
+    expect(useCalendarEventsStore.getState().eventsByDate.get('2026-01-01')).toHaveLength(1)
+    expect(useCalendarEventsStore.getState().eventsByDate.get('2026-01-02')).toHaveLength(1)
+
+    // 새로고침해도 동일 이벤트가 한 번씩만 노출되어야 함
+    await useCalendarEventsStore.getState().refreshYears([2026])
+
+    expect(useCalendarEventsStore.getState().eventsByDate.get('2025-12-31')).toHaveLength(1)
+    expect(useCalendarEventsStore.getState().eventsByDate.get('2026-01-01')).toHaveLength(1)
+    expect(useCalendarEventsStore.getState().eventsByDate.get('2026-01-02')).toHaveLength(1)
+  })
 })
 
 describe('calendarEventsStore — mutation', () => {

@@ -94,14 +94,21 @@ export function groupEventsByDate(
     map.set(dateKey, list)
   }
 
-  // 단일 인스턴스(비반복 또는 반복의 한 turn)를 해당 기간 날짜들에 배치
+  // 단일 인스턴스(비반복 또는 반복의 한 turn)를 해당 기간 날짜들에 배치.
+  // 이벤트의 실제 [start, end]가 [lower, upper]를 넘어가도 범위 밖 날짜에는 배치하지 않는다 — 호출자가 지정한 범위에만 책임진다.
+  // 이게 안 지켜지면 다른 범위 fetch와 합쳐질 때 동일 날짜에 같은 이벤트가 여러 번 들어가 중복 노출 (#76).
+  const lowerDate = new Date(lower * 1000)
+  lowerDate.setHours(0, 0, 0, 0)
+  const upperDate = new Date(upper * 1000)
+  upperDate.setHours(0, 0, 0, 0)
+
   const assignInstance = (eventTime: EventTime, calEvent: CalendarEvent) => {
     if (!eventTimeOverlapsRange(eventTime, lower, upper)) return
     const start = eventTimeToStartDate(eventTime)
     const end = eventTimeToEndDate(eventTime)
-    const current = new Date(start)
+    const current = new Date(Math.max(start.getTime(), lowerDate.getTime()))
     current.setHours(0, 0, 0, 0)
-    const endDay = new Date(end)
+    const endDay = new Date(Math.min(end.getTime(), upperDate.getTime()))
     endDay.setHours(0, 0, 0, 0)
     while (current <= endDay) {
       const key = formatDateKey(current)
