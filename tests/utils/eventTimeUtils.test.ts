@@ -129,6 +129,31 @@ describe('groupEventsByDate', () => {
     expect(result.get('2024-06-12')).toHaveLength(1)
   })
 
+  it('년도 경계를 넘는 multi-day 이벤트는 [lower, upper] 안의 날짜에만 배치된다 (#76)', () => {
+    // given: 2025-12-31 ~ 2026-01-02 까지 걸친 schedule
+    const schedules: Schedule[] = [
+      {
+        uuid: 'cross',
+        name: 'Cross-year',
+        event_time: {
+          time_type: 'period',
+          period_start: dateToTimestamp(new Date(2025, 11, 31, 10, 0)),
+          period_end: dateToTimestamp(new Date(2026, 0, 2, 18, 0)),
+        },
+      },
+    ]
+
+    // when: 2026 year fetch
+    const lower = dateToTimestamp(new Date(2026, 0, 1))
+    const upper = dateToTimestamp(new Date(2026, 11, 31, 23, 59, 59))
+    const result = groupEventsByDate([], schedules, lower, upper)
+
+    // then: 2025-12-31은 배치되지 않고 2026 안의 날짜에만 배치
+    expect(result.get('2025-12-31')).toBeUndefined()
+    expect(result.get('2026-01-01')).toHaveLength(1)
+    expect(result.get('2026-01-02')).toHaveLength(1)
+  })
+
   it('범위 밖의 이벤트는 포함하지 않는다', () => {
     const lower = dateToTimestamp(new Date(2024, 5, 1))
     const upper = dateToTimestamp(new Date(2024, 5, 30, 23, 59, 59))
