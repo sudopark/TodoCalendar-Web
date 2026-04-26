@@ -48,6 +48,12 @@ function isAllDay(time: EventTime | null): boolean {
   return time?.time_type === 'allday'
 }
 
+export function defaultNotificationsForEventTime(time: EventTime | null): NotificationOption[] {
+  const { defaultNotificationSeconds, defaultAllDayNotificationSeconds } = useEventDefaultsStore.getState()
+  const seconds = isAllDay(time) ? defaultAllDayNotificationSeconds : defaultNotificationSeconds
+  return seconds != null ? [{ type: 'time', seconds }] : []
+}
+
 export function canSave(state: EventFormState): boolean {
   if (!state.name.trim()) return false
   if (state.eventType === 'schedule' && !state.eventTime) return false
@@ -81,15 +87,13 @@ export const useEventFormStore = create<EventFormState>((set, get) => ({
 
   openForm: (anchorRect, eventType = 'todo') => {
     const selectedDate = useUiStore.getState().selectedDate
-    const { defaultTagId, defaultNotificationSeconds } = useEventDefaultsStore.getState()
+    const { defaultTagId } = useEventDefaultsStore.getState()
 
     const eventTime: EventTime | null = selectedDate
       ? { time_type: 'at', timestamp: Math.floor(selectedDate.getTime() / 1000) }
       : null
 
-    const notifications: NotificationOption[] = defaultNotificationSeconds != null
-      ? [{ type: 'time', seconds: defaultNotificationSeconds }]
-      : []
+    const notifications = defaultNotificationsForEventTime(eventTime)
 
     set({
       isOpen: true,
@@ -146,7 +150,7 @@ export const useEventFormStore = create<EventFormState>((set, get) => ({
     const prev = get().eventTime
     const alldayChanged = isAllDay(prev) !== isAllDay(time)
     if (alldayChanged) {
-      set({ eventTime: time, notifications: [] })
+      set({ eventTime: time, notifications: defaultNotificationsForEventTime(time) })
     } else {
       set({ eventTime: time })
     }
