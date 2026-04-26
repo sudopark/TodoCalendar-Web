@@ -50,6 +50,8 @@
   "settings.management": "Management",
   "settings.default_tag": "Default Tag",
   "settings.default_notification": "Default Notification",
+  "settings.event_notification": "Event Notification",
+  "settings.allday_event_notification": "All-day Event Notification",
   "settings.none": "None",
   "settings.notification": "Notifications",
   "settings.notification_granted": "Notifications are enabled",

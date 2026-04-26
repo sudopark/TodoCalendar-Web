@@ -50,6 +50,8 @@
   "settings.management": "관리",
   "settings.default_tag": "기본 태그",
   "settings.default_notification": "기본 알림",
+  "settings.event_notification": "이벤트 알림",
+  "settings.allday_event_notification": "하루종일 이벤트 알림",
   "settings.none": "없음",
   "settings.notification": "알림",
   "settings.notification_granted": "알림이 허용되었습니다",

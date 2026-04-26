@@ -2,49 +2,128 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { useEventDefaultsStore } from '../../../stores/eventDefaultsStore'
 import { useEventTagStore } from '../../../stores/eventTagStore'
+import { APP_FALLBACK_DEFAULT_COLOR } from '../../../domain/tag/resolveEventTag'
 import { SettingsSection, settingsInput, settingsLabel } from '../SettingsSection'
 
-export function EditEventSection() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const { subView } = useParams<{ subView?: string }>()
-  const { defaultTagId, defaultNotificationSeconds, setDefaults } = useEventDefaultsStore()
-  const tags = useEventTagStore(s => s.tags)
+interface NotificationPreset {
+  label: string
+  value: number | null
+}
 
-  const notificationPresets = useMemo(() => [
+function useNotificationPresets(): NotificationPreset[] {
+  const { t } = useTranslation()
+  return useMemo(() => [
     { label: t('settings.none'), value: null },
     { label: t('settings.notif_5min'), value: -300 },
     { label: t('settings.notif_10min'), value: -600 },
     { label: t('settings.notif_30min'), value: -1800 },
     { label: t('settings.notif_1hour'), value: -3600 },
   ], [t])
+}
 
+interface TagChipProps {
+  name: string
+  color: string
+  selected: boolean
+  onClick: () => void
+}
+
+function TagChip({ name, color, selected, onClick }: TagChipProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={cn(
+        'inline-flex items-center gap-2 rounded-full px-3 h-8 text-sm font-medium transition-colors',
+        selected
+          ? 'bg-[#1f1f1f] text-white'
+          : 'bg-gray-100 text-[#1f1f1f] hover:bg-gray-200',
+      )}
+    >
+      <span
+        className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+        style={{ backgroundColor: color }}
+        aria-hidden="true"
+      />
+      <span className="truncate">{name}</span>
+    </button>
+  )
+}
+
+export function EditEventSection() {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const { subView } = useParams<{ subView?: string }>()
+  const {
+    defaultTagId,
+    defaultNotificationSeconds,
+    defaultAllDayNotificationSeconds,
+    setDefaults,
+  } = useEventDefaultsStore()
+  const tags = useEventTagStore(s => s.tags)
+  const defaultTagColors = useEventTagStore(s => s.defaultTagColors)
+
+  const notificationPresets = useNotificationPresets()
   const tagsOpen = subView === 'tags'
 
+  const baseDefaultColor =
+    (defaultTagColors?.default && defaultTagColors.default.length > 0
+      ? defaultTagColors.default
+      : APP_FALLBACK_DEFAULT_COLOR)
+
+  const tagList = Array.from(tags.values())
+
   return (
-    <div className="space-y-10">
+    <div className="space-y-14">
       <SettingsSection title={t('settings.defaults')}>
-        <div className="space-y-2">
-          <p className={settingsLabel}>{t('settings.default_tag')}</p>
+        <div className="flex items-start justify-between gap-4">
+          <p className={cn(settingsLabel, 'pt-1.5 shrink-0')}>{t('settings.default_tag')}</p>
+          <div className="flex flex-wrap justify-end gap-2 max-w-[70%]">
+            <TagChip
+              name={t('tag.default_name', '기본')}
+              color={baseDefaultColor}
+              selected={defaultTagId == null}
+              onClick={() => setDefaults({ defaultTagId: null })}
+            />
+            {tagList.map(tag => (
+              <TagChip
+                key={tag.uuid}
+                name={tag.name}
+                color={tag.color_hex ?? APP_FALLBACK_DEFAULT_COLOR}
+                selected={defaultTagId === tag.uuid}
+                onClick={() => setDefaults({ defaultTagId: tag.uuid })}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-4">
+          <p className={cn(settingsLabel, 'shrink-0')}>{t('settings.event_notification')}</p>
           <select
-            className={settingsInput}
-            value={defaultTagId ?? ''}
-            onChange={e => setDefaults({ defaultTagId: e.target.value || null })}
+            className={cn(settingsInput, 'max-w-[60%]')}
+            value={defaultNotificationSeconds ?? ''}
+            onChange={e => setDefaults({
+              defaultNotificationSeconds: e.target.value ? Number(e.target.value) : null,
+            })}
           >
-            <option value="">{t('settings.none')}</option>
-            {Array.from(tags.values()).map(tag => (
-              <option key={tag.uuid} value={tag.uuid}>{tag.name}</option>
+            {notificationPresets.map(p => (
+              <option key={p.label} value={p.value ?? ''}>{p.label}</option>
             ))}
           </select>
         </div>
-        <div className="space-y-2">
-          <p className={settingsLabel}>{t('settings.default_notification')}</p>
+
+        <div className="flex items-center justify-between gap-4">
+          <p className={cn(settingsLabel, 'shrink-0')}>{t('settings.allday_event_notification')}</p>
           <select
-            className={settingsInput}
-            value={defaultNotificationSeconds ?? ''}
-            onChange={e => setDefaults({ defaultNotificationSeconds: e.target.value ? Number(e.target.value) : null })}
+            className={cn(settingsInput, 'max-w-[60%]')}
+            value={defaultAllDayNotificationSeconds ?? ''}
+            onChange={e => setDefaults({
+              defaultAllDayNotificationSeconds: e.target.value ? Number(e.target.value) : null,
+            })}
           >
             {notificationPresets.map(p => (
               <option key={p.label} value={p.value ?? ''}>{p.label}</option>
