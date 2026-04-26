@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '../../../stores/themeStore'
@@ -7,13 +6,8 @@ import {
   type EventDisplayLevel,
   type WeekStartDay,
 } from '../../../stores/calendarAppearanceStore'
-import { useToastStore } from '../../../stores/toastStore'
-import { settingApi } from '../../../api/settingApi'
-import { ColorPalette } from '../../../components/ColorPalette'
-import type { DefaultTagColors } from '../../../models'
 import {
   SettingsSection,
-  settingsBtnPrimary,
   settingsBtnSecondary,
   settingsLabel,
 } from '../SettingsSection'
@@ -89,29 +83,6 @@ export function AppearanceSection() {
     setAppearance,
     resetToDefaults,
   } = useCalendarAppearanceStore()
-
-  const [editColors, setEditColors] = useState<DefaultTagColors | null>(null)
-
-  useEffect(() => {
-    settingApi.getDefaultTagColors()
-      .then(c => setEditColors(c))
-      .catch(e => {
-        console.warn('색상 로드 실패:', e)
-        useToastStore.getState().show(t('settings.colors_load_failed'), 'error')
-      })
-  }, [t])
-
-  const handleSaveColors = async () => {
-    if (!editColors) return
-    try {
-      const updated = await settingApi.updateDefaultTagColors(editColors)
-      setEditColors(updated)
-      useToastStore.getState().show(t('settings.colors_saved'), 'success')
-    } catch (e) {
-      console.warn('색상 저장 실패:', e)
-      useToastStore.getState().show(t('settings.colors_save_failed'), 'error')
-    }
-  }
 
   const themeOptions = [
     { id: 'system' as const, label: t('settings.theme_system') },
@@ -264,31 +235,6 @@ export function AppearanceSection() {
             </div>
           ))}
         </div>
-      </SettingsSection>
-
-      {/* === 태그 색상 === */}
-      <SettingsSection title={t('settings.tag_colors')}>
-        {editColors && (
-          <>
-            <Field label={t('settings.holiday_color')}>
-              <ColorPalette
-                selected={editColors.holiday}
-                onChange={hex => setEditColors(c => c ? { ...c, holiday: hex } : c)}
-              />
-            </Field>
-            <Field label={t('settings.default_color')}>
-              <ColorPalette
-                selected={editColors.default}
-                onChange={hex => setEditColors(c => c ? { ...c, default: hex } : c)}
-              />
-            </Field>
-            <div>
-              <button className={settingsBtnPrimary} onClick={handleSaveColors}>
-                {t('settings.save_colors')}
-              </button>
-            </div>
-          </>
-        )}
       </SettingsSection>
 
       {/* === 외관 전체 초기화 (페이지 푸터) === */}
