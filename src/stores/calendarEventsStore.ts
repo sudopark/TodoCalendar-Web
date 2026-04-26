@@ -16,6 +16,11 @@ interface CalendarEventsState {
   reset: () => void
 }
 
+// 진행 중인 fetch promise 추적 — StrictMode 등으로 동일 년도 fetch가 동시에 호출돼도
+// 단일 promise를 공유하도록 한다. 둘 다 loadedYears에 들어가기 전에 시작되어
+// 같은 데이터를 두 번 merge하던 race condition 차단.
+const fetchInFlight = new Map<number, Promise<void>>()
+
 export const useCalendarEventsStore = create<CalendarEventsState>((set, get) => ({
   eventsByDate: new Map(),
   loading: false,
@@ -23,29 +28,46 @@ export const useCalendarEventsStore = create<CalendarEventsState>((set, get) => 
 
   fetchEventsForYear: async (year: number) => {
     if (get().loadedYears.has(year)) return
-    set({ loading: true })
-    try {
-      const range = yearRange(year)
-      const [todos, schedules] = await Promise.all([
-        todoApi.getTodos(range.lower, range.upper),
-        scheduleApi.getSchedules(range.lower, range.upper),
-      ])
-      const yearEvents = groupEventsByDate(todos, schedules, range.lower, range.upper)
-      const merged = new Map(get().eventsByDate)
-      for (const [key, events] of yearEvents) {
-        const existing = merged.get(key) ?? []
-        merged.set(key, [...existing, ...events])
+    const existing = fetchInFlight.get(year)
+    if (existing) return existing
+
+    const promise = (async () => {
+      set({ loading: true })
+      try {
+        const range = yearRange(year)
+        const [todos, schedules] = await Promise.all([
+          todoApi.getTodos(range.lower, range.upper),
+          scheduleApi.getSchedules(range.lower, range.upper),
+        ])
+        const yearEvents = groupEventsByDate(todos, schedules, range.lower, range.upper)
+        const merged = new Map(get().eventsByDate)
+        for (const [key, events] of yearEvents) {
+          const existingDayEvents = merged.get(key) ?? []
+          merged.set(key, [...existingDayEvents, ...events])
+        }
+        const newLoadedYears = new Set(get().loadedYears)
+        newLoadedYears.add(year)
+        set({ eventsByDate: merged, loading: false, loadedYears: newLoadedYears })
+      } catch (e) {
+        console.warn('이벤트 로드 실패:', e)
+        set({ loading: false })
       }
-      const newLoadedYears = new Set(get().loadedYears)
-      newLoadedYears.add(year)
-      set({ eventsByDate: merged, loading: false, loadedYears: newLoadedYears })
-    } catch (e) {
-      console.warn('이벤트 로드 실패:', e)
-      set({ loading: false })
+    })()
+    fetchInFlight.set(year, promise)
+    try {
+      await promise
+    } finally {
+      fetchInFlight.delete(year)
     }
   },
 
   refreshYears: async (years: number[]) => {
+    // 진행 중인 fetch가 있으면 먼저 끝나기를 기다린다 — cleaned 상태를 그 fetch가 덮어쓰지 않도록.
+    const pending = years.map(y => fetchInFlight.get(y)).filter((p): p is Promise<void> => p !== undefined)
+    if (pending.length > 0) {
+      await Promise.allSettled(pending)
+    }
+
     const newLoadedYears = new Set(get().loadedYears)
     years.forEach(y => newLoadedYears.delete(y))
     const cleaned = new Map<string, CalendarEvent[]>()

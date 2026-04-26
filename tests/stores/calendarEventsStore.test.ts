@@ -82,6 +82,24 @@ describe('calendarEventsStore — fetchEventsForYear', () => {
 
     expect(useCalendarEventsStore.getState().loadedYears.has(2025)).toBe(false)
   })
+
+  it('동일 년도 동시 호출 시 중복 저장되지 않는다 (StrictMode 대응 #76)', async () => {
+    const { todoApi } = await import('../../src/api/todoApi')
+    const { scheduleApi } = await import('../../src/api/scheduleApi')
+    vi.mocked(todoApi.getTodos).mockResolvedValue([
+      { uuid: 't1', name: 'A', is_current: false, event_time: { time_type: 'at' as const, timestamp: MARCH31_TIMESTAMP } },
+    ])
+    vi.mocked(scheduleApi.getSchedules).mockResolvedValue([])
+
+    // StrictMode useEffect double-invocation을 시뮬레이션 — 두 호출 모두 loadedYears 등록 전에 시작
+    await Promise.all([
+      useCalendarEventsStore.getState().fetchEventsForYear(2025),
+      useCalendarEventsStore.getState().fetchEventsForYear(2025),
+    ])
+
+    const events = useCalendarEventsStore.getState().eventsByDate.get(MARCH31_KEY) ?? []
+    expect(events).toHaveLength(1)
+  })
 })
 
 describe('calendarEventsStore — refreshYears', () => {
