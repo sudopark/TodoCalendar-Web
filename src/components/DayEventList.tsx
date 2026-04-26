@@ -10,6 +10,7 @@ import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
 import { refreshTodoListStores } from '../utils/todoActions'
 import { formatDateKey } from '../utils/eventTimeUtils'
+import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 import type { Todo } from '../models'
 
@@ -20,6 +21,8 @@ function EventItem({ calEvent, onEventClick, onComplete, isLast }: {
   isLast: boolean
 }) {
   const { t } = useTranslation()
+  const fontSizeWeight = useCalendarAppearanceStore(s => s.eventListFontSizeWeight)
+  const nameFontSize = `${14 + fontSizeWeight}px`
 
   const { name, event_tag_id, event_time } = calEvent.type === 'todo'
     ? { ...calEvent.event, event_time: calEvent.event.event_time ?? undefined }
@@ -48,7 +51,10 @@ function EventItem({ calEvent, onEventClick, onComplete, isLast }: {
       {/* 이벤트 내용 */}
       <div className="flex-1 min-w-0 py-0.5 flex items-start gap-2">
         <div className="flex-1 min-w-0">
-          <p className="truncate text-sm font-semibold text-[#1f1f1f] leading-snug group-hover:text-black transition-colors duration-150">{name}</p>
+          <p
+            className="truncate font-semibold text-[#1f1f1f] leading-snug group-hover:text-black transition-colors duration-150"
+            style={{ fontSize: nameFontSize }}
+          >{name}</p>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             <span className="text-xs text-[#aaa] leading-none">
               <TimeDescription eventTime={event_time} />

@@ -11,7 +11,7 @@ import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 
-const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
+const ALL_WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
 
 // 이벤트 바 높이(px) + 간격
 const EVENT_ROW_HEIGHT = 20
@@ -21,7 +21,6 @@ const DATE_NUMBER_HEIGHT = 28
 // 날짜 숫자 아래 이벤트 바 시작 오프셋(px)
 const EVENT_AREA_TOP_OFFSET = 4
 
-// 셀 강조 색상
 const TODAY_BG = '#1f1f1f'
 
 interface MainCalendarGridProps {
@@ -43,21 +42,25 @@ interface EventBarProps {
   ev: EventOnWeekRow
   timeType: 'at' | 'period' | 'allday'
   showEventNames: boolean
+  fontSizeWeight: number
   onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
 }
 
-function EventBar({ ev, timeType, showEventNames, onEventClick }: EventBarProps) {
+function EventBar({ ev, timeType, showEventNames, fontSizeWeight, onEventClick }: EventBarProps) {
   const resolved = useResolvedEventTag(ev.event.event.event_tag_id)
   const color = resolved.color
   const isAtTime = timeType === 'at'
 
+  const fontSize = `${10 + fontSizeWeight}px`
+
   return (
     <div
-      className="flex items-center h-5 rounded px-1.5 py-0.5 text-[10px] leading-tight cursor-pointer pointer-events-auto overflow-hidden text-[#1f1f1f]"
+      className="flex items-center h-5 rounded px-1.5 py-0.5 leading-tight cursor-pointer pointer-events-auto overflow-hidden text-[#1f1f1f]"
       data-testid="event-bar"
       style={{
         gridColumn: `${ev.startCol} / ${ev.endCol + 1}`,
         backgroundColor: isAtTime ? 'transparent' : `${color}22`,
+        fontSize,
       }}
       onClick={(e) => {
         e.stopPropagation()
@@ -69,7 +72,7 @@ function EventBar({ ev, timeType, showEventNames, onEventClick }: EventBarProps)
         style={{ backgroundColor: color }}
       />
       <span className="flex-1 min-w-0 truncate font-medium">
-        {showEventNames ? ev.event.event.name : ' '}
+        {showEventNames ? ev.event.event.name : ' '}
       </span>
     </div>
   )
@@ -82,13 +85,24 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
   const eventsByDate = useCalendarEventsStore(s => s.eventsByDate)
   const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
   const isTagHidden = useTagFilterStore(s => s.isTagHidden)
-  const { rowHeight, fontSize, showEventNames } = useCalendarAppearanceStore()
+  const {
+    rowHeight,
+    weekStartDay,
+    accentDays,
+    eventDisplayLevel,
+    eventFontSizeWeight,
+    showEventNames,
+  } = useCalendarAppearanceStore()
 
-  // 첫 번째 주 컨테이너의 실제 높이를 측정 (flex-1로 인해 minHeight보다 클 수 있음)
+  const isMinimal = eventDisplayLevel === 'minimal'
+  const isFull = eventDisplayLevel === 'full'
+
+  // 첫 번째 주 컨테이너의 실제 높이를 측정 — medium 모드에서만 의미 있음
   const [actualRowHeight, setActualRowHeight] = useState(rowHeight)
   const firstWeekRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (isFull || isMinimal) return
     const el = firstWeekRef.current
     if (!el) return
     const observer = new ResizeObserver(entries => {
@@ -98,7 +112,13 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
     })
     observer.observe(el)
     return () => observer.disconnect()
-  }, [])
+  }, [isFull, isMinimal])
+
+  // 주 시작 요일에 따라 헤더 키 회전
+  const weekdayKeys = useMemo(
+    () => [...ALL_WEEKDAY_KEYS.slice(weekStartDay), ...ALL_WEEKDAY_KEYS.slice(0, weekStartDay)],
+    [weekStartDay],
+  )
 
   // days를 7일 단위로 주(week) 분할
   const weeks = useMemo(() => {
@@ -121,27 +141,42 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
     return filtered
   }, [eventsByDate, isTagHidden])
 
-  // 주별 이벤트 스택 계산
+  // 주별 이벤트 스택 — minimal 모드는 스택 불필요
   const weekStacks = useMemo(
-    () => weeks.map(weekDays => buildWeekEventStack(weekDays, filteredEventsByDate)),
-    [weeks, filteredEventsByDate],
+    () => isMinimal ? [] : weeks.map(weekDays => buildWeekEventStack(weekDays, filteredEventsByDate)),
+    [isMinimal, weeks, filteredEventsByDate],
   )
 
-  // 표시 가능한 이벤트 행 수 계산 (실제 셀 높이 기반)
+  // medium 모드 표시 가능 행 수
   const maxVisibleRows = Math.max(1, Math.floor((actualRowHeight - DATE_NUMBER_HEIGHT - EVENT_AREA_TOP_OFFSET) / (EVENT_ROW_HEIGHT + EVENT_ROW_GAP)))
 
   const totalWeeks = weeks.length
 
+  // 주 컨테이너 className/style 계산
+  function getWeekClass(isLastWeek: boolean): string {
+    const base = `relative grid grid-cols-7${!isLastWeek ? ' border-b border-gray-100' : ''}`
+    return isFull ? base : `flex-1 ${base}`
+  }
+
+  function getWeekStyle(stackRowsLen: number): React.CSSProperties {
+    if (isFull) {
+      const naturalHeight = DATE_NUMBER_HEIGHT + EVENT_AREA_TOP_OFFSET + stackRowsLen * (EVENT_ROW_HEIGHT + EVENT_ROW_GAP)
+      return { minHeight: `${Math.max(rowHeight, naturalHeight)}px` }
+    }
+    return { minHeight: `${rowHeight}px` }
+  }
+
   return (
     <div className="flex h-full flex-col">
-      {/* 요일 헤더 — SectionHeader와 같은 타이포 언어 */}
+      {/* 요일 헤더 */}
       <div className="grid grid-cols-7 pb-2 shrink-0">
-        {WEEKDAY_KEYS.map((key, i) => {
-          const isWeekend = i === 0 || i === 6
+        {weekdayKeys.map((key, i) => {
+          const dayOfWeek = (weekStartDay + i) % 7
+          const accent = (accentDays.sunday && dayOfWeek === 0) || (accentDays.saturday && dayOfWeek === 6)
           return (
             <div
               key={key}
-              className={`px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest ${isWeekend ? 'text-[#e8a5a5]' : 'text-[#bbb]'}`}
+              className={`px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest ${accent ? 'text-[#e8a5a5]' : 'text-[#bbb]'}`}
             >
               {t(`calendar.weekdays.${key}`, key.toUpperCase())}
             </div>
@@ -152,45 +187,47 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
       {/* 주 단위 반복 */}
       <div className="flex flex-1 flex-col" style={{ minHeight: 0 }}>
         {weeks.map((weekDays, wi) => {
-          const stack = weekStacks[wi]
-          const visibleRows = stack.rows.slice(0, maxVisibleRows)
-          const hiddenCount = stack.rows.length > maxVisibleRows
+          const stack = weekStacks[wi] ?? { rows: [] }
+          const stackRowsLen = stack.rows.length
+          const visibleRows = isFull ? stack.rows : stack.rows.slice(0, maxVisibleRows)
+          const hiddenCount = !isFull && stack.rows.length > maxVisibleRows
             ? stack.rows.slice(maxVisibleRows).reduce((sum, row) => sum + row.length, 0)
             : 0
           const isLastWeek = wi === totalWeeks - 1
 
           return (
-            // flex-1로 균등 높이 분배, 마지막 주는 border-b 없음
             <div
               key={wi}
-              ref={wi === 0 ? firstWeekRef : undefined}
-              className={`flex-1 relative grid grid-cols-7 ${!isLastWeek ? 'border-b border-gray-100' : ''}`}
-              style={{ minHeight: `${rowHeight}px` }}
+              ref={wi === 0 && !isFull && !isMinimal ? firstWeekRef : undefined}
+              className={getWeekClass(isLastWeek)}
+              style={getWeekStyle(stackRowsLen)}
             >
               {weekDays.map((day, di) => {
                 const isSelected = selectedDate != null && formatDateKey(selectedDate) === day.dateKey
                 const holidayNames = getHolidayNames(day.dateKey)
                 const isHoliday = holidayNames.length > 0
-                const isWeekend = day.date.getDay() === 0 || day.date.getDay() === 6
+                const dayOfWeek = day.date.getDay()
 
-                // 해당 날짜의 이벤트 (모바일 dots용)
+                // 해당 날짜의 이벤트
                 const dayEvents = filteredEventsByDate.get(day.dateKey) ?? []
-                const visibleDayEvents = dayEvents.slice(0, 3)
+                const dotEvents = dayEvents.slice(0, 3)
 
-                // 날짜 숫자 스타일 결정
-                // today: 블랙 fill + 흰 숫자 (강조)
-                // selected: 링 아웃라인 (오늘과 차별화)
-                // 일반: 텍스트만
                 const circleBg = day.isToday ? TODAY_BG : undefined
                 const ringClass = isSelected && !day.isToday
                   ? 'ring-2 ring-[#1f1f1f] ring-offset-1 ring-offset-white'
                   : ''
 
+                const accent = (
+                  (accentDays.holiday && isHoliday)
+                  || (accentDays.sunday && dayOfWeek === 0)
+                  || (accentDays.saturday && dayOfWeek === 6)
+                )
+
                 const dateTextColor = day.isToday
                   ? 'text-white font-semibold'
                   : !day.isCurrentMonth
                     ? 'text-gray-300'
-                    : (isHoliday || isWeekend)
+                    : accent
                       ? 'text-red-400'
                       : 'text-[#1f1f1f]'
 
@@ -201,11 +238,9 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                     data-testid="day-cell"
                     data-today={day.isToday || undefined}
                     data-selected={isSelected || undefined}
-                    style={{ fontSize: `${fontSize}px` }}
                     onClick={() => setSelectedDate(day.date)}
                     title={holidayNames.join(', ') || undefined}
                   >
-                    {/* 날짜 숫자 — today는 fill, selected는 outline */}
                     <div
                       className={`flex h-7 w-7 items-center justify-center text-sm rounded-full transition-all ${dateTextColor} ${ringClass}`}
                       style={{ backgroundColor: circleBg }}
@@ -213,10 +248,13 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                       {day.dayOfMonth}
                     </div>
 
-                    {/* Mobile: dots */}
-                    {visibleDayEvents.length > 0 && (
-                      <div className="md:hidden mt-0.5 flex gap-0.5" data-testid="event-dots">
-                        {visibleDayEvents.map((ev, j) => (
+                    {/* Mobile dots — 항상 표시. minimal 모드에선 데스크톱에서도 표시 */}
+                    {dotEvents.length > 0 && (
+                      <div
+                        className={`mt-0.5 flex gap-0.5 ${isMinimal ? '' : 'md:hidden'}`}
+                        data-testid="event-dots"
+                      >
+                        {dotEvents.map((ev, j) => (
                           <EventTagDot key={j} tagId={ev.event.event_tag_id} />
                         ))}
                       </div>
@@ -225,44 +263,46 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                 )
               })}
 
-              {/* Desktop: 이벤트 스팬 행들 (날짜 숫자 아래 절대 위치) */}
-              <div
-                className="hidden md:block absolute left-0 right-0 pointer-events-none"
-                style={{ top: `${DATE_NUMBER_HEIGHT + EVENT_AREA_TOP_OFFSET}px` }}
-              >
-                {visibleRows.map((row, ri) => (
-                  <div
-                    key={ri}
-                    className="grid grid-cols-7 relative"
-                    style={{ height: `${EVENT_ROW_HEIGHT}px`, marginBottom: `${EVENT_ROW_GAP}px` }}
-                  >
-                    {row.map((ev) => {
-                      const timeType = getEventTimeType(ev)
-                      const turn = ev.event.type === 'todo'
-                        ? ev.event.event.repeating_turn ?? 1
-                        : ev.event.event.show_turns?.[0] ?? 1
-                      return (
-                        <EventBar
-                          key={`${ev.event.event.uuid}:${turn}:${ev.startCol}`}
-                          ev={ev}
-                          timeType={timeType}
-                          showEventNames={showEventNames}
-                          onEventClick={onEventClick}
-                        />
-                      )
-                    })}
-                  </div>
-                ))}
-
-                {/* +N more 표시 */}
-                {hiddenCount > 0 && (
-                  <div className="grid grid-cols-7">
-                    <div className="col-span-7 text-[10px] font-medium text-[#969696] px-2 pointer-events-auto">
-                      +{hiddenCount} more
+              {/* Desktop 이벤트 오버레이 — minimal 모드는 렌더하지 않음 */}
+              {!isMinimal && (
+                <div
+                  className="hidden md:block absolute left-0 right-0 pointer-events-none"
+                  style={{ top: `${DATE_NUMBER_HEIGHT + EVENT_AREA_TOP_OFFSET}px` }}
+                >
+                  {visibleRows.map((row, ri) => (
+                    <div
+                      key={ri}
+                      className="grid grid-cols-7 relative"
+                      style={{ height: `${EVENT_ROW_HEIGHT}px`, marginBottom: `${EVENT_ROW_GAP}px` }}
+                    >
+                      {row.map((ev) => {
+                        const timeType = getEventTimeType(ev)
+                        const turn = ev.event.type === 'todo'
+                          ? ev.event.event.repeating_turn ?? 1
+                          : ev.event.event.show_turns?.[0] ?? 1
+                        return (
+                          <EventBar
+                            key={`${ev.event.event.uuid}:${turn}:${ev.startCol}`}
+                            ev={ev}
+                            timeType={timeType}
+                            showEventNames={showEventNames}
+                            fontSizeWeight={eventFontSizeWeight}
+                            onEventClick={onEventClick}
+                          />
+                        )
+                      })}
                     </div>
-                  </div>
-                )}
-              </div>
+                  ))}
+
+                  {hiddenCount > 0 && (
+                    <div className="grid grid-cols-7">
+                      <div className="col-span-7 text-[10px] font-medium text-[#969696] px-2 pointer-events-auto">
+                        +{hiddenCount} more
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )
         })}

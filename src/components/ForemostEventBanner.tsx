@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useForemostEventStore } from '../stores/foremostEventStore'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
+import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 import { tagDisplayName } from '../utils/tagDisplay'
 import { TimeDescription } from './TimeDescription'
 import type { Todo } from '../models/Todo'
@@ -14,6 +15,8 @@ interface ForemostEventBannerProps {
 export function ForemostEventBanner({ onEventClick }: ForemostEventBannerProps) {
   const foremostEvent = useForemostEventStore(s => s.foremostEvent)
   const { t } = useTranslation()
+  const fontSizeWeight = useCalendarAppearanceStore(s => s.eventListFontSizeWeight)
+  const nameFontSize = `${14 + fontSizeWeight}px`
 
   const event = foremostEvent?.event as Todo | Schedule | undefined
   const resolved = useResolvedEventTag(event?.event_tag_id ?? null)
@@ -42,7 +45,10 @@ export function ForemostEventBanner({ onEventClick }: ForemostEventBannerProps) 
           />
         </div>
         <div className="flex-1 min-w-0 py-0.5">
-          <p className="truncate text-sm font-semibold text-[#1f1f1f] leading-snug group-hover:text-black transition-colors duration-150">{event.name}</p>
+          <p
+            className="truncate font-semibold text-[#1f1f1f] leading-snug group-hover:text-black transition-colors duration-150"
+            style={{ fontSize: nameFontSize }}
+          >{event.name}</p>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             <span className="text-xs text-[#aaa] leading-none">
               <TimeDescription eventTime={eventTime} />

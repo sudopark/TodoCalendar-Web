@@ -1,8 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import { CheckCircle2 } from 'lucide-react'
 import { useUiStore } from '../stores/uiStore'
+import { formatDateKey } from '../utils/eventTimeUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 import { useForemostEventStore } from '../stores/foremostEventStore'
+import { useHolidayStore } from '../stores/holidayStore'
+import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 import { ForemostEventBanner } from './ForemostEventBanner'
 import { UncompletedTodoList } from './UncompletedTodoList'
 import { CurrentTodoList } from './CurrentTodoList'
@@ -10,6 +13,15 @@ import { DayEventList } from './DayEventList'
 import { QuickTodoInput } from './QuickTodoInput'
 import { CreateEventButton } from './CreateEventButton'
 import { ArchivePanel } from './ArchivePanel'
+
+function formatLunarDate(date: Date, locale: string): string | null {
+  try {
+    const fmt = new Intl.DateTimeFormat(`${locale}-u-ca-chinese`, { month: 'long', day: 'numeric' })
+    return fmt.format(date)
+  } catch {
+    return null
+  }
+}
 
 function SectionHeader({ label }: { label: string }) {
   return (
@@ -31,6 +43,10 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
   const toggleRightPanel = useUiStore(s => s.toggleRightPanel)
   const rightPanelMode = useUiStore(s => s.rightPanelMode)
   const openArchivePanel = useUiStore(s => s.openArchivePanel)
+  const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
+  const showHolidayInEventList = useCalendarAppearanceStore(s => s.showHolidayInEventList)
+  const showLunarCalendar = useCalendarAppearanceStore(s => s.showLunarCalendar)
+  const showUncompletedTodos = useCalendarAppearanceStore(s => s.showUncompletedTodos)
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
 
   if (rightPanelMode === 'archive') {
@@ -43,6 +59,8 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
   const weekdayText = selectedDate
     ? selectedDate.toLocaleDateString(dateLocale, { weekday: 'long' })
     : ''
+  const holidayNames = selectedDate ? getHolidayNames(formatDateKey(selectedDate)) : []
+  const lunarText = selectedDate && showLunarCalendar ? formatLunarDate(selectedDate, dateLocale) : null
 
   return (
     <div className="w-full h-full flex flex-col bg-white relative">
@@ -73,7 +91,15 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
           {selectedDate && (
             <div className="mb-6 pr-20">
               <h1 className="text-2xl font-bold text-[#323232]">{dateTitle}</h1>
-              <p className="text-sm text-[#969696] mt-0.5">{weekdayText}</p>
+              <div className="flex flex-wrap items-center gap-x-2 mt-0.5">
+                <p className="text-sm text-[#969696]">{weekdayText}</p>
+                {lunarText && (
+                  <p className="text-sm text-[#969696]">· {t('settings.lunar_prefix', '음력')} {lunarText}</p>
+                )}
+              </div>
+              {showHolidayInEventList && holidayNames.length > 0 && (
+                <p className="mt-1 text-sm text-red-400 font-medium">{holidayNames.join(', ')}</p>
+              )}
             </div>
           )}
 
@@ -84,7 +110,7 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
             </div>
           )}
 
-          <UncompletedTodoList onEventClick={onEventClick} />
+          {showUncompletedTodos && <UncompletedTodoList onEventClick={onEventClick} />}
 
           <CurrentTodoList onEventClick={onEventClick} />
 

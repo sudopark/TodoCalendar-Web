@@ -9,6 +9,7 @@ import { tagDisplayName } from '../utils/tagDisplay'
 import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
 import { refreshAllTodoStores } from '../utils/todoActions'
+import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 import type { Todo } from '../models'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 
@@ -23,6 +24,8 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: Uncomple
   const { t } = useTranslation()
   const resolved = useResolvedEventTag(todo.event_tag_id)
   const color = resolved.color
+  const fontSizeWeight = useCalendarAppearanceStore(s => s.eventListFontSizeWeight)
+  const nameFontSize = `${14 + fontSizeWeight}px`
   const tagName = tagDisplayName(resolved, t)
 
   return (
@@ -44,7 +47,10 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: Uncomple
       {/* 이벤트 내용 + 완료 버튼 */}
       <div className="flex-1 min-w-0 py-0.5 flex items-start gap-2">
         <div className="flex-1 min-w-0">
-          <p className="truncate text-sm font-semibold text-[#ea4444] leading-snug">{todo.name}</p>
+          <p
+            className="truncate font-semibold text-[#ea4444] leading-snug"
+            style={{ fontSize: nameFontSize }}
+          >{todo.name}</p>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             <span className="text-xs text-[#aaa] leading-none">Todo</span>
             {tagName && (

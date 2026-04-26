@@ -23,21 +23,29 @@ function isSameDay(a: Date, b: Date): boolean {
  */
 import { formatDateKey } from '../utils/eventTimeUtils'
 
-export function buildCalendarGrid(year: number, month: number, today: Date): CalendarDay[] {
+export function buildCalendarGrid(
+  year: number,
+  month: number,
+  today: Date,
+  weekStartDay: number = 0,
+): CalendarDay[] {
   const firstOfMonth = new Date(year, month, 1)
   const lastOfMonth = new Date(year, month + 1, 0)
 
   const firstDayOfWeek = firstOfMonth.getDay() // 0=Sun
   const lastDayOfWeek = lastOfMonth.getDay()   // 6=Sat
 
-  // 그리드 시작일: 첫째 주의 일요일
-  // 첫째 날이 일요일이면 이전 달 마지막 주를 추가로 보여줌
-  const startOffset = firstDayOfWeek === 0 ? 7 : firstDayOfWeek
+  // 그리드 시작일: 첫 주의 weekStartDay
+  // 첫째 날이 weekStartDay면 이전 달 마지막 주를 추가로 보여줌
+  let startOffset = (firstDayOfWeek - weekStartDay + 7) % 7
+  if (startOffset === 0) startOffset = 7
   const gridStart = new Date(year, month, 1 - startOffset)
 
-  // 그리드 종료일: 마지막 주의 토요일
-  // 마지막 날이 토요일이면 다음 달 첫 주를 추가로 보여줌
-  const endOffset = lastDayOfWeek === 6 ? 7 : (6 - lastDayOfWeek)
+  // 그리드 종료일: 마지막 주의 weekEndDay
+  // 마지막 날이 weekEndDay면 다음 달 첫 주를 추가로 보여줌
+  const weekEndDay = (weekStartDay + 6) % 7
+  let endOffset = (weekEndDay - lastDayOfWeek + 7) % 7
+  if (endOffset === 0) endOffset = 7
   const gridEnd = new Date(year, month + 1, endOffset)
 
   const totalDays = Math.round((gridEnd.getTime() - gridStart.getTime()) / (1000 * 60 * 60 * 24)) + 1

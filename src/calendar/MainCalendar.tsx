@@ -4,6 +4,7 @@ import MainCalendarGrid from './MainCalendarGrid'
 import { useUiStore } from '../stores/uiStore'
 import { useCalendarEventsStore } from '../stores/calendarEventsStore'
 import { useHolidayStore } from '../stores/holidayStore'
+import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 
 interface MainCalendarProps {
@@ -23,10 +24,12 @@ export default function MainCalendar({ today: todayProp, onEventClick }: MainCal
   const currentMonth = useUiStore(s => s.currentMonth)
   const fetchEventsForYear = useCalendarEventsStore(s => s.fetchEventsForYear)
   const fetchHolidays = useHolidayStore(s => s.fetchHolidays)
+  const weekStartDay = useCalendarAppearanceStore(s => s.weekStartDay)
+  const eventDisplayLevel = useCalendarAppearanceStore(s => s.eventDisplayLevel)
 
   const year = currentMonth.getFullYear()
   const month = currentMonth.getMonth()
-  const days = useMemo(() => buildCalendarGrid(year, month, today), [year, month, today])
+  const days = useMemo(() => buildCalendarGrid(year, month, today, weekStartDay), [year, month, today, weekStartDay])
 
   useEffect(() => {
     if (days.length === 0) return
@@ -35,8 +38,11 @@ export default function MainCalendar({ today: todayProp, onEventClick }: MainCal
     years.forEach(y => fetchHolidays(y))
   }, [days, fetchEventsForYear, fetchHolidays])
 
+  // full 모드는 콘텐츠가 자라는 만큼 페이지 스크롤이 발생해야 함
+  const overflowClass = eventDisplayLevel === 'full' ? 'overflow-y-auto' : 'overflow-hidden'
+
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-white px-2 pt-2 pb-4">
+    <div className={`flex-1 flex flex-col bg-white px-2 pt-2 pb-4 ${overflowClass}`}>
       <MainCalendarGrid days={days} onEventClick={onEventClick} />
     </div>
   )
