@@ -3,7 +3,31 @@ import { useTranslation } from 'react-i18next'
 import { Check, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useHolidayStore, type HolidayCountry } from '../../../stores/holidayStore'
-import { SettingsSection, settingsInput } from '../SettingsSection'
+import { SettingsSection, settingsInput, settingsLabel } from '../SettingsSection'
+
+interface CountryRowProps {
+  country: HolidayCountry
+  selected: boolean
+  onClick: () => void
+}
+
+function CountryRow({ country, selected, onClick }: CountryRowProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={cn(
+        'w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors',
+        selected ? 'text-[#1f1f1f] font-semibold bg-gray-50' : 'text-[#1f1f1f] hover:bg-gray-50',
+      )}
+    >
+      <span className="flex-1 truncate">{country.name}</span>
+      <span className="shrink-0 text-xs uppercase tracking-wider text-gray-400">{country.regionCode}</span>
+      {selected && <Check className="h-4 w-4 text-[#1f1f1f] shrink-0" strokeWidth={3} />}
+    </button>
+  )
+}
 
 export function HolidaySection() {
   const { t } = useTranslation()
@@ -27,6 +51,12 @@ export function HolidaySection() {
     )
   }, [availableCountries, query])
 
+  const selectedFromList = useMemo(
+    () => availableCountries.find(c => c.code === country.code),
+    [availableCountries, country.code],
+  )
+  const pinnedCountry = selectedFromList ?? country
+
   const handleSelect = (next: HolidayCountry) => {
     if (next.code === country.code) return
     setCountry(next)
@@ -34,6 +64,13 @@ export function HolidaySection() {
 
   return (
     <SettingsSection title={t('settings.holiday_country')}>
+      <div className="space-y-2">
+        <p className={settingsLabel}>{t('settings.country_current', '현재 선택')}</p>
+        <div className="rounded-lg border border-gray-100 overflow-hidden">
+          <CountryRow country={pinnedCountry} selected onClick={() => { /* already selected */ }} />
+        </div>
+      </div>
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
         <input
@@ -56,26 +93,15 @@ export function HolidaySection() {
             {t('settings.country_no_results', '검색 결과 없음')}
           </li>
         )}
-        {filtered.map(c => {
-          const selected = c.code === country.code
-          return (
-            <li key={c.code}>
-              <button
-                type="button"
-                onClick={() => handleSelect(c)}
-                aria-pressed={selected}
-                className={cn(
-                  'w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors',
-                  selected ? 'text-[#1f1f1f] font-semibold bg-gray-50' : 'text-[#1f1f1f] hover:bg-gray-50',
-                )}
-              >
-                <span className="flex-1 truncate">{c.name}</span>
-                <span className="shrink-0 text-xs uppercase tracking-wider text-gray-400">{c.regionCode}</span>
-                {selected && <Check className="h-4 w-4 text-[#1f1f1f] shrink-0" strokeWidth={3} />}
-              </button>
-            </li>
-          )
-        })}
+        {filtered.map(c => (
+          <li key={c.code}>
+            <CountryRow
+              country={c}
+              selected={c.code === country.code}
+              onClick={() => handleSelect(c)}
+            />
+          </li>
+        ))}
       </ul>
     </SettingsSection>
   )
