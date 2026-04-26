@@ -1,37 +1,82 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Check, Search } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { useHolidayStore, type HolidayCountry } from '../../../stores/holidayStore'
 import { SettingsSection, settingsInput } from '../SettingsSection'
 
 export function HolidaySection() {
   const { t } = useTranslation()
-  const holidayCountry = useHolidayStore(s => s.country)
-  const setHolidayCountry = useHolidayStore(s => s.setCountry)
+  const country = useHolidayStore(s => s.country)
+  const setCountry = useHolidayStore(s => s.setCountry)
+  const availableCountries = useHolidayStore(s => s.availableCountries)
+  const availableCountriesLoaded = useHolidayStore(s => s.availableCountriesLoaded)
+  const fetchAvailableCountries = useHolidayStore(s => s.fetchAvailableCountries)
 
-  const countries = useMemo(() => [
-    { label: t('settings.country_kr'), locale: 'ko', region: 'south_korea' },
-    { label: t('settings.country_us'), locale: 'en', region: 'united_states' },
-    { label: t('settings.country_jp'), locale: 'ja', region: 'japan' },
-    { label: t('settings.country_cn'), locale: 'zh', region: 'china' },
-    { label: t('settings.country_uk'), locale: 'en', region: 'united_kingdom' },
-    { label: t('settings.country_de'), locale: 'de', region: 'germany' },
-    { label: t('settings.country_fr'), locale: 'fr', region: 'france' },
-  ], [t])
+  const [query, setQuery] = useState('')
+
+  useEffect(() => {
+    fetchAvailableCountries().catch(() => {})
+  }, [fetchAvailableCountries])
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return availableCountries
+    return availableCountries.filter(c =>
+      c.name.toLowerCase().includes(q) || c.regionCode.toLowerCase().includes(q),
+    )
+  }, [availableCountries, query])
+
+  const handleSelect = (next: HolidayCountry) => {
+    if (next.code === country.code) return
+    setCountry(next)
+  }
 
   return (
     <SettingsSection title={t('settings.holiday_country')}>
-      <select
-        className={settingsInput}
-        value={`${holidayCountry.locale}:${holidayCountry.region}`}
-        onChange={e => {
-          const [locale, region] = e.target.value.split(':')
-          setHolidayCountry({ locale, region } as HolidayCountry)
-        }}
-      >
-        {countries.map(c => (
-          <option key={c.region} value={`${c.locale}:${c.region}`}>{c.label}</option>
-        ))}
-      </select>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        <input
+          type="text"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder={t('settings.country_search', '국가 검색')}
+          className={cn(settingsInput, 'pl-9')}
+        />
+      </div>
+
+      <ul className="max-h-[60vh] overflow-y-auto divide-y divide-gray-100 rounded-lg border border-gray-100">
+        {!availableCountriesLoaded && availableCountries.length === 0 && (
+          <li className="px-3 py-4 text-sm text-gray-400 text-center">
+            {t('common.loading', '불러오는 중...')}
+          </li>
+        )}
+        {availableCountriesLoaded && filtered.length === 0 && (
+          <li className="px-3 py-4 text-sm text-gray-400 text-center">
+            {t('settings.country_no_results', '검색 결과 없음')}
+          </li>
+        )}
+        {filtered.map(c => {
+          const selected = c.code === country.code
+          return (
+            <li key={c.code}>
+              <button
+                type="button"
+                onClick={() => handleSelect(c)}
+                aria-pressed={selected}
+                className={cn(
+                  'w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors',
+                  selected ? 'text-[#1f1f1f] font-semibold bg-gray-50' : 'text-[#1f1f1f] hover:bg-gray-50',
+                )}
+              >
+                <span className="flex-1 truncate">{c.name}</span>
+                <span className="shrink-0 text-xs uppercase tracking-wider text-gray-400">{c.regionCode}</span>
+                {selected && <Check className="h-4 w-4 text-[#1f1f1f] shrink-0" strokeWidth={3} />}
+              </button>
+            </li>
+          )
+        })}
+      </ul>
     </SettingsSection>
   )
 }
