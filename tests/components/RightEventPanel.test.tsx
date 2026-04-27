@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { RightEventPanel } from '../../src/components/RightEventPanel'
 import { useUiStore } from '../../src/stores/uiStore'
 import { useForemostEventStore } from '../../src/stores/foremostEventStore'
-import { useCurrentTodosStore } from '../../src/stores/currentTodosStore'
+import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 
 vi.mock('../../src/stores/foremostEventStore', () => ({ useForemostEventStore: vi.fn() }))
 vi.mock('../../src/stores/eventTagStore', () => ({
@@ -18,8 +18,8 @@ vi.mock('../../src/api/todoApi', () => ({
 vi.mock('../../src/api/scheduleApi', () => ({
   scheduleApi: { getSchedules: vi.fn().mockResolvedValue([]) },
 }))
-vi.mock('../../src/stores/calendarEventsStore', () => ({
-  useCalendarEventsStore: vi.fn((selector: any) =>
+vi.mock('../../src/repositories/caches/calendarEventsCache', () => ({
+  useCalendarEventsCache: vi.fn((selector: any) =>
     selector({ eventsByDate: new Map(), loading: false, lastRange: null })
   ),
 }))
@@ -52,7 +52,7 @@ describe('RightEventPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useUiStore.setState({ selectedDate: null })
-    useCurrentTodosStore.setState({ todos: [] })
+    useCurrentTodosCache.setState({ todos: [] })
     mockForemostStore(null)
   })
 
@@ -124,7 +124,7 @@ describe('RightEventPanel', () => {
   it('selectedDate가 없어도 CurrentTodoList의 항목이 표시된다', () => {
     // given: 날짜 미선택, currentTodo 존재
     useUiStore.setState({ selectedDate: null })
-    useCurrentTodosStore.setState({
+    useCurrentTodosCache.setState({
       todos: [{ uuid: 'ct1', name: '현재 할 일', is_current: true, event_time: null } as any],
     })
 

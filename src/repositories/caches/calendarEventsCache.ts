@@ -1,8 +1,12 @@
+/**
+ * @internal repositories 모듈 내부에서만 사용. 외부 import 금지.
+ * Repository 클래스를 통해서만 노출한다.
+ */
 import { create } from 'zustand'
-import { todoApi } from '../api/todoApi'
-import { scheduleApi } from '../api/scheduleApi'
-import { groupEventsByDate, eventTimeToStartDate, eventTimeToEndDate, formatDateKey, yearRange } from '../utils/eventTimeUtils'
-import type { CalendarEvent } from '../utils/eventTimeUtils'
+import { todoApi } from '../../api/todoApi'
+import { scheduleApi } from '../../api/scheduleApi'
+import { groupEventsByDate, eventTimeToStartDate, eventTimeToEndDate, formatDateKey, yearRange, monthRange } from '../../utils/eventTimeUtils'
+import type { CalendarEvent } from '../../utils/eventTimeUtils'
 
 interface CalendarEventsState {
   eventsByDate: Map<string, CalendarEvent[]>
@@ -13,6 +17,7 @@ interface CalendarEventsState {
   addEvent: (event: CalendarEvent) => void
   removeEvent: (uuid: string) => void
   replaceEvent: (uuid: string, next: CalendarEvent) => void
+  replaceMonth: (year: number, month: number, events: CalendarEvent[]) => void
   reset: () => void
 }
 
@@ -21,7 +26,7 @@ interface CalendarEventsState {
 // 같은 데이터를 두 번 merge하던 race condition 차단.
 const fetchInFlight = new Map<number, Promise<void>>()
 
-export const useCalendarEventsStore = create<CalendarEventsState>((set, get) => ({
+export const useCalendarEventsCache = create<CalendarEventsState>((set, get) => ({
   eventsByDate: new Map(),
   loading: false,
   loadedYears: new Set(),
@@ -140,6 +145,44 @@ export const useCalendarEventsStore = create<CalendarEventsState>((set, get) => 
   replaceEvent: (uuid: string, next: CalendarEvent) => {
     get().removeEvent(uuid)
     get().addEvent(next)
+  },
+
+  // 특정 월의 이벤트를 서버 응답으로 통째로 교체한다.
+  // EventRepository.fetchMonth 가 서버 응답을 캐시에 반영할 때 사용.
+  replaceMonth: (year: number, month: number, events: CalendarEvent[]) => {
+    const range = monthRange(year, month)
+    const updated = new Map(get().eventsByDate)
+
+    // 해당 월 날짜 키를 모두 제거
+    const lowerDate = new Date(range.lower * 1000)
+    lowerDate.setHours(0, 0, 0, 0)
+    const upperDate = new Date(range.upper * 1000)
+    upperDate.setHours(0, 0, 0, 0)
+    const cur = new Date(lowerDate)
+    while (cur <= upperDate) {
+      updated.delete(formatDateKey(cur))
+      cur.setDate(cur.getDate() + 1)
+    }
+
+    // 새 이벤트를 날짜별로 재배치
+    for (const event of events) {
+      const eventTime = event.type === 'todo'
+        ? (event.event.event_time ?? null)
+        : event.event.event_time
+      if (!eventTime) continue
+      const start = eventTimeToStartDate(eventTime)
+      const end = eventTimeToEndDate(eventTime)
+      const evCur = new Date(Math.max(start.getTime(), lowerDate.getTime()))
+      evCur.setHours(0, 0, 0, 0)
+      const evEnd = new Date(Math.min(end.getTime(), upperDate.getTime()))
+      evEnd.setHours(0, 0, 0, 0)
+      while (evCur <= evEnd) {
+        const key = formatDateKey(evCur)
+        updated.set(key, [...(updated.get(key) ?? []), event])
+        evCur.setDate(evCur.getDate() + 1)
+      }
+    }
+    set({ eventsByDate: updated })
   },
 
   reset: () => set({ eventsByDate: new Map(), loading: false, loadedYears: new Set() }),

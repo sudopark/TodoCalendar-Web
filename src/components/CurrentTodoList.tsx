@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
-import { useCurrentTodosStore } from '../stores/currentTodosStore'
-import { useCalendarEventsStore } from '../stores/calendarEventsStore'
+import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
+import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../utils/tagDisplay'
@@ -78,7 +78,7 @@ interface CurrentTodoListProps {
 }
 
 export function CurrentTodoList({ onEventClick }: CurrentTodoListProps) {
-  const todos = useCurrentTodosStore(s => s.todos)
+  const todos = useCurrentTodosCache(s => s.todos)
   const { isTagHidden } = useTagFilterStore()
   const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)
 
@@ -91,8 +91,8 @@ export function CurrentTodoList({ onEventClick }: CurrentTodoListProps) {
   }
 
   async function doComplete(todo: Todo, scope?: RepeatScope) {
-    const { removeTodo } = useCurrentTodosStore.getState()
-    const { removeEvent } = useCalendarEventsStore.getState()
+    const { removeTodo } = useCurrentTodosCache.getState()
+    const { removeEvent } = useCalendarEventsCache.getState()
     try {
       if (scope === 'this' && todo.repeating && todo.event_time) {
         const next = nextRepeatingTime(todo.event_time, todo.repeating_turn ?? 1, todo.repeating, todo.exclude_repeatings)

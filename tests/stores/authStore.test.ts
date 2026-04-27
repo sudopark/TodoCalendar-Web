@@ -109,24 +109,24 @@ describe('authStore', () => {
       vi.mocked(signOut).mockResolvedValue(undefined)
 
       const { useEventTagStore } = await import('../../src/stores/eventTagStore')
-      const { useCurrentTodosStore } = await import('../../src/stores/currentTodosStore')
+      const { useCurrentTodosCache } = await import('../../src/repositories/caches/currentTodosCache')
       const { useForemostEventStore } = await import('../../src/stores/foremostEventStore')
-      const { useCalendarEventsStore } = await import('../../src/stores/calendarEventsStore')
+      const { useCalendarEventsCache } = await import('../../src/repositories/caches/calendarEventsCache')
 
       useEventTagStore.setState({ tags: new Map([['t1', { uuid: 't1', name: 'tag', color_hex: '#ff0000' }]]) })
-      useCurrentTodosStore.setState({ todos: [{ uuid: 'td1', name: 'todo', is_current: true, event_time: null }] })
+      useCurrentTodosCache.setState({ todos: [{ uuid: 'td1', name: 'todo', is_current: true, event_time: null }] })
       useForemostEventStore.setState({ foremostEvent: { event_id: 'e1', is_todo: true } as any })
-      useCalendarEventsStore.setState({ eventsByDate: new Map([['2025-01-01', []]]), lastRange: { lower: 0, upper: 100 } })
+      useCalendarEventsCache.setState({ eventsByDate: new Map([['2025-01-01', []]]), lastRange: { lower: 0, upper: 100 } })
 
       // when: signOut 호출
       await useAuthStore.getState().signOut()
 
       // then: 모든 스토어가 초기 상태
       expect(useEventTagStore.getState().tags.get('t1')).toBeUndefined()
-      expect(useCurrentTodosStore.getState().todos).toEqual([])
+      expect(useCurrentTodosCache.getState().todos).toEqual([])
       expect(useForemostEventStore.getState().foremostEvent).toBeNull()
-      expect(useCalendarEventsStore.getState().eventsByDate.size).toBe(0)
-      expect(useCalendarEventsStore.getState().loadedYears.size).toBe(0)
+      expect(useCalendarEventsCache.getState().eventsByDate.size).toBe(0)
+      expect(useCalendarEventsCache.getState().loadedYears.size).toBe(0)
     })
   })
 })

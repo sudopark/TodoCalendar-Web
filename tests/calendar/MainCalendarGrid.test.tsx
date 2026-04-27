@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import MainCalendarGrid from '../../src/calendar/MainCalendarGrid'
 import { buildCalendarGrid } from '../../src/calendar/calendarUtils'
 import { useUiStore } from '../../src/stores/uiStore'
-import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
+import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import { useHolidayStore } from '../../src/stores/holidayStore'
 import { useEventTagStore } from '../../src/stores/eventTagStore'
 import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
@@ -23,7 +23,7 @@ const marchDays = buildCalendarGrid(2026, 2, today)
 describe('MainCalendarGrid', () => {
   beforeEach(() => {
     useUiStore.setState({ selectedDate: null })
-    useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false })
+    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false })
     useHolidayStore.setState({ holidays: new Map(), loadedYears: new Set() })
     useEventTagStore.setState({ tags: new Map() })
   })
@@ -81,7 +81,7 @@ describe('MainCalendarGrid', () => {
         },
       },
     ])
-    useCalendarEventsStore.setState({ eventsByDate: eventsMap, loading: false })
+    useCalendarEventsCache.setState({ eventsByDate: eventsMap, loading: false })
 
     // when: MainCalendarGrid 렌더
     render(<MainCalendarGrid days={marchDays} />)
@@ -107,7 +107,7 @@ describe('MainCalendarGrid', () => {
     }
     const eventsMap = new Map<string, CalendarEvent[]>()
     eventsMap.set('2026-03-10', [todoEvent])
-    useCalendarEventsStore.setState({ eventsByDate: eventsMap, loading: false })
+    useCalendarEventsCache.setState({ eventsByDate: eventsMap, loading: false })
     useEventTagStore.setState({ tags: new Map() })
 
     render(<MainCalendarGrid days={marchDays} onEventClick={onEventClick} />)
@@ -137,7 +137,7 @@ describe('MainCalendarGrid', () => {
     }
     const eventsMap = new Map<string, CalendarEvent[]>()
     eventsMap.set('2026-03-10', [todoEvent])
-    useCalendarEventsStore.setState({ eventsByDate: eventsMap, loading: false })
+    useCalendarEventsCache.setState({ eventsByDate: eventsMap, loading: false })
 
     render(<MainCalendarGrid days={marchDays} onEventClick={vi.fn()} />)
 

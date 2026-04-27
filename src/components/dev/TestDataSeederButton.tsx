@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { cleanupTestData, seedTestData } from '../../dev/testDataSeeder'
 import { useEventTagStore } from '../../stores/eventTagStore'
-import { useCalendarEventsStore } from '../../stores/calendarEventsStore'
-import { useCurrentTodosStore } from '../../stores/currentTodosStore'
-import { useUncompletedTodosStore } from '../../stores/uncompletedTodosStore'
+import { useCalendarEventsCache } from '../../repositories/caches/calendarEventsCache'
+import { useCurrentTodosCache } from '../../repositories/caches/currentTodosCache'
+import { useUncompletedTodosCache } from '../../repositories/caches/uncompletedTodosCache'
 import { useForemostEventStore } from '../../stores/foremostEventStore'
 import { useDoneTodosStore } from '../../stores/doneTodosStore'
 import { useToastStore } from '../../stores/toastStore'
@@ -24,14 +24,14 @@ export default function TestDataSeederButton() {
       // 관련 store 전체 갱신
       await useEventTagStore.getState().fetchAll().catch(() => {})
 
-      const loadedYears = Array.from(useCalendarEventsStore.getState().loadedYears)
+      const loadedYears = Array.from(useCalendarEventsCache.getState().loadedYears)
       if (loadedYears.length > 0) {
-        await useCalendarEventsStore.getState().refreshYears(loadedYears).catch(() => {})
+        await useCalendarEventsCache.getState().refreshYears(loadedYears).catch(() => {})
       }
 
       await Promise.allSettled([
-        useCurrentTodosStore.getState().fetch(),
-        useUncompletedTodosStore.getState().fetch(),
+        useCurrentTodosCache.getState().fetch(),
+        useUncompletedTodosCache.getState().fetch(),
         useForemostEventStore.getState().fetch(),
       ])
 

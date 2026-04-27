@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
-import { useCalendarEventsStore } from '../stores/calendarEventsStore'
+import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../utils/tagDisplay'
@@ -89,7 +89,7 @@ interface DayEventListProps {
 
 export function DayEventList({ selectedDate, onEventClick }: DayEventListProps) {
   const { t } = useTranslation()
-  const eventsByDate = useCalendarEventsStore(s => s.eventsByDate)
+  const eventsByDate = useCalendarEventsCache(s => s.eventsByDate)
   const isTagHidden = useTagFilterStore(s => s.isTagHidden)
   const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)
 
@@ -102,7 +102,7 @@ export function DayEventList({ selectedDate, onEventClick }: DayEventListProps) 
   }
 
   async function doComplete(todo: Todo, scope?: RepeatScope) {
-    const { removeEvent } = useCalendarEventsStore.getState()
+    const { removeEvent } = useCalendarEventsCache.getState()
     try {
       if (scope === 'this' && todo.repeating && todo.event_time) {
         const next = nextRepeatingTime(todo.event_time, todo.repeating_turn ?? 1, todo.repeating, todo.exclude_repeatings)

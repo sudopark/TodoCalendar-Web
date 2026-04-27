@@ -5,8 +5,8 @@ import { scheduleApi } from '../api/scheduleApi'
 import { eventDetailApi } from '../api/eventDetailApi'
 import { useUiStore } from './uiStore'
 import { useEventDefaultsStore } from './eventDefaultsStore'
-import { useCalendarEventsStore } from './calendarEventsStore'
-import { useCurrentTodosStore } from './currentTodosStore'
+import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
+import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useToastStore } from './toastStore'
 
 interface EventFormState {
@@ -183,10 +183,10 @@ export const useEventFormStore = create<EventFormState>((set, get) => ({
         const created = await todoApi.createTodo(body)
         createdUuid = created.uuid
         if (created.event_time) {
-          useCalendarEventsStore.getState().addEvent({ type: 'todo', event: created })
+          useCalendarEventsCache.getState().addEvent({ type: 'todo', event: created })
         }
         if (created.is_current) {
-          useCurrentTodosStore.getState().addTodo(created)
+          useCurrentTodosCache.getState().addTodo(created)
         }
       } else {
         const created = await scheduleApi.createSchedule({
@@ -194,7 +194,7 @@ export const useEventFormStore = create<EventFormState>((set, get) => ({
           event_time: state.eventTime!,
         })
         createdUuid = created.uuid
-        useCalendarEventsStore.getState().addEvent({ type: 'schedule', event: created })
+        useCalendarEventsCache.getState().addEvent({ type: 'schedule', event: created })
       }
 
       // Save event detail if any content exists

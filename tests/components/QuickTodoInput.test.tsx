@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { QuickTodoInput } from '../../src/components/QuickTodoInput'
-import { useCurrentTodosStore } from '../../src/stores/currentTodosStore'
+import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 
 vi.mock('../../src/api/todoApi', () => ({
   todoApi: { createTodo: vi.fn() },
@@ -25,7 +25,7 @@ function renderComponent() {
 describe('QuickTodoInput', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    useCurrentTodosStore.setState({ todos: [] })
+    useCurrentTodosCache.setState({ todos: [] })
   })
 
   it('placeholder와 함께 입력 필드를 렌더링한다', () => {
@@ -52,7 +52,7 @@ describe('QuickTodoInput', () => {
     await waitFor(() => {
       expect((input as HTMLInputElement).value).toBe('')
     })
-    expect(useCurrentTodosStore.getState().todos.some(t => t.uuid === 'new-1')).toBe(true)
+    expect(useCurrentTodosCache.getState().todos.some(t => t.uuid === 'new-1')).toBe(true)
   })
 
   it('빈 입력에서 Enter를 눌러도 아무 동작 안 한다', async () => {
@@ -67,7 +67,7 @@ describe('QuickTodoInput', () => {
 
     // then: API 호출 없음, 스토어 변화 없음
     await waitFor(() => {
-      expect(useCurrentTodosStore.getState().todos).toHaveLength(0)
+      expect(useCurrentTodosCache.getState().todos).toHaveLength(0)
     })
     // 스토어에 todo가 추가되지 않은 것으로 동작 안 했음을 확인
   })
@@ -82,7 +82,7 @@ describe('QuickTodoInput', () => {
     await userEvent.keyboard('{Enter}')
 
     await waitFor(() => {
-      expect(useCurrentTodosStore.getState().todos).toHaveLength(0)
+      expect(useCurrentTodosCache.getState().todos).toHaveLength(0)
     })
     // 스토어에 todo가 추가되지 않은 것으로 동작 안 했음을 확인
   })

@@ -28,8 +28,8 @@ vi.mock('../../src/stores/eventTagStore', () => ({
   HOLIDAY_TAG_ID: 'holiday',
 }))
 vi.mock('../../src/stores/uiStore', () => ({ useUiStore: vi.fn() }))
-vi.mock('../../src/stores/calendarEventsStore', () => ({ useCalendarEventsStore: vi.fn() }))
-vi.mock('../../src/stores/currentTodosStore', () => ({ useCurrentTodosStore: vi.fn() }))
+vi.mock('../../src/repositories/caches/calendarEventsCache', () => ({ useCalendarEventsCache: vi.fn() }))
+vi.mock('../../src/repositories/caches/currentTodosCache', () => ({ useCurrentTodosCache: vi.fn() }))
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -39,8 +39,8 @@ vi.mock('react-router-dom', async () => {
 
 import { useEventTagStore } from '../../src/stores/eventTagStore'
 import { useUiStore } from '../../src/stores/uiStore'
-import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
-import { useCurrentTodosStore } from '../../src/stores/currentTodosStore'
+import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
+import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 
 const mockAddEvent = vi.fn()
 const mockRemoveEvent = vi.fn()
@@ -56,15 +56,15 @@ async function setupMocks() {
   vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({ tags: new Map(), defaultTagColors: null }))
   vi.mocked(useUiStore).mockImplementation((sel: any) => sel({ selectedDate: null }))
   const calendarState = { addEvent: mockAddEvent, removeEvent: mockRemoveEvent, replaceEvent: mockReplaceEvent }
-  vi.mocked(useCalendarEventsStore).mockImplementation((sel?: any) =>
+  vi.mocked(useCalendarEventsCache).mockImplementation((sel?: any) =>
     sel ? sel(calendarState) : calendarState
   )
-  ;(useCalendarEventsStore as any).getState = () => calendarState
+  ;(useCalendarEventsCache as any).getState = () => calendarState
   const todosState = { addTodo: mockAddTodo, removeTodo: mockRemoveTodo, replaceTodo: mockReplaceTodo }
-  vi.mocked(useCurrentTodosStore).mockImplementation((sel?: any) =>
+  vi.mocked(useCurrentTodosCache).mockImplementation((sel?: any) =>
     sel ? sel(todosState) : todosState
   )
-  ;(useCurrentTodosStore as any).getState = () => todosState
+  ;(useCurrentTodosCache as any).getState = () => todosState
 }
 
 function renderCreate() {

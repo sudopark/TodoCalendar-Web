@@ -1,9 +1,9 @@
 import { create } from 'zustand'
 import { eventTagApi } from '../api/eventTagApi'
 import { settingApi } from '../api/settingApi'
-import { useCalendarEventsStore } from './calendarEventsStore'
-import { useCurrentTodosStore } from './currentTodosStore'
-import { useUncompletedTodosStore } from './uncompletedTodosStore'
+import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
+import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
+import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'
 import type { EventTag } from '../models'
 import type { DefaultTagColors } from '../models'
 
@@ -65,12 +65,12 @@ export const useEventTagStore = create<EventTagState>((set, get) => ({
   deleteTagAndEvents: async (id: string) => {
     await eventTagApi.deleteTagAndEvents(id)
     set(s => { const tags = new Map(s.tags); tags.delete(id); return { tags } })
-    const loadedYears = Array.from(useCalendarEventsStore.getState().loadedYears)
+    const loadedYears = Array.from(useCalendarEventsCache.getState().loadedYears)
     if (loadedYears.length > 0) {
-      await useCalendarEventsStore.getState().refreshYears(loadedYears).catch(() => {})
+      await useCalendarEventsCache.getState().refreshYears(loadedYears).catch(() => {})
     }
-    useCurrentTodosStore.getState().fetch().catch(() => {})
-    useUncompletedTodosStore.getState().fetch().catch(() => {})
+    useCurrentTodosCache.getState().fetch().catch(() => {})
+    useUncompletedTodosCache.getState().fetch().catch(() => {})
   },
 
   updateDefaultTagColor: async (kind, color_hex) => {
