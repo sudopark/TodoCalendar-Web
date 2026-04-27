@@ -16,7 +16,7 @@ interface CurrentTodosState {
   reset: () => void
 }
 
-export const useCurrentTodosCache = create<CurrentTodosState>((set, _get) => ({
+export const useCurrentTodosCache = create<CurrentTodosState>((set) => ({
   todos: [],
 
   fetch: async () => {
