@@ -38,14 +38,9 @@ function makeSchedule(override: Partial<Schedule> & { uuid: string }): Schedule 
 }
 
 // ───────────────────────────── Fake API ──────────────────────────────
-function makeFakeTodoApi(overrides: Partial<{
-  getTodos: (lower: number, upper: number) => Promise<Todo[]>
-  getCurrentTodos: () => Promise<Todo[]>
-  getUncompletedTodos: () => Promise<Todo[]>
-  createTodo: (body: object) => Promise<Todo>
-  patchTodo: (id: string, body: object) => Promise<Todo>
-  deleteTodo: (id: string) => Promise<{ status: string }>
-}> = {}) {
+import type { TodoApi, ScheduleApi } from '../../src/repositories/EventRepository'
+
+function makeFakeTodoApi(overrides: Partial<TodoApi> = {}): TodoApi {
   return {
     getTodos: overrides.getTodos ?? vi.fn(async () => []),
     getCurrentTodos: overrides.getCurrentTodos ?? vi.fn(async () => []),
@@ -53,28 +48,21 @@ function makeFakeTodoApi(overrides: Partial<{
     createTodo: overrides.createTodo ?? vi.fn(async () => makeTodo({ uuid: 'created' })),
     patchTodo: overrides.patchTodo ?? vi.fn(async () => makeTodo({ uuid: 'patched' })),
     deleteTodo: overrides.deleteTodo ?? vi.fn(async () => ({ status: 'ok' })),
-    updateTodo: vi.fn(async () => makeTodo({ uuid: 'updated' })),
-    completeTodo: vi.fn(async () => ({ uuid: 'done' })),
-    replaceTodo: vi.fn(async () => ({ new_todo: makeTodo({ uuid: 'replaced' }) })),
-    getTodo: vi.fn(async () => makeTodo({ uuid: 'fetched' })),
+    updateTodo: overrides.updateTodo ?? vi.fn(async () => makeTodo({ uuid: 'updated' })),
+    completeTodo: overrides.completeTodo ?? vi.fn(async () => ({ uuid: 'done', name: '완료됨' })),
+    replaceTodo: overrides.replaceTodo ?? vi.fn(async () => ({ new_todo: makeTodo({ uuid: 'replaced' }) })),
+    getTodo: overrides.getTodo ?? vi.fn(async () => makeTodo({ uuid: 'fetched' })),
   }
 }
 
-function makeFakeScheduleApi(overrides: Partial<{
-  getSchedules: (lower: number, upper: number) => Promise<Schedule[]>
-  createSchedule: (body: object) => Promise<Schedule>
-  patchSchedule: (id: string, body: object) => Promise<Schedule>
-  updateSchedule: (id: string, body: object) => Promise<Schedule>
-  deleteSchedule: (id: string) => Promise<{ status: string }>
-}> = {}) {
+function makeFakeScheduleApi(overrides: Partial<ScheduleApi> = {}): ScheduleApi {
   return {
     getSchedules: overrides.getSchedules ?? vi.fn(async () => []),
     createSchedule: overrides.createSchedule ?? vi.fn(async () => makeSchedule({ uuid: 'created-sch' })),
-    patchSchedule: overrides.patchSchedule ?? vi.fn(async () => makeSchedule({ uuid: 'patched-sch' })),
     updateSchedule: overrides.updateSchedule ?? vi.fn(async () => makeSchedule({ uuid: 'updated-sch' })),
     deleteSchedule: overrides.deleteSchedule ?? vi.fn(async () => ({ status: 'ok' })),
-    getSchedule: vi.fn(async () => makeSchedule({ uuid: 'fetched-sch' })),
-    excludeRepeating: vi.fn(async () => makeSchedule({ uuid: 'excluded-sch' })),
+    getSchedule: overrides.getSchedule ?? vi.fn(async () => makeSchedule({ uuid: 'fetched-sch' })),
+    excludeRepeating: overrides.excludeRepeating ?? vi.fn(async () => makeSchedule({ uuid: 'excluded-sch' })),
   }
 }
 
@@ -95,8 +83,8 @@ describe('EventRepository — fetchMonth', () => {
     const todo = makeTodo({ uuid: 't1', event_time: { time_type: 'at', timestamp: MAR_15_TS } })
     const sch = makeSchedule({ uuid: 's1', event_time: { time_type: 'at', timestamp: MAR_01_TS } })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi({ getTodos: async () => [todo] }) as any,
-      scheduleApi: makeFakeScheduleApi({ getSchedules: async () => [sch] }) as any,
+      todoApi: makeFakeTodoApi({ getTodos: async () => [todo] }),
+      scheduleApi: makeFakeScheduleApi({ getSchedules: async () => [sch] }),
     })
 
     // when
@@ -120,8 +108,8 @@ describe('EventRepository — createTodo', () => {
       event_time: { time_type: 'at', timestamp: MAR_15_TS },
     })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi({ createTodo: async () => created }) as any,
-      scheduleApi: makeFakeScheduleApi() as any,
+      todoApi: makeFakeTodoApi({ createTodo: async () => created }),
+      scheduleApi: makeFakeScheduleApi(),
     })
 
     // when
@@ -136,8 +124,8 @@ describe('EventRepository — createTodo', () => {
     // given
     const created = makeTodo({ uuid: 'no-time-todo', is_current: true, event_time: null })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi({ createTodo: async () => created }) as any,
-      scheduleApi: makeFakeScheduleApi() as any,
+      todoApi: makeFakeTodoApi({ createTodo: async () => created }),
+      scheduleApi: makeFakeScheduleApi(),
     })
 
     // when
@@ -152,8 +140,8 @@ describe('EventRepository — createTodo', () => {
     // given
     const created = makeTodo({ uuid: 'current-todo', is_current: true, event_time: null })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi({ createTodo: async () => created }) as any,
-      scheduleApi: makeFakeScheduleApi() as any,
+      todoApi: makeFakeTodoApi({ createTodo: async () => created }),
+      scheduleApi: makeFakeScheduleApi(),
     })
 
     // when
@@ -175,8 +163,8 @@ describe('EventRepository — updateTodo', () => {
 
     const updated = makeTodo({ uuid: 'upd-todo', name: '수정된 이름', event_time: { time_type: 'at', timestamp: MAR_15_TS } })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi({ patchTodo: async () => updated }) as any,
-      scheduleApi: makeFakeScheduleApi() as any,
+      todoApi: makeFakeTodoApi({ patchTodo: async () => updated }),
+      scheduleApi: makeFakeScheduleApi(),
     })
 
     // when
@@ -192,12 +180,12 @@ describe('EventRepository — updateTodo', () => {
     // given
     const updated = makeTodo({ uuid: 'to-current', is_current: true, event_time: null })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi({ patchTodo: async () => updated }) as any,
-      scheduleApi: makeFakeScheduleApi() as any,
+      todoApi: makeFakeTodoApi({ patchTodo: async () => updated }),
+      scheduleApi: makeFakeScheduleApi(),
     })
 
     // when
-    await repo.updateTodo('to-current', { is_current: true } as any)
+    await repo.updateTodo('to-current', { is_current: true })
 
     // then
     const snapshot = repo.getCurrentTodosSnapshot()
@@ -211,12 +199,12 @@ describe('EventRepository — updateTodo', () => {
 
     const updated = makeTodo({ uuid: 'was-current', is_current: false, event_time: null })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi({ patchTodo: async () => updated }) as any,
-      scheduleApi: makeFakeScheduleApi() as any,
+      todoApi: makeFakeTodoApi({ patchTodo: async () => updated }),
+      scheduleApi: makeFakeScheduleApi(),
     })
 
     // when
-    await repo.updateTodo('was-current', { is_current: false } as any)
+    await repo.updateTodo('was-current', { is_current: false })
 
     // then: currentTodos 캐시에서 제거되어 있어야 한다
     const snapshot = repo.getCurrentTodosSnapshot()
@@ -233,8 +221,8 @@ describe('EventRepository — deleteTodo', () => {
     useCalendarEventsCache.getState().addEvent({ type: 'todo', event: todo })
 
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi({ deleteTodo: async () => ({ status: 'ok' }) }) as any,
-      scheduleApi: makeFakeScheduleApi() as any,
+      todoApi: makeFakeTodoApi({ deleteTodo: async () => ({ status: 'ok' }) }),
+      scheduleApi: makeFakeScheduleApi(),
     })
 
     // when
@@ -251,8 +239,8 @@ describe('EventRepository — deleteTodo', () => {
     useCurrentTodosCache.getState().addTodo(todo)
 
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi({ deleteTodo: async () => ({ status: 'ok' }) }) as any,
-      scheduleApi: makeFakeScheduleApi() as any,
+      todoApi: makeFakeTodoApi({ deleteTodo: async () => ({ status: 'ok' }) }),
+      scheduleApi: makeFakeScheduleApi(),
     })
 
     // when
@@ -272,8 +260,8 @@ describe('EventRepository — patchTodoNextOccurrence', () => {
     const nextEventTime = { time_type: 'at' as const, timestamp: MAR_15_TS }
     const nextTodo = makeTodo({ uuid: 'rep-todo', event_time: nextEventTime })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi({ patchTodo: async () => nextTodo }) as any,
-      scheduleApi: makeFakeScheduleApi() as any,
+      todoApi: makeFakeTodoApi({ patchTodo: async () => nextTodo }),
+      scheduleApi: makeFakeScheduleApi(),
     })
 
     // when
@@ -292,8 +280,8 @@ describe('EventRepository — createSchedule', () => {
     // given
     const created = makeSchedule({ uuid: 'new-sch', event_time: { time_type: 'at', timestamp: MAR_01_TS } })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi() as any,
-      scheduleApi: makeFakeScheduleApi({ createSchedule: async () => created }) as any,
+      todoApi: makeFakeTodoApi(),
+      scheduleApi: makeFakeScheduleApi({ createSchedule: async () => created }),
     })
 
     // when
@@ -314,8 +302,8 @@ describe('EventRepository — deleteSchedule', () => {
     useCalendarEventsCache.getState().addEvent({ type: 'schedule', event: sch })
 
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi() as any,
-      scheduleApi: makeFakeScheduleApi({ deleteSchedule: async () => ({ status: 'ok' }) }) as any,
+      todoApi: makeFakeTodoApi(),
+      scheduleApi: makeFakeScheduleApi({ deleteSchedule: async () => ({ status: 'ok' }) }),
     })
 
     // when
@@ -337,8 +325,8 @@ describe('EventRepository — updateSchedule', () => {
 
     const updated = makeSchedule({ uuid: 'upd-sch', name: '수정된 일정', event_time: { time_type: 'at', timestamp: MAR_01_TS } })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi() as any,
-      scheduleApi: makeFakeScheduleApi({ updateSchedule: async () => updated }) as any,
+      todoApi: makeFakeTodoApi(),
+      scheduleApi: makeFakeScheduleApi({ updateSchedule: async () => updated }),
     })
 
     // when
@@ -357,8 +345,8 @@ describe('EventRepository — updateSchedule', () => {
 
     const updated = makeSchedule({ uuid: 'time-sch', event_time: { time_type: 'at', timestamp: MAR_15_TS } })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi() as any,
-      scheduleApi: makeFakeScheduleApi({ updateSchedule: async () => updated }) as any,
+      todoApi: makeFakeTodoApi(),
+      scheduleApi: makeFakeScheduleApi({ updateSchedule: async () => updated }),
     })
 
     // when
@@ -370,30 +358,6 @@ describe('EventRepository — updateSchedule', () => {
   })
 })
 
-describe('EventRepository — patchScheduleNextOccurrence', () => {
-  beforeEach(resetCaches)
-
-  it('다음 회차로 patch 하면 캐시의 schedule이 새 회차로 교체된다', async () => {
-    // given: 캐시에 기존 반복 schedule 추가
-    const original = makeSchedule({ uuid: 'rep-sch', event_time: { time_type: 'at', timestamp: MAR_01_TS } })
-    useCalendarEventsCache.getState().addEvent({ type: 'schedule', event: original })
-
-    const nextEventTime = { time_type: 'at' as const, timestamp: MAR_15_TS }
-    const nextSchedule = makeSchedule({ uuid: 'rep-sch', event_time: nextEventTime })
-    const repo = new EventRepository({
-      todoApi: makeFakeTodoApi() as any,
-      scheduleApi: makeFakeScheduleApi({ updateSchedule: async () => nextSchedule }) as any,
-    })
-
-    // when
-    await repo.patchScheduleNextOccurrence('rep-sch', nextEventTime)
-
-    // then: 캘린더 캐시에 새 회차 schedule이 반영되어 있어야 한다
-    const snapshot = repo.getMonthEventsSnapshot(2025, 2)
-    expect(snapshot.some(e => e.event.uuid === 'rep-sch')).toBe(true)
-  })
-})
-
 describe('EventRepository — fetchCurrentTodos', () => {
   beforeEach(resetCaches)
 
@@ -402,8 +366,8 @@ describe('EventRepository — fetchCurrentTodos', () => {
     const todo1 = makeTodo({ uuid: 'curr-1', is_current: true })
     const todo2 = makeTodo({ uuid: 'curr-2', is_current: true })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi({ getCurrentTodos: async () => [todo1, todo2] }) as any,
-      scheduleApi: makeFakeScheduleApi() as any,
+      todoApi: makeFakeTodoApi({ getCurrentTodos: async () => [todo1, todo2] }),
+      scheduleApi: makeFakeScheduleApi(),
     })
 
     // when
@@ -424,15 +388,15 @@ describe('EventRepository — fetchUncompletedTodos', () => {
     const todo1 = makeTodo({ uuid: 'unc-1', is_current: false })
     const todo2 = makeTodo({ uuid: 'unc-2', is_current: false })
     const repo = new EventRepository({
-      todoApi: makeFakeTodoApi({ getUncompletedTodos: async () => [todo1, todo2] }) as any,
-      scheduleApi: makeFakeScheduleApi() as any,
+      todoApi: makeFakeTodoApi({ getUncompletedTodos: async () => [todo1, todo2] }),
+      scheduleApi: makeFakeScheduleApi(),
     })
 
     // when
     await repo.fetchUncompletedTodos()
 
     // then: uncompletedTodos 캐시에 응답 목록이 반영되어 있어야 한다
-    const snapshot = repo.getUncompletedTodosSnapshot()
+    const snapshot = useUncompletedTodosCache.getState().todos
     expect(snapshot.some(t => t.uuid === 'unc-1')).toBe(true)
     expect(snapshot.some(t => t.uuid === 'unc-2')).toBe(true)
   })
