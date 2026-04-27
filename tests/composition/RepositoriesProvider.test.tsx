@@ -1,11 +1,16 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+// container.ts → EventRepository → 캐시 → todoApi/scheduleApi → Firebase 연쇄 초기화 차단
+vi.mock('../../src/api/todoApi', () => ({ todoApi: {} }))
+vi.mock('../../src/api/scheduleApi', () => ({ scheduleApi: {} }))
+
 import { renderHook } from '@testing-library/react'
 import { RepositoriesProvider, useRepositories } from '../../src/composition/RepositoriesProvider'
 import type { Repositories } from '../../src/composition/container'
 
 describe('RepositoriesProvider', () => {
   it('Provider 안쪽에서 useRepositories 를 호출하면 주입한 값을 반환한다', () => {
-    const fakeRepos: Repositories = {}
+    const fakeRepos = {} as Repositories
     const { result } = renderHook(() => useRepositories(), {
       wrapper: ({ children }) => <RepositoriesProvider value={fakeRepos}>{children}</RepositoriesProvider>,
     })
