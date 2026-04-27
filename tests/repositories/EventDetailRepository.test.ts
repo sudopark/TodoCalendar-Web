@@ -56,20 +56,22 @@ describe('EventDetailRepository', () => {
     expect(second).toEqual(serverDetail)
   })
 
-  it('서버가 null 을 반환하면 null 을 반환하고 캐시에 null 로 저장한다', async () => {
-    // given: getEventDetail 이 null 을 반환하는 경우 (서버가 없다고 반환)
+  it('서버 fetch 가 실패하면 null 을 반환하고 캐시에 null 로 저장한다', async () => {
+    // given: getEventDetail 이 throw 하는 경우 (서버 요청 실패)
     const api = makeFakeEventDetailApi({
-      getEventDetail: async () => null as unknown as EventDetail,
+      getEventDetail: async () => {
+        throw new Error('not found')
+      },
     })
     repo = new EventDetailRepository({ api })
 
-    // when
+    // when: 첫 번째 호출 (실패)
     const result = await repo.get('e3')
 
-    // then
+    // then: null 반환
     expect(result).toBeNull()
 
-    // 캐시에 null 로 저장됐는지 확인: 다시 get 해도 null 반환 (서버 재호출 없이)
+    // 캐시에 null 로 저장됐는지 확인: 다시 get 해도 null 반환
     const second = await repo.get('e3')
     expect(second).toBeNull()
   })
