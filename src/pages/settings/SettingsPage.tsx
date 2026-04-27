@@ -16,7 +16,6 @@ import { HolidaySection } from './sections/HolidaySection'
 import { TimezoneSection } from './sections/TimezoneSection'
 import { LanguageSection } from './sections/LanguageSection'
 import { NotificationSection } from './sections/NotificationSection'
-import { GoogleCalendarSection } from './sections/GoogleCalendarSection'
 import { AccountSection } from './sections/AccountSection'
 import { TagManagementPanel } from './tagManagement/TagManagementPanel'
 import { DefaultTagPickerPanel } from './sections/DefaultTagPickerPanel'
@@ -29,7 +28,6 @@ function renderSection(id: SettingCategoryId) {
     case 'timezone': return <TimezoneSection />
     case 'language': return <LanguageSection />
     case 'notification': return <NotificationSection />
-    case 'googleCalendar': return <GoogleCalendarSection />
     case 'account': return <AccountSection />
   }
 }

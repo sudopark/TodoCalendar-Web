@@ -71,10 +71,8 @@ export const useAuthStore = create<AuthState>((set, get) => {
       useCalendarEventsStore.getState().reset()
       useUncompletedTodosStore.getState().reset()
       const { useDoneTodosStore } = await import('./doneTodosStore')
-      const { useGoogleCalendarStore } = await import('./googleCalendarStore')
       const { useNotificationStore } = await import('./notificationStore')
       useDoneTodosStore.getState().reset()
-      useGoogleCalendarStore.getState().reset()
       useNotificationStore.getState().reset()
     },
   }
