@@ -3,8 +3,8 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
 import { eventDetailApi } from '../api/eventDetailApi'
-import { useCalendarEventsStore } from '../stores/calendarEventsStore'
-import { useCurrentTodosStore } from '../stores/currentTodosStore'
+import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
+import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useUiStore } from '../stores/uiStore'
 import { useToastStore } from '../stores/toastStore'
 import { deleteTodoEvent } from '../utils/eventDeleteHelper'
@@ -26,8 +26,8 @@ export function TodoFormPage() {
   const { t } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
 
-  const { addEvent, removeEvent } = useCalendarEventsStore()
-  const { addTodo, removeTodo, replaceTodo } = useCurrentTodosStore()
+  const { addEvent, removeEvent } = useCalendarEventsCache()
+  const { addTodo, removeTodo, replaceTodo } = useCurrentTodosCache()
   const { defaultTagId } = useEventDefaultsStore()
 
   const prefilled = (location.state as { prefilled?: Partial<EventFormSnapshot> } | null)?.prefilled

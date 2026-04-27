@@ -5,7 +5,7 @@ import type { CalendarEvent } from '../utils/eventTimeUtils'
 import { formatDateKey } from '../utils/eventTimeUtils'
 import { buildWeekEventStack, type EventOnWeekRow } from './weekEventStackBuilder'
 import { useUiStore } from '../stores/uiStore'
-import { useCalendarEventsStore } from '../stores/calendarEventsStore'
+import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useHolidayStore } from '../stores/holidayStore'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
@@ -82,7 +82,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
   const { t } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
   const setSelectedDate = useUiStore(s => s.setSelectedDate)
-  const eventsByDate = useCalendarEventsStore(s => s.eventsByDate)
+  const eventsByDate = useCalendarEventsCache(s => s.eventsByDate)
   const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
   const isTagHidden = useTagFilterStore(s => s.isTagHidden)
   const {

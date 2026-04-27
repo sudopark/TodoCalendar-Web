@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import MainCalendar from '../../src/calendar/MainCalendar'
 import { useUiStore } from '../../src/stores/uiStore'
-import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
+import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import { useHolidayStore } from '../../src/stores/holidayStore'
 import { useEventTagStore } from '../../src/stores/eventTagStore'
 import { todoApi } from '../../src/api/todoApi'
@@ -36,7 +36,7 @@ describe('MainCalendar', () => {
       selectedDate: null,
       currentMonth: new Date(2026, 2, 1), // March 2026
     })
-    useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false, loadedYears: new Set() })
+    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, loadedYears: new Set() })
     useHolidayStore.setState({ holidays: new Map(), loadedYears: new Set() })
     useEventTagStore.setState({ tags: new Map() })
   })

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
-import { useUncompletedTodosStore } from '../stores/uncompletedTodosStore'
-import { useCalendarEventsStore } from '../stores/calendarEventsStore'
+import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'
+import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../utils/tagDisplay'
@@ -79,8 +79,8 @@ interface UncompletedTodoListProps {
 
 export function UncompletedTodoList({ onEventClick }: UncompletedTodoListProps) {
   const { t } = useTranslation()
-  const todos = useUncompletedTodosStore(s => s.todos)
-  const reload = useUncompletedTodosStore(s => s.fetch)
+  const todos = useUncompletedTodosCache(s => s.todos)
+  const reload = useUncompletedTodosCache(s => s.fetch)
   const { isTagHidden } = useTagFilterStore()
   const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)
 
@@ -93,8 +93,8 @@ export function UncompletedTodoList({ onEventClick }: UncompletedTodoListProps) 
   }
 
   async function doComplete(todo: Todo, scope?: RepeatScope) {
-    const { removeTodo } = useUncompletedTodosStore.getState()
-    const { removeEvent } = useCalendarEventsStore.getState()
+    const { removeTodo } = useUncompletedTodosCache.getState()
+    const { removeEvent } = useCalendarEventsCache.getState()
     try {
       if (scope === 'this' && todo.repeating && todo.event_time) {
         const next = nextRepeatingTime(todo.event_time, todo.repeating_turn ?? 1, todo.repeating, todo.exclude_repeatings)

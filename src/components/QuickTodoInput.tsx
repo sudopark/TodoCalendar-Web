@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
-import { useCurrentTodosStore } from '../stores/currentTodosStore'
+import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { useToastStore } from '../stores/toastStore'
 
@@ -24,7 +24,7 @@ export function QuickTodoInput() {
         event_tag_id: undefined,
         is_current: true,
       })
-      useCurrentTodosStore.getState().addTodo(created)
+      useCurrentTodosCache.getState().addTodo(created)
       setValue('')
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)

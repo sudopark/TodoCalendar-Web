@@ -27,7 +27,7 @@ vi.mock('../../src/stores/eventTagStore', () => ({
   HOLIDAY_TAG_ID: 'holiday',
 }))
 vi.mock('../../src/stores/uiStore', () => ({ useUiStore: vi.fn() }))
-vi.mock('../../src/stores/calendarEventsStore', () => ({ useCalendarEventsStore: vi.fn() }))
+vi.mock('../../src/repositories/caches/calendarEventsCache', () => ({ useCalendarEventsCache: vi.fn() }))
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -37,7 +37,7 @@ vi.mock('react-router-dom', async () => {
 
 import { useEventTagStore } from '../../src/stores/eventTagStore'
 import { useUiStore } from '../../src/stores/uiStore'
-import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
+import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 
 const mockAddEvent = vi.fn()
 const mockRemoveEvent = vi.fn()
@@ -51,7 +51,7 @@ async function setupMocks() {
     addEvent: mockAddEvent,
     removeEvent: mockRemoveEvent,
   }
-  vi.mocked(useCalendarEventsStore).mockImplementation((sel?: any) =>
+  vi.mocked(useCalendarEventsCache).mockImplementation((sel?: any) =>
     sel ? sel(calendarState) : calendarState
   )
 }

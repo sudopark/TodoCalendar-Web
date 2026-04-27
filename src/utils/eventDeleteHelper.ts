@@ -1,15 +1,15 @@
 import { todoApi } from '../api/todoApi'
 import { scheduleApi } from '../api/scheduleApi'
-import { useCalendarEventsStore } from '../stores/calendarEventsStore'
-import { useCurrentTodosStore } from '../stores/currentTodosStore'
+import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
+import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import type { Todo } from '../models/Todo'
 import type { Schedule } from '../models/Schedule'
 import type { RepeatScope } from '../components/RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from './repeatingTimeCalculator'
 
 export async function deleteTodoEvent(todo: Todo, scope?: RepeatScope): Promise<void> {
-  const { addEvent, removeEvent } = useCalendarEventsStore.getState()
-  const { removeTodo } = useCurrentTodosStore.getState()
+  const { addEvent, removeEvent } = useCalendarEventsCache.getState()
+  const { removeTodo } = useCurrentTodosCache.getState()
   const id = todo.uuid
 
   if (!todo.repeating) {
@@ -44,7 +44,7 @@ export async function deleteTodoEvent(todo: Todo, scope?: RepeatScope): Promise<
 }
 
 export async function deleteScheduleEvent(schedule: Schedule, scope?: RepeatScope): Promise<void> {
-  const { addEvent, removeEvent } = useCalendarEventsStore.getState()
+  const { addEvent, removeEvent } = useCalendarEventsCache.getState()
   const id = schedule.uuid
 
   if (!schedule.repeating) {

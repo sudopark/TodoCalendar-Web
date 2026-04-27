@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useUiStore } from '../stores/uiStore'
 import { buildCalendarGrid } from '../calendar/calendarUtils'
-import { useCalendarEventsStore } from '../stores/calendarEventsStore'
+import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useHolidayStore } from '../stores/holidayStore'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
@@ -19,9 +19,9 @@ export default function TopToolbar() {
   const currentMonth = useUiStore(s => s.currentMonth)
   const sidebarOpen = useUiStore(s => s.sidebarOpen)
 
-  const refreshYears = useCalendarEventsStore(s => s.refreshYears)
+  const refreshYears = useCalendarEventsCache(s => s.refreshYears)
   const refreshHolidays = useHolidayStore(s => s.refreshHolidays)
-  const loading = useCalendarEventsStore(s => s.loading)
+  const loading = useCalendarEventsCache(s => s.loading)
 
   const year = currentMonth.getFullYear()
   const month = currentMonth.getMonth()

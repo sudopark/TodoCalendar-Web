@@ -1,15 +1,20 @@
+/**
+ * @internal repositories 모듈 내부에서만 사용. 외부 import 금지.
+ * Repository 클래스를 통해서만 노출한다.
+ */
 import { create } from 'zustand'
-import { todoApi } from '../api/todoApi'
-import type { Todo } from '../models'
+import { todoApi } from '../../api/todoApi'
+import type { Todo } from '../../models'
 
 interface UncompletedTodosState {
   todos: Todo[]
   fetch: () => Promise<void>
   removeTodo: (id: string) => void
+  replaceAll: (todos: Todo[]) => void
   reset: () => void
 }
 
-export const useUncompletedTodosStore = create<UncompletedTodosState>((set, get) => ({
+export const useUncompletedTodosCache = create<UncompletedTodosState>((set, get) => ({
   todos: [],
 
   fetch: async () => {
@@ -25,6 +30,8 @@ export const useUncompletedTodosStore = create<UncompletedTodosState>((set, get)
   removeTodo: (id: string) => {
     set({ todos: get().todos.filter(t => t.uuid !== id) })
   },
+
+  replaceAll: (todos: Todo[]) => set({ todos }),
 
   reset: () => set({ todos: [] }),
 }))

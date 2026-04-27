@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useUiStore } from '../../src/stores/uiStore'
 import { useEventDefaultsStore } from '../../src/stores/eventDefaultsStore'
-import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
-import { useCurrentTodosStore } from '../../src/stores/currentTodosStore'
+import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
+import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 import { useToastStore } from '../../src/stores/toastStore'
 import type { Todo, Schedule, EventTime } from '../../src/models'
 
@@ -31,8 +31,8 @@ describe('eventFormStore', () => {
     // reset dependent stores
     useUiStore.setState({ selectedDate: SELECTED_DATE })
     useEventDefaultsStore.setState({ defaultTagId: 'tag-1', defaultNotificationSeconds: 300 })
-    useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false, lastRange: { lower: 0, upper: 9999999999 } })
-    useCurrentTodosStore.setState({ todos: [] })
+    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: { lower: 0, upper: 9999999999 } })
+    useCurrentTodosCache.setState({ todos: [] })
     useToastStore.setState({ toasts: [] })
 
     // reset eventFormStore
@@ -428,12 +428,12 @@ describe('eventFormStore', () => {
       await useEventFormStore.getState().save()
 
       // then: 캘린더에 추가됨
-      const events = useCalendarEventsStore.getState().eventsByDate
+      const events = useCalendarEventsCache.getState().eventsByDate
       const hasEvent = Array.from(events.values()).flat().some(e => e.event.uuid === 'new-todo-1')
       expect(hasEvent).toBe(true)
 
       // then: 현재 할일에 추가됨
-      const currentTodos = useCurrentTodosStore.getState().todos
+      const currentTodos = useCurrentTodosCache.getState().todos
       expect(currentTodos.some(t => t.uuid === 'new-todo-1')).toBe(true)
 
       // then: 폼이 닫힘
@@ -459,7 +459,7 @@ describe('eventFormStore', () => {
       await useEventFormStore.getState().save()
 
       // then
-      expect(useCurrentTodosStore.getState().todos.some(t => t.uuid === 'new-todo-2')).toBe(false)
+      expect(useCurrentTodosCache.getState().todos.some(t => t.uuid === 'new-todo-2')).toBe(false)
     })
 
     it('event_time이 없는 todo는 캘린더에 추가되지 않는다', async () => {
@@ -479,10 +479,10 @@ describe('eventFormStore', () => {
       await useEventFormStore.getState().save()
 
       // then: 캘린더에는 없고 현재 할일에만 있음
-      const events = useCalendarEventsStore.getState().eventsByDate
+      const events = useCalendarEventsCache.getState().eventsByDate
       const hasEvent = Array.from(events.values()).flat().some(e => e.event.uuid === 'new-todo-3')
       expect(hasEvent).toBe(false)
-      expect(useCurrentTodosStore.getState().todos.some(t => t.uuid === 'new-todo-3')).toBe(true)
+      expect(useCurrentTodosCache.getState().todos.some(t => t.uuid === 'new-todo-3')).toBe(true)
     })
 
     it('place/url/memo가 있으면 eventDetail도 저장된다', async () => {
@@ -533,7 +533,7 @@ describe('eventFormStore', () => {
       await useEventFormStore.getState().save()
 
       // then: 캘린더에 추가됨
-      const events = useCalendarEventsStore.getState().eventsByDate
+      const events = useCalendarEventsCache.getState().eventsByDate
       const hasEvent = Array.from(events.values()).flat().some(e => e.event.uuid === 'new-sch-1')
       expect(hasEvent).toBe(true)
 

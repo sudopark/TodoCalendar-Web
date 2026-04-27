@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { scheduleApi } from '../api/scheduleApi'
 import { eventDetailApi } from '../api/eventDetailApi'
-import { useCalendarEventsStore } from '../stores/calendarEventsStore'
+import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useUiStore } from '../stores/uiStore'
 import { useToastStore } from '../stores/toastStore'
 import { deleteScheduleEvent } from '../utils/eventDeleteHelper'
@@ -24,7 +24,7 @@ export function ScheduleFormPage() {
   const { t } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
 
-  const { addEvent, removeEvent } = useCalendarEventsStore()
+  const { addEvent, removeEvent } = useCalendarEventsCache()
   const { defaultTagId } = useEventDefaultsStore()
 
   const prefilled = (location.state as { prefilled?: Partial<EventFormSnapshot> } | null)?.prefilled

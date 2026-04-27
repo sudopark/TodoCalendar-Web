@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, RotateCcw, Trash2 } from 'lucide-react'
 import { useDoneTodosStore } from '../stores/doneTodosStore'
-import { useCurrentTodosStore } from '../stores/currentTodosStore'
+import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useToastStore } from '../stores/toastStore'
 import { useUiStore } from '../stores/uiStore'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -59,7 +59,7 @@ export function ArchivePanel() {
   const exitArchivePanel = useUiStore(s => s.exitArchivePanel)
   const toggleRightPanel = useUiStore(s => s.toggleRightPanel)
   const { items, hasMore, fetchNext, revert, remove, reset } = useDoneTodosStore()
-  const fetchCurrentTodos = useCurrentTodosStore(s => s.fetch)
+  const fetchCurrentTodos = useCurrentTodosCache(s => s.fetch)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
 

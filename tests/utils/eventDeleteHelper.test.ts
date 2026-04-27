@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { deleteTodoEvent, deleteScheduleEvent } from '../../src/utils/eventDeleteHelper'
-import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
-import { useCurrentTodosStore } from '../../src/stores/currentTodosStore'
+import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
+import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 import type { Todo } from '../../src/models/Todo'
 import type { Schedule } from '../../src/models/Schedule'
 import type { EventTime } from '../../src/models/EventTime'
@@ -38,8 +38,8 @@ const DAILY_REPEATING: Repeating = {
 
 describe('deleteTodoEvent', () => {
   beforeEach(() => {
-    useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false, loadedYears: new Set() })
-    useCurrentTodosStore.setState({ todos: [] })
+    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, loadedYears: new Set() })
+    useCurrentTodosCache.setState({ todos: [] })
     vi.clearAllMocks()
   })
 
@@ -54,16 +54,16 @@ describe('deleteTodoEvent', () => {
       is_current: true,
       event_time: atTime(ts(2025, 3, 15)),
     }
-    useCalendarEventsStore.getState().addEvent({ type: 'todo', event: todo })
-    useCurrentTodosStore.getState().addTodo(todo)
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: todo })
+    useCurrentTodosCache.getState().addTodo(todo)
 
     // when
     await deleteTodoEvent(todo)
 
     // then
-    const allEvents = [...useCalendarEventsStore.getState().eventsByDate.values()].flat()
+    const allEvents = [...useCalendarEventsCache.getState().eventsByDate.values()].flat()
     expect(allEvents.some(e => e.event.uuid === 'todo-1')).toBe(false)
-    expect(useCurrentTodosStore.getState().todos.some(t => t.uuid === 'todo-1')).toBe(false)
+    expect(useCurrentTodosCache.getState().todos.some(t => t.uuid === 'todo-1')).toBe(false)
   })
 
   it('반복 todo "this" 삭제 → 다음 턴으로 업데이트', async () => {
@@ -82,17 +82,17 @@ describe('deleteTodoEvent', () => {
     const updatedTodo: Todo = { ...todo, event_time: atTime(nextTs), repeating_turn: 6 }
     vi.mocked(todoApi.patchTodo).mockResolvedValue(updatedTodo)
 
-    useCalendarEventsStore.getState().addEvent({ type: 'todo', event: todo })
-    useCurrentTodosStore.getState().addTodo(todo)
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: todo })
+    useCurrentTodosCache.getState().addTodo(todo)
 
     // when
     await deleteTodoEvent(todo, 'this')
 
     // then: 기존 uuid는 제거, 업데이트된 todo가 다음 날짜에 추가
-    const allEvents = [...useCalendarEventsStore.getState().eventsByDate.values()].flat()
+    const allEvents = [...useCalendarEventsCache.getState().eventsByDate.values()].flat()
     expect(allEvents.some(e => e.event.uuid === 'todo-rep-1' && (e.event as Todo).event_time?.time_type === 'at' && (e.event as Todo).event_time?.timestamp === currentTs)).toBe(false)
     expect(allEvents.some(e => e.event.uuid === 'todo-rep-1')).toBe(true)
-    expect(useCurrentTodosStore.getState().todos.some(t => t.uuid === 'todo-rep-1')).toBe(false)
+    expect(useCurrentTodosCache.getState().todos.some(t => t.uuid === 'todo-rep-1')).toBe(false)
   })
 
   it('반복 todo를 "this" 범위로 삭제할 때 다음 턴이 없으면 완전히 삭제된다', async () => {
@@ -110,16 +110,16 @@ describe('deleteTodoEvent', () => {
       repeating: { ...DAILY_REPEATING, end_count: currentTurn }, // 다음 턴(6) > end_count(5) → nextRepeatingTime returns null
       repeating_turn: currentTurn,
     }
-    useCalendarEventsStore.getState().addEvent({ type: 'todo', event: todo })
-    useCurrentTodosStore.getState().addTodo(todo)
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: todo })
+    useCurrentTodosCache.getState().addTodo(todo)
 
     // when
     await deleteTodoEvent(todo, 'this')
 
     // then: 완전히 삭제됨
-    const allEvents = [...useCalendarEventsStore.getState().eventsByDate.values()].flat()
+    const allEvents = [...useCalendarEventsCache.getState().eventsByDate.values()].flat()
     expect(allEvents.some(e => e.event.uuid === 'todo-rep-last')).toBe(false)
-    expect(useCurrentTodosStore.getState().todos.some(t => t.uuid === 'todo-rep-last')).toBe(false)
+    expect(useCurrentTodosCache.getState().todos.some(t => t.uuid === 'todo-rep-last')).toBe(false)
   })
 
   it('반복 todo "future" 삭제 → 시리즈 종료', async () => {
@@ -140,13 +140,13 @@ describe('deleteTodoEvent', () => {
     }
     vi.mocked(todoApi.patchTodo).mockResolvedValue(endedTodo)
 
-    useCalendarEventsStore.getState().addEvent({ type: 'todo', event: todo })
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: todo })
 
     // when
     await deleteTodoEvent(todo, 'future')
 
     // then: 기존 이벤트는 제거되고, ended todo 이벤트 없음 (event_time 유지하면 다시 추가)
-    const allEvents = [...useCalendarEventsStore.getState().eventsByDate.values()].flat()
+    const allEvents = [...useCalendarEventsCache.getState().eventsByDate.values()].flat()
     // endedTodo has event_time so it gets added back
     expect(allEvents.some(e => e.event.uuid === 'todo-rep-2')).toBe(true)
   })
@@ -163,22 +163,22 @@ describe('deleteTodoEvent', () => {
       repeating: DAILY_REPEATING,
       repeating_turn: 3,
     }
-    useCalendarEventsStore.getState().addEvent({ type: 'todo', event: todo })
-    useCurrentTodosStore.getState().addTodo(todo)
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: todo })
+    useCurrentTodosCache.getState().addTodo(todo)
 
     // when
     await deleteTodoEvent(todo, 'all')
 
     // then
-    const allEvents = [...useCalendarEventsStore.getState().eventsByDate.values()].flat()
+    const allEvents = [...useCalendarEventsCache.getState().eventsByDate.values()].flat()
     expect(allEvents.some(e => e.event.uuid === 'todo-rep-all')).toBe(false)
-    expect(useCurrentTodosStore.getState().todos.some(t => t.uuid === 'todo-rep-all')).toBe(false)
+    expect(useCurrentTodosCache.getState().todos.some(t => t.uuid === 'todo-rep-all')).toBe(false)
   })
 })
 
 describe('deleteScheduleEvent', () => {
   beforeEach(() => {
-    useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false, loadedYears: new Set() })
+    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, loadedYears: new Set() })
     vi.clearAllMocks()
   })
 
@@ -192,13 +192,13 @@ describe('deleteScheduleEvent', () => {
       name: 'Simple Schedule',
       event_time: atTime(ts(2025, 3, 20)),
     }
-    useCalendarEventsStore.getState().addEvent({ type: 'schedule', event: schedule })
+    useCalendarEventsCache.getState().addEvent({ type: 'schedule', event: schedule })
 
     // when
     await deleteScheduleEvent(schedule)
 
     // then
-    const allEvents = [...useCalendarEventsStore.getState().eventsByDate.values()].flat()
+    const allEvents = [...useCalendarEventsCache.getState().eventsByDate.values()].flat()
     expect(allEvents.some(e => e.event.uuid === 'sch-1')).toBe(false)
   })
 
@@ -225,7 +225,7 @@ describe('deleteScheduleEvent', () => {
     for (let turn = 1; turn <= 5; turn++) {
       const dayOffset = turn - 1
       const instanceTs = eventTs + dayOffset * 86400
-      useCalendarEventsStore.getState().addEvent({
+      useCalendarEventsCache.getState().addEvent({
         type: 'schedule',
         event: { ...schedule, event_time: atTime(instanceTs), show_turns: [turn] },
       })
@@ -235,7 +235,7 @@ describe('deleteScheduleEvent', () => {
     await deleteScheduleEvent(schedule, 'this')
 
     // then: 다른 turn들은 다른 날짜에 여전히 존재해야 한다
-    const state = useCalendarEventsStore.getState()
+    const state = useCalendarEventsCache.getState()
     // 매일 반복이니까 4/1, 4/3, 4/4, 4/5 등 여러 날짜에 남아야 함 (4/2의 turn 2만 제외)
     const daysWithEvent: string[] = []
     for (const [key, events] of state.eventsByDate) {
@@ -264,13 +264,13 @@ describe('deleteScheduleEvent', () => {
     }
     vi.mocked(scheduleApi.excludeRepeating).mockResolvedValue(excludedSchedule)
 
-    useCalendarEventsStore.getState().addEvent({ type: 'schedule', event: schedule })
+    useCalendarEventsCache.getState().addEvent({ type: 'schedule', event: schedule })
 
     // when
     await deleteScheduleEvent(schedule, 'this')
 
     // then: 기존 이벤트 제거되고 excluded 일정이 추가됨
-    const allEvents = [...useCalendarEventsStore.getState().eventsByDate.values()].flat()
+    const allEvents = [...useCalendarEventsCache.getState().eventsByDate.values()].flat()
     expect(allEvents.some(e => e.event.uuid === 'sch-rep-1')).toBe(true)
     const found = allEvents.find(e => e.event.uuid === 'sch-rep-1')
     expect((found?.event as Schedule).exclude_repeatings).toContain(2)
@@ -287,13 +287,13 @@ describe('deleteScheduleEvent', () => {
       event_time: atTime(ts(2025, 4, 5)),
       repeating: DAILY_REPEATING,
     }
-    useCalendarEventsStore.getState().addEvent({ type: 'schedule', event: schedule })
+    useCalendarEventsCache.getState().addEvent({ type: 'schedule', event: schedule })
 
     // when
     await deleteScheduleEvent(schedule, 'all')
 
     // then
-    const allEvents = [...useCalendarEventsStore.getState().eventsByDate.values()].flat()
+    const allEvents = [...useCalendarEventsCache.getState().eventsByDate.values()].flat()
     expect(allEvents.some(e => e.event.uuid === 'sch-rep-2')).toBe(false)
   })
 
@@ -313,13 +313,13 @@ describe('deleteScheduleEvent', () => {
     }
     vi.mocked(scheduleApi.updateSchedule).mockResolvedValue(endedSchedule)
 
-    useCalendarEventsStore.getState().addEvent({ type: 'schedule', event: schedule })
+    useCalendarEventsCache.getState().addEvent({ type: 'schedule', event: schedule })
 
     // when
     await deleteScheduleEvent(schedule, 'future')
 
     // then: 기존 이벤트 제거되고, ended 일정이 추가됨
-    const allEvents = [...useCalendarEventsStore.getState().eventsByDate.values()].flat()
+    const allEvents = [...useCalendarEventsCache.getState().eventsByDate.values()].flat()
     expect(allEvents.some(e => e.event.uuid === 'sch-rep-3')).toBe(true)
     const found = allEvents.find(e => e.event.uuid === 'sch-rep-3')
     expect((found?.event as Schedule).repeating?.end).toBe(eventTs - 1)

@@ -3,8 +3,8 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { CurrentTodoList } from '../../src/components/CurrentTodoList'
-import { useCurrentTodosStore } from '../../src/stores/currentTodosStore'
-import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
+import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
+import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 
 vi.mock('../../src/api/todoApi', () => ({
   todoApi: {
@@ -45,11 +45,11 @@ describe('CurrentTodoList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockOnEventClick.mockReset()
-    useCurrentTodosStore.setState({ todos: [] })
+    useCurrentTodosCache.setState({ todos: [] })
   })
 
   it('current todo가 없으면 아무것도 렌더링하지 않는다', () => {
-    useCurrentTodosStore.setState({ todos: [] })
+    useCurrentTodosCache.setState({ todos: [] })
 
     const { container } = renderComponent()
 
@@ -61,7 +61,7 @@ describe('CurrentTodoList', () => {
       { uuid: 'ct1', name: '시간 없는 할 일 A', is_current: true, event_time: null },
       { uuid: 'ct2', name: '시간 없는 할 일 B', is_current: true, event_time: null },
     ]
-    useCurrentTodosStore.setState({ todos: todos as any })
+    useCurrentTodosCache.setState({ todos: todos as any })
 
     renderComponent()
 
@@ -71,7 +71,7 @@ describe('CurrentTodoList', () => {
 
   it('항목을 클릭하면 onEventClick 콜백을 calEvent와 anchorRect와 함께 호출한다', async () => {
     const todos = [{ uuid: 'ct-nav', name: '이동 테스트', is_current: true, event_time: null }]
-    useCurrentTodosStore.setState({ todos: todos as any })
+    useCurrentTodosCache.setState({ todos: todos as any })
 
     renderComponent()
     await userEvent.click(screen.getByText('이동 테스트'))
@@ -86,22 +86,22 @@ describe('CurrentTodoList', () => {
 describe('CurrentTodoList — 완료', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    useCurrentTodosStore.setState({ todos: [] })
-    useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false, lastRange: null })
+    useCurrentTodosCache.setState({ todos: [] })
+    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: null })
   })
 
   it('비반복 Todo 체크박스 클릭 시 해당 Todo가 목록에서 사라진다', async () => {
     const { todoApi } = await import('../../src/api/todoApi')
     vi.mocked(todoApi.completeTodo).mockResolvedValue({ uuid: 'done-1', done_at: 1000 } as any)
     const todo = { uuid: 't1', name: '완료 할 일', is_current: true, event_time: null }
-    useCurrentTodosStore.setState({ todos: [todo as any] })
-    useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false, lastRange: null })
+    useCurrentTodosCache.setState({ todos: [todo as any] })
+    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: null })
 
     render(<MemoryRouter><CurrentTodoList /></MemoryRouter>)
     await userEvent.click(screen.getByRole('button', { name: '완료 할 일' }))
 
     await waitFor(() => {
-      expect(useCurrentTodosStore.getState().todos.some(t => t.uuid === 't1')).toBe(false)
+      expect(useCurrentTodosCache.getState().todos.some(t => t.uuid === 't1')).toBe(false)
     })
   })
 
@@ -115,8 +115,8 @@ describe('CurrentTodoList — 완료', () => {
       event_time: { time_type: 'at' as const, timestamp: 1743375600 },
       repeating: { start: 1743375600, option: { optionType: 'every_day' as const, interval: 1 } },
     }
-    useCurrentTodosStore.setState({ todos: [repeatingTodo as any] })
-    useCalendarEventsStore.setState({ eventsByDate: new Map(), loading: false, lastRange: { lower: 0, upper: 9999999999 } })
+    useCurrentTodosCache.setState({ todos: [repeatingTodo as any] })
+    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: { lower: 0, upper: 9999999999 } })
 
     render(<MemoryRouter><CurrentTodoList /></MemoryRouter>)
     await userEvent.click(screen.getByRole('button', { name: '반복 할 일' }))

@@ -2,7 +2,7 @@ import { useMemo, useEffect } from 'react'
 import { buildCalendarGrid } from './calendarUtils'
 import MainCalendarGrid from './MainCalendarGrid'
 import { useUiStore } from '../stores/uiStore'
-import { useCalendarEventsStore } from '../stores/calendarEventsStore'
+import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useHolidayStore } from '../stores/holidayStore'
 import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
@@ -22,7 +22,7 @@ export default function MainCalendar({ today: todayProp, onEventClick }: MainCal
   }, [todayKey])
 
   const currentMonth = useUiStore(s => s.currentMonth)
-  const fetchEventsForYear = useCalendarEventsStore(s => s.fetchEventsForYear)
+  const fetchEventsForYear = useCalendarEventsCache(s => s.fetchEventsForYear)
   const fetchHolidays = useHolidayStore(s => s.fetchHolidays)
   const weekStartDay = useCalendarAppearanceStore(s => s.weekStartDay)
   const eventDisplayLevel = useCalendarAppearanceStore(s => s.eventDisplayLevel)

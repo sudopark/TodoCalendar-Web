@@ -2,9 +2,9 @@ import { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useEventTagStore } from '../stores/eventTagStore'
-import { useCurrentTodosStore } from '../stores/currentTodosStore'
+import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useForemostEventStore } from '../stores/foremostEventStore'
-import { useUncompletedTodosStore } from '../stores/uncompletedTodosStore'
+import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -18,9 +18,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
     if (account) {
       Promise.allSettled([
         useEventTagStore.getState().fetchAll(),
-        useCurrentTodosStore.getState().fetch(),
+        useCurrentTodosCache.getState().fetch(),
         useForemostEventStore.getState().fetch(),
-        useUncompletedTodosStore.getState().fetch(),
+        useUncompletedTodosCache.getState().fetch(),
       ]).then(results => {
         const failed = results
           .map((r, i) => r.status === 'rejected' ? ['tags', 'todos', 'foremost', 'uncompleted'][i] : null)

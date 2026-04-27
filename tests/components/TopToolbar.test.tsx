@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { useUiStore } from '../../src/stores/uiStore'
-import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
+import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import { useHolidayStore } from '../../src/stores/holidayStore'
 import TopToolbar from '../../src/components/TopToolbar'
 
@@ -120,7 +120,7 @@ describe('TopToolbar', () => {
 
   it('로딩 중일 때 새로고침 버튼이 비활성화된다', () => {
     // given: loading 상태
-    useCalendarEventsStore.setState({ loading: true })
+    useCalendarEventsCache.setState({ loading: true })
 
     // when
     renderToolbar()

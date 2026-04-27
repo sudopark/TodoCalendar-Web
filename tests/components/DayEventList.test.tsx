@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DayEventList } from '../../src/components/DayEventList'
-import { useCalendarEventsStore } from '../../src/stores/calendarEventsStore'
+import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 
-vi.mock('../../src/stores/calendarEventsStore', () => ({ useCalendarEventsStore: vi.fn() }))
+vi.mock('../../src/repositories/caches/calendarEventsCache', () => ({ useCalendarEventsCache: vi.fn() }))
 vi.mock('../../src/stores/eventTagStore', () => ({
   useEventTagStore: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null })),
   DEFAULT_TAG_ID: 'default',
@@ -25,7 +25,7 @@ function renderComponent(selectedDate: Date | null = null, onEventClick = mockOn
 }
 
 function mockCalendarEventsStore(eventsByDate: Map<string, any[]>) {
-  vi.mocked(useCalendarEventsStore).mockImplementation((selector: any) => selector({ eventsByDate }))
+  vi.mocked(useCalendarEventsCache).mockImplementation((selector: any) => selector({ eventsByDate }))
 }
 
 describe('DayEventList', () => {
