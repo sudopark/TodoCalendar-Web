@@ -9,6 +9,7 @@ import { LoginPage } from './pages/LoginPage'
 import { MainPage } from './pages/MainPage'
 import { TodoFormPage } from './pages/TodoFormPage'
 import { ScheduleFormPage } from './pages/ScheduleFormPage'
+import { RepositoriesProvider } from './composition/RepositoriesProvider'
 import './stores/themeStore'
 
 const SettingsPage = React.lazy(() => import('./pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })))
@@ -89,10 +90,12 @@ function AppRoutes() {
 function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-      <ToastContainer />
+      <RepositoriesProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+        <ToastContainer />
+      </RepositoriesProvider>
     </ErrorBoundary>
   )
 }
