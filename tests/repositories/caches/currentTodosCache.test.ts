@@ -50,4 +50,25 @@ describe('useCurrentTodosCache', () => {
     // then: 새 이름으로 조회됨
     expect(useCurrentTodosCache.getState().todos.find(t => t.uuid === 't1')?.name).toBe('수정됨')
   })
+
+  it('replaceAll 로 전체 교체하면 새 목록으로 대체된다', () => {
+    // given: 기존 todo가 있는 상태
+    useCurrentTodosCache.setState({ todos: [makeTodo('old-1', '기존'), makeTodo('old-2', '기존2')] })
+    // when: 새 목록으로 교체
+    useCurrentTodosCache.getState().replaceAll([makeTodo('new-1', '새로'), makeTodo('new-2', '새로2')])
+    // then: 새 목록만 남아야 한다
+    const todos = useCurrentTodosCache.getState().todos
+    expect(todos.some(t => t.uuid === 'new-1')).toBe(true)
+    expect(todos.some(t => t.uuid === 'new-2')).toBe(true)
+    expect(todos.some(t => t.uuid === 'old-1')).toBe(false)
+  })
+
+  it('빈 배열로 replaceAll 하면 캐시가 비워진다', () => {
+    // given: todo가 있는 상태
+    useCurrentTodosCache.setState({ todos: [makeTodo('t1', '할 일')] })
+    // when: 빈 배열로 교체
+    useCurrentTodosCache.getState().replaceAll([])
+    // then: 빈 목록
+    expect(useCurrentTodosCache.getState().todos).toHaveLength(0)
+  })
 })

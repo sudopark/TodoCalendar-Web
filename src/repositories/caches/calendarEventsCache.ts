@@ -7,6 +7,8 @@ import { todoApi } from '../../api/todoApi'
 import { scheduleApi } from '../../api/scheduleApi'
 import { groupEventsByDate, eventTimeToStartDate, eventTimeToEndDate, formatDateKey, yearRange, monthRange } from '../../utils/eventTimeUtils'
 import type { CalendarEvent } from '../../utils/eventTimeUtils'
+import type { Todo } from '../../models/Todo'
+import type { Schedule } from '../../models/Schedule'
 
 interface CalendarEventsState {
   eventsByDate: Map<string, CalendarEvent[]>
@@ -17,7 +19,7 @@ interface CalendarEventsState {
   addEvent: (event: CalendarEvent) => void
   removeEvent: (uuid: string) => void
   replaceEvent: (uuid: string, next: CalendarEvent) => void
-  replaceMonth: (year: number, month: number, events: CalendarEvent[]) => void
+  replaceMonth: (year: number, month: number, todos: Todo[], schedules: Schedule[]) => void
   reset: () => void
 }
 
@@ -149,7 +151,8 @@ export const useCalendarEventsCache = create<CalendarEventsState>((set, get) => 
 
   // 특정 월의 이벤트를 서버 응답으로 통째로 교체한다.
   // EventRepository.fetchMonth 가 서버 응답을 캐시에 반영할 때 사용.
-  replaceMonth: (year: number, month: number, events: CalendarEvent[]) => {
+  // groupEventsByDate 를 통해 반복 이벤트의 모든 인스턴스를 해당 월 내 날짜에 펼친다.
+  replaceMonth: (year: number, month: number, todos: Todo[], schedules: Schedule[]) => {
     const range = monthRange(year, month)
     const updated = new Map(get().eventsByDate)
 
@@ -157,31 +160,19 @@ export const useCalendarEventsCache = create<CalendarEventsState>((set, get) => 
     const lowerDate = new Date(range.lower * 1000)
     lowerDate.setHours(0, 0, 0, 0)
     const upperDate = new Date(range.upper * 1000)
-    upperDate.setHours(0, 0, 0, 0)
+    upperDate.setHours(23, 59, 59, 999)
     const cur = new Date(lowerDate)
     while (cur <= upperDate) {
       updated.delete(formatDateKey(cur))
       cur.setDate(cur.getDate() + 1)
     }
 
-    // 새 이벤트를 날짜별로 재배치
-    for (const event of events) {
-      const eventTime = event.type === 'todo'
-        ? (event.event.event_time ?? null)
-        : event.event.event_time
-      if (!eventTime) continue
-      const start = eventTimeToStartDate(eventTime)
-      const end = eventTimeToEndDate(eventTime)
-      const evCur = new Date(Math.max(start.getTime(), lowerDate.getTime()))
-      evCur.setHours(0, 0, 0, 0)
-      const evEnd = new Date(Math.min(end.getTime(), upperDate.getTime()))
-      evEnd.setHours(0, 0, 0, 0)
-      while (evCur <= evEnd) {
-        const key = formatDateKey(evCur)
-        updated.set(key, [...(updated.get(key) ?? []), event])
-        evCur.setDate(evCur.getDate() + 1)
-      }
+    // 반복 이벤트 포함 모든 인스턴스를 날짜별로 펼쳐서 배치
+    const monthEvents = groupEventsByDate(todos, schedules, range.lower, range.upper)
+    for (const [key, events] of monthEvents) {
+      updated.set(key, [...(updated.get(key) ?? []), ...events])
     }
+
     set({ eventsByDate: updated })
   },
 

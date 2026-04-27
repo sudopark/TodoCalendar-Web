@@ -299,6 +299,73 @@ describe('calendarEventsCache — mutation', () => {
     expect((apr03?.event as import('../../../src/models/Schedule').Schedule).show_turns).toEqual([3])
   })
 
+  it('replaceMonth 호출 시 단일 todo/schedule이 해당 날짜에 배치된다', () => {
+    // given: 빈 캐시
+    const MAR_10_TS = Math.floor(new Date(2025, 2, 10, 12, 0, 0).getTime() / 1000)
+    const todo = { uuid: 't-rep', name: '할 일', is_current: false, event_time: { time_type: 'at' as const, timestamp: MAR_10_TS } }
+    const sch = { uuid: 's-rep', name: '일정', event_time: { time_type: 'at' as const, timestamp: MARCH31_TIMESTAMP } }
+
+    // when: 2025년 3월 교체
+    useCalendarEventsCache.getState().replaceMonth(2025, 2, [todo], [sch])
+
+    // then: 각 이벤트가 해당 날짜에 있어야 한다
+    const state = useCalendarEventsCache.getState()
+    expect(state.eventsByDate.get('2025-03-10')?.some(e => e.event.uuid === 't-rep')).toBe(true)
+    expect(state.eventsByDate.get('2025-03-31')?.some(e => e.event.uuid === 's-rep')).toBe(true)
+  })
+
+  it('replaceMonth 후 반복 schedule의 모든 인스턴스가 해당 월에 보존된다 (Fix 2 회귀 가드)', () => {
+    // given: 매일 반복 schedule
+    const startTs = Math.floor(new Date(2025, 2, 1, 10, 0, 0).getTime() / 1000)
+    const dailySchedule = {
+      uuid: 'daily',
+      name: '매일',
+      event_time: { time_type: 'at' as const, timestamp: startTs },
+      repeating: {
+        start: startTs,
+        option: { optionType: 'every_day' as const, interval: 1 },
+      },
+    }
+
+    // when: 3월 데이터로 교체
+    useCalendarEventsCache.getState().replaceMonth(2025, 2, [], [dailySchedule])
+
+    // then: 3/1, 3/15, 3/31 모두 반복 인스턴스가 있어야 한다
+    const state = useCalendarEventsCache.getState()
+    expect(state.eventsByDate.get('2025-03-01')?.some(e => e.event.uuid === 'daily')).toBe(true)
+    expect(state.eventsByDate.get('2025-03-15')?.some(e => e.event.uuid === 'daily')).toBe(true)
+    expect(state.eventsByDate.get('2025-03-31')?.some(e => e.event.uuid === 'daily')).toBe(true)
+  })
+
+  it('replaceMonth 후 다른 월 데이터는 건드리지 않는다', () => {
+    // given: 4월 이벤트가 이미 캐시에 있는 상태
+    const APR_05_TS = Math.floor(new Date(2025, 3, 5, 12, 0, 0).getTime() / 1000)
+    const aprilTodo = { uuid: 'apr-t', name: '4월 할 일', is_current: false, event_time: { time_type: 'at' as const, timestamp: APR_05_TS } }
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: aprilTodo })
+
+    // when: 3월만 교체
+    const marchTodo = { uuid: 'mar-t', name: '3월 할 일', is_current: false, event_time: { time_type: 'at' as const, timestamp: MARCH31_TIMESTAMP } }
+    useCalendarEventsCache.getState().replaceMonth(2025, 2, [marchTodo], [])
+
+    // then: 4월 데이터는 그대로 있어야 한다
+    const state = useCalendarEventsCache.getState()
+    expect(state.eventsByDate.get('2025-04-05')?.some(e => e.event.uuid === 'apr-t')).toBe(true)
+    expect(state.eventsByDate.get('2025-03-31')?.some(e => e.event.uuid === 'mar-t')).toBe(true)
+  })
+
+  it('빈 배열로 replaceMonth 하면 해당 월이 비워진다', () => {
+    // given: 3월 이벤트가 있는 상태
+    const marchTodo = { uuid: 'existing', name: '기존', is_current: false, event_time: { time_type: 'at' as const, timestamp: MARCH31_TIMESTAMP } }
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: marchTodo })
+
+    // when: 빈 배열로 교체
+    useCalendarEventsCache.getState().replaceMonth(2025, 2, [], [])
+
+    // then: 3월 날짜에 기존 이벤트가 없어야 한다
+    const state = useCalendarEventsCache.getState()
+    expect(state.eventsByDate.get(MARCH31_KEY)?.some(e => e.event.uuid === 'existing')).toBeFalsy()
+  })
+
   it('reset 호출 시 초기 상태로 돌아간다', async () => {
     const { todoApi } = await import('../../../src/api/todoApi')
     const { scheduleApi } = await import('../../../src/api/scheduleApi')
