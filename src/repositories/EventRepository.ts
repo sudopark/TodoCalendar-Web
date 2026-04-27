@@ -5,7 +5,7 @@ import type { DoneTodo } from '../models/DoneTodo'
 import { useCalendarEventsCache } from './caches/calendarEventsCache'
 import { useCurrentTodosCache } from './caches/currentTodosCache'
 import { useUncompletedTodosCache } from './caches/uncompletedTodosCache'
-import { yearRange, monthRange } from '../utils/eventTimeUtils'
+import { monthRange } from '../utils/eventTimeUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 
 // ── API 인터페이스 명시적 정의 ────────────────────────────────────────
@@ -58,15 +58,7 @@ export class EventRepository {
       this.deps.todoApi.getTodos(range.lower, range.upper),
       this.deps.scheduleApi.getSchedules(range.lower, range.upper),
     ])
-    const events: CalendarEvent[] = [
-      ...todos.map<CalendarEvent>(t => ({ type: 'todo', event: t })),
-      ...schedules.map<CalendarEvent>(s => ({ type: 'schedule', event: s })),
-    ]
-    useCalendarEventsCache.getState().replaceMonth(year, month, events)
-  }
-
-  async fetchYear(year: number): Promise<void> {
-    return useCalendarEventsCache.getState().fetchEventsForYear(year)
+    useCalendarEventsCache.getState().replaceMonth(year, month, todos, schedules)
   }
 
   async fetchCurrentTodos(): Promise<void> {
@@ -79,32 +71,9 @@ export class EventRepository {
     useUncompletedTodosCache.getState().replaceAll(todos)
   }
 
-  // ── observe: hook + snapshot ──────────────────────────────────────
-
-  // year: 연도(4자리), month: 0-indexed 월
-  useMonthEvents(year: number, month: number): CalendarEvent[] {
-    return useCalendarEventsCache(s => {
-      const range = monthRange(year, month)
-      const lowerDate = new Date(range.lower * 1000)
-      const upperDate = new Date(range.upper * 1000)
-      const result: CalendarEvent[] = []
-      for (const [key, events] of s.eventsByDate) {
-        const d = new Date(key)
-        if (d >= lowerDate && d <= upperDate) {
-          result.push(...events)
-        }
-      }
-      return result
-    })
-  }
-
-  useCurrentTodos(): Todo[] {
-    return useCurrentTodosCache(s => s.todos)
-  }
-
-  useUncompletedTodos(): Todo[] {
-    return useUncompletedTodosCache(s => s.todos)
-  }
+  // ── observe: snapshot ────────────────────────────────────────────
+  // hook 기반 구독은 src/repositories/hooks/ 디렉토리의 독립 함수로 제공한다.
+  // Repository 클래스는 React를 모른다.
 
   // year: 연도(4자리), month: 0-indexed 월
   getMonthEventsSnapshot(year: number, month: number): CalendarEvent[] {
@@ -125,10 +94,6 @@ export class EventRepository {
 
   getCurrentTodosSnapshot(): Todo[] {
     return useCurrentTodosCache.getState().todos
-  }
-
-  getUncompletedTodosSnapshot(): Todo[] {
-    return useUncompletedTodosCache.getState().todos
   }
 
   // ── mutate: api 호출 + 캐시 갱신 ──────────────────────────────────
@@ -195,28 +160,4 @@ export class EventRepository {
     useCalendarEventsCache.getState().removeEvent(id)
   }
 
-  async patchScheduleNextOccurrence(id: string, nextEventTime: EventTime): Promise<Schedule> {
-    const updated = await this.deps.scheduleApi.updateSchedule(id, {
-      event_time: nextEventTime,
-    })
-    useCalendarEventsCache.getState().replaceEvent(id, { type: 'schedule', event: updated })
-    return updated
-  }
-
-  // 년도 기반 스냅샷 (기존 컴포넌트 호환)
-  getYearEventsSnapshot(year: number): CalendarEvent[] {
-    const range = yearRange(year)
-    const lowerDate = new Date(range.lower * 1000)
-    lowerDate.setHours(0, 0, 0, 0)
-    const upperDate = new Date(range.upper * 1000)
-    upperDate.setHours(23, 59, 59, 999)
-    const result: CalendarEvent[] = []
-    for (const [key, events] of useCalendarEventsCache.getState().eventsByDate) {
-      const d = new Date(key)
-      if (d >= lowerDate && d <= upperDate) {
-        result.push(...events)
-      }
-    }
-    return result
-  }
 }
