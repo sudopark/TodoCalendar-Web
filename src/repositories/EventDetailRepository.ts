@@ -23,10 +23,14 @@ export class EventDetailRepository {
     if (this.cache.has(eventId)) {
       return this.cache.get(eventId) ?? null
     }
-    const detail = await this.deps.api.getEventDetail(eventId)
-    const value = detail ?? null
-    this.cache.set(eventId, value)
-    return value
+    try {
+      const detail = await this.deps.api.getEventDetail(eventId)
+      this.cache.set(eventId, detail)
+      return detail
+    } catch {
+      this.cache.set(eventId, null)
+      return null
+    }
   }
 
   async save(eventId: string, detail: EventDetail): Promise<EventDetail> {
