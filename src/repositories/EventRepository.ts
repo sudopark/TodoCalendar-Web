@@ -198,7 +198,7 @@ export class EventRepository {
   async patchScheduleNextOccurrence(id: string, nextEventTime: EventTime): Promise<Schedule> {
     const updated = await this.deps.scheduleApi.updateSchedule(id, {
       event_time: nextEventTime,
-    } as SchedulePatch)
+    })
     useCalendarEventsCache.getState().replaceEvent(id, { type: 'schedule', event: updated })
     return updated
   }

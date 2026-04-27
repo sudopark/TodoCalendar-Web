@@ -64,15 +64,16 @@ function makeFakeScheduleApi(overrides: Partial<{
   getSchedules: (lower: number, upper: number) => Promise<Schedule[]>
   createSchedule: (body: object) => Promise<Schedule>
   patchSchedule: (id: string, body: object) => Promise<Schedule>
+  updateSchedule: (id: string, body: object) => Promise<Schedule>
   deleteSchedule: (id: string) => Promise<{ status: string }>
 }> = {}) {
   return {
     getSchedules: overrides.getSchedules ?? vi.fn(async () => []),
     createSchedule: overrides.createSchedule ?? vi.fn(async () => makeSchedule({ uuid: 'created-sch' })),
     patchSchedule: overrides.patchSchedule ?? vi.fn(async () => makeSchedule({ uuid: 'patched-sch' })),
+    updateSchedule: overrides.updateSchedule ?? vi.fn(async () => makeSchedule({ uuid: 'updated-sch' })),
     deleteSchedule: overrides.deleteSchedule ?? vi.fn(async () => ({ status: 'ok' })),
     getSchedule: vi.fn(async () => makeSchedule({ uuid: 'fetched-sch' })),
-    updateSchedule: vi.fn(async () => makeSchedule({ uuid: 'updated-sch' })),
     excludeRepeating: vi.fn(async () => makeSchedule({ uuid: 'excluded-sch' })),
   }
 }
@@ -323,5 +324,116 @@ describe('EventRepository — deleteSchedule', () => {
     // then
     const snapshot = repo.getMonthEventsSnapshot(2025, 2)
     expect(snapshot.some(e => e.event.uuid === 'del-sch')).toBe(false)
+  })
+})
+
+describe('EventRepository — updateSchedule', () => {
+  beforeEach(resetCaches)
+
+  it('schedule patch 후 calendar 캐시가 수정된 이벤트로 갱신된다', async () => {
+    // given: 캐시에 기존 schedule 추가
+    const original = makeSchedule({ uuid: 'upd-sch', name: '원래 일정', event_time: { time_type: 'at', timestamp: MAR_01_TS } })
+    useCalendarEventsCache.getState().addEvent({ type: 'schedule', event: original })
+
+    const updated = makeSchedule({ uuid: 'upd-sch', name: '수정된 일정', event_time: { time_type: 'at', timestamp: MAR_01_TS } })
+    const repo = new EventRepository({
+      todoApi: makeFakeTodoApi() as any,
+      scheduleApi: makeFakeScheduleApi({ updateSchedule: async () => updated }) as any,
+    })
+
+    // when
+    await repo.updateSchedule('upd-sch', { name: '수정된 일정' })
+
+    // then: 캘린더 캐시에 수정된 이름이 반영되어 있어야 한다
+    const snapshot = repo.getMonthEventsSnapshot(2025, 2)
+    const found = snapshot.find(e => e.event.uuid === 'upd-sch')
+    expect(found?.event.name).toBe('수정된 일정')
+  })
+
+  it('schedule patch 후 event_time이 변경된 경우 캐시에 새 시간이 반영된다', async () => {
+    // given: 캐시에 기존 schedule 추가
+    const original = makeSchedule({ uuid: 'time-sch', event_time: { time_type: 'at', timestamp: MAR_01_TS } })
+    useCalendarEventsCache.getState().addEvent({ type: 'schedule', event: original })
+
+    const updated = makeSchedule({ uuid: 'time-sch', event_time: { time_type: 'at', timestamp: MAR_15_TS } })
+    const repo = new EventRepository({
+      todoApi: makeFakeTodoApi() as any,
+      scheduleApi: makeFakeScheduleApi({ updateSchedule: async () => updated }) as any,
+    })
+
+    // when
+    await repo.updateSchedule('time-sch', { event_time: { time_type: 'at', timestamp: MAR_15_TS } })
+
+    // then: 캐시에서 해당 schedule을 여전히 찾을 수 있어야 한다
+    const snapshot = repo.getMonthEventsSnapshot(2025, 2)
+    expect(snapshot.some(e => e.event.uuid === 'time-sch')).toBe(true)
+  })
+})
+
+describe('EventRepository — patchScheduleNextOccurrence', () => {
+  beforeEach(resetCaches)
+
+  it('다음 회차로 patch 하면 캐시의 schedule이 새 회차로 교체된다', async () => {
+    // given: 캐시에 기존 반복 schedule 추가
+    const original = makeSchedule({ uuid: 'rep-sch', event_time: { time_type: 'at', timestamp: MAR_01_TS } })
+    useCalendarEventsCache.getState().addEvent({ type: 'schedule', event: original })
+
+    const nextEventTime = { time_type: 'at' as const, timestamp: MAR_15_TS }
+    const nextSchedule = makeSchedule({ uuid: 'rep-sch', event_time: nextEventTime })
+    const repo = new EventRepository({
+      todoApi: makeFakeTodoApi() as any,
+      scheduleApi: makeFakeScheduleApi({ updateSchedule: async () => nextSchedule }) as any,
+    })
+
+    // when
+    await repo.patchScheduleNextOccurrence('rep-sch', nextEventTime)
+
+    // then: 캘린더 캐시에 새 회차 schedule이 반영되어 있어야 한다
+    const snapshot = repo.getMonthEventsSnapshot(2025, 2)
+    expect(snapshot.some(e => e.event.uuid === 'rep-sch')).toBe(true)
+  })
+})
+
+describe('EventRepository — fetchCurrentTodos', () => {
+  beforeEach(resetCaches)
+
+  it('fetchCurrentTodos 후 currentTodos 캐시에 응답이 반영된다', async () => {
+    // given
+    const todo1 = makeTodo({ uuid: 'curr-1', is_current: true })
+    const todo2 = makeTodo({ uuid: 'curr-2', is_current: true })
+    const repo = new EventRepository({
+      todoApi: makeFakeTodoApi({ getCurrentTodos: async () => [todo1, todo2] }) as any,
+      scheduleApi: makeFakeScheduleApi() as any,
+    })
+
+    // when
+    await repo.fetchCurrentTodos()
+
+    // then: currentTodos 캐시에 응답 목록이 반영되어 있어야 한다
+    const snapshot = repo.getCurrentTodosSnapshot()
+    expect(snapshot.some(t => t.uuid === 'curr-1')).toBe(true)
+    expect(snapshot.some(t => t.uuid === 'curr-2')).toBe(true)
+  })
+})
+
+describe('EventRepository — fetchUncompletedTodos', () => {
+  beforeEach(resetCaches)
+
+  it('fetchUncompletedTodos 후 uncompletedTodos 캐시에 응답이 반영된다', async () => {
+    // given
+    const todo1 = makeTodo({ uuid: 'unc-1', is_current: false })
+    const todo2 = makeTodo({ uuid: 'unc-2', is_current: false })
+    const repo = new EventRepository({
+      todoApi: makeFakeTodoApi({ getUncompletedTodos: async () => [todo1, todo2] }) as any,
+      scheduleApi: makeFakeScheduleApi() as any,
+    })
+
+    // when
+    await repo.fetchUncompletedTodos()
+
+    // then: uncompletedTodos 캐시에 응답 목록이 반영되어 있어야 한다
+    const snapshot = repo.getUncompletedTodosSnapshot()
+    expect(snapshot.some(t => t.uuid === 'unc-1')).toBe(true)
+    expect(snapshot.some(t => t.uuid === 'unc-2')).toBe(true)
   })
 })
