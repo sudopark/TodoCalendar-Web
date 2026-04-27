@@ -13,7 +13,7 @@ describe('settingCategory', () => {
     expect(SETTING_CATEGORIES[0].id).toBe('appearance')
   })
 
-  it('SETTING_CATEGORIES는 8개 카테고리를 포함한다', () => {
+  it('SETTING_CATEGORIES는 7개 카테고리를 포함한다', () => {
     // given / when
     const ids = SETTING_CATEGORIES.map(c => c.id)
 
@@ -25,7 +25,6 @@ describe('settingCategory', () => {
       'timezone',
       'language',
       'notification',
-      'googleCalendar',
       'account',
     ])
   })

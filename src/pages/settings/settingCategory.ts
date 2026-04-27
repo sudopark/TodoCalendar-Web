@@ -5,7 +5,6 @@ export type SettingCategoryId =
   | 'timezone'
   | 'language'
   | 'notification'
-  | 'googleCalendar'
   | 'account'
 
 export interface SettingCategory {
@@ -20,7 +19,6 @@ export const SETTING_CATEGORIES: readonly SettingCategory[] = [
   { id: 'timezone', labelKey: 'settings.menu.timezone' },
   { id: 'language', labelKey: 'settings.menu.language' },
   { id: 'notification', labelKey: 'settings.menu.notification' },
-  { id: 'googleCalendar', labelKey: 'settings.menu.google_calendar' },
   { id: 'account', labelKey: 'settings.menu.account' },
 ]
 
