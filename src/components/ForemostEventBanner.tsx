@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useForemostEventStore } from '../stores/foremostEventStore'
+import { useForemostEventCache } from '../repositories/caches/foremostEventCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 import { tagDisplayName } from '../utils/tagDisplay'
@@ -13,7 +13,7 @@ interface ForemostEventBannerProps {
 }
 
 export function ForemostEventBanner({ onEventClick }: ForemostEventBannerProps) {
-  const foremostEvent = useForemostEventStore(s => s.foremostEvent)
+  const foremostEvent = useForemostEventCache(s => s.foremostEvent)
   const { t } = useTranslation()
   const fontSizeWeight = useCalendarAppearanceStore(s => s.eventListFontSizeWeight)
   const nameFontSize = `${14 + fontSizeWeight}px`

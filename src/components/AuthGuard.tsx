@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useEventTagListCache } from '../repositories/caches/eventTagListCache'
 import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
-import { useForemostEventStore } from '../stores/foremostEventStore'
+import { useForemostEventCache } from '../repositories/caches/foremostEventCache'
 import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'
 
 interface AuthGuardProps {
@@ -19,7 +19,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
       Promise.allSettled([
         useEventTagListCache.getState().fetchAll(),
         useCurrentTodosCache.getState().fetch(),
-        useForemostEventStore.getState().fetch(),
+        useForemostEventCache.getState().fetch(),
         useUncompletedTodosCache.getState().fetch(),
       ]).then(results => {
         const failed = results
