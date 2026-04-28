@@ -2,11 +2,11 @@ import { useTranslation } from 'react-i18next'
 import { useForemostEventCache } from '../repositories/caches/foremostEventCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
-import { tagDisplayName } from '../utils/tagDisplay'
+import { tagDisplayName } from '../domain/functions/tagDisplay'
 import { TimeDescription } from './TimeDescription'
 import type { Todo } from '../models/Todo'
 import type { Schedule } from '../models/Schedule'
-import type { CalendarEvent } from '../utils/eventTimeUtils'
+import type { CalendarEvent } from '../domain/functions/eventTime'
 
 interface ForemostEventBannerProps {
   onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void

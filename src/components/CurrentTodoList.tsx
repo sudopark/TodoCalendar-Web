@@ -5,13 +5,13 @@ import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
-import { tagDisplayName } from '../utils/tagDisplay'
+import { tagDisplayName } from '../domain/functions/tagDisplay'
 import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
-import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
+import { nextRepeatingTime, getStartTimestamp } from '../domain/functions/repeating'
 import { refreshAllTodoStores } from '../utils/todoActions'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
 import type { Todo } from '../models'
-import type { CalendarEvent } from '../utils/eventTimeUtils'
+import type { CalendarEvent } from '../domain/functions/eventTime'
 
 interface CurrentTodoRowProps {
   todo: Todo

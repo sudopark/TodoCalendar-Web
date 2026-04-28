@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { tagDisplayName } from '../../src/utils/tagDisplay'
-import type { ResolvedTag } from '../../src/domain/tag/resolveEventTag'
+import { tagDisplayName } from '../../../src/domain/functions/tagDisplay'
+import type { ResolvedTag } from '../../../src/domain/tag/resolveEventTag'
 import type { TFunction } from 'i18next'
 
 const t = ((key: string, fallback?: string) => fallback ?? key) as unknown as TFunction

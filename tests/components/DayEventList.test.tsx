@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DayEventList } from '../../src/components/DayEventList'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
-import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
+import type { CalendarEvent } from '../../src/domain/functions/eventTime'
 
 vi.mock('../../src/repositories/caches/calendarEventsCache', () => ({ useCalendarEventsCache: vi.fn() }))
 vi.mock('../../src/repositories/caches/eventTagListCache', () => ({

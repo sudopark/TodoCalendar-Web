@@ -5,7 +5,7 @@ import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import type { Todo } from '../models/Todo'
 import type { Schedule } from '../models/Schedule'
 import type { RepeatScope } from '../components/RepeatingScopeDialog'
-import { nextRepeatingTime, getStartTimestamp } from './repeatingTimeCalculator'
+import { nextRepeatingTime, getStartTimestamp } from '../domain/functions/repeating'
 
 export async function deleteTodoEvent(todo: Todo, scope?: RepeatScope): Promise<void> {
   const { addEvent, removeEvent } = useCalendarEventsCache.getState()

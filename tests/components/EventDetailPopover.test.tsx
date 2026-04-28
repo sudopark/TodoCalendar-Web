@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { EventDetailPopover } from '../../src/components/EventDetailPopover'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
-import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
+import type { CalendarEvent } from '../../src/domain/functions/eventTime'
 import { eventDetailApi } from '../../src/api/eventDetailApi'
 
 vi.mock('../../src/api/eventDetailApi', () => ({

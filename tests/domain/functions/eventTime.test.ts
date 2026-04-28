@@ -9,8 +9,8 @@ import {
   groupEventsByDate,
   formatDateKey,
   eventTimeOverlapsRange,
-} from '../../src/utils/eventTimeUtils'
-import type { EventTime, Todo, Schedule } from '../../src/models'
+} from '../../../src/domain/functions/eventTime'
+import type { EventTime, Todo, Schedule } from '../../../src/models'
 
 describe('eventTimeToStartDate', () => {
   it('"at" 타입이면 timestamp를 Date로 변환한다', () => {

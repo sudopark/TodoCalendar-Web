@@ -5,8 +5,8 @@
 import { create } from 'zustand'
 import { todoApi } from '../../api/todoApi'
 import { scheduleApi } from '../../api/scheduleApi'
-import { groupEventsByDate, eventTimeToStartDate, eventTimeToEndDate, formatDateKey, yearRange, monthRange } from '../../utils/eventTimeUtils'
-import type { CalendarEvent } from '../../utils/eventTimeUtils'
+import { groupEventsByDate, eventTimeToStartDate, eventTimeToEndDate, formatDateKey, yearRange, monthRange } from '../../domain/functions/eventTime'
+import type { CalendarEvent } from '../../domain/functions/eventTime'
 import type { Todo } from '../../models/Todo'
 import type { Schedule } from '../../models/Schedule'
 

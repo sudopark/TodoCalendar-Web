@@ -5,8 +5,8 @@ import type { DoneTodo } from '../models/DoneTodo'
 import { useCalendarEventsCache } from './caches/calendarEventsCache'
 import { useCurrentTodosCache } from './caches/currentTodosCache'
 import { useUncompletedTodosCache } from './caches/uncompletedTodosCache'
-import { monthRange } from '../utils/eventTimeUtils'
-import type { CalendarEvent } from '../utils/eventTimeUtils'
+import { monthRange } from '../domain/functions/eventTime'
+import type { CalendarEvent } from '../domain/functions/eventTime'
 
 // ── API 인터페이스 명시적 정의 ────────────────────────────────────────
 // todoApi/scheduleApi 모듈의 실제 시그니처와 동기를 유지해야 한다.

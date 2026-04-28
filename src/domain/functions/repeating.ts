@@ -1,9 +1,9 @@
-import type { EventTime, Repeating, RepeatingOption } from '../models'
+import type { EventTime, Repeating, RepeatingOption } from '../../models'
 import type {
   EveryMonthDaysSelection,
   EveryMonthWeekSelection,
   WeekOrdinal,
-} from '../models'
+} from '../../models'
 
 export interface RepeatingTimes {
   time: EventTime
@@ -100,7 +100,7 @@ function daysInMonth(year: number, month: number): number {
 function nthWeekdayOfMonth(year: number, month: number, weekday: number, nth: number): Date | null {
   // weekday: 0(Sun)~6(Sat) (JS getDay convention), nth: 1-based
   const firstDay = new Date(year, month - 1, 1)
-  let firstOccurrence = firstDay.getDate() + ((weekday - firstDay.getDay() + 7) % 7)
+  const firstOccurrence = firstDay.getDate() + ((weekday - firstDay.getDay() + 7) % 7)
   const targetDate = firstOccurrence + (nth - 1) * 7
   if (targetDate > daysInMonth(year, month)) return null
   return new Date(year, month - 1, targetDate)
@@ -186,7 +186,7 @@ function everyMonthInterval(
   currentDate: Date,
   currentTs: number,
   interval: number,
-  selection: import('../models').MonthDaySelection,
+  selection: import('../../models').MonthDaySelection,
 ): number | null {
   if ('days' in selection) {
     return everyMonthDaysInterval(currentDate, currentTs, interval, selection as EveryMonthDaysSelection)
