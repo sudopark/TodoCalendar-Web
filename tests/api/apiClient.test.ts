@@ -94,4 +94,80 @@ describe('apiClient', () => {
     const { apiClient } = await import('../../src/api/apiClient')
     await expect(apiClient.get('/v1/test')).rejects.toThrow('Not authenticated')
   })
+
+  it('POST 요청 시 body가 JSON으로 직렬화되어 전송된다', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({}), { status: 200 })
+    )
+
+    const { apiClient } = await import('../../src/api/apiClient')
+    const payload = { name: 'test', value: 42 }
+    await apiClient.post('/v1/test', payload)
+
+    const [, options] = fetchSpy.mock.calls[0]
+    expect((options as RequestInit).method).toBe('POST')
+    expect((options as RequestInit).body).toBe(JSON.stringify(payload))
+  })
+
+  it('PUT 요청 시 올바른 method와 body가 전송된다', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({}), { status: 200 })
+    )
+
+    const { apiClient } = await import('../../src/api/apiClient')
+    const payload = { id: '1', name: 'updated' }
+    await apiClient.put('/v1/test/1', payload)
+
+    const [, options] = fetchSpy.mock.calls[0]
+    expect((options as RequestInit).method).toBe('PUT')
+    expect((options as RequestInit).body).toBe(JSON.stringify(payload))
+  })
+
+  it('PATCH 요청 시 올바른 method와 body가 전송된다', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({}), { status: 200 })
+    )
+
+    const { apiClient } = await import('../../src/api/apiClient')
+    const payload = { name: 'patched' }
+    await apiClient.patch('/v1/test/1', payload)
+
+    const [, options] = fetchSpy.mock.calls[0]
+    expect((options as RequestInit).method).toBe('PATCH')
+    expect((options as RequestInit).body).toBe(JSON.stringify(payload))
+  })
+
+  it('DELETE 요청 시 올바른 method로 호출된다', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(null, { status: 204 })
+    )
+
+    const { apiClient } = await import('../../src/api/apiClient')
+    await apiClient.delete('/v1/test/1')
+
+    const [url, options] = fetchSpy.mock.calls[0]
+    expect(String(url)).toContain('/v1/test/1')
+    expect((options as RequestInit).method).toBe('DELETE')
+  })
+
+  it('Content-Type 헤더가 application/json으로 설정된다', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({}), { status: 200 })
+    )
+
+    const { apiClient } = await import('../../src/api/apiClient')
+    await apiClient.get('/v1/test')
+
+    const [, options] = fetchSpy.mock.calls[0]
+    expect((options as RequestInit).headers).toMatchObject({
+      'Content-Type': 'application/json',
+    })
+  })
+
+  it('네트워크 에러 시 에러가 전파된다', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Network failure'))
+
+    const { apiClient } = await import('../../src/api/apiClient')
+    await expect(apiClient.get('/v1/test')).rejects.toThrow('Network failure')
+  })
 })
