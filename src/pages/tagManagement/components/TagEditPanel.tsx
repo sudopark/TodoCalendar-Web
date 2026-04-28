@@ -59,7 +59,7 @@ export function TagEditPanel({ mode, onClose }: TagEditPanelProps) {
         : isReadonlyName
           ? 'tag.color_update_failed'
           : 'tag.update_failed'
-      useToastStore.getState().show(t(key), 'error')
+      useToastStore.getState().show(key, 'error')
     } finally {
       setSaving(false)
     }
@@ -74,7 +74,7 @@ export function TagEditPanel({ mode, onClose }: TagEditPanelProps) {
       onClose()
     } catch (e) {
       console.warn('태그 삭제 실패:', e)
-      useToastStore.getState().show(t('tag.delete_failed'), 'error')
+      useToastStore.getState().show('tag.delete_failed', 'error')
     }
   }
 
@@ -87,7 +87,7 @@ export function TagEditPanel({ mode, onClose }: TagEditPanelProps) {
       onClose()
     } catch (e) {
       console.warn('태그+이벤트 삭제 실패:', e)
-      useToastStore.getState().show(t('tag.delete_events_failed'), 'error')
+      useToastStore.getState().show('tag.delete_events_failed', 'error')
     }
   }
 

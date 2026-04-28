@@ -110,7 +110,7 @@ describe('SettingsPage', () => {
     // then
     await waitFor(() => {
       const toasts = useToastStore.getState().toasts
-      expect(toasts.some(t => t.message === '계정 삭제에 실패했습니다' && t.type === 'error')).toBe(true)
+      expect(toasts.some(t => t.key === 'settings.account_delete_failed' && t.type === 'error')).toBe(true)
     })
     warnSpy.mockRestore()
   })

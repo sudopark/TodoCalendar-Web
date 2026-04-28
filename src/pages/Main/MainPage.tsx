@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import TopToolbar from '../../components/TopToolbar'
 import LeftSidebar from '../../components/LeftSidebar'
 import MainCalendar from '../../calendar/MainCalendar'
@@ -22,7 +21,6 @@ interface PopoverState {
 }
 
 export function MainPage() {
-  const { t } = useTranslation()
   useKeyboardShortcuts()
   const navigate = useNavigate()
   const location = useLocation()
@@ -71,7 +69,7 @@ export function MainPage() {
       }
       setPopover(null)
     } catch {
-      useToastStore.getState().show(t('event.delete_failed', '삭제 실패'), 'error')
+      useToastStore.getState().show('event.delete_failed', 'error')
     }
   }
 

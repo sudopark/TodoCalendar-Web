@@ -24,7 +24,7 @@ export function TagManagementPage() {
   useEffect(() => {
     vm.fetchAll().catch(e => {
       console.warn('태그 로드 실패:', e)
-      useToastStore.getState().show(t('error.data_load_failed'), 'error')
+      useToastStore.getState().show('error.data_load_failed', 'error')
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

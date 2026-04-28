@@ -208,14 +208,14 @@ export const useEventFormStore = create<EventFormState>((set, get) => ({
       }
 
       useToastStore.getState().show(
-        state.eventType === 'todo' ? '할일이 생성되었습니다' : '일정이 생성되었습니다',
+        state.eventType === 'todo' ? 'event.created.todo' : 'event.created.schedule',
         'success',
       )
       get().closeForm()
     } catch (e) {
-      const message = e instanceof Error ? e.message : '저장에 실패했습니다'
+      const message = e instanceof Error ? e.message : 'error.unknown'
       set({ error: message })
-      useToastStore.getState().show(message, 'error')
+      useToastStore.getState().show('error.unknown', 'error')
     } finally {
       set({ saving: false })
     }

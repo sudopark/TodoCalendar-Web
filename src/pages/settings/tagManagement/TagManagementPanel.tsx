@@ -28,7 +28,7 @@ export function TagManagementPanel({ onClose }: Props) {
   useEffect(() => {
     fetchAll().catch(e => {
       console.warn('태그 로드 실패:', e)
-      useToastStore.getState().show(t('error.data_load_failed'), 'error')
+      useToastStore.getState().show('error.data_load_failed', 'error')
     })
   }, [fetchAll, t])
 
