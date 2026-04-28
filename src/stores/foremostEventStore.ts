@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { foremostApi } from '../api/foremostApi'
+import { useForemostEventCache } from '../repositories/caches/foremostEventCache'
 import type { ForemostEvent } from '../models'
 
 interface ForemostEventState {
@@ -16,9 +17,11 @@ export const useForemostEventStore = create<ForemostEventState>((set) => ({
   fetch: async () => {
     try {
       const event = await foremostApi.getForemostEvent()
+      useForemostEventCache.getState().setEvent(event)
       set({ foremostEvent: event })
     } catch (e) {
       console.warn('Foremost event 로드 실패:', e)
+      useForemostEventCache.getState().setEvent(null)
       set({ foremostEvent: null })
       throw e
     }
@@ -27,6 +30,7 @@ export const useForemostEventStore = create<ForemostEventState>((set) => ({
   setForemost: async (eventId: string, isTodo: boolean) => {
     try {
       const event = await foremostApi.setForemostEvent({ event_id: eventId, is_todo: isTodo })
+      useForemostEventCache.getState().setEvent(event)
       set({ foremostEvent: event })
     } catch (e) {
       console.warn('Foremost 설정 실패:', e)
@@ -36,11 +40,15 @@ export const useForemostEventStore = create<ForemostEventState>((set) => ({
   removeForemost: async () => {
     try {
       await foremostApi.removeForemostEvent()
+      useForemostEventCache.getState().setEvent(null)
       set({ foremostEvent: null })
     } catch (e) {
       console.warn('Foremost 해제 실패:', e)
     }
   },
 
-  reset: () => set({ foremostEvent: null }),
+  reset: () => {
+    useForemostEventCache.getState().reset()
+    set({ foremostEvent: null })
+  },
 }))
