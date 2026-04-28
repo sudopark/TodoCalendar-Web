@@ -1,4 +1,4 @@
-import { useCalendarAppearanceStore } from '../../../../stores/calendarAppearanceStore'
+import { useSettingsCache } from '../../../../repositories/caches/settingsCache'
 
 const SAMPLE_EVENTS_BY_DAY: { day: number; name: string; color: string }[][] = [
   [{ day: 1, name: '회의', color: '#5096FF' }],
@@ -18,7 +18,7 @@ const SAMPLE_EVENTS_BY_DAY: { day: number; name: string; color: string }[][] = [
  * 이벤트 표시 레벨 미리보기 — minimal/medium/full 차이를 한 행으로 시연
  */
 export function EventDisplayPreview() {
-  const { eventDisplayLevel, eventFontSizeWeight, showEventNames } = useCalendarAppearanceStore()
+  const { eventDisplayLevel, eventFontSizeWeight, showEventNames } = useSettingsCache(s => s.calendarAppearance)
 
   const fontSize = `${10 + eventFontSizeWeight}px`
 

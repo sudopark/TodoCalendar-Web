@@ -12,7 +12,7 @@ import { RepeatingScopeDialog, type RepeatScope } from '../components/RepeatingS
 import { EventFormHeader } from '../components/eventForm/EventFormHeader'
 import { EventTimeSection } from '../components/eventForm/EventTimeSection'
 import { EventDetailsSection } from '../components/eventForm/EventDetailsSection'
-import { useEventDefaultsStore } from '../stores/eventDefaultsStore'
+import { useSettingsCache } from '../repositories/caches/settingsCache'
 import { defaultNotificationsForEventTime } from '../stores/eventFormStore'
 import { useEventFormDirty, type EventFormSnapshot } from '../hooks/useEventFormDirty'
 import type { Schedule, EventTime, Repeating, NotificationOption } from '../models'
@@ -25,7 +25,7 @@ export function ScheduleFormPage() {
   const selectedDate = useUiStore(s => s.selectedDate)
 
   const { addEvent, removeEvent } = useCalendarEventsCache()
-  const { defaultTagId } = useEventDefaultsStore()
+  const { defaultTagId } = useSettingsCache(s => s.eventDefaults)
 
   const prefilled = (location.state as { prefilled?: Partial<EventFormSnapshot> } | null)?.prefilled
 

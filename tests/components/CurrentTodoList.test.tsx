@@ -23,8 +23,21 @@ vi.mock('../../src/repositories/caches/eventTagListCache', () => ({
   DEFAULT_TAG_ID: 'default',
   HOLIDAY_TAG_ID: 'holiday',
 }))
-vi.mock('../../src/stores/eventDefaultsStore', () => ({
-  useEventDefaultsStore: vi.fn((selector: any) => selector({ defaultTagId: null })),
+vi.mock('../../src/repositories/caches/settingsCache', () => ({
+  useSettingsCache: vi.fn((selector: any) => selector({
+    calendarAppearance: {
+      weekStartDay: 0, accentDays: { holiday: true, saturday: false, sunday: true },
+      eventDisplayLevel: 'medium', rowHeight: 70, eventFontSizeWeight: 0, showEventNames: true,
+      eventListFontSizeWeight: 0, showHolidayInEventList: true, showLunarCalendar: false, showUncompletedTodos: true,
+    },
+    eventDefaults: { defaultTagId: null, defaultNotificationSeconds: null, defaultAllDayNotificationSeconds: null },
+    timezone: { timezone: 'UTC', systemTimezone: 'UTC', isCustom: false },
+    notification: { permission: 'default', fcmToken: null },
+    setAppearance: vi.fn(), resetAppearanceToDefaults: vi.fn(),
+    setEventDefaults: vi.fn(), setTimezone: vi.fn(),
+    setNotificationPermission: vi.fn(), setFcmToken: vi.fn(),
+    requestNotificationPermission: vi.fn(), reset: vi.fn(),
+  })),
 }))
 vi.mock('../../src/firebase', () => ({
   getAuthInstance: vi.fn(() => ({})),

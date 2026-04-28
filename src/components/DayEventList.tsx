@@ -10,7 +10,7 @@ import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
 import { refreshTodoListStores } from '../utils/todoActions'
 import { formatDateKey } from '../utils/eventTimeUtils'
-import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
+import { useSettingsCache } from '../repositories/caches/settingsCache'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 import type { Todo } from '../models'
 
@@ -21,7 +21,7 @@ function EventItem({ calEvent, onEventClick, onComplete, isLast }: {
   isLast: boolean
 }) {
   const { t } = useTranslation()
-  const fontSizeWeight = useCalendarAppearanceStore(s => s.eventListFontSizeWeight)
+  const fontSizeWeight = useSettingsCache(s => s.calendarAppearance.eventListFontSizeWeight)
   const nameFontSize = `${14 + fontSizeWeight}px`
 
   const { name, event_tag_id, event_time } = calEvent.type === 'todo'

@@ -57,8 +57,8 @@ export class AuthRepository {
     useCalendarEventsCache.getState().reset()
     useUncompletedTodosCache.getState().reset()
     const { useDoneTodosCache } = await import('./caches/doneTodosCache')
-    const { useNotificationStore } = await import('../stores/notificationStore')
+    const { useSettingsCache } = await import('./caches/settingsCache')
     useDoneTodosCache.getState().reset()
-    useNotificationStore.getState().reset()
+    useSettingsCache.getState().reset()
   }
 }

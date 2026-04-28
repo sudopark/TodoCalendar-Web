@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next'
-import { useNotificationStore } from '../../../stores/notificationStore'
+import { useSettingsCache } from '../../../repositories/caches/settingsCache'
 import { SettingsSection, settingsBtnSecondary } from '../SettingsSection'
 
 export function NotificationSection() {
   const { t } = useTranslation()
-  const permission = useNotificationStore(s => s.permission)
-  const requestPermission = useNotificationStore(s => s.requestPermission)
+  const permission = useSettingsCache(s => s.notification.permission)
+  const requestPermission = useSettingsCache(s => s.requestNotificationPermission)
 
   return (
     <SettingsSection title={t('settings.notification')}>

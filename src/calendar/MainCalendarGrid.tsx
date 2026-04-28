@@ -8,7 +8,7 @@ import { useUiStore } from '../stores/uiStore'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useHolidayCache } from '../repositories/caches/holidayCache'
 import { useTagFilterStore } from '../stores/tagFilterStore'
-import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
+import { useSettingsCache } from '../repositories/caches/settingsCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 
 const ALL_WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
@@ -92,7 +92,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
     eventDisplayLevel,
     eventFontSizeWeight,
     showEventNames,
-  } = useCalendarAppearanceStore()
+  } = useSettingsCache(s => s.calendarAppearance)
 
   const isMinimal = eventDisplayLevel === 'minimal'
   const isFull = eventDisplayLevel === 'full'

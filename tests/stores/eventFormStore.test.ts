@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useUiStore } from '../../src/stores/uiStore'
-import { useEventDefaultsStore } from '../../src/stores/eventDefaultsStore'
+import { useSettingsCache } from '../../src/repositories/caches/settingsCache'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 import { useToastStore } from '../../src/stores/toastStore'
@@ -30,7 +30,7 @@ describe('eventFormStore', () => {
     vi.clearAllMocks()
     // reset dependent stores
     useUiStore.setState({ selectedDate: SELECTED_DATE })
-    useEventDefaultsStore.setState({ defaultTagId: 'tag-1', defaultNotificationSeconds: 300 })
+    useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: 'tag-1', defaultNotificationSeconds: 300 } }))
     useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: { lower: 0, upper: 9999999999 } })
     useCurrentTodosCache.setState({ todos: [] })
     useToastStore.setState({ toasts: [] })
@@ -110,7 +110,7 @@ describe('eventFormStore', () => {
 
     it('기본 알림이 없으면 빈 배열이다', async () => {
       // given
-      useEventDefaultsStore.setState({ defaultNotificationSeconds: null })
+      useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultNotificationSeconds: null } }))
       const { useEventFormStore } = await import('../../src/stores/eventFormStore')
 
       // when

@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useEventDefaultsStore } from '../../../stores/eventDefaultsStore'
+import { useSettingsCache } from '../../../repositories/caches/settingsCache'
 import { useEventTagListCache } from '../../../repositories/caches/eventTagListCache'
 import { APP_FALLBACK_DEFAULT_COLOR } from '../../../domain/tag/resolveEventTag'
 
@@ -20,8 +20,8 @@ export function DefaultTagPickerPanel({ onClose }: Props) {
   const { t } = useTranslation()
   const tags = useEventTagListCache(s => s.tags)
   const defaultTagColors = useEventTagListCache(s => s.defaultTagColors)
-  const defaultTagId = useEventDefaultsStore(s => s.defaultTagId)
-  const setDefaults = useEventDefaultsStore(s => s.setDefaults)
+  const defaultTagId = useSettingsCache(s => s.eventDefaults.defaultTagId)
+  const setDefaults = useSettingsCache(s => s.setEventDefaults)
 
   const baseDefaultColor =
     defaultTagColors?.default && defaultTagColors.default.length > 0

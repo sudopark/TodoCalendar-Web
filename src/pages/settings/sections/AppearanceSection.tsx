@@ -1,11 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '../../../stores/themeStore'
-import {
-  useCalendarAppearanceStore,
-  type EventDisplayLevel,
-  type WeekStartDay,
-} from '../../../stores/calendarAppearanceStore'
+import { useSettingsCache, type EventDisplayLevel, type WeekStartDay } from '../../../repositories/caches/settingsCache'
 import {
   SettingsSection,
   settingsBtnSecondary,
@@ -80,9 +76,9 @@ export function AppearanceSection() {
     showHolidayInEventList,
     showLunarCalendar,
     showUncompletedTodos,
-    setAppearance,
-    resetToDefaults,
-  } = useCalendarAppearanceStore()
+  } = useSettingsCache(s => s.calendarAppearance)
+  const setAppearance = useSettingsCache(s => s.setAppearance)
+  const resetToDefaults = useSettingsCache(s => s.resetAppearanceToDefaults)
 
   const themeOptions = [
     { id: 'system' as const, label: t('settings.theme_system') },

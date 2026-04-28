@@ -9,7 +9,7 @@ import { tagDisplayName } from '../utils/tagDisplay'
 import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalculator'
 import { refreshAllTodoStores } from '../utils/todoActions'
-import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
+import { useSettingsCache } from '../repositories/caches/settingsCache'
 import type { Todo } from '../models'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 
@@ -24,7 +24,7 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: Uncomple
   const { t } = useTranslation()
   const resolved = useResolvedEventTag(todo.event_tag_id)
   const color = resolved.color
-  const fontSizeWeight = useCalendarAppearanceStore(s => s.eventListFontSizeWeight)
+  const fontSizeWeight = useSettingsCache(s => s.calendarAppearance.eventListFontSizeWeight)
   const nameFontSize = `${14 + fontSizeWeight}px`
   const tagName = tagDisplayName(resolved, t)
 

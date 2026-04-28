@@ -5,7 +5,7 @@ import { formatDateKey } from '../utils/eventTimeUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 import { useForemostEventCache } from '../repositories/caches/foremostEventCache'
 import { useHolidayCache } from '../repositories/caches/holidayCache'
-import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
+import { useSettingsCache } from '../repositories/caches/settingsCache'
 import { ForemostEventBanner } from './ForemostEventBanner'
 import { UncompletedTodoList } from './UncompletedTodoList'
 import { CurrentTodoList } from './CurrentTodoList'
@@ -44,9 +44,9 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
   const rightPanelMode = useUiStore(s => s.rightPanelMode)
   const openArchivePanel = useUiStore(s => s.openArchivePanel)
   const getHolidayNames = useHolidayCache(s => s.getHolidayNames)
-  const showHolidayInEventList = useCalendarAppearanceStore(s => s.showHolidayInEventList)
-  const showLunarCalendar = useCalendarAppearanceStore(s => s.showLunarCalendar)
-  const showUncompletedTodos = useCalendarAppearanceStore(s => s.showUncompletedTodos)
+  const showHolidayInEventList = useSettingsCache(s => s.calendarAppearance.showHolidayInEventList)
+  const showLunarCalendar = useSettingsCache(s => s.calendarAppearance.showLunarCalendar)
+  const showUncompletedTodos = useSettingsCache(s => s.calendarAppearance.showUncompletedTodos)
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
 
   if (rightPanelMode === 'archive') {

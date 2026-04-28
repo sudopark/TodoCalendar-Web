@@ -14,7 +14,7 @@ import { nextRepeatingTime, getStartTimestamp } from '../utils/repeatingTimeCalc
 import { EventFormHeader } from '../components/eventForm/EventFormHeader'
 import { EventTimeSection } from '../components/eventForm/EventTimeSection'
 import { EventDetailsSection } from '../components/eventForm/EventDetailsSection'
-import { useEventDefaultsStore } from '../stores/eventDefaultsStore'
+import { useSettingsCache } from '../repositories/caches/settingsCache'
 import { defaultNotificationsForEventTime } from '../stores/eventFormStore'
 import { useEventFormDirty, type EventFormSnapshot } from '../hooks/useEventFormDirty'
 import type { Todo, EventTime, Repeating, NotificationOption } from '../models'
@@ -28,7 +28,7 @@ export function TodoFormPage() {
 
   const { addEvent, removeEvent } = useCalendarEventsCache()
   const { addTodo, removeTodo, replaceTodo } = useCurrentTodosCache()
-  const { defaultTagId } = useEventDefaultsStore()
+  const { defaultTagId } = useSettingsCache(s => s.eventDefaults)
 
   const prefilled = (location.state as { prefilled?: Partial<EventFormSnapshot> } | null)?.prefilled
 
