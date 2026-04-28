@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useEventDefaultsStore } from '../../../stores/eventDefaultsStore'
+import { useSettingsCache } from '../../../repositories/caches/settingsCache'
 import { useEventTagListCache } from '../../../repositories/caches/eventTagListCache'
 import { APP_FALLBACK_DEFAULT_COLOR } from '../../../domain/tag/resolveEventTag'
 import { SettingsSection, settingsInput, settingsLabel } from '../SettingsSection'
@@ -63,8 +63,8 @@ export function EditEventSection() {
     defaultTagId,
     defaultNotificationSeconds,
     defaultAllDayNotificationSeconds,
-    setDefaults,
-  } = useEventDefaultsStore()
+  } = useSettingsCache(s => s.eventDefaults)
+  const setDefaults = useSettingsCache(s => s.setEventDefaults)
   const tags = useEventTagListCache(s => s.tags)
   const defaultTagColors = useEventTagListCache(s => s.defaultTagColors)
 

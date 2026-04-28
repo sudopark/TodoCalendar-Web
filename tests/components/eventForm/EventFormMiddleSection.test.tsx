@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { EventFormMiddleSection } from '../../../src/components/eventForm/EventFormMiddleSection'
 import { useEventFormStore } from '../../../src/stores/eventFormStore'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
-import { useEventDefaultsStore } from '../../../src/stores/eventDefaultsStore'
+import { useSettingsCache } from '../../../src/repositories/caches/settingsCache'
 
 vi.mock('../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 
@@ -15,7 +15,7 @@ vi.mock('../../../src/components/eventForm/NotificationPickerDropdown', () => ({
 
 function resetStores() {
   useEventTagListCache.setState({ tags: new Map(), defaultTagColors: null })
-  useEventDefaultsStore.setState({ defaultTagId: null, defaultNotificationSeconds: null })
+  useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: null, defaultNotificationSeconds: null } }))
   useEventFormStore.setState({ eventTagId: null } as any)
 }
 
@@ -30,7 +30,7 @@ describe('EventFormMiddleSection — 디폴트 태그 표시', () => {
       tags: new Map([['tag-personal', { uuid: 'tag-personal', name: '개인', color_hex: '#123456' }]]),
       defaultTagColors: { default: '#aaa', holiday: '#bbb' },
     })
-    useEventDefaultsStore.setState({ defaultTagId: 'tag-personal', defaultNotificationSeconds: null })
+    useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: \1, defaultNotificationSeconds: null } }))
     useEventFormStore.setState({ eventTagId: null } as any)
 
     // when
@@ -53,7 +53,7 @@ describe('EventFormMiddleSection — 디폴트 태그 표시', () => {
       ]),
       defaultTagColors: { default: '#aaa', holiday: '#bbb' },
     })
-    useEventDefaultsStore.setState({ defaultTagId: 'tag-personal', defaultNotificationSeconds: null })
+    useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: \1, defaultNotificationSeconds: null } }))
     useEventFormStore.setState({ eventTagId: 'tag-work' } as any)
 
     // when
@@ -75,7 +75,7 @@ describe('EventFormMiddleSection — 디폴트 태그 표시', () => {
       tags: new Map(),
       defaultTagColors: { default: '#111', holiday: '#222' },
     })
-    useEventDefaultsStore.setState({ defaultTagId: null, defaultNotificationSeconds: null })
+    useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: \1, defaultNotificationSeconds: null } }))
     useEventFormStore.setState({ eventTagId: null } as any)
 
     // when

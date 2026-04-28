@@ -4,13 +4,13 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { TagDropdown } from '../../src/components/TagDropdown'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
-import { useEventDefaultsStore } from '../../src/stores/eventDefaultsStore'
+import { useSettingsCache } from '../../src/repositories/caches/settingsCache'
 
 vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 
 function resetStores() {
   useEventTagListCache.setState({ tags: new Map(), defaultTagColors: null })
-  useEventDefaultsStore.setState({ defaultTagId: null, defaultNotificationSeconds: null })
+  useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: null, defaultNotificationSeconds: null } }))
 }
 
 function LocationCapture({ onLocation }: { onLocation: (l: ReturnType<typeof useLocation>) => void }) {
@@ -30,7 +30,7 @@ describe('TagDropdown', () => {
       tags: new Map([['tag-p', { uuid: 'tag-p', name: '개인', color_hex: '#123456' }]]),
       defaultTagColors: { default: '#aaa', holiday: '#bbb' },
     })
-    useEventDefaultsStore.setState({ defaultTagId: 'tag-p', defaultNotificationSeconds: null })
+    useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: 'tag-p', defaultNotificationSeconds: null } }))
 
     // when
     render(

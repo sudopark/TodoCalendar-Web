@@ -4,7 +4,7 @@ import { todoApi } from '../api/todoApi'
 import { scheduleApi } from '../api/scheduleApi'
 import { eventDetailApi } from '../api/eventDetailApi'
 import { useUiStore } from './uiStore'
-import { useEventDefaultsStore } from './eventDefaultsStore'
+import { useSettingsCache } from '../repositories/caches/settingsCache'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useToastStore } from './toastStore'
@@ -49,7 +49,7 @@ function isAllDay(time: EventTime | null): boolean {
 }
 
 export function defaultNotificationsForEventTime(time: EventTime | null): NotificationOption[] {
-  const { defaultNotificationSeconds, defaultAllDayNotificationSeconds } = useEventDefaultsStore.getState()
+  const { defaultNotificationSeconds, defaultAllDayNotificationSeconds } = useSettingsCache.getState().eventDefaults
   const seconds = isAllDay(time) ? defaultAllDayNotificationSeconds : defaultNotificationSeconds
   return seconds != null ? [{ type: 'time', seconds }] : []
 }
@@ -87,7 +87,7 @@ export const useEventFormStore = create<EventFormState>((set, get) => ({
 
   openForm: (anchorRect, eventType = 'todo') => {
     const selectedDate = useUiStore.getState().selectedDate
-    const { defaultTagId } = useEventDefaultsStore.getState()
+    const { defaultTagId } = useSettingsCache.getState().eventDefaults
 
     const eventTime: EventTime | null = selectedDate
       ? { time_type: 'at', timestamp: Math.floor(selectedDate.getTime() / 1000) }

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useCalendarAppearanceStore } from '../../../../stores/calendarAppearanceStore'
+import { useSettingsCache } from '../../../../repositories/caches/settingsCache'
 
 const ALL_WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
 
@@ -10,7 +10,7 @@ const ALL_WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as co
  */
 export function CalendarAppearancePreview() {
   const { t } = useTranslation()
-  const { weekStartDay, accentDays } = useCalendarAppearanceStore()
+  const { weekStartDay, accentDays } = useSettingsCache(s => s.calendarAppearance)
 
   const weekdayKeys = useMemo(
     () => [...ALL_WEEKDAY_KEYS.slice(weekStartDay), ...ALL_WEEKDAY_KEYS.slice(0, weekStartDay)],

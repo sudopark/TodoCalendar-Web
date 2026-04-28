@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useForemostEventCache } from '../repositories/caches/foremostEventCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
-import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
+import { useSettingsCache } from '../repositories/caches/settingsCache'
 import { tagDisplayName } from '../utils/tagDisplay'
 import { TimeDescription } from './TimeDescription'
 import type { Todo } from '../models/Todo'
@@ -15,7 +15,7 @@ interface ForemostEventBannerProps {
 export function ForemostEventBanner({ onEventClick }: ForemostEventBannerProps) {
   const foremostEvent = useForemostEventCache(s => s.foremostEvent)
   const { t } = useTranslation()
-  const fontSizeWeight = useCalendarAppearanceStore(s => s.eventListFontSizeWeight)
+  const fontSizeWeight = useSettingsCache(s => s.calendarAppearance.eventListFontSizeWeight)
   const nameFontSize = `${14 + fontSizeWeight}px`
 
   const event = foremostEvent?.event as Todo | Schedule | undefined

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useTimezoneStore } from '../../../stores/timezoneStore'
+import { useSettingsCache } from '../../../repositories/caches/settingsCache'
 import { SettingsSection, settingsInput, settingsLabel } from '../SettingsSection'
 import {
   buildTimezoneList,
@@ -52,10 +52,10 @@ function TimezoneRow({ info, selected, systemBadgeLabel, onClick }: TimezoneRowP
 
 export function TimezoneSection() {
   const { t, i18n } = useTranslation()
-  const timezone = useTimezoneStore(s => s.timezone)
-  const systemTimezone = useTimezoneStore(s => s.systemTimezone)
-  const isCustom = useTimezoneStore(s => s.isCustom)
-  const setTimezone = useTimezoneStore(s => s.setTimezone)
+  const timezone = useSettingsCache(s => s.timezone.timezone)
+  const systemTimezone = useSettingsCache(s => s.timezone.systemTimezone)
+  const isCustom = useSettingsCache(s => s.timezone.isCustom)
+  const setTimezone = useSettingsCache(s => s.setTimezone)
 
   const [query, setQuery] = useState('')
   const locale = i18n.language || 'en'

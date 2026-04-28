@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useCalendarAppearanceStore } from '../../../../stores/calendarAppearanceStore'
+import { useSettingsCache } from '../../../../repositories/caches/settingsCache'
 
 const SAMPLE_EVENTS = [
   { name: '디자인 리뷰', time: '10:00 — 11:00', color: '#AB47BC' },
@@ -21,7 +21,7 @@ export function EventListPreview() {
     showHolidayInEventList,
     showLunarCalendar,
     showUncompletedTodos,
-  } = useCalendarAppearanceStore()
+  } = useSettingsCache(s => s.calendarAppearance)
 
   const nameFontSize = `${14 + eventListFontSizeWeight}px`
 
