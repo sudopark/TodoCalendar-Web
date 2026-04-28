@@ -96,6 +96,12 @@ export class EventRepository {
     return useCurrentTodosCache.getState().todos
   }
 
+  // ── fetch single ──────────────────────────────────────────────────
+
+  async getTodo(id: string): Promise<Todo> {
+    return this.deps.todoApi.getTodo(id)
+  }
+
   // ── mutate: api 호출 + 캐시 갱신 ──────────────────────────────────
 
   async createTodo(input: TodoCreateInput): Promise<Todo> {
@@ -139,6 +145,22 @@ export class EventRepository {
     })
     useCalendarEventsCache.getState().replaceEvent(id, { type: 'todo', event: updated })
     return updated
+  }
+
+  // 반복 todo를 "이 회차만" 분리: 원본을 다음 회차로 전진시키고 새 단건 todo를 반환
+  async replaceTodoThisScope(
+    id: string,
+    body: Parameters<TodoApi['replaceTodo']>[1],
+  ): Promise<{ new_todo: Todo; next_repeating: Todo | undefined }> {
+    const result = await this.deps.todoApi.replaceTodo(id, body)
+    useCalendarEventsCache.getState().removeEvent(id)
+    if (result.new_todo.event_time) {
+      useCalendarEventsCache.getState().addEvent({ type: 'todo', event: result.new_todo })
+    }
+    if (result.next_repeating?.event_time) {
+      useCalendarEventsCache.getState().addEvent({ type: 'todo', event: result.next_repeating })
+    }
+    return { new_todo: result.new_todo, next_repeating: result.next_repeating }
   }
 
   // ── Schedule 동형 ──────────────────────────────────────────────────
