@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventDefaultsStore } from '../../../stores/eventDefaultsStore'
-import { useEventTagStore } from '../../../stores/eventTagStore'
+import { useEventTagListCache } from '../../../repositories/caches/eventTagListCache'
 import { APP_FALLBACK_DEFAULT_COLOR } from '../../../domain/tag/resolveEventTag'
 import { SettingsSection, settingsInput, settingsLabel } from '../SettingsSection'
 
@@ -65,8 +65,8 @@ export function EditEventSection() {
     defaultAllDayNotificationSeconds,
     setDefaults,
   } = useEventDefaultsStore()
-  const tags = useEventTagStore(s => s.tags)
-  const defaultTagColors = useEventTagStore(s => s.defaultTagColors)
+  const tags = useEventTagListCache(s => s.tags)
+  const defaultTagColors = useEventTagListCache(s => s.defaultTagColors)
 
   const notificationPresets = useNotificationPresets()
   const tagsOpen = subView === 'tags'

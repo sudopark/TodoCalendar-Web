@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { TagManagementPage } from '../../../src/pages/tagManagement/TagManagementPage'
-import { useEventTagStore } from '../../../src/stores/eventTagStore'
+import { useEventTagListCache } from '../../../src/repositories/caches/eventTagListCache'
 import { useTagFilterStore } from '../../../src/stores/tagFilterStore'
 
 vi.mock('../../../src/firebase', () => ({ auth: {} }))
@@ -41,7 +41,7 @@ function renderPage() {
 describe('TagManagementPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    useEventTagStore.setState({ tags: new Map(), defaultTagColors: null })
+    useEventTagListCache.setState({ tags: new Map(), defaultTagColors: null })
     localStorage.clear()
     useTagFilterStore.setState({ hiddenTagIds: new Set() })
   })

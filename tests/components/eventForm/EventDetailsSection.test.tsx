@@ -4,8 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { EventDetailsSection } from '../../../src/components/eventForm/EventDetailsSection'
 
-vi.mock('../../../src/stores/eventTagStore', () => ({
-  useEventTagStore: (sel: any) => sel({ tags: new Map(), defaultTagColors: null }),
+vi.mock('../../../src/repositories/caches/eventTagListCache', () => ({
+  useEventTagListCache: (sel: any) => sel({ tags: new Map(), defaultTagColors: null }),
   DEFAULT_TAG_ID: 'default',
   HOLIDAY_TAG_ID: 'holiday',
 }))

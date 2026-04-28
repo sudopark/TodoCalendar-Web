@@ -4,16 +4,16 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { EventFormPopover } from '../../../src/components/eventForm/EventFormPopover'
 import { useEventFormStore } from '../../../src/stores/eventFormStore'
-import { useEventTagStore } from '../../../src/stores/eventTagStore'
+import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 
 vi.mock('../../../src/stores/eventFormStore', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../src/stores/eventFormStore')>()
   return { ...actual, useEventFormStore: vi.fn() }
 })
 
-vi.mock('../../../src/stores/eventTagStore', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../../src/stores/eventTagStore')>()
-  return { ...actual, useEventTagStore: vi.fn() }
+vi.mock('../../../src/repositories/caches/eventTagListCache', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../src/repositories/caches/eventTagListCache')>()
+  return { ...actual, useEventTagListCache: vi.fn() }
 })
 
 const mockCloseForm = vi.fn()
@@ -73,7 +73,7 @@ function mockTagStore() {
     reset: vi.fn(),
   }
 
-  const mockFn = vi.mocked(useEventTagStore) as any
+  const mockFn = vi.mocked(useEventTagListCache) as any
   mockFn.mockImplementation((sel?: any) => {
     if (typeof sel === 'function') return sel(tagState)
     return tagState

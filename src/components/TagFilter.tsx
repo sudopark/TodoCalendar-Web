@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next'
-import { useEventTagStore } from '../stores/eventTagStore'
+import { useEventTagListCache } from '../repositories/caches/eventTagListCache'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 
 export function TagFilter() {
   const { t } = useTranslation()
-  const tags = useEventTagStore(s => s.tags)
+  const tags = useEventTagListCache(s => s.tags)
   const hiddenTagIds = useTagFilterStore(s => s.hiddenTagIds)
   const toggleTag = useTagFilterStore(s => s.toggleTag)
 

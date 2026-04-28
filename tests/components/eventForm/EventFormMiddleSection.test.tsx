@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { EventFormMiddleSection } from '../../../src/components/eventForm/EventFormMiddleSection'
 import { useEventFormStore } from '../../../src/stores/eventFormStore'
-import { useEventTagStore } from '../../../src/stores/eventTagStore'
+import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import { useEventDefaultsStore } from '../../../src/stores/eventDefaultsStore'
 
 vi.mock('../../../src/firebase', () => ({ auth: {} }))
@@ -14,7 +14,7 @@ vi.mock('../../../src/components/eventForm/NotificationPickerDropdown', () => ({
 }))
 
 function resetStores() {
-  useEventTagStore.setState({ tags: new Map(), defaultTagColors: null })
+  useEventTagListCache.setState({ tags: new Map(), defaultTagColors: null })
   useEventDefaultsStore.setState({ defaultTagId: null, defaultNotificationSeconds: null })
   useEventFormStore.setState({ eventTagId: null } as any)
 }
@@ -26,7 +26,7 @@ describe('EventFormMiddleSection — 디폴트 태그 표시', () => {
 
   it('유저가 지정한 디폴트 태그가 있고 폼의 eventTagId가 null이면 해당 태그명이 표시된다', () => {
     // given: tag-personal 태그 존재 + 디폴트로 지정 + 폼은 태그 미지정 상태
-    useEventTagStore.setState({
+    useEventTagListCache.setState({
       tags: new Map([['tag-personal', { uuid: 'tag-personal', name: '개인', color_hex: '#123456' }]]),
       defaultTagColors: { default: '#aaa', holiday: '#bbb' },
     })
@@ -46,7 +46,7 @@ describe('EventFormMiddleSection — 디폴트 태그 표시', () => {
 
   it('폼이 명시적 태그 UUID를 가지면 해당 태그명이 표시된다', () => {
     // given
-    useEventTagStore.setState({
+    useEventTagListCache.setState({
       tags: new Map([
         ['tag-work', { uuid: 'tag-work', name: '업무', color_hex: '#ff0000' }],
         ['tag-personal', { uuid: 'tag-personal', name: '개인', color_hex: '#123456' }],
@@ -71,7 +71,7 @@ describe('EventFormMiddleSection — 디폴트 태그 표시', () => {
 
   it('디폴트 태그도 지정되지 않고 eventTagId도 null이지만 디폴트 색상은 있으면 디폴트 명이 i18n 번역으로 표시된다', () => {
     // given
-    useEventTagStore.setState({
+    useEventTagListCache.setState({
       tags: new Map(),
       defaultTagColors: { default: '#111', holiday: '#222' },
     })

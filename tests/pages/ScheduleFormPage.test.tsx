@@ -21,8 +21,8 @@ vi.mock('../../src/api/eventDetailApi', () => ({
     deleteEventDetail: vi.fn(),
   },
 }))
-vi.mock('../../src/stores/eventTagStore', () => ({
-  useEventTagStore: vi.fn(),
+vi.mock('../../src/repositories/caches/eventTagListCache', () => ({
+  useEventTagListCache: vi.fn(),
   DEFAULT_TAG_ID: 'default',
   HOLIDAY_TAG_ID: 'holiday',
 }))
@@ -35,7 +35,7 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => mockNavigate }
 })
 
-import { useEventTagStore } from '../../src/stores/eventTagStore'
+import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import { useUiStore } from '../../src/stores/uiStore'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 
@@ -45,7 +45,7 @@ async function setupMocks() {
   const { eventDetailApi } = await import('../../src/api/eventDetailApi')
   vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({})
   vi.mocked(eventDetailApi.updateEventDetail).mockResolvedValue({})
-  vi.mocked(useEventTagStore).mockImplementation((sel: any) => sel({ tags: new Map(), defaultTagColors: null }))
+  vi.mocked(useEventTagListCache).mockImplementation((sel: any) => sel({ tags: new Map(), defaultTagColors: null }))
   vi.mocked(useUiStore).mockImplementation((sel: any) => sel({ selectedDate: new Date('2025-03-31') }))
   const calendarState = {
     addEvent: mockAddEvent,

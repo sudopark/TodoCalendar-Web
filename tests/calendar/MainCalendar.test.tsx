@@ -6,7 +6,7 @@ import MainCalendar from '../../src/calendar/MainCalendar'
 import { useUiStore } from '../../src/stores/uiStore'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import { useHolidayStore } from '../../src/stores/holidayStore'
-import { useEventTagStore } from '../../src/stores/eventTagStore'
+import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import { todoApi } from '../../src/api/todoApi'
 
 vi.mock('../../src/api/todoApi', () => ({
@@ -38,7 +38,7 @@ describe('MainCalendar', () => {
     })
     useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, loadedYears: new Set() })
     useHolidayStore.setState({ holidays: new Map(), loadedYears: new Set() })
-    useEventTagStore.setState({ tags: new Map() })
+    useEventTagListCache.setState({ tags: new Map() })
   })
 
   it('현재 달의 요일 헤더와 날짜 셀을 렌더링한다', () => {

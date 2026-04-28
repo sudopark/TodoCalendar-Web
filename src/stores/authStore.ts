@@ -60,12 +60,12 @@ export const useAuthStore = create<AuthState>((set, get) => {
     },
     signOut: async () => {
       await firebaseSignOut(auth)
-      const { useEventTagStore } = await import('./eventTagStore')
+      const { useEventTagListCache } = await import('../repositories/caches/eventTagListCache')
       const { useCurrentTodosCache } = await import('../repositories/caches/currentTodosCache')
       const { useForemostEventStore } = await import('./foremostEventStore')
       const { useCalendarEventsCache } = await import('../repositories/caches/calendarEventsCache')
       const { useUncompletedTodosCache } = await import('../repositories/caches/uncompletedTodosCache')
-      useEventTagStore.getState().reset()
+      useEventTagListCache.getState().reset()
       useCurrentTodosCache.getState().reset()
       useForemostEventStore.getState().reset()
       useCalendarEventsCache.getState().reset()

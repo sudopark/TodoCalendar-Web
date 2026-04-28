@@ -1,10 +1,15 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+vi.mock('../../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../../src/api/eventTagApi', () => ({ eventTagApi: {} }))
+vi.mock('../../../src/api/settingApi', () => ({ settingApi: {} }))
+
 import {
   resolveEventTag,
   APP_FALLBACK_DEFAULT_COLOR,
   APP_FALLBACK_HOLIDAY_COLOR,
 } from '../../../src/domain/tag/resolveEventTag'
-import { DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../../../src/stores/eventTagStore'
+import { DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../../../src/repositories/caches/eventTagListCache'
 import type { EventTag, DefaultTagColors } from '../../../src/models'
 
 function ctx(overrides: Partial<{ tags: Map<string, EventTag>; defaultTagId: string | null; defaultColors: DefaultTagColors | null }> = {}) {

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEventDefaultsStore } from '../../../stores/eventDefaultsStore'
-import { useEventTagStore } from '../../../stores/eventTagStore'
+import { useEventTagListCache } from '../../../repositories/caches/eventTagListCache'
 import { APP_FALLBACK_DEFAULT_COLOR } from '../../../domain/tag/resolveEventTag'
 
 interface Props {
@@ -18,8 +18,8 @@ interface TagOption {
 
 export function DefaultTagPickerPanel({ onClose }: Props) {
   const { t } = useTranslation()
-  const tags = useEventTagStore(s => s.tags)
-  const defaultTagColors = useEventTagStore(s => s.defaultTagColors)
+  const tags = useEventTagListCache(s => s.tags)
+  const defaultTagColors = useEventTagListCache(s => s.defaultTagColors)
   const defaultTagId = useEventDefaultsStore(s => s.defaultTagId)
   const setDefaults = useEventDefaultsStore(s => s.setDefaults)
 

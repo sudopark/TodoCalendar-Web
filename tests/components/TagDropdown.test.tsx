@@ -3,13 +3,13 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { TagDropdown } from '../../src/components/TagDropdown'
-import { useEventTagStore } from '../../src/stores/eventTagStore'
+import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import { useEventDefaultsStore } from '../../src/stores/eventDefaultsStore'
 
 vi.mock('../../src/firebase', () => ({ auth: {} }))
 
 function resetStores() {
-  useEventTagStore.setState({ tags: new Map(), defaultTagColors: null })
+  useEventTagListCache.setState({ tags: new Map(), defaultTagColors: null })
   useEventDefaultsStore.setState({ defaultTagId: null, defaultNotificationSeconds: null })
 }
 
@@ -26,7 +26,7 @@ describe('TagDropdown', () => {
 
   it('value가 null이면 트리거에 기본 태그 이름이 표시된다', () => {
     // given: 유저 디폴트 태그(개인) 설정
-    useEventTagStore.setState({
+    useEventTagListCache.setState({
       tags: new Map([['tag-p', { uuid: 'tag-p', name: '개인', color_hex: '#123456' }]]),
       defaultTagColors: { default: '#aaa', holiday: '#bbb' },
     })
@@ -44,7 +44,7 @@ describe('TagDropdown', () => {
   })
 
   it('value가 특정 태그 id면 트리거에 해당 태그 이름이 표시된다', () => {
-    useEventTagStore.setState({
+    useEventTagListCache.setState({
       tags: new Map([
         ['tag-work', { uuid: 'tag-work', name: '업무', color_hex: '#ff0000' }],
         ['tag-p', { uuid: 'tag-p', name: '개인', color_hex: '#123456' }],
@@ -62,7 +62,7 @@ describe('TagDropdown', () => {
   })
 
   it('드랍다운을 열고 항목을 선택하면 onChange가 해당 tagId로 호출된다', async () => {
-    useEventTagStore.setState({
+    useEventTagListCache.setState({
       tags: new Map([['tag-work', { uuid: 'tag-work', name: '업무', color_hex: '#ff0000' }]]),
       defaultTagColors: { default: '#aaa', holiday: '#bbb' },
     })

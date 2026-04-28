@@ -1,29 +1,68 @@
+/**
+ * @internal repositories 모듈 내부에서만 사용. 외부 import 금지.
+ * Repository 클래스를 통해서만 노출한다.
+ */
 import { create } from 'zustand'
-import { eventTagApi } from '../api/eventTagApi'
-import { settingApi } from '../api/settingApi'
-import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
-import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
-import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'
-import type { EventTag } from '../models'
-import type { DefaultTagColors } from '../models'
+import { eventTagApi } from '../../api/eventTagApi'
+import { settingApi } from '../../api/settingApi'
+import { useCalendarEventsCache } from './calendarEventsCache'
+import { useCurrentTodosCache } from './currentTodosCache'
+import { useUncompletedTodosCache } from './uncompletedTodosCache'
+import type { EventTag } from '../../models'
+import type { DefaultTagColors } from '../../models'
 
-export { DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../domain/tag/constants'
+export { DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../../domain/tag/constants'
 
-interface EventTagState {
+interface EventTagListCacheState {
   tags: Map<string, EventTag>
   defaultTagColors: DefaultTagColors | null
+  // ── cache primitive operations (used by TagRepository) ────────────
+  replaceAll: (tags: EventTag[], defaultColors: DefaultTagColors | null) => void
+  add: (tag: EventTag) => void
+  replace: (tag: EventTag) => void
+  remove: (id: string) => void
+  setDefaultColors: (colors: DefaultTagColors) => void
+  reset: () => void
+  // ── legacy business operations (callers migrated to TagRepository in T14+) ──
   fetchAll: () => Promise<void>
   createTag: (name: string, color_hex?: string) => Promise<EventTag>
   updateTag: (id: string, updates: { name?: string; color_hex?: string }) => Promise<EventTag>
   deleteTag: (id: string) => Promise<void>
   deleteTagAndEvents: (id: string) => Promise<void>
   updateDefaultTagColor: (kind: 'default' | 'holiday', color_hex: string) => Promise<void>
-  reset: () => void
 }
 
-export const useEventTagStore = create<EventTagState>((set, get) => ({
+export const useEventTagListCache = create<EventTagListCacheState>((set, get) => ({
   tags: new Map(),
   defaultTagColors: null,
+
+  // ── cache primitive operations ────────────────────────────────────
+
+  replaceAll: (tags: EventTag[], defaultColors: DefaultTagColors | null) => {
+    const map = new Map<string, EventTag>()
+    for (const tag of tags) map.set(tag.uuid, tag)
+    set({ tags: map, defaultTagColors: defaultColors })
+  },
+
+  add: (tag: EventTag) => {
+    set(s => { const tags = new Map(s.tags); tags.set(tag.uuid, tag); return { tags } })
+  },
+
+  replace: (tag: EventTag) => {
+    set(s => { const tags = new Map(s.tags); tags.set(tag.uuid, tag); return { tags } })
+  },
+
+  remove: (id: string) => {
+    set(s => { const tags = new Map(s.tags); tags.delete(id); return { tags } })
+  },
+
+  setDefaultColors: (colors: DefaultTagColors) => {
+    set({ defaultTagColors: colors })
+  },
+
+  reset: () => set({ tags: new Map(), defaultTagColors: null }),
+
+  // ── legacy business operations (to be removed after T14+ page migration) ──
 
   fetchAll: async () => {
     try {
@@ -77,6 +116,4 @@ export const useEventTagStore = create<EventTagState>((set, get) => ({
     const updated = await settingApi.updateDefaultTagColors({ [kind]: color_hex })
     set({ defaultTagColors: updated })
   },
-
-  reset: () => set({ tags: new Map(), defaultTagColors: null }),
 }))

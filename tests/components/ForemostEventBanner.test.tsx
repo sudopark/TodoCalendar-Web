@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { ForemostEventBanner } from '../../src/components/ForemostEventBanner'
 import { useForemostEventStore } from '../../src/stores/foremostEventStore'
-import { useEventTagStore } from '../../src/stores/eventTagStore'
+import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 
 vi.mock('../../src/stores/foremostEventStore', () => ({ useForemostEventStore: vi.fn() }))
@@ -31,7 +31,7 @@ function renderComponent(onEventClick?: (calEvent: CalendarEvent, anchorRect: DO
 describe('ForemostEventBanner', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    useEventTagStore.getState().reset()
+    useEventTagListCache.getState().reset()
   })
 
   it('고정 이벤트가 없으면 아무것도 렌더링하지 않는다', () => {

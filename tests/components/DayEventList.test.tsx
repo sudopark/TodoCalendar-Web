@@ -6,8 +6,8 @@ import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEv
 import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 
 vi.mock('../../src/repositories/caches/calendarEventsCache', () => ({ useCalendarEventsCache: vi.fn() }))
-vi.mock('../../src/stores/eventTagStore', () => ({
-  useEventTagStore: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null })),
+vi.mock('../../src/repositories/caches/eventTagListCache', () => ({
+  useEventTagListCache: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null })),
   DEFAULT_TAG_ID: 'default',
   HOLIDAY_TAG_ID: 'holiday',
 }))

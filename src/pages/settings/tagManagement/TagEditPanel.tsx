@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft } from 'lucide-react'
 import { ColorPalette, PRESET_COLORS } from '../../../components/ColorPalette'
-import { useEventTagStore } from '../../../stores/eventTagStore'
+import { useEventTagListCache } from '../../../repositories/caches/eventTagListCache'
 import { useTagFilterStore } from '../../../stores/tagFilterStore'
 import { useToastStore } from '../../../stores/toastStore'
 import { DeleteTagDialog } from './DeleteTagDialog'
@@ -33,11 +33,11 @@ export function TagEditPanel({ mode, onBack }: TagEditPanelProps) {
   const [showDelete, setShowDelete] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  const createTag = useEventTagStore(s => s.createTag)
-  const updateTag = useEventTagStore(s => s.updateTag)
-  const updateDefaultTagColor = useEventTagStore(s => s.updateDefaultTagColor)
-  const deleteTag = useEventTagStore(s => s.deleteTag)
-  const deleteTagAndEvents = useEventTagStore(s => s.deleteTagAndEvents)
+  const createTag = useEventTagListCache(s => s.createTag)
+  const updateTag = useEventTagListCache(s => s.updateTag)
+  const updateDefaultTagColor = useEventTagListCache(s => s.updateDefaultTagColor)
+  const deleteTag = useEventTagListCache(s => s.deleteTag)
+  const deleteTagAndEvents = useEventTagListCache(s => s.deleteTagAndEvents)
   const removeFromFilter = useTagFilterStore(s => s.removeTag)
 
   const isReadonlyName = mode.kind === 'edit' && (mode.row.kind === 'default' || mode.row.kind === 'holiday')
