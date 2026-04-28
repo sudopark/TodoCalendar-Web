@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useDoneTodosCache } from '../../../src/repositories/caches/doneTodosCache'
 import { doneTodoApi } from '../../../src/api/doneTodoApi'
+import type { Todo } from '../../../src/models'
 
 vi.mock('../../../src/api/doneTodoApi', () => ({
   doneTodoApi: {
@@ -10,7 +11,7 @@ vi.mock('../../../src/api/doneTodoApi', () => ({
   },
 }))
 
-const makeDone = (id: string, done_at = 1000) => ({
+const makeDone = (id: string, done_at: number | null = 1000) => ({
   uuid: id,
   name: `done-${id}`,
   done_at,
@@ -79,9 +80,8 @@ describe('useDoneTodosCache', () => {
   it('revert 호출 시 items에서 해당 항목이 제거된다', async () => {
     // given
     useDoneTodosCache.setState({ items: [makeDone('d1'), makeDone('d2')] })
-    vi.mocked(doneTodoApi.revertDoneTodo).mockResolvedValue({
-      uuid: 'd1', name: 'done-d1', is_current: true,
-    } as any)
+    const restored: Todo = { uuid: 'd1', name: 'done-d1', is_current: true }
+    vi.mocked(doneTodoApi.revertDoneTodo).mockResolvedValue(restored)
 
     // when
     await useDoneTodosCache.getState().revert('d1')
@@ -92,7 +92,7 @@ describe('useDoneTodosCache', () => {
 
   it('마지막 항목의 done_at이 null이면 hasMore가 false가 된다', async () => {
     // given: PAGE_SIZE(20)개를 반환하지만 마지막 항목의 done_at이 null
-    const items = Array.from({ length: 20 }, (_, i) => makeDone(`d${i}`, i < 19 ? 2000 - i : null as any))
+    const items = Array.from({ length: 20 }, (_, i) => makeDone(`d${i}`, i < 19 ? 2000 - i : null))
     vi.mocked(doneTodoApi.getDoneTodos).mockResolvedValue(items)
 
     // when
