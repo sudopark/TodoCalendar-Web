@@ -34,16 +34,16 @@ describe('EventTypeToggle', () => {
     vi.clearAllMocks()
   })
 
-  it('todo 타입일 때 "예" 버튼이 렌더링된다', () => {
+  it('todo 타입일 때 "Todo" 버튼이 눌린 상태로 렌더링된다', () => {
     // given
     mockStore({ eventType: 'todo' })
 
     // when
     render(<EventTypeToggle />)
 
-    // then: Todo 라벨과 "예" 토글 버튼이 표시된다
+    // then: "Todo" 토글 버튼이 aria-pressed=true 상태로 표시된다
     expect(screen.getByText('Todo')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /예/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Todo/i })).toHaveAttribute('aria-pressed', 'true')
   })
 })
 

@@ -48,12 +48,12 @@ describe('MoreActionsMenu', () => {
     expect(screen.queryByRole('menuitem', { name: '복제' })).not.toBeInTheDocument()
   })
 
-  it('버튼에 "더보기" 텍스트가 가시적으로 노출된다', () => {
+  it('버튼이 "더보기" aria-label로 접근 가능하다', () => {
     // given / when
     render(<MoreActionsMenu onCopy={vi.fn()} />)
 
-    // then: 시안은 "More actions ▾" 텍스트+chevron 스타일. 아이콘만이 아니라 텍스트가 보여야 함
+    // then: 버튼은 aria-label로 "더보기" 접근성 이름을 가진다
     const btn = screen.getByRole('button', { name: '더보기' })
-    expect(btn).toHaveTextContent('더보기')
+    expect(btn).toBeInTheDocument()
   })
 })

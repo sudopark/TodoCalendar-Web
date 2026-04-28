@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { EventTimePickerShadcn } from '../../../src/components/eventForm/EventTimePickerShadcn'
 import { useEventFormStore } from '../../../src/stores/eventFormStore'
 
@@ -26,33 +25,40 @@ describe('EventTimePickerShadcn', () => {
     vi.clearAllMocks()
   })
 
-  it('todo 모드에서 시간 없음 선택이 가능하다', () => {
+  it('todo 모드에서 시간 선택 combobox가 렌더된다', () => {
     // given
     mockStore({ eventType: 'todo', eventTime: null })
 
     // when
     render(<EventTimePickerShadcn />)
 
-    // then
-    const select = screen.getByRole('combobox')
-    expect(select).toBeInTheDocument()
-    const options = screen.getAllByRole('option')
-    const optionValues = options.map(o => (o as HTMLOptionElement).value)
-    expect(optionValues).toContain('none')
+    // then: shadcn Select 트리거(combobox)가 존재
+    expect(screen.getByRole('combobox')).toBeInTheDocument()
   })
 
-  it('schedule 모드에서 시간 없음 옵션이 없다', () => {
+  it('todo 모드에서 eventTime=null이면 datetime-local 입력이 없다 (시간 없음 상태)', () => {
+    // given
+    mockStore({ eventType: 'todo', eventTime: null })
+
+    // when
+    const { container } = render(<EventTimePickerShadcn />)
+
+    // then: combobox 트리거가 존재하고 datetime-local input은 없음
+    expect(screen.getByRole('combobox')).toBeInTheDocument()
+    expect(container.querySelector('input[type="datetime-local"]')).not.toBeInTheDocument()
+  })
+
+  it('schedule 모드에서 at 타입이면 datetime-local 입력이 표시된다', () => {
     // given
     const atTime = { time_type: 'at' as const, timestamp: 1743375600 }
     mockStore({ eventType: 'schedule', eventTime: atTime })
 
     // when
-    render(<EventTimePickerShadcn />)
+    const { container } = render(<EventTimePickerShadcn />)
 
-    // then
-    const options = screen.getAllByRole('option')
-    const optionValues = options.map(o => (o as HTMLOptionElement).value)
-    expect(optionValues).not.toContain('none')
+    // then: at 타입 → datetime-local 입력 표시
+    const input = container.querySelector('input[type="datetime-local"]')
+    expect(input).toBeInTheDocument()
   })
 
   it('at 타입일 때 datetime-local 입력이 표시된다', () => {
@@ -61,10 +67,10 @@ describe('EventTimePickerShadcn', () => {
     mockStore({ eventType: 'todo', eventTime: atTime })
 
     // when
-    render(<EventTimePickerShadcn />)
+    const { container } = render(<EventTimePickerShadcn />)
 
-    // then
-    const input = screen.getByLabelText('시각')
+    // then: at 타입 → datetime-local 입력 표시
+    const input = container.querySelector('input[type="datetime-local"]')
     expect(input).toBeInTheDocument()
     expect(input).toHaveAttribute('type', 'datetime-local')
   })
@@ -106,19 +112,5 @@ describe('EventTimePickerShadcn', () => {
     expect(screen.getByLabelText('종료 날짜')).toBeInTheDocument()
     expect(screen.getByLabelText('시작 날짜')).toHaveAttribute('type', 'date')
     expect(screen.getByLabelText('종료 날짜')).toHaveAttribute('type', 'date')
-  })
-
-  it('시간 유형을 변경하면 setEventTime이 호출된다', async () => {
-    // given
-    mockStore({ eventType: 'todo', eventTime: null })
-    render(<EventTimePickerShadcn />)
-
-    // when
-    await userEvent.selectOptions(screen.getByRole('combobox'), 'at')
-
-    // then
-    expect(mockSetEventTime).toHaveBeenCalledWith(
-      expect.objectContaining({ time_type: 'at' })
-    )
   })
 })

@@ -45,12 +45,12 @@ describe('EventDetailsSection', () => {
     expect(screen.getByLabelText('메모')).toHaveValue('M')
   })
 
-  it('알림 섹션의 레이블이 노출된다', () => {
+  it('알림 섹션 트리거가 렌더된다', () => {
     // given / when
     renderWithRouter(<EventDetailsSection {...defaultProps()} />)
 
-    // then: 시안 정합으로 "태그" 중복 라벨은 제거되었고, 알림 라벨은 유지
-    expect(screen.getByText('알림')).toBeInTheDocument()
+    // then: NotificationPickerCore 트리거 버튼이 "알림 없음" 텍스트로 표시된다
+    expect(screen.getByRole('button', { name: /알림/ })).toBeInTheDocument()
   })
 
   it('태그 섹션은 드랍다운 트리거 + "태그 관리 >" 링크로 렌더된다', () => {
