@@ -8,7 +8,7 @@ import { ToastContainer } from './components/Toast'
 import { LoginPage } from './pages/LoginPage'
 import { MainPage } from './pages/MainPage'
 import { TodoFormPage } from './pages/TodoForm/TodoFormPage'
-import { ScheduleFormPage } from './pages/ScheduleFormPage'
+import { ScheduleFormPage } from './pages/ScheduleForm/ScheduleFormPage'
 import { RepositoriesProvider } from './composition/RepositoriesProvider'
 import './stores/themeStore'
 
