@@ -70,9 +70,9 @@ export const useAuthStore = create<AuthState>((set, get) => {
       useForemostEventStore.getState().reset()
       useCalendarEventsCache.getState().reset()
       useUncompletedTodosCache.getState().reset()
-      const { useDoneTodosStore } = await import('./doneTodosStore')
+      const { useDoneTodosCache } = await import('../repositories/caches/doneTodosCache')
       const { useNotificationStore } = await import('./notificationStore')
-      useDoneTodosStore.getState().reset()
+      useDoneTodosCache.getState().reset()
       useNotificationStore.getState().reset()
     },
   }

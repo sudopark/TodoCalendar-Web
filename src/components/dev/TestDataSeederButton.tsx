@@ -5,7 +5,7 @@ import { useCalendarEventsCache } from '../../repositories/caches/calendarEvents
 import { useCurrentTodosCache } from '../../repositories/caches/currentTodosCache'
 import { useUncompletedTodosCache } from '../../repositories/caches/uncompletedTodosCache'
 import { useForemostEventStore } from '../../stores/foremostEventStore'
-import { useDoneTodosStore } from '../../stores/doneTodosStore'
+import { useDoneTodosCache } from '../../repositories/caches/doneTodosCache'
 import { useToastStore } from '../../stores/toastStore'
 
 export default function TestDataSeederButton() {
@@ -36,8 +36,8 @@ export default function TestDataSeederButton() {
       ])
 
       // Done todos는 페이지네이션 상태 초기화 후 첫 페이지 재로딩
-      useDoneTodosStore.setState({ items: [], cursor: null, hasMore: true, isLoading: false })
-      await useDoneTodosStore.getState().fetchNext().catch(() => {})
+      useDoneTodosCache.setState({ items: [], cursor: null, hasMore: true, isLoading: false })
+      await useDoneTodosCache.getState().fetchNext().catch(() => {})
 
       const totalErrors = cleanupErrors.length + result.errors.length
       const summary =
