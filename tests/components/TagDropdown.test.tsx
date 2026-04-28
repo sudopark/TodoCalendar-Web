@@ -6,7 +6,7 @@ import { TagDropdown } from '../../src/components/TagDropdown'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import { useEventDefaultsStore } from '../../src/stores/eventDefaultsStore'
 
-vi.mock('../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 
 function resetStores() {
   useEventTagListCache.setState({ tags: new Map(), defaultTagColors: null })

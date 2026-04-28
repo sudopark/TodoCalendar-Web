@@ -6,7 +6,7 @@ import { useEventFormStore } from '../../../src/stores/eventFormStore'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import { useEventDefaultsStore } from '../../../src/stores/eventDefaultsStore'
 
-vi.mock('../../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 
 // NotificationPickerDropdown는 이 테스트 관심사 밖 — 단순 stub으로 대체
 vi.mock('../../../src/components/eventForm/NotificationPickerDropdown', () => ({

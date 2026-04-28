@@ -7,7 +7,7 @@ import { useTagFilterStore } from '../../src/stores/tagFilterStore'
 import type { EventTag } from '../../src/models'
 import type { DefaultTagColors } from '../../src/models'
 
-vi.mock('../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {

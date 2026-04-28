@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { getEventTimeType } from '../../src/calendar/MainCalendarGrid'
 
-vi.mock('../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 vi.mock('../../src/api/todoApi', () => ({
   todoApi: { getTodos: vi.fn(async () => []) },
 }))

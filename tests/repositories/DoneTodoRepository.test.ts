@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Firebase 연쇄 초기화 차단
-vi.mock('../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 // doneTodoApi는 doneTodosCache 내부에서도 임포트되므로 차단
 vi.mock('../../src/api/doneTodoApi', () => ({ doneTodoApi: {} }))
 

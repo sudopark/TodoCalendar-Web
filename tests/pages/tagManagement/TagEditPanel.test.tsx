@@ -5,7 +5,7 @@ import { TagEditPanel } from '../../../src/pages/tagManagement/components/TagEdi
 import { useEventTagListCache } from '../../../src/repositories/caches/eventTagListCache'
 import type { TagRowModel } from '../../../src/domain/tag/buildTagRows'
 
-vi.mock('../../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 
 vi.mock('../../../src/api/eventTagApi', () => ({
   eventTagApi: {

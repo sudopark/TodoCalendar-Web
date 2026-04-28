@@ -14,7 +14,7 @@ vi.mock('../../src/repositories/caches/eventTagListCache', () => ({
 vi.mock('../../src/stores/eventDefaultsStore', () => ({
   useEventDefaultsStore: vi.fn((selector: any) => selector({ defaultTagId: null })),
 }))
-vi.mock('../../src/firebase', () => ({ auth: {}, db: {} }))
+vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})), db: {} }))
 
 const mockOnEventClick = vi.fn()
 

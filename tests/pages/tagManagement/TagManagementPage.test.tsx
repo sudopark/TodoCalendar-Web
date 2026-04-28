@@ -6,7 +6,7 @@ import { TagManagementPage } from '../../../src/pages/tagManagement/TagManagemen
 import { useEventTagListCache } from '../../../src/repositories/caches/eventTagListCache'
 import { useTagFilterStore } from '../../../src/stores/tagFilterStore'
 
-vi.mock('../../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 
 vi.mock('../../../src/api/eventTagApi', () => ({
   eventTagApi: {

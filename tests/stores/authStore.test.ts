@@ -10,7 +10,7 @@ vi.mock('firebase/auth', () => ({
   }),
 }))
 
-vi.mock('../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 
 vi.mock('../../src/api/apiClient', () => ({
   apiClient: { put: vi.fn().mockResolvedValue({ uid: 'user-123' }) },

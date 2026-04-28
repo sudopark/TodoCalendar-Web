@@ -27,7 +27,7 @@ vi.mock('../../src/stores/eventDefaultsStore', () => ({
   useEventDefaultsStore: vi.fn((selector: any) => selector({ defaultTagId: null })),
 }))
 vi.mock('../../src/firebase', () => ({
-  auth: {},
+  getAuthInstance: vi.fn(() => ({})),
   db: {},
 }))
 

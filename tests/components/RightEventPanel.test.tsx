@@ -24,7 +24,7 @@ vi.mock('../../src/repositories/caches/calendarEventsCache', () => ({
   ),
 }))
 vi.mock('../../src/firebase', () => ({
-  auth: {},
+  getAuthInstance: vi.fn(() => ({})),
   db: {},
 }))
 

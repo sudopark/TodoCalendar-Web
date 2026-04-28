@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 
-vi.mock('../../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 vi.mock('../../../src/api/eventTagApi', () => ({ eventTagApi: {} }))
 vi.mock('../../../src/api/settingApi', () => ({ settingApi: {} }))
 
