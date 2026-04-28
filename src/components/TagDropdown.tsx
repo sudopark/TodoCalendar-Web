@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/select'
 import { useEventTagListCache } from '../repositories/caches/eventTagListCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
-import { tagDisplayName } from '../utils/tagDisplay'
+import { tagDisplayName } from '../domain/functions/tagDisplay'
 
 const DEFAULT_SENTINEL = '__default__'
 

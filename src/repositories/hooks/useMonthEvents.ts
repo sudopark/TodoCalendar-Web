@@ -1,7 +1,7 @@
 import { useShallow } from 'zustand/react/shallow'
 import { useCalendarEventsCache } from '../caches/calendarEventsCache'
-import { monthRange } from '../../utils/eventTimeUtils'
-import type { CalendarEvent } from '../../utils/eventTimeUtils'
+import { monthRange } from '../../domain/functions/eventTime'
+import type { CalendarEvent } from '../../domain/functions/eventTime'
 
 /**
  * 특정 월의 캘린더 이벤트를 React 컴포넌트에서 구독한다.

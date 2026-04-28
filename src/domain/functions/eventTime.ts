@@ -1,5 +1,5 @@
-import type { EventTime, Todo, Schedule } from '../models'
-import { enumerateRepeatingTimes } from './repeatingTimeCalculator'
+import type { EventTime, Todo, Schedule } from '../../models'
+import { enumerateRepeatingTimes } from './repeating'
 
 export function eventTimeToStartDate(eventTime: EventTime): Date {
   switch (eventTime.time_type) {

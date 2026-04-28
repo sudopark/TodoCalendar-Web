@@ -1,5 +1,5 @@
 import type { CalendarDay } from './calendarUtils'
-import type { CalendarEvent } from '../utils/eventTimeUtils'
+import type { CalendarEvent } from '../domain/functions/eventTime'
 
 // 반복 이벤트의 각 인스턴스를 구분하기 위한 dedup 키.
 // 같은 uuid의 multi-day 이벤트는 같은 turn을 가지므로 하나의 span으로 병합되고,

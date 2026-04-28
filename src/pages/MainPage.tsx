@@ -12,7 +12,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { useUiStore } from '../stores/uiStore'
 import { useToastStore } from '../stores/toastStore'
 import { deleteTodoEvent, deleteScheduleEvent } from '../utils/eventDeleteHelper'
-import type { CalendarEvent } from '../utils/eventTimeUtils'
+import type { CalendarEvent } from '../domain/functions/eventTime'
 import type { RepeatScope } from '../components/RepeatingScopeDialog'
 
 interface PopoverState {

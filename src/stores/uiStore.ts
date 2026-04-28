@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { formatDateKey } from '../utils/eventTimeUtils'
+import { formatDateKey } from '../domain/functions/eventTime'
 import { navigateMonth } from '../calendar/calendarUtils'
 
 const SIDEBAR_STORAGE_KEY = 'sidebar_open'

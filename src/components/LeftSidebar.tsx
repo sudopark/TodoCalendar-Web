@@ -6,7 +6,7 @@ import { useHolidayCache } from '../repositories/caches/holidayCache'
 import { useEventFormStore } from '../stores/eventFormStore'
 import { Calendar } from '@/components/ui/calendar'
 import CalendarList from './CalendarList'
-import { formatDateKey } from '../utils/eventTimeUtils'
+import { formatDateKey } from '../domain/functions/eventTime'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
 

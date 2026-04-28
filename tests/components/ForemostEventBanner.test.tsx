@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { ForemostEventBanner } from '../../src/components/ForemostEventBanner'
 import { useForemostEventCache } from '../../src/repositories/caches/foremostEventCache'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
-import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
+import type { CalendarEvent } from '../../src/domain/functions/eventTime'
 
 vi.mock('../../src/repositories/caches/foremostEventCache', () => ({ useForemostEventCache: vi.fn() }))
 vi.mock('../../src/api/foremostApi', () => ({

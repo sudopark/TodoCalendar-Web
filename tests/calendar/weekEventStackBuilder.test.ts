@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { buildWeekEventStack } from '../../src/calendar/weekEventStackBuilder'
 import type { CalendarDay } from '../../src/calendar/calendarUtils'
-import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
+import type { CalendarEvent } from '../../src/domain/functions/eventTime'
 import type { Todo } from '../../src/models/Todo'
 import type { Schedule } from '../../src/models/Schedule'
 

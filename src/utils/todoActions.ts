@@ -1,5 +1,5 @@
 import { todoApi } from '../api/todoApi'
-import { nextRepeatingTime } from './repeatingTimeCalculator'
+import { nextRepeatingTime } from '../domain/functions/repeating'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'

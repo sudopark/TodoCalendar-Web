@@ -7,7 +7,7 @@ import { useUiStore } from '../../src/stores/uiStore'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import { useHolidayCache } from '../../src/repositories/caches/holidayCache'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
-import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
+import type { CalendarEvent } from '../../src/domain/functions/eventTime'
 
 vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 vi.mock('../../src/api/todoApi', () => ({

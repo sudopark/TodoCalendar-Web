@@ -3,9 +3,8 @@ import {
   nextRepeatingTime,
   enumerateRepeatingTimes,
   shiftEventTime,
-  getStartTimestamp,
-} from '../../src/utils/repeatingTimeCalculator'
-import type { EventTime, Repeating } from '../../src/models'
+} from '../../../src/domain/functions/repeating'
+import type { EventTime, Repeating } from '../../../src/models'
 
 // Helper: 로컬 Date를 Unix timestamp(초)로 변환
 function ts(year: number, month: number, day: number, hour = 0, minute = 0, second = 0): number {

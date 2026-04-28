@@ -21,7 +21,7 @@ function isSameDay(a: Date, b: Date): boolean {
  *   (첫째 날이 일요일이면 위에 이전 달 마지막 주 1행 추가,
  *    마지막 날이 토요일이면 아래에 다음 달 첫 주 1행 추가)
  */
-import { formatDateKey } from '../utils/eventTimeUtils'
+import { formatDateKey } from '../domain/functions/eventTime'
 
 export function buildCalendarGrid(
   year: number,

@@ -5,7 +5,7 @@ import { useUiStore } from '../stores/uiStore'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useHolidayCache } from '../repositories/caches/holidayCache'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
-import type { CalendarEvent } from '../utils/eventTimeUtils'
+import type { CalendarEvent } from '../domain/functions/eventTime'
 
 interface MainCalendarProps {
   today?: Date
