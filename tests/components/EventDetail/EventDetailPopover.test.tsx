@@ -2,17 +2,33 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import { EventDetailPopover } from '../../src/components/EventDetailPopover'
-import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
-import type { CalendarEvent } from '../../src/domain/functions/eventTime'
-import { eventDetailApi } from '../../src/api/eventDetailApi'
+import { EventDetailPopover } from '../../../src/components/EventDetail/EventDetailPopover'
+import { useEventTagListCache } from '../../../src/repositories/caches/eventTagListCache'
+import type { CalendarEvent } from '../../../src/domain/functions/eventTime'
+import type { EventTime, Repeating, NotificationOption } from '../../../src/models'
+import type { EventDetailRepository } from '../../../src/repositories/EventDetailRepository'
+import type { Repositories } from '../../../src/composition/container'
+import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvider'
 
-vi.mock('../../src/api/eventDetailApi', () => ({
-  eventDetailApi: { getEventDetail: vi.fn() },
+vi.mock('../../../src/api/eventTagApi', () => ({
+  eventTagApi: { getAllTags: vi.fn(async () => []) },
 }))
 
-vi.mock('../../src/api/eventTagApi', () => ({
-  eventTagApi: { getAllTags: vi.fn(async () => []) },
+vi.mock('../../../src/api/eventDetailApi', () => ({ eventDetailApi: {} }))
+vi.mock('../../../src/api/todoApi', () => ({ todoApi: {} }))
+vi.mock('../../../src/api/scheduleApi', () => ({ scheduleApi: {} }))
+vi.mock('../../../src/api/settingApi', () => ({ settingApi: {} }))
+vi.mock('../../../src/api/doneTodoApi', () => ({ doneTodoApi: {} }))
+vi.mock('../../../src/api/foremostApi', () => ({ foremostApi: {} }))
+vi.mock('../../../src/api/holidayApi', () => ({ holidayApi: {} }))
+vi.mock('../../../src/api/firebaseAuthApi', () => ({ firebaseAuthApi: {} }))
+vi.mock('../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: vi.fn(() => () => {}),
+  signInWithPopup: vi.fn(),
+  signOut: vi.fn(),
+  GoogleAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+  OAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
 }))
 
 const mockAnchorRect: DOMRect = {
@@ -30,9 +46,9 @@ const mockAnchorRect: DOMRect = {
 function makeTodoEvent(overrides: {
   name?: string
   tagId?: string | null
-  eventTime?: any
-  repeating?: any
-  notifications?: any[]
+  eventTime?: EventTime | null
+  repeating?: Repeating | null
+  notifications?: NotificationOption[] | null
 } = {}): CalendarEvent {
   return {
     type: 'todo',
@@ -51,9 +67,9 @@ function makeTodoEvent(overrides: {
 function makeScheduleEvent(overrides: {
   name?: string
   tagId?: string | null
-  eventTime?: any
-  repeating?: any
-  notifications?: any[]
+  eventTime?: EventTime | null
+  repeating?: Repeating | null
+  notifications?: NotificationOption[] | null
 } = {}): CalendarEvent {
   return {
     type: 'schedule',
@@ -68,22 +84,47 @@ function makeScheduleEvent(overrides: {
   }
 }
 
+function createFakeDetailRepo(detail: { place?: string | null; url?: string | null; memo?: string | null } = {}): EventDetailRepository {
+  return {
+    get: vi.fn(async () => ({ place: detail.place ?? null, url: detail.url ?? null, memo: detail.memo ?? null })),
+    save: vi.fn(async (_, d) => d),
+    invalidate: vi.fn(),
+  } as unknown as EventDetailRepository
+}
+
+function createFakeRepos(detailRepo?: EventDetailRepository): Repositories {
+  return {
+    eventRepo: {} as unknown as Repositories['eventRepo'],
+    eventDetailRepo: detailRepo ?? createFakeDetailRepo(),
+    tagRepo: {} as unknown as Repositories['tagRepo'],
+    holidayRepo: {} as unknown as Repositories['holidayRepo'],
+    doneTodoRepo: {} as unknown as Repositories['doneTodoRepo'],
+    foremostEventRepo: {} as unknown as Repositories['foremostEventRepo'],
+    authRepo: {} as unknown as Repositories['authRepo'],
+    settingsRepo: {} as unknown as Repositories['settingsRepo'],
+  }
+}
+
 function renderPopover(
   calEvent: CalendarEvent,
   handlers: { onClose?: () => void; onEdit?: () => void; onDelete?: () => void } = {},
+  detailData: { place?: string | null; url?: string | null; memo?: string | null } = {},
 ) {
   const onClose = handlers.onClose ?? vi.fn()
   const onEdit = handlers.onEdit ?? vi.fn()
   const onDelete = handlers.onDelete ?? vi.fn()
+  const repos = createFakeRepos(createFakeDetailRepo(detailData))
   return render(
     <MemoryRouter>
-      <EventDetailPopover
-        calEvent={calEvent}
-        anchorRect={mockAnchorRect}
-        onClose={onClose}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
+      <RepositoriesProvider value={repos}>
+        <EventDetailPopover
+          calEvent={calEvent}
+          anchorRect={mockAnchorRect}
+          onClose={onClose}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      </RepositoriesProvider>
     </MemoryRouter>,
   )
 }
@@ -92,11 +133,6 @@ describe('EventDetailPopover', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useEventTagListCache.setState({ tags: new Map() })
-    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({
-      place: null,
-      url: null,
-      memo: null,
-    })
   })
 
   it('이벤트 이름과 시간을 표시한다', async () => {
@@ -147,17 +183,12 @@ describe('EventDetailPopover', () => {
     expect(notifInfo).toHaveTextContent('5분 전')
   })
 
-  it('eventDetail API로 장소, URL, 메모를 로드하여 표시한다', async () => {
+  it('ViewModel을 통해 장소, URL, 메모를 로드하여 표시한다', async () => {
     // given: 추가 정보가 있는 이벤트
-    vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({
-      place: '서울 카페',
-      url: 'https://example.com',
-      memo: '미팅 메모',
-    })
     const calEvent = makeTodoEvent({ name: '미팅' })
 
     // when: 팝오버 렌더 및 API 응답 대기
-    renderPopover(calEvent)
+    renderPopover(calEvent, {}, { place: '서울 카페', url: 'https://example.com', memo: '미팅 메모' })
 
     // then: 장소, URL, 메모가 표시된다
     await waitFor(() => {

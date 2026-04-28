@@ -1,15 +1,14 @@
 import { createPortal } from 'react-dom'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { Pencil, Trash2, X, Clock, Repeat, Bell, MapPin, FileText, Link2 } from 'lucide-react'
-import type { CalendarEvent } from '../domain/functions/eventTime'
-import type { Repeating, NotificationOption } from '../models'
-import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
-import { tagDisplayName } from '../domain/functions/tagDisplay'
-import { EventTimeDisplay } from './EventTimeDisplay'
-import { eventDetailApi } from '../api/eventDetailApi'
-import type { EventDetail } from '../models'
+import type { CalendarEvent } from '../../domain/functions/eventTime'
+import type { Repeating, NotificationOption } from '../../models'
+import { useResolvedEventTag } from '../../hooks/useResolvedEventTag'
+import { tagDisplayName } from '../../domain/functions/tagDisplay'
+import { EventTimeDisplay } from '../EventTimeDisplay'
+import { useEventDetailPopoverViewModel } from './useEventDetailPopoverViewModel'
 
 function repeatingLabel(repeating: Repeating, t: TFunction): string {
   const { option } = repeating
@@ -76,7 +75,7 @@ export function EventDetailPopover({
   onDelete,
 }: EventDetailPopoverProps) {
   const { t } = useTranslation()
-  const [eventDetail, setEventDetail] = useState<EventDetail | null>(null)
+  const vm = useEventDetailPopoverViewModel(calEvent)
 
   const event = calEvent.event
   const resolved = useResolvedEventTag(event.event_tag_id)
@@ -85,10 +84,6 @@ export function EventDetailPopover({
   const eventTime = event.event_time ?? null
   const repeating = event.repeating ?? null
   const notifications = event.notification_options ?? null
-
-  useEffect(() => {
-    eventDetailApi.getEventDetail(event.uuid).then(setEventDetail).catch(() => {})
-  }, [event.uuid])
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -197,31 +192,31 @@ export function EventDetailPopover({
             </div>
           )}
 
-          {eventDetail?.place && (
+          {vm.eventDetail?.place && (
             <div className={INFO_ROW}>
               <MapPin className={INFO_ICON} />
-              <span className="min-w-0 break-words">{eventDetail.place}</span>
+              <span className="min-w-0 break-words">{vm.eventDetail.place}</span>
             </div>
           )}
 
-          {eventDetail?.url && (
+          {vm.eventDetail?.url && (
             <div className={INFO_ROW}>
               <Link2 className={INFO_ICON} />
               <a
-                href={eventDetail.url}
+                href={vm.eventDetail.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="min-w-0 text-[#1f1f1f] underline underline-offset-2 hover:opacity-60 transition-opacity break-all"
               >
-                {eventDetail.url}
+                {vm.eventDetail.url}
               </a>
             </div>
           )}
 
-          {eventDetail?.memo && (
+          {vm.eventDetail?.memo && (
             <div className={INFO_ROW}>
               <FileText className={INFO_ICON} />
-              <span className="min-w-0 whitespace-pre-wrap break-words">{eventDetail.memo}</span>
+              <span className="min-w-0 whitespace-pre-wrap break-words">{vm.eventDetail.memo}</span>
             </div>
           )}
         </div>
