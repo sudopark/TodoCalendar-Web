@@ -160,4 +160,10 @@ export class EventRepository {
     useCalendarEventsCache.getState().removeEvent(id)
   }
 
+  async excludeScheduleRepeating(id: string, excludeTurns: number[]): Promise<Schedule> {
+    const updated = await this.deps.scheduleApi.excludeRepeating(id, { exclude_repeatings: excludeTurns })
+    useCalendarEventsCache.getState().replaceEvent(id, { type: 'schedule', event: updated })
+    return updated
+  }
+
 }
