@@ -17,36 +17,46 @@ function defaultProps(overrides: Partial<React.ComponentProps<typeof EventTimeSe
 }
 
 describe('EventTimeSection', () => {
-  it('EventTime 값이 주어지면 시간 입력 위젯이 렌더된다', () => {
+  it('EventTime 값이 주어지면 시간 타입 선택기가 렌더된다', () => {
     // given / when
     render(<EventTimeSection {...defaultProps()} />)
 
-    // then: EventTimePicker의 시간 라디오 옵션이 보임
-    expect(screen.getByText('특정 시각')).toBeInTheDocument()
+    // then: 시간 타입 선택 combobox가 보임 (shadcn Select 트리거)
+    expect(screen.getByRole('combobox', { name: /시각/i })).toBeInTheDocument()
   })
 
-  it('반복 활성화 체크박스가 렌더된다', () => {
+  it('at 타입 이벤트 시간이 주어지면 datetime-local 입력이 표시된다', () => {
+    // given / when
+    const { container } = render(<EventTimeSection {...defaultProps()} />)
+
+    // then: at 타입 → datetime-local 입력 표시
+    const datetimeInput = container.querySelector('input[type="datetime-local"]')
+    expect(datetimeInput).toBeInTheDocument()
+  })
+
+  it('반복 섹션이 렌더된다 (popover 트리거 표시)', () => {
     // given / when
     render(<EventTimeSection {...defaultProps()} />)
 
-    // then: RepeatingPicker의 반복 체크박스가 보임
-    expect(screen.getByLabelText('반복')).toBeInTheDocument()
+    // then: RepeatingSection의 popover 트리거가 보임 ("반복 안 함" 텍스트)
+    expect(screen.getByText('반복 안 함')).toBeInTheDocument()
   })
 
-  it('required=false 이면 EventTime을 "시간 없음"으로 선택할 수 있다', () => {
+  it('required=false 이면 EventTime을 시간 없음 상태로 시작할 수 있다 (allowNone=true, null 값에서)', () => {
     // given / when
-    render(<EventTimeSection {...defaultProps({ required: false, eventTime: null })} />)
+    const { container } = render(<EventTimeSection {...defaultProps({ required: false, eventTime: null })} />)
 
-    // then
-    expect(screen.getByText('시간 없음')).toBeInTheDocument()
+    // then: 시간 없음 상태 → combobox는 있고 datetime-local input은 없음
+    expect(screen.getByRole('combobox')).toBeInTheDocument()
+    expect(container.querySelector('input[type="datetime-local"]')).not.toBeInTheDocument()
   })
 
   it('eventTime이 null이고 required=false면 반복 섹션은 렌더되지 않는다', () => {
     // given / when
     render(<EventTimeSection {...defaultProps({ required: false, eventTime: null })} />)
 
-    // then
-    expect(screen.queryByLabelText('반복')).not.toBeInTheDocument()
+    // then: eventTime이 없으면 RepeatingSection은 null 반환
+    expect(screen.queryByText('반복 안 함')).not.toBeInTheDocument()
   })
 
   it('All day 체크박스 클릭 시 eventTime이 allday 타입으로 전환된다', async () => {
