@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { EventFormMiddleSection } from '../../../src/components/eventForm/EventFormMiddleSection'
 import { useEventFormStore } from '../../../src/stores/eventFormStore'
-import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
+import { useEventTagListCache } from '../../../src/repositories/caches/eventTagListCache'
 import { useSettingsCache } from '../../../src/repositories/caches/settingsCache'
 
 vi.mock('../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
@@ -30,7 +30,7 @@ describe('EventFormMiddleSection — 디폴트 태그 표시', () => {
       tags: new Map([['tag-personal', { uuid: 'tag-personal', name: '개인', color_hex: '#123456' }]]),
       defaultTagColors: { default: '#aaa', holiday: '#bbb' },
     })
-    useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: \1, defaultNotificationSeconds: null } }))
+    useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: 'tag-personal', defaultNotificationSeconds: null } }))
     useEventFormStore.setState({ eventTagId: null } as any)
 
     // when
@@ -53,7 +53,7 @@ describe('EventFormMiddleSection — 디폴트 태그 표시', () => {
       ]),
       defaultTagColors: { default: '#aaa', holiday: '#bbb' },
     })
-    useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: \1, defaultNotificationSeconds: null } }))
+    useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: 'tag-personal', defaultNotificationSeconds: null } }))
     useEventFormStore.setState({ eventTagId: 'tag-work' } as any)
 
     // when
@@ -75,7 +75,7 @@ describe('EventFormMiddleSection — 디폴트 태그 표시', () => {
       tags: new Map(),
       defaultTagColors: { default: '#111', holiday: '#222' },
     })
-    useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: \1, defaultNotificationSeconds: null } }))
+    useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultTagId: null, defaultNotificationSeconds: null } }))
     useEventFormStore.setState({ eventTagId: null } as any)
 
     // when
