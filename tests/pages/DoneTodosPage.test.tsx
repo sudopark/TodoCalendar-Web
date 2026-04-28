@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { DoneTodosPage } from '../../src/pages/DoneTodosPage'
+import { ArchivePanel } from '../../src/components/ArchivePanel'
 import { doneTodoApi } from '../../src/api/doneTodoApi'
 import { useDoneTodosCache } from '../../src/repositories/caches/doneTodosCache'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
@@ -54,7 +54,7 @@ describe('DoneTodosPage', () => {
   })
 
   function renderPage() {
-    return render(<MemoryRouter><DoneTodosPage /></MemoryRouter>)
+    return render(<MemoryRouter><ArchivePanel /></MemoryRouter>)
   }
 
   it('마운트 시 done todos를 불러와 목록을 렌더한다', async () => {

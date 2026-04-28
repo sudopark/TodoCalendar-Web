@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { EventFormPopover } from '../../../src/components/eventForm/EventFormPopover'
 import { useEventFormStore } from '../../../src/stores/eventFormStore'
-import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
+import { useEventTagListCache } from '../../../src/repositories/caches/eventTagListCache'
 
 vi.mock('../../../src/stores/eventFormStore', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../src/stores/eventFormStore')>()
@@ -15,6 +15,7 @@ vi.mock('../../../src/repositories/caches/eventTagListCache', async (importOrigi
   const actual = await importOriginal<typeof import('../../../src/repositories/caches/eventTagListCache')>()
   return { ...actual, useEventTagListCache: vi.fn() }
 })
+
 
 const mockCloseForm = vi.fn()
 const mockSave = vi.fn()
@@ -148,7 +149,7 @@ describe('EventFormPopover', () => {
     expect(mockCloseForm).not.toHaveBeenCalled()
   })
 
-  it('이름이 비어있을 때 X 버튼 클릭 시 컨펌 없이 즉시 닫힌다', async () => {
+  it('이름이 비어있을 때 X 버튼 클릭 시 컨펌 없이 즉시 closeForm이 호출된다', async () => {
     // given
     mockStore({ isOpen: true, name: '' })
 
@@ -160,12 +161,12 @@ describe('EventFormPopover', () => {
     )
     await userEvent.click(screen.getByTestId('event-form-close-btn'))
 
-    // then: 컨펌 없이 closeForm 호출
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    // then: 컨펌 다이얼로그 없이 closeForm이 바로 호출됨 (ConfirmDialog가 없어 두 번째 dialog가 없음)
+    expect(screen.getAllByRole('dialog')).toHaveLength(1)
     expect(mockCloseForm).toHaveBeenCalled()
   })
 
-  it('이름이 입력된 상태에서 X 버튼 클릭 시 컨펌 다이얼로그가 표시된다', async () => {
+  it('이름이 입력된 상태에서 X 버튼 클릭 시 컨펌 다이얼로그가 추가로 표시된다', async () => {
     // given
     mockStore({ isOpen: true, name: '회식' })
 
@@ -177,8 +178,8 @@ describe('EventFormPopover', () => {
     )
     await userEvent.click(screen.getByTestId('event-form-close-btn'))
 
-    // then: 컨펌 다이얼로그 표시, closeForm은 아직 호출되지 않음
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    // then: 메인 팝오버 + 컨펌 다이얼로그 두 개의 dialog가 렌더됨
+    expect(screen.getAllByRole('dialog')).toHaveLength(2)
     expect(mockCloseForm).not.toHaveBeenCalled()
   })
 
@@ -210,10 +211,13 @@ describe('EventFormPopover', () => {
       </MemoryRouter>
     )
     await userEvent.click(screen.getByTestId('event-form-close-btn'))
+    // 취소 전: 메인 팝오버 + 컨펌 = dialog 2개
+    expect(screen.getAllByRole('dialog')).toHaveLength(2)
+
     await userEvent.click(screen.getByRole('button', { name: '취소' }))
 
-    // then
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    // then: 컨펌 닫혀 dialog 1개만 남고, 메인 backdrop은 유지됨
+    expect(screen.getAllByRole('dialog')).toHaveLength(1)
     expect(mockCloseForm).not.toHaveBeenCalled()
     expect(screen.getByTestId('event-form-backdrop')).toBeInTheDocument()
   })
