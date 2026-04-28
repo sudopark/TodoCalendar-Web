@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useHolidayCache, type HolidayCountry } from '../../../repositories/caches/holidayCache'
+import type { HolidayCountry } from '../../../repositories/caches/holidayCache'
 import { SettingsSection, settingsInput, settingsLabel } from '../SettingsSection'
 
 interface CountryRowProps {
@@ -29,14 +29,22 @@ function CountryRow({ country, selected, onClick }: CountryRowProps) {
   )
 }
 
-export function HolidaySection() {
-  const { t } = useTranslation()
-  const country = useHolidayCache(s => s.country)
-  const setCountry = useHolidayCache(s => s.setCountry)
-  const availableCountries = useHolidayCache(s => s.availableCountries)
-  const availableCountriesLoaded = useHolidayCache(s => s.availableCountriesLoaded)
-  const fetchAvailableCountries = useHolidayCache(s => s.fetchAvailableCountries)
+interface Props {
+  country: HolidayCountry
+  availableCountries: HolidayCountry[]
+  availableCountriesLoaded: boolean
+  fetchAvailableCountries: () => Promise<void>
+  setCountry: (country: HolidayCountry) => void
+}
 
+export function HolidaySection({
+  country,
+  availableCountries,
+  availableCountriesLoaded,
+  fetchAvailableCountries,
+  setCountry,
+}: Props) {
+  const { t } = useTranslation()
   const [query, setQuery] = useState('')
 
   useEffect(() => {

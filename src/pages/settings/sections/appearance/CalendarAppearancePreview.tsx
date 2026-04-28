@@ -1,16 +1,20 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSettingsCache } from '../../../../repositories/caches/settingsCache'
+import type { AccentDays, WeekStartDay } from '../../../../repositories/caches/settingsCache'
 
 const ALL_WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
+
+interface Props {
+  weekStartDay: WeekStartDay
+  accentDays: AccentDays
+}
 
 /**
  * 캘린더 외관 미리보기 — 주 시작 요일 / 강조 요일 변경 즉시 반영
  * 실제 데이터 없이 4주 분량의 더미 그리드 + 토요일/일요일/공휴일 색만 시연
  */
-export function CalendarAppearancePreview() {
+export function CalendarAppearancePreview({ weekStartDay, accentDays }: Props) {
   const { t } = useTranslation()
-  const { weekStartDay, accentDays } = useSettingsCache(s => s.calendarAppearance)
 
   const weekdayKeys = useMemo(
     () => [...ALL_WEEKDAY_KEYS.slice(weekStartDay), ...ALL_WEEKDAY_KEYS.slice(0, weekStartDay)],

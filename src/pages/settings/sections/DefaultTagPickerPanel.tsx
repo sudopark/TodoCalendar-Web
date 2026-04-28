@@ -2,12 +2,15 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useSettingsCache } from '../../../repositories/caches/settingsCache'
-import { useEventTagListCache } from '../../../repositories/caches/eventTagListCache'
+import type { DefaultTagColors, EventTag } from '../../../models'
 import { APP_FALLBACK_DEFAULT_COLOR } from '../../../domain/tag/resolveEventTag'
 
 interface Props {
   onClose: () => void
+  tags: Map<string, EventTag>
+  defaultTagColors: DefaultTagColors | null
+  defaultTagId: string | null
+  setDefaultTagId: (id: string | null) => void
 }
 
 interface TagOption {
@@ -16,12 +19,8 @@ interface TagOption {
   color: string
 }
 
-export function DefaultTagPickerPanel({ onClose }: Props) {
+export function DefaultTagPickerPanel({ onClose, tags, defaultTagColors, defaultTagId, setDefaultTagId }: Props) {
   const { t } = useTranslation()
-  const tags = useEventTagListCache(s => s.tags)
-  const defaultTagColors = useEventTagListCache(s => s.defaultTagColors)
-  const defaultTagId = useSettingsCache(s => s.eventDefaults.defaultTagId)
-  const setDefaults = useSettingsCache(s => s.setEventDefaults)
 
   const baseDefaultColor =
     defaultTagColors?.default && defaultTagColors.default.length > 0
@@ -60,7 +59,7 @@ export function DefaultTagPickerPanel({ onClose }: Props) {
             <li key={opt.id ?? '__default__'}>
               <button
                 type="button"
-                onClick={() => setDefaults({ defaultTagId: opt.id })}
+                onClick={() => setDefaultTagId(opt.id)}
                 className={cn(
                   'w-full flex items-center gap-3 py-3 text-left transition-colors',
                   isSelected ? 'text-[#1f1f1f] font-semibold' : 'text-[#1f1f1f] hover:bg-gray-50',
