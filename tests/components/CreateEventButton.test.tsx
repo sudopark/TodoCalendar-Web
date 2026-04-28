@@ -5,7 +5,7 @@ import { CreateEventButton } from '../../src/components/CreateEventButton'
 import { useEventFormStore } from '../../src/stores/eventFormStore'
 
 vi.mock('../../src/firebase', () => ({
-  auth: {},
+  getAuthInstance: vi.fn(() => ({})),
   db: {},
 }))
 

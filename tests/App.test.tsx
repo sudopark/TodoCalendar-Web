@@ -10,7 +10,7 @@ vi.mock('../src/stores/authStore', () => ({
   }),
 }))
 
-vi.mock('../src/firebase', () => ({ auth: {} }))
+vi.mock('../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 
 vi.mock('../src/api/todoApi', () => ({
   todoApi: {

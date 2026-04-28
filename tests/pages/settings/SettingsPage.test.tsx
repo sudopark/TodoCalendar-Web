@@ -9,7 +9,7 @@ import { useAuthStore } from '../../../src/stores/authStore'
 import { useRepositories } from '../../../src/composition/RepositoriesProvider'
 import { useToastStore } from '../../../src/stores/toastStore'
 
-vi.mock('../../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 
 vi.mock('../../../src/api/settingApi', () => ({
   settingApi: {

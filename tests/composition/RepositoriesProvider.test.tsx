@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 
 // container.ts → Repository → 캐시 → api → Firebase 연쇄 초기화 차단
 // container.ts → AuthRepository → authStore → firebase/auth (onAuthStateChanged) 도 차단
-vi.mock('../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 vi.mock('firebase/auth', () => ({
   onAuthStateChanged: vi.fn(() => () => {}),
   signInWithPopup: vi.fn(),

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Firebase 연쇄 초기화 차단
-vi.mock('../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 
 // holidayApi 모듈 모킹 (holidayCache 내부에서 임포트됨)
 vi.mock('../../src/api/holidayApi', () => ({

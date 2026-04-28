@@ -8,7 +8,7 @@ import { useHolidayCache } from '../../src/repositories/caches/holidayCache'
 import { useEventFormStore } from '../../src/stores/eventFormStore'
 
 vi.mock('../../src/firebase', () => ({
-  auth: {},
+  getAuthInstance: vi.fn(() => ({})),
   db: {},
 }))
 

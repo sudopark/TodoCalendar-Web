@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import {
   onAuthStateChanged,
 } from 'firebase/auth'
-import { auth } from '../firebase'
+import { getAuthInstance } from '../firebase'
 import { apiClient } from '../api/apiClient'
 
 export interface Account {
@@ -22,7 +22,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set, get) => {
   let initialAuthDone = false
-  onAuthStateChanged(auth, async (firebaseUser) => {
+  onAuthStateChanged(getAuthInstance(), async (firebaseUser) => {
     if (firebaseUser) {
       // 초기 인증 이후 동일 uid의 token refresh는 skip
       if (initialAuthDone && get().account?.uid === firebaseUser.uid) {

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Firebase 연쇄 초기화 차단
-vi.mock('../../src/firebase', () => ({ auth: {} }))
+vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 // foremostApi는 캐시 내부에서 임포트되지 않으므로 차단 불필요하지만
 // foremostEventStore가 내부적으로 가져오므로 차단
 vi.mock('../../src/api/foremostApi', () => ({ foremostApi: {} }))

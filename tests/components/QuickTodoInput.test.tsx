@@ -10,7 +10,7 @@ vi.mock('../../src/api/todoApi', () => ({
 }))
 
 vi.mock('../../src/firebase', () => ({
-  auth: {},
+  getAuthInstance: vi.fn(() => ({})),
   db: {},
 }))
 

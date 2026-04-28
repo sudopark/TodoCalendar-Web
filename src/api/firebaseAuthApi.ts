@@ -4,7 +4,7 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
 } from 'firebase/auth'
-import { auth } from '../firebase'
+import { getAuthInstance } from '../firebase'
 import type { AuthFirebaseApi } from '../repositories/AuthRepository'
 
 // Firebase 인증 동작을 AuthFirebaseApi 인터페이스로 감싼다.
@@ -13,15 +13,15 @@ import type { AuthFirebaseApi } from '../repositories/AuthRepository'
 export const firebaseAuthApi: AuthFirebaseApi = {
   async signInWithGoogle(): Promise<void> {
     const provider = new GoogleAuthProvider()
-    await signInWithPopup(auth, provider)
+    await signInWithPopup(getAuthInstance(), provider)
   },
 
   async signInWithApple(): Promise<void> {
     const provider = new OAuthProvider('apple.com')
-    await signInWithPopup(auth, provider)
+    await signInWithPopup(getAuthInstance(), provider)
   },
 
   async signOut(): Promise<void> {
-    await firebaseSignOut(auth)
+    await firebaseSignOut(getAuthInstance())
   },
 }
