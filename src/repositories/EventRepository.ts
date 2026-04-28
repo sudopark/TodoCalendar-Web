@@ -102,6 +102,10 @@ export class EventRepository {
     return this.deps.todoApi.getTodo(id)
   }
 
+  async getSchedule(id: string): Promise<Schedule> {
+    return this.deps.scheduleApi.getSchedule(id)
+  }
+
   // ── mutate: api 호출 + 캐시 갱신 ──────────────────────────────────
 
   async createTodo(input: TodoCreateInput): Promise<Todo> {
