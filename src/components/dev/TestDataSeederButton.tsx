@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { cleanupTestData, seedTestData } from '../../dev/testDataSeeder'
-import { useEventTagStore } from '../../stores/eventTagStore'
+import { useEventTagListCache } from '../../repositories/caches/eventTagListCache'
 import { useCalendarEventsCache } from '../../repositories/caches/calendarEventsCache'
 import { useCurrentTodosCache } from '../../repositories/caches/currentTodosCache'
 import { useUncompletedTodosCache } from '../../repositories/caches/uncompletedTodosCache'
@@ -22,7 +22,7 @@ export default function TestDataSeederButton() {
       const result = await seedTestData()
 
       // 관련 store 전체 갱신
-      await useEventTagStore.getState().fetchAll().catch(() => {})
+      await useEventTagListCache.getState().fetchAll().catch(() => {})
 
       const loadedYears = Array.from(useCalendarEventsCache.getState().loadedYears)
       if (loadedYears.length > 0) {

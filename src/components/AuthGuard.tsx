@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
-import { useEventTagStore } from '../stores/eventTagStore'
+import { useEventTagListCache } from '../repositories/caches/eventTagListCache'
 import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useForemostEventStore } from '../stores/foremostEventStore'
 import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'
@@ -17,7 +17,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   useEffect(() => {
     if (account) {
       Promise.allSettled([
-        useEventTagStore.getState().fetchAll(),
+        useEventTagListCache.getState().fetchAll(),
         useCurrentTodosCache.getState().fetch(),
         useForemostEventStore.getState().fetch(),
         useUncompletedTodosCache.getState().fetch(),

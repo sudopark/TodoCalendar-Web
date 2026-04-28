@@ -7,8 +7,8 @@ import { useForemostEventStore } from '../../src/stores/foremostEventStore'
 import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 
 vi.mock('../../src/stores/foremostEventStore', () => ({ useForemostEventStore: vi.fn() }))
-vi.mock('../../src/stores/eventTagStore', () => ({
-  useEventTagStore: vi.fn((selector: any) => selector({ tags: new Map() })),
+vi.mock('../../src/repositories/caches/eventTagListCache', () => ({
+  useEventTagListCache: vi.fn((selector: any) => selector({ tags: new Map() })),
   DEFAULT_TAG_ID: 'default',
   HOLIDAY_TAG_ID: 'holiday',
 }))

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, ChevronLeft } from 'lucide-react'
-import { useEventTagStore } from '../../../stores/eventTagStore'
+import { useEventTagListCache } from '../../../repositories/caches/eventTagListCache'
 import { useToastStore } from '../../../stores/toastStore'
 import { buildTagRows } from '../../../domain/tag/buildTagRows'
 import type { TagRowModel } from '../../../domain/tag/buildTagRows'
@@ -19,9 +19,9 @@ interface Props {
 
 export function TagManagementPanel({ onClose }: Props) {
   const { t } = useTranslation()
-  const tags = useEventTagStore(s => s.tags)
-  const defaultTagColors = useEventTagStore(s => s.defaultTagColors)
-  const fetchAll = useEventTagStore(s => s.fetchAll)
+  const tags = useEventTagListCache(s => s.tags)
+  const defaultTagColors = useEventTagListCache(s => s.defaultTagColors)
+  const fetchAll = useEventTagListCache(s => s.fetchAll)
 
   const [panel, setPanel] = useState<PanelMode>({ kind: 'list' })
 

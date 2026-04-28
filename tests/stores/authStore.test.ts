@@ -108,12 +108,12 @@ describe('authStore', () => {
       const { signOut } = await import('firebase/auth')
       vi.mocked(signOut).mockResolvedValue(undefined)
 
-      const { useEventTagStore } = await import('../../src/stores/eventTagStore')
+      const { useEventTagListCache } = await import('../../src/repositories/caches/eventTagListCache')
       const { useCurrentTodosCache } = await import('../../src/repositories/caches/currentTodosCache')
       const { useForemostEventStore } = await import('../../src/stores/foremostEventStore')
       const { useCalendarEventsCache } = await import('../../src/repositories/caches/calendarEventsCache')
 
-      useEventTagStore.setState({ tags: new Map([['t1', { uuid: 't1', name: 'tag', color_hex: '#ff0000' }]]) })
+      useEventTagListCache.setState({ tags: new Map([['t1', { uuid: 't1', name: 'tag', color_hex: '#ff0000' }]]) })
       useCurrentTodosCache.setState({ todos: [{ uuid: 'td1', name: 'todo', is_current: true, event_time: null }] })
       useForemostEventStore.setState({ foremostEvent: { event_id: 'e1', is_todo: true } as any })
       useCalendarEventsCache.setState({ eventsByDate: new Map([['2025-01-01', []]]), lastRange: { lower: 0, upper: 100 } })
@@ -122,7 +122,7 @@ describe('authStore', () => {
       await useAuthStore.getState().signOut()
 
       // then: 모든 스토어가 초기 상태
-      expect(useEventTagStore.getState().tags.get('t1')).toBeUndefined()
+      expect(useEventTagListCache.getState().tags.get('t1')).toBeUndefined()
       expect(useCurrentTodosCache.getState().todos).toEqual([])
       expect(useForemostEventStore.getState().foremostEvent).toBeNull()
       expect(useCalendarEventsCache.getState().eventsByDate.size).toBe(0)

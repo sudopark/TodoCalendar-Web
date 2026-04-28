@@ -6,7 +6,7 @@ import { buildCalendarGrid } from '../../src/calendar/calendarUtils'
 import { useUiStore } from '../../src/stores/uiStore'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import { useHolidayStore } from '../../src/stores/holidayStore'
-import { useEventTagStore } from '../../src/stores/eventTagStore'
+import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 
 vi.mock('../../src/firebase', () => ({ auth: {} }))
@@ -25,7 +25,7 @@ describe('MainCalendarGrid', () => {
     useUiStore.setState({ selectedDate: null })
     useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false })
     useHolidayStore.setState({ holidays: new Map(), loadedYears: new Set() })
-    useEventTagStore.setState({ tags: new Map() })
+    useEventTagListCache.setState({ tags: new Map() })
   })
 
   it('7개의 요일 헤더를 렌더링한다', () => {
@@ -108,7 +108,7 @@ describe('MainCalendarGrid', () => {
     const eventsMap = new Map<string, CalendarEvent[]>()
     eventsMap.set('2026-03-10', [todoEvent])
     useCalendarEventsCache.setState({ eventsByDate: eventsMap, loading: false })
-    useEventTagStore.setState({ tags: new Map() })
+    useEventTagListCache.setState({ tags: new Map() })
 
     render(<MainCalendarGrid days={marchDays} onEventClick={onEventClick} />)
 

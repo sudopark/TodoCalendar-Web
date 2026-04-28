@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { useEventTagStore, DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../stores/eventTagStore'
+import { useEventTagListCache, DEFAULT_TAG_ID, HOLIDAY_TAG_ID } from '../repositories/caches/eventTagListCache'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import type { EventTag } from '../models'
 
@@ -9,8 +9,8 @@ export default function CalendarList() {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
-  const tags = useEventTagStore(s => s.tags)
-  const defaultTagColors = useEventTagStore(s => s.defaultTagColors)
+  const tags = useEventTagListCache(s => s.tags)
+  const defaultTagColors = useEventTagListCache(s => s.defaultTagColors)
   const hiddenTagIds = useTagFilterStore(s => s.hiddenTagIds)
   const toggleTag = useTagFilterStore(s => s.toggleTag)
 

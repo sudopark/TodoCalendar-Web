@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { EventDetailPopover } from '../../src/components/EventDetailPopover'
-import { useEventTagStore } from '../../src/stores/eventTagStore'
+import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 import { eventDetailApi } from '../../src/api/eventDetailApi'
 
@@ -91,7 +91,7 @@ function renderPopover(
 describe('EventDetailPopover', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    useEventTagStore.setState({ tags: new Map() })
+    useEventTagListCache.setState({ tags: new Map() })
     vi.mocked(eventDetailApi.getEventDetail).mockResolvedValue({
       place: null,
       url: null,
@@ -248,7 +248,7 @@ describe('EventDetailPopover', () => {
   it('태그가 있으면 태그 색상 dot을 이벤트 이름 옆에 표시한다', () => {
     // given: 태그가 있는 이벤트
     const tagId = 'tag-blue'
-    useEventTagStore.setState({
+    useEventTagListCache.setState({
       tags: new Map([[tagId, { uuid: tagId, name: '업무', color_hex: '#0000ff' }]]),
     })
     const calEvent = makeTodoEvent({ tagId })

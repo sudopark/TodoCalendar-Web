@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { DoneTodosPage } from '../../src/pages/DoneTodosPage'
 import { doneTodoApi } from '../../src/api/doneTodoApi'
 import { useDoneTodosStore } from '../../src/stores/doneTodosStore'
-import { useEventTagStore } from '../../src/stores/eventTagStore'
+import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import { todoApi } from '../../src/api/todoApi'
 import { useToastStore } from '../../src/stores/toastStore'
 
@@ -48,7 +48,7 @@ describe('DoneTodosPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useDoneTodosStore.getState().reset()
-    useEventTagStore.getState().reset()
+    useEventTagListCache.getState().reset()
     useToastStore.setState({ toasts: [] })
     vi.stubGlobal('IntersectionObserver', MockIntersectionObserver)
   })

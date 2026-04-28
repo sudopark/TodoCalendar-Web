@@ -18,8 +18,8 @@ vi.mock('../../src/api/scheduleApi', () => ({
     getSchedules: vi.fn().mockResolvedValue([]),
   },
 }))
-vi.mock('../../src/stores/eventTagStore', () => ({
-  useEventTagStore: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null })),
+vi.mock('../../src/repositories/caches/eventTagListCache', () => ({
+  useEventTagListCache: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null })),
   DEFAULT_TAG_ID: 'default',
   HOLIDAY_TAG_ID: 'holiday',
 }))

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TagEditPanel } from '../../../src/pages/tagManagement/components/TagEditPanel'
-import { useEventTagStore } from '../../../src/stores/eventTagStore'
+import { useEventTagListCache } from '../../../src/repositories/caches/eventTagListCache'
 import type { TagRowModel } from '../../../src/domain/tag/buildTagRows'
 
 vi.mock('../../../src/firebase', () => ({ auth: {} }))
@@ -29,7 +29,7 @@ const defaultRow: TagRowModel = { id: 'default', kind: 'default', name: '기본'
 
 describe('TagEditPanel — create 모드', () => {
   beforeEach(() => {
-    useEventTagStore.setState({ tags: new Map(), defaultTagColors: { default: '#111', holiday: '#222' } })
+    useEventTagListCache.setState({ tags: new Map(), defaultTagColors: { default: '#111', holiday: '#222' } })
     vi.clearAllMocks()
   })
 
@@ -52,14 +52,14 @@ describe('TagEditPanel — create 모드', () => {
     await user.click(screen.getByTitle('#22c55e'))
     await user.click(screen.getByRole('button', { name: /^저장$|^Save$/ }))
 
-    await waitFor(() => expect(useEventTagStore.getState().tags.get('new-id')?.name).toBe('신규'))
+    await waitFor(() => expect(useEventTagListCache.getState().tags.get('new-id')?.name).toBe('신규'))
     expect(onClose).toHaveBeenCalled()
   })
 })
 
 describe('TagEditPanel — edit(custom) 모드', () => {
   beforeEach(() => {
-    useEventTagStore.setState({
+    useEventTagListCache.setState({
       tags: new Map([['tag-1', { uuid: 'tag-1', name: '업무', color_hex: '#ff0000' }]]),
       defaultTagColors: { default: '#111', holiday: '#222' },
     })
@@ -86,7 +86,7 @@ describe('TagEditPanel — edit(custom) 모드', () => {
     await user.click(screen.getByTitle('#22c55e'))
     await user.click(screen.getByRole('button', { name: /^저장$|^Save$/ }))
 
-    await waitFor(() => expect(useEventTagStore.getState().tags.get('tag-1')?.name).toBe('새이름'))
+    await waitFor(() => expect(useEventTagListCache.getState().tags.get('tag-1')?.name).toBe('새이름'))
     expect(onClose).toHaveBeenCalled()
   })
 
@@ -103,7 +103,7 @@ describe('TagEditPanel — edit(custom) 모드', () => {
 
 describe('TagEditPanel — edit(default) 모드', () => {
   beforeEach(() => {
-    useEventTagStore.setState({ tags: new Map(), defaultTagColors: { default: '#111', holiday: '#222' } })
+    useEventTagListCache.setState({ tags: new Map(), defaultTagColors: { default: '#111', holiday: '#222' } })
     vi.clearAllMocks()
   })
 
@@ -127,7 +127,7 @@ describe('TagEditPanel — edit(default) 모드', () => {
     await user.click(screen.getByTitle('#22c55e'))
     await user.click(screen.getByRole('button', { name: /^저장$|^Save$/ }))
 
-    await waitFor(() => expect(useEventTagStore.getState().defaultTagColors?.default).toBe('#22c55e'))
+    await waitFor(() => expect(useEventTagListCache.getState().defaultTagColors?.default).toBe('#22c55e'))
     expect(onClose).toHaveBeenCalled()
   })
 })

@@ -7,7 +7,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-import { useEventTagStore } from '../stores/eventTagStore'
+import { useEventTagListCache } from '../repositories/caches/eventTagListCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../utils/tagDisplay'
 
@@ -22,7 +22,7 @@ interface TagDropdownProps {
 export function TagDropdown({ value, onChange, showManageLink = false }: TagDropdownProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const tags = useEventTagStore(s => s.tags)
+  const tags = useEventTagListCache(s => s.tags)
   const resolvedDefault = useResolvedEventTag(null)
   const resolvedCurrent = useResolvedEventTag(value ?? null)
 

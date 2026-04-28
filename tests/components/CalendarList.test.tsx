@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import CalendarList from '../../src/components/CalendarList'
-import { useEventTagStore } from '../../src/stores/eventTagStore'
+import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import { useTagFilterStore } from '../../src/stores/tagFilterStore'
 import type { EventTag } from '../../src/models'
 import type { DefaultTagColors } from '../../src/models'
@@ -37,7 +37,7 @@ describe('CalendarList', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
     const tagMap = new Map<string, EventTag>(mockTags.map(t => [t.uuid, t]))
-    useEventTagStore.setState({ tags: tagMap, defaultTagColors: mockDefaultColors })
+    useEventTagListCache.setState({ tags: tagMap, defaultTagColors: mockDefaultColors })
     useTagFilterStore.setState({ hiddenTagIds: new Set() })
   })
 
@@ -70,7 +70,7 @@ describe('CalendarList', () => {
 
   it('태그가 없어도 기본/공휴일 태그는 표시된다', () => {
     // given: 사용자 태그 없음
-    useEventTagStore.setState({ tags: new Map(), defaultTagColors: mockDefaultColors })
+    useEventTagListCache.setState({ tags: new Map(), defaultTagColors: mockDefaultColors })
 
     // when
     renderCalendarList()
@@ -146,7 +146,7 @@ describe('CalendarList', () => {
 
   it('태그가 없으면 기본/공휴일 태그만 표시한다', () => {
     // given: 태그 없음
-    useEventTagStore.setState({ tags: new Map(), defaultTagColors: mockDefaultColors })
+    useEventTagListCache.setState({ tags: new Map(), defaultTagColors: mockDefaultColors })
 
     // when
     renderCalendarList()
