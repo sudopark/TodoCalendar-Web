@@ -7,12 +7,15 @@ import { settingApi } from '../api/settingApi'
 import { holidayApi } from '../api/holidayApi'
 import { doneTodoApi } from '../api/doneTodoApi'
 import { foremostApi } from '../api/foremostApi'
+import { firebaseAuthApi } from '../api/firebaseAuthApi'
+import { setUnauthorizedHandler } from '../api/apiClient'
 import { EventRepository } from '../repositories/EventRepository'
 import { EventDetailRepository } from '../repositories/EventDetailRepository'
 import { TagRepository } from '../repositories/TagRepository'
 import { HolidayRepository } from '../repositories/HolidayRepository'
 import { DoneTodoRepository } from '../repositories/DoneTodoRepository'
 import { ForemostEventRepository } from '../repositories/ForemostEventRepository'
+import { AuthRepository } from '../repositories/AuthRepository'
 
 const holidayRepo = new HolidayRepository({
   api: holidayApi,
@@ -21,6 +24,11 @@ const holidayRepo = new HolidayRepository({
 // composition root 에서만 i18n 이벤트 처리 — Repository 자체는 i18n 무지
 i18n.on('languageChanged', (lng: string) => holidayRepo.setLocale(lng))
 
+const authRepo = new AuthRepository({ api: firebaseAuthApi })
+
+// 401 응답 시 AuthRepository를 통해 로그아웃 처리 — apiClient가 store를 직접 참조하지 않는다
+setUnauthorizedHandler(() => { authRepo.signOut() })
+
 export interface Repositories {
   eventRepo: EventRepository
   eventDetailRepo: EventDetailRepository
@@ -28,6 +36,7 @@ export interface Repositories {
   holidayRepo: HolidayRepository
   doneTodoRepo: DoneTodoRepository
   foremostEventRepo: ForemostEventRepository
+  authRepo: AuthRepository
 }
 
 export const repositories: Repositories = {
@@ -37,4 +46,5 @@ export const repositories: Repositories = {
   holidayRepo,
   doneTodoRepo: new DoneTodoRepository({ api: doneTodoApi }),
   foremostEventRepo: new ForemostEventRepository({ api: foremostApi }),
+  authRepo,
 }

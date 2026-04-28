@@ -3,10 +3,12 @@ import { Navigate, useLocation } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
+import { useRepositories } from '../composition/RepositoriesProvider'
 
 export function LoginPage() {
   const { t } = useTranslation()
-  const { account, signInWithGoogle, signInWithApple } = useAuthStore()
+  const account = useAuthStore(s => s.account)
+  const { authRepo } = useRepositories()
   const location = useLocation()
   const from = (location.state as { from?: Location })?.from?.pathname || '/'
   const [loading, setLoading] = useState(false)
@@ -46,7 +48,7 @@ export function LoginPage() {
 
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => handleSignIn(signInWithGoogle)}
+            onClick={() => handleSignIn(() => authRepo.signInWithGoogle())}
             disabled={loading}
             className="flex items-center justify-center gap-2 w-full py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
@@ -60,7 +62,7 @@ export function LoginPage() {
           </button>
 
           <button
-            onClick={() => handleSignIn(signInWithApple)}
+            onClick={() => handleSignIn(() => authRepo.signInWithApple())}
             disabled={loading}
             className="flex items-center justify-center gap-2 w-full py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >

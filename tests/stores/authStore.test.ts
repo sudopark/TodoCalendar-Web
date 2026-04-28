@@ -1,17 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useAuthStore } from '../../src/stores/authStore'
 
-const authCallbackRef = vi.hoisted(() => ({ current: (_user: any) => {} }))
+const authCallbackRef = vi.hoisted(() => ({ current: (_user: unknown) => {} }))
 
 vi.mock('firebase/auth', () => ({
   onAuthStateChanged: vi.fn((_auth, callback) => {
     authCallbackRef.current = callback
     return () => {}
   }),
-  signInWithPopup: vi.fn(),
-  signOut: vi.fn(),
-  GoogleAuthProvider: vi.fn().mockImplementation(function(this: any) { return this }),
-  OAuthProvider: vi.fn().mockImplementation(function(this: any) { return this }),
 }))
 
 vi.mock('../../src/firebase', () => ({ auth: {} }))
@@ -35,98 +31,76 @@ describe('authStore', () => {
     })
   })
 
-  describe('인증 상태 동기화', () => {
+  describe('인증 상태 동기화 (onAuthStateChanged)', () => {
     it('로그인된 사용자를 받으면 서버에서 계정 정보를 가져와 저장한다', async () => {
+      // given / when
       await authCallbackRef.current({ uid: 'firebase-user' })
 
+      // then
       const state = useAuthStore.getState()
       expect(state.account).toEqual({ uid: 'user-123', email: 'test@example.com' })
       expect(state.loading).toBe(false)
     })
 
     it('계정 등록 실패 시 account는 null이고 loading은 끝난다', async () => {
+      // given
       const { apiClient } = await import('../../src/api/apiClient')
       vi.mocked(apiClient.put).mockRejectedValue(new Error('network error'))
 
+      // when
       await authCallbackRef.current({ uid: 'firebase-user' })
 
+      // then
       const state = useAuthStore.getState()
       expect(state.account).toBeNull()
       expect(state.loading).toBe(false)
     })
 
     it('미인증 상태를 받으면 account가 null이고 loading이 끝난다', async () => {
+      // given / when
       await authCallbackRef.current(null)
 
+      // then
       expect(useAuthStore.getState().account).toBeNull()
       expect(useAuthStore.getState().loading).toBe(false)
     })
   })
 
-  describe('Google 로그인', () => {
-    it('로그인 성공 시 에러 없이 완료된다', async () => {
-      const { signInWithPopup } = await import('firebase/auth')
-      vi.mocked(signInWithPopup).mockResolvedValue({} as any)
+  describe('setAccount', () => {
+    it('setAccount 호출 시 account가 갱신된다', () => {
+      // given
+      const account = { uid: 'new-user', email: 'new@example.com' }
 
-      await expect(useAuthStore.getState().signInWithGoogle()).resolves.toBeUndefined()
+      // when
+      useAuthStore.getState().setAccount(account)
+
+      // then
+      expect(useAuthStore.getState().account).toEqual(account)
     })
 
-    it('로그인 실패 시 에러가 전파된다', async () => {
-      const { signInWithPopup } = await import('firebase/auth')
-      vi.mocked(signInWithPopup).mockRejectedValue(new Error('popup-closed'))
+    it('setAccount(null) 호출 시 account가 null이 된다', () => {
+      // given
+      useAuthStore.setState({ account: { uid: 'u1' } })
 
-      await expect(useAuthStore.getState().signInWithGoogle()).rejects.toThrow('popup-closed')
-    })
-  })
+      // when
+      useAuthStore.getState().setAccount(null)
 
-  describe('Apple 로그인', () => {
-    it('로그인 성공 시 에러 없이 완료된다', async () => {
-      const { signInWithPopup } = await import('firebase/auth')
-      vi.mocked(signInWithPopup).mockResolvedValue({} as any)
-
-      await expect(useAuthStore.getState().signInWithApple()).resolves.toBeUndefined()
-    })
-
-    it('로그인 실패 시 에러가 전파된다', async () => {
-      const { signInWithPopup } = await import('firebase/auth')
-      vi.mocked(signInWithPopup).mockRejectedValue(new Error('auth/cancelled'))
-
-      await expect(useAuthStore.getState().signInWithApple()).rejects.toThrow('auth/cancelled')
+      // then
+      expect(useAuthStore.getState().account).toBeNull()
     })
   })
 
-  describe('로그아웃', () => {
-    it('로그아웃 후 에러 없이 완료된다', async () => {
-      const { signOut } = await import('firebase/auth')
-      vi.mocked(signOut).mockResolvedValue(undefined)
+  describe('reset', () => {
+    it('reset 호출 시 account가 null이 되고 loading이 끝난다', () => {
+      // given
+      useAuthStore.setState({ account: { uid: 'u1', email: 'u1@example.com' }, loading: false })
 
-      await expect(useAuthStore.getState().signOut()).resolves.toBeUndefined()
-    })
+      // when
+      useAuthStore.getState().reset()
 
-    it('로그아웃 시 데이터 스토어들이 초기화된다', async () => {
-      // given: 각 스토어에 데이터가 있는 상태
-      const { signOut } = await import('firebase/auth')
-      vi.mocked(signOut).mockResolvedValue(undefined)
-
-      const { useEventTagListCache } = await import('../../src/repositories/caches/eventTagListCache')
-      const { useCurrentTodosCache } = await import('../../src/repositories/caches/currentTodosCache')
-      const { useForemostEventCache } = await import('../../src/repositories/caches/foremostEventCache')
-      const { useCalendarEventsCache } = await import('../../src/repositories/caches/calendarEventsCache')
-
-      useEventTagListCache.setState({ tags: new Map([['t1', { uuid: 't1', name: 'tag', color_hex: '#ff0000' }]]) })
-      useCurrentTodosCache.setState({ todos: [{ uuid: 'td1', name: 'todo', is_current: true, event_time: null }] })
-      useForemostEventCache.setState({ foremostEvent: { event_id: 'e1', is_todo: true } as any })
-      useCalendarEventsCache.setState({ eventsByDate: new Map([['2025-01-01', []]]), lastRange: { lower: 0, upper: 100 } })
-
-      // when: signOut 호출
-      await useAuthStore.getState().signOut()
-
-      // then: 모든 스토어가 초기 상태
-      expect(useEventTagListCache.getState().tags.get('t1')).toBeUndefined()
-      expect(useCurrentTodosCache.getState().todos).toEqual([])
-      expect(useForemostEventCache.getState().foremostEvent).toBeNull()
-      expect(useCalendarEventsCache.getState().eventsByDate.size).toBe(0)
-      expect(useCalendarEventsCache.getState().loadedYears.size).toBe(0)
+      // then
+      expect(useAuthStore.getState().account).toBeNull()
+      expect(useAuthStore.getState().loading).toBe(false)
     })
   })
 })

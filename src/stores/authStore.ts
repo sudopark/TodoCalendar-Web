@@ -1,10 +1,6 @@
 import { create } from 'zustand'
 import {
   onAuthStateChanged,
-  signInWithPopup,
-  signOut as firebaseSignOut,
-  GoogleAuthProvider,
-  OAuthProvider,
 } from 'firebase/auth'
 import { auth } from '../firebase'
 import { apiClient } from '../api/apiClient'
@@ -20,9 +16,8 @@ export interface Account {
 interface AuthState {
   account: Account | null
   loading: boolean
-  signInWithGoogle: () => Promise<void>
-  signInWithApple: () => Promise<void>
-  signOut: () => Promise<void>
+  setAccount: (account: Account | null) => void
+  reset: () => void
 }
 
 export const useAuthStore = create<AuthState>((set, get) => {
@@ -50,30 +45,10 @@ export const useAuthStore = create<AuthState>((set, get) => {
   return {
     account: null,
     loading: true,
-    signInWithGoogle: async () => {
-      const provider = new GoogleAuthProvider()
-      await signInWithPopup(auth, provider)
-    },
-    signInWithApple: async () => {
-      const provider = new OAuthProvider('apple.com')
-      await signInWithPopup(auth, provider)
-    },
-    signOut: async () => {
-      await firebaseSignOut(auth)
-      const { useEventTagListCache } = await import('../repositories/caches/eventTagListCache')
-      const { useCurrentTodosCache } = await import('../repositories/caches/currentTodosCache')
-      const { useForemostEventCache } = await import('../repositories/caches/foremostEventCache')
-      const { useCalendarEventsCache } = await import('../repositories/caches/calendarEventsCache')
-      const { useUncompletedTodosCache } = await import('../repositories/caches/uncompletedTodosCache')
-      useEventTagListCache.getState().reset()
-      useCurrentTodosCache.getState().reset()
-      useForemostEventCache.getState().reset()
-      useCalendarEventsCache.getState().reset()
-      useUncompletedTodosCache.getState().reset()
-      const { useDoneTodosCache } = await import('../repositories/caches/doneTodosCache')
-      const { useNotificationStore } = await import('./notificationStore')
-      useDoneTodosCache.getState().reset()
-      useNotificationStore.getState().reset()
+    setAccount: (account) => set({ account }),
+    reset: () => {
+      set({ account: null, loading: false })
+      initialAuthDone = false
     },
   }
 })

@@ -4,17 +4,14 @@ vi.mock('../../src/api/tokenProvider', () => ({
   tokenProvider: { getToken: vi.fn().mockResolvedValue('test-token') },
 }))
 
-vi.mock('../../src/stores/authStore', () => ({
-  useAuthStore: {
-    getState: () => ({ signOut: vi.fn().mockResolvedValue(undefined) }),
-  },
-}))
-
 describe('apiClient', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
     const { tokenProvider } = await import('../../src/api/tokenProvider')
     vi.mocked(tokenProvider.getToken).mockResolvedValue('test-token')
+    // 각 테스트 전 핸들러 초기화
+    const { setUnauthorizedHandler } = await import('../../src/api/apiClient')
+    setUnauthorizedHandler(() => {})
   })
 
   it('인증된 사용자의 요청에는 Authorization 헤더가 포함된다', async () => {
@@ -63,6 +60,22 @@ describe('apiClient', () => {
     // when / then: AuthExpiredError가 throw됨
     const { apiClient, AuthExpiredError } = await import('../../src/api/apiClient')
     await expect(apiClient.get('/v1/test')).rejects.toThrow(AuthExpiredError)
+  })
+
+  it('401 응답 시 등록된 onUnauthorized 핸들러가 실행된다', async () => {
+    // given: fetch가 401 반환, 핸들러에 결과 상태를 기록
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(null, { status: 401 })
+    )
+    const { apiClient, setUnauthorizedHandler, AuthExpiredError } = await import('../../src/api/apiClient')
+    let handlerExecuted = false
+    setUnauthorizedHandler(() => { handlerExecuted = true })
+
+    // when
+    await expect(apiClient.get('/v1/test')).rejects.toThrow(AuthExpiredError)
+
+    // then: 핸들러가 실행됐음을 결과 상태로 확인
+    expect(handlerExecuted).toBe(true)
   })
 
   it('서버가 4xx/5xx를 반환하면 에러를 던진다', async () => {

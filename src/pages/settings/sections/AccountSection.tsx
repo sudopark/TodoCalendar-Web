@@ -5,11 +5,12 @@ import { useToastStore } from '../../../stores/toastStore'
 import { accountApi } from '../../../api/accountApi'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { SettingsSection, settingsBtnSecondary, settingsBtnDanger } from '../SettingsSection'
+import { useRepositories } from '../../../composition/RepositoriesProvider'
 
 export function AccountSection() {
   const { t } = useTranslation()
   const account = useAuthStore(s => s.account)
-  const signOut = useAuthStore(s => s.signOut)
+  const { authRepo } = useRepositories()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -19,7 +20,7 @@ export function AccountSection() {
     try {
       await accountApi.deleteAccount()
       useToastStore.getState().show(t('settings.account_deleted'), 'success')
-      await signOut()
+      await authRepo.signOut()
     } catch (e) {
       console.warn('계정 삭제 실패:', e)
       useToastStore.getState().show(t('settings.account_delete_failed'), 'error')
@@ -35,7 +36,7 @@ export function AccountSection() {
           <p className="text-sm text-[#6b6b6b]">{account.email ?? account.uid}</p>
         )}
         <div>
-          <button className={settingsBtnSecondary} onClick={signOut}>
+          <button className={settingsBtnSecondary} onClick={() => authRepo.signOut()}>
             {t('settings.logout')}
           </button>
         </div>

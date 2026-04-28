@@ -6,6 +6,7 @@ import { SettingsPage } from '../../../src/pages/settings/SettingsPage'
 import { settingApi } from '../../../src/api/settingApi'
 import { accountApi } from '../../../src/api/accountApi'
 import { useAuthStore } from '../../../src/stores/authStore'
+import { useRepositories } from '../../../src/composition/RepositoriesProvider'
 import { useToastStore } from '../../../src/stores/toastStore'
 
 vi.mock('../../../src/firebase', () => ({ auth: {} }))
@@ -25,6 +26,10 @@ vi.mock('../../../src/stores/authStore', () => ({
   useAuthStore: vi.fn(),
 }))
 
+vi.mock('../../../src/composition/RepositoriesProvider', () => ({
+  useRepositories: vi.fn(),
+}))
+
 const mockColors = { holiday: '#ef4444', default: '#3b82f6' }
 
 describe('SettingsPage', () => {
@@ -34,8 +39,11 @@ describe('SettingsPage', () => {
     vi.clearAllMocks()
     useToastStore.setState({ toasts: [] })
     vi.mocked(useAuthStore).mockImplementation((selector: any) =>
-      selector({ account: { uid: 'u1', email: 'test@example.com' }, signOut: mockSignOut })
+      selector({ account: { uid: 'u1', email: 'test@example.com' } })
     )
+    vi.mocked(useRepositories).mockReturnValue({
+      authRepo: { signOut: mockSignOut },
+    } as any)
     vi.mocked(settingApi.getDefaultTagColors).mockResolvedValue(mockColors)
   })
 
@@ -87,8 +95,8 @@ describe('SettingsPage', () => {
     // when
     await userEvent.click(screen.getByRole('button', { name: '로그아웃' }))
 
-    // then
-    expect(mockSignOut).toHaveBeenCalled()
+    // then: authRepo.signOut이 실행되어 mockSignOut이 호출됨
+    await waitFor(() => expect(mockSignOut).toHaveBeenCalled())
   })
 
   it('외형 섹션 마운트 시 기본 태그 색상을 로드한다', async () => {
@@ -196,7 +204,7 @@ describe('SettingsPage', () => {
     await userEvent.click(screen.getByRole('button', { name: '계정 삭제' }))
     await userEvent.click(screen.getByRole('button', { name: '확인' }))
 
-    // then
+    // then: authRepo.signOut이 실행됨
     await waitFor(() => {
       expect(mockSignOut).toHaveBeenCalled()
     })
