@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { useHolidayStore } from '../../src/stores/holidayStore'
+import { useHolidayCache } from '../../src/repositories/caches/holidayCache'
 
 vi.mock('../../src/api/holidayApi', () => ({
   holidayApi: {
@@ -9,7 +9,7 @@ vi.mock('../../src/api/holidayApi', () => ({
 
 describe('holidayStore', () => {
   beforeEach(() => {
-    useHolidayStore.setState({ holidays: new Map(), loadedYears: new Set() })
+    useHolidayCache.setState({ holidays: new Map(), loadedYears: new Set() })
     vi.clearAllMocks()
   })
 
@@ -17,7 +17,7 @@ describe('holidayStore', () => {
     // given: 빈 스토어
     // when: 임의의 날짜 조회
     // then: 빈 배열
-    expect(useHolidayStore.getState().getHolidayNames('2026-01-01')).toEqual([])
+    expect(useHolidayCache.getState().getHolidayNames('2026-01-01')).toEqual([])
   })
 
   it('특정 날짜의 공휴일을 불러온 후 해당 날짜로 공휴일명을 조회할 수 있다', async () => {
@@ -31,12 +31,12 @@ describe('holidayStore', () => {
     })
 
     // when: 해당 연도의 공휴일을 불러온다
-    await useHolidayStore.getState().fetchHolidays(2026)
+    await useHolidayCache.getState().fetchHolidays(2026)
 
     // then: 공휴일인 날짜는 이름을 찾을 수 있고, 아닌 날짜는 빈 배열이다
-    expect(useHolidayStore.getState().getHolidayNames('2026-01-01')).toEqual(['신정'])
-    expect(useHolidayStore.getState().getHolidayNames('2026-03-01')).toEqual(['삼일절'])
-    expect(useHolidayStore.getState().getHolidayNames('2026-06-15')).toEqual([])
+    expect(useHolidayCache.getState().getHolidayNames('2026-01-01')).toEqual(['신정'])
+    expect(useHolidayCache.getState().getHolidayNames('2026-03-01')).toEqual(['삼일절'])
+    expect(useHolidayCache.getState().getHolidayNames('2026-06-15')).toEqual([])
   })
 
   it('fetchHolidays는 country.code를 API의 code 파라미터로 전달한다', async () => {
@@ -45,10 +45,10 @@ describe('holidayStore', () => {
     vi.mocked(holidayApi.getHolidays).mockResolvedValue({ items: [] })
 
     // when: fetchHolidays 호출
-    await useHolidayStore.getState().fetchHolidays(2026)
+    await useHolidayCache.getState().fetchHolidays(2026)
 
     // then: country.code가 'KR'이다
-    const state = useHolidayStore.getState()
+    const state = useHolidayCache.getState()
     expect(state.country.code).toBe('KR')
   })
 
@@ -58,16 +58,16 @@ describe('holidayStore', () => {
     vi.mocked(holidayApi.getHolidays).mockResolvedValue({
       items: [{ summary: '신정', start: { date: '2025-01-01' }, end: { date: '2025-01-02' } }],
     })
-    await useHolidayStore.getState().fetchHolidays(2025)
+    await useHolidayCache.getState().fetchHolidays(2025)
 
     // when: 새 데이터로 refreshHolidays 호출
     vi.mocked(holidayApi.getHolidays).mockResolvedValue({
       items: [{ summary: '새해', start: { date: '2025-01-01' }, end: { date: '2025-01-02' } }],
     })
-    await useHolidayStore.getState().refreshHolidays([2025])
+    await useHolidayCache.getState().refreshHolidays([2025])
 
     // then: 새로운 데이터로 업데이트된다
-    expect(useHolidayStore.getState().getHolidayNames('2025-01-01')).toEqual(['새해'])
+    expect(useHolidayCache.getState().getHolidayNames('2025-01-01')).toEqual(['새해'])
   })
 
   it('API 호출이 실패해도 이전에 불러온 공휴일 데이터는 유지된다', async () => {
@@ -76,13 +76,13 @@ describe('holidayStore', () => {
     vi.mocked(holidayApi.getHolidays).mockResolvedValueOnce({
       items: [{ summary: '신정', start: { date: '2025-01-01' }, end: { date: '2025-01-02' } }],
     })
-    await useHolidayStore.getState().fetchHolidays(2025)
+    await useHolidayCache.getState().fetchHolidays(2025)
 
     // when: 다른 연도 로드가 실패한다
     vi.mocked(holidayApi.getHolidays).mockRejectedValue(new Error('network'))
-    await useHolidayStore.getState().fetchHolidays(2026)
+    await useHolidayCache.getState().fetchHolidays(2026)
 
     // then: 이전에 로드된 2025년 공휴일은 여전히 조회 가능하다
-    expect(useHolidayStore.getState().getHolidayNames('2025-01-01')).toEqual(['신정'])
+    expect(useHolidayCache.getState().getHolidayNames('2025-01-01')).toEqual(['신정'])
   })
 })

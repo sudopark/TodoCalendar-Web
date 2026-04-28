@@ -5,7 +5,7 @@ import MainCalendarGrid from '../../src/calendar/MainCalendarGrid'
 import { buildCalendarGrid } from '../../src/calendar/calendarUtils'
 import { useUiStore } from '../../src/stores/uiStore'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
-import { useHolidayStore } from '../../src/stores/holidayStore'
+import { useHolidayCache } from '../../src/repositories/caches/holidayCache'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 
@@ -24,7 +24,7 @@ describe('MainCalendarGrid', () => {
   beforeEach(() => {
     useUiStore.setState({ selectedDate: null })
     useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false })
-    useHolidayStore.setState({ holidays: new Map(), loadedYears: new Set() })
+    useHolidayCache.setState({ holidays: new Map(), loadedYears: new Set() })
     useEventTagListCache.setState({ tags: new Map() })
   })
 

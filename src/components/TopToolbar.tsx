@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useUiStore } from '../stores/uiStore'
 import { buildCalendarGrid } from '../calendar/calendarUtils'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
-import { useHolidayStore } from '../stores/holidayStore'
+import { useHolidayCache } from '../repositories/caches/holidayCache'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
 import TestDataSeederButton from './dev/TestDataSeederButton'
@@ -20,7 +20,7 @@ export default function TopToolbar() {
   const sidebarOpen = useUiStore(s => s.sidebarOpen)
 
   const refreshYears = useCalendarEventsCache(s => s.refreshYears)
-  const refreshHolidays = useHolidayStore(s => s.refreshHolidays)
+  const refreshHolidays = useHolidayCache(s => s.refreshHolidays)
   const loading = useCalendarEventsCache(s => s.loading)
 
   const year = currentMonth.getFullYear()

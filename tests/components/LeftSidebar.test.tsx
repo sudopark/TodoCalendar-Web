@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import LeftSidebar from '../../src/components/LeftSidebar'
 import { useUiStore } from '../../src/stores/uiStore'
-import { useHolidayStore } from '../../src/stores/holidayStore'
+import { useHolidayCache } from '../../src/repositories/caches/holidayCache'
 import { useEventFormStore } from '../../src/stores/eventFormStore'
 
 vi.mock('../../src/firebase', () => ({
@@ -168,7 +168,7 @@ describe('LeftSidebar', () => {
     // given: holidayApi mock, 2026년 3월
     const { holidayApi } = await import('../../src/api/holidayApi')
     const getHolidaysSpy = vi.spyOn(holidayApi, 'getHolidays')
-    useHolidayStore.setState({ holidays: new Map(), loadedYears: new Set() })
+    useHolidayCache.setState({ holidays: new Map(), loadedYears: new Set() })
     useUiStore.setState({ sidebarOpen: true, currentMonth: new Date(2026, 2, 1), sidebarMonth: new Date(2026, 2, 1) })
 
     // when
@@ -176,7 +176,7 @@ describe('LeftSidebar', () => {
 
     // then: 2026년 공휴일 fetch가 수행됨
     await waitFor(() => {
-      expect(useHolidayStore.getState().loadedYears.has(2026)).toBe(true)
+      expect(useHolidayCache.getState().loadedYears.has(2026)).toBe(true)
     })
     getHolidaysSpy.mockRestore()
   })
