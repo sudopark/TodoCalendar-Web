@@ -76,11 +76,11 @@ export default function TopToolbar({
           </button>
 
           {/* 월 타이틀 — 연도는 캡션, 월은 히어로 */}
-          <div className="flex flex-col items-center leading-none min-w-[7rem] py-1">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#bbb]">
+          <div data-testid="toolbar-month-title" className="flex flex-col items-center leading-none min-w-[7rem] py-1">
+            <span data-testid="toolbar-year" className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#bbb]">
               {year}
             </span>
-            <span className="mt-1 text-[18px] font-semibold text-[#1f1f1f] tracking-tight">
+            <span data-testid="toolbar-month" className="mt-1 text-[18px] font-semibold text-[#1f1f1f] tracking-tight">
               {monthLabel}
             </span>
           </div>

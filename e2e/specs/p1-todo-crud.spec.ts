@@ -12,7 +12,7 @@ test('이벤트 생성 팝오버에서 이름 입력과 저장 버튼이 표시�
 
   // when — FAB → Todo 선택으로 팝오버 열기
   await page.getByTestId('create-event-button').click()
-  await page.getByRole('button', { name: 'Todo', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Todo', exact: true }).click()
 
   // then
   await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
@@ -42,7 +42,7 @@ test('Todo 이름을 입력하고 저장하면 팝오버가 닫힌다', async ({
   })
 
   await page.getByTestId('create-event-button').click()
-  await page.getByRole('button', { name: 'Todo', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Todo', exact: true }).click()
   await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
 
   // when
@@ -58,7 +58,7 @@ test('이름 없이 저장 버튼은 비활성화된다', async ({ page }) => {
   await page.goto('/')
   await page.waitForLoadState('networkidle')
   await page.getByTestId('create-event-button').click()
-  await page.getByRole('button', { name: 'Todo', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Todo', exact: true }).click()
   await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
 
   // then — 이름이 비어있으면 저장 버튼이 비활성화 상태이다
@@ -70,7 +70,7 @@ test('X 버튼 클릭 시 팝오버가 닫힌다', async ({ page }) => {
   await page.goto('/')
   await page.waitForLoadState('networkidle')
   await page.getByTestId('create-event-button').click()
-  await page.getByRole('button', { name: 'Todo', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Todo', exact: true }).click()
   await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
 
   // when — 이름 미입력 상태 → X 클릭 시 컨펌 없이 즉시 닫힘

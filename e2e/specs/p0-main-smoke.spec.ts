@@ -34,9 +34,9 @@ test('캘린더에 현재 월 타이틀이 표시된다', async ({ page }) => {
   await page.goto('/')
   await page.waitForLoadState('networkidle')
 
-  // then: formatMonthTitle은 'en-US' 로케일로 "April 2026" 형태를 반환
-  // TopToolbar의 월 타이틀은 heading이 아닌 span으로 렌더된다
-  await expect(page.getByText(/April 2026/).first()).toBeVisible()
+  // then: TopToolbar 의 월 타이틀은 year/month 두 개의 span 으로 분리되어 렌더된다 (디폴트 언어 ko 기준)
+  await expect(page.getByTestId('toolbar-year')).toHaveText('2026')
+  await expect(page.getByTestId('toolbar-month')).toHaveText('4월')
 })
 
 test('캘린더에 요일 헤더가 표시된다', async ({ page }) => {
