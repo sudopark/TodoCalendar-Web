@@ -1,40 +1,36 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useUiStore } from '../stores/uiStore'
-import { buildCalendarGrid } from '../calendar/calendarUtils'
-import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
-import { useHolidayCache } from '../repositories/caches/holidayCache'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
 import TestDataSeederButton from './dev/TestDataSeederButton'
 
-export default function TopToolbar() {
+export interface TopToolbarProps {
+  currentMonth: Date
+  sidebarOpen: boolean
+  loading: boolean
+  onToggleSidebar: () => void
+  onGoToToday: () => void
+  onGoToPrevMonth: () => void
+  onGoToNextMonth: () => void
+  onRefresh: () => void
+}
+
+export default function TopToolbar({
+  currentMonth,
+  sidebarOpen,
+  loading,
+  onToggleSidebar,
+  onGoToToday,
+  onGoToPrevMonth,
+  onGoToNextMonth,
+  onRefresh,
+}: TopToolbarProps) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
 
-  const toggleSidebar = useUiStore(s => s.toggleSidebar)
-  const goToToday = useUiStore(s => s.goToToday)
-  const goToPrevMonth = useUiStore(s => s.goToPrevMonth)
-  const goToNextMonth = useUiStore(s => s.goToNextMonth)
-  const currentMonth = useUiStore(s => s.currentMonth)
-  const sidebarOpen = useUiStore(s => s.sidebarOpen)
-
-  const refreshYears = useCalendarEventsCache(s => s.refreshYears)
-  const refreshHolidays = useHolidayCache(s => s.refreshHolidays)
-  const loading = useCalendarEventsCache(s => s.loading)
-
   const year = currentMonth.getFullYear()
-  const month = currentMonth.getMonth()
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
   const monthLabel = currentMonth.toLocaleDateString(dateLocale, { month: 'long' })
-
-  function handleRefresh() {
-    const today = new Date()
-    const days = buildCalendarGrid(year, month, today)
-    const years = [...new Set(days.map(d => d.date.getFullYear()))]
-    refreshYears(years)
-    refreshHolidays(years)
-  }
 
   const iconBtn = 'rounded-full p-2 text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors'
   const navBtn = 'rounded-full p-2 text-gray-300 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors'
@@ -49,7 +45,7 @@ export default function TopToolbar() {
         )}
       >
         <button
-          onClick={toggleSidebar}
+          onClick={onToggleSidebar}
           aria-label={t('main.toggle_sidebar', '사이드바 토글')}
           className="shrink-0 rounded-full p-2 mx-2 text-gray-500 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors"
         >
@@ -73,7 +69,7 @@ export default function TopToolbar() {
       {/* 중앙: 월 네비 + 오늘 + 우측 액션 */}
       <div className="flex flex-1 items-center gap-3 px-4">
         <div className="flex items-center gap-1">
-          <button onClick={goToPrevMonth} aria-label="Previous month" className={navBtn}>
+          <button onClick={onGoToPrevMonth} aria-label="Previous month" className={navBtn}>
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
@@ -89,7 +85,7 @@ export default function TopToolbar() {
             </span>
           </div>
 
-          <button onClick={goToNextMonth} aria-label="Next month" className={navBtn}>
+          <button onClick={onGoToNextMonth} aria-label="Next month" className={navBtn}>
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
@@ -97,7 +93,7 @@ export default function TopToolbar() {
         </div>
 
         <button
-          onClick={goToToday}
+          onClick={onGoToToday}
           aria-label={t('main.today', '오늘')}
           className="rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-[#1f1f1f] hover:bg-gray-50 transition-colors"
         >
@@ -109,7 +105,7 @@ export default function TopToolbar() {
         <div className="flex items-center gap-1">
           {import.meta.env.DEV && <TestDataSeederButton />}
           <button
-            onClick={handleRefresh}
+            onClick={onRefresh}
             disabled={loading}
             aria-label={t('main.refresh', '새로고침')}
             className={cn(iconBtn, 'disabled:opacity-50')}

@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { CurrentTodoList } from '../../src/components/CurrentTodoList'
+import { CurrentTodoList, type CurrentTodoListProps } from '../../src/components/CurrentTodoList'
 import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
+import type { Todo } from '../../src/models'
 
 vi.mock('../../src/api/todoApi', () => ({
   todoApi: {
@@ -46,10 +47,19 @@ vi.mock('../../src/firebase', () => ({
 
 const mockOnEventClick = vi.fn()
 
-function renderComponent() {
+function defaultProps(overrides: Partial<CurrentTodoListProps> = {}): CurrentTodoListProps {
+  return {
+    todos: [],
+    isTagHidden: () => false,
+    onEventClick: mockOnEventClick,
+    ...overrides,
+  }
+}
+
+function renderComponent(props: Partial<CurrentTodoListProps> = {}) {
   return render(
     <MemoryRouter>
-      <CurrentTodoList onEventClick={mockOnEventClick} />
+      <CurrentTodoList {...defaultProps(props)} />
     </MemoryRouter>
   )
 }
@@ -58,35 +68,33 @@ describe('CurrentTodoList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockOnEventClick.mockReset()
-    useCurrentTodosCache.setState({ todos: [] })
   })
 
   it('current todo가 없으면 아무것도 렌더링하지 않는다', () => {
-    useCurrentTodosCache.setState({ todos: [] })
-
-    const { container } = renderComponent()
+    // given: todos = []
+    const { container } = renderComponent({ todos: [] })
 
     expect(container.firstChild).toBeNull()
   })
 
   it('current todo 목록을 표시한다', () => {
+    // given: todos에 두 항목
     const todos = [
       { uuid: 'ct1', name: '시간 없는 할 일 A', is_current: true, event_time: null },
       { uuid: 'ct2', name: '시간 없는 할 일 B', is_current: true, event_time: null },
-    ]
-    useCurrentTodosCache.setState({ todos: todos as any })
+    ] as Todo[]
 
-    renderComponent()
+    renderComponent({ todos })
 
     expect(screen.getByText('시간 없는 할 일 A')).toBeInTheDocument()
     expect(screen.getByText('시간 없는 할 일 B')).toBeInTheDocument()
   })
 
   it('항목을 클릭하면 onEventClick 콜백을 calEvent와 anchorRect와 함께 호출한다', async () => {
-    const todos = [{ uuid: 'ct-nav', name: '이동 테스트', is_current: true, event_time: null }]
-    useCurrentTodosCache.setState({ todos: todos as any })
+    // given: todo 1개, onEventClick mock
+    const todos = [{ uuid: 'ct-nav', name: '이동 테스트', is_current: true, event_time: null }] as Todo[]
 
-    renderComponent()
+    renderComponent({ todos })
     await userEvent.click(screen.getByText('이동 테스트'))
 
     expect(mockOnEventClick).toHaveBeenCalledOnce()
@@ -104,13 +112,18 @@ describe('CurrentTodoList — 완료', () => {
   })
 
   it('비반복 Todo 체크박스 클릭 시 해당 Todo가 목록에서 사라진다', async () => {
+    // given: todo가 currentTodosCache에 있는 상태
     const { todoApi } = await import('../../src/api/todoApi')
     vi.mocked(todoApi.completeTodo).mockResolvedValue({ uuid: 'done-1', done_at: 1000 } as any)
-    const todo = { uuid: 't1', name: '완료 할 일', is_current: true, event_time: null }
-    useCurrentTodosCache.setState({ todos: [todo as any] })
+    const todo = { uuid: 't1', name: '완료 할 일', is_current: true, event_time: null } as Todo
+    useCurrentTodosCache.setState({ todos: [todo] })
     useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: null })
 
-    render(<MemoryRouter><CurrentTodoList /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <CurrentTodoList todos={[todo]} isTagHidden={() => false} />
+      </MemoryRouter>
+    )
     await userEvent.click(screen.getByRole('button', { name: '완료 할 일' }))
 
     await waitFor(() => {
@@ -119,6 +132,7 @@ describe('CurrentTodoList — 완료', () => {
   })
 
   it('반복 Todo 체크박스 클릭 시 에러 없이 처리된다', async () => {
+    // given: 반복 todo
     const { todoApi } = await import('../../src/api/todoApi')
     vi.mocked(todoApi.completeTodo).mockResolvedValue({ uuid: 'done-1', done_at: 1000 } as any)
     const repeatingTodo = {
@@ -127,11 +141,14 @@ describe('CurrentTodoList — 완료', () => {
       is_current: true,
       event_time: { time_type: 'at' as const, timestamp: 1743375600 },
       repeating: { start: 1743375600, option: { optionType: 'every_day' as const, interval: 1 } },
-    }
-    useCurrentTodosCache.setState({ todos: [repeatingTodo as any] })
+    } as unknown as Todo
     useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: { lower: 0, upper: 9999999999 } })
 
-    render(<MemoryRouter><CurrentTodoList /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <CurrentTodoList todos={[repeatingTodo]} isTagHidden={() => false} />
+      </MemoryRouter>
+    )
     await userEvent.click(screen.getByRole('button', { name: '반복 할 일' }))
 
     // 반복 Todo 완료 후 에러 없이 처리됨을 확인

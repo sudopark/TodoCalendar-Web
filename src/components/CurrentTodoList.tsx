@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
 import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
-import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
 import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
@@ -73,13 +72,13 @@ function CurrentTodoRow({ todo, onEventClick, onComplete, isLast }: CurrentTodoR
   )
 }
 
-interface CurrentTodoListProps {
+export interface CurrentTodoListProps {
+  todos: Todo[]
+  isTagHidden: (tagId: string | null | undefined) => boolean
   onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
 }
 
-export function CurrentTodoList({ onEventClick }: CurrentTodoListProps) {
-  const todos = useCurrentTodosCache(s => s.todos)
-  const { isTagHidden } = useTagFilterStore()
+export function CurrentTodoList({ todos, isTagHidden, onEventClick }: CurrentTodoListProps) {
   const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)
 
   async function handleComplete(todo: Todo) {

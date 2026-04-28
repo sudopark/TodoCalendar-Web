@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
-import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
 import { TimeDescription } from './TimeDescription'
@@ -82,15 +81,15 @@ function EventItem({ calEvent, onEventClick, onComplete, isLast }: {
   )
 }
 
-interface DayEventListProps {
+export interface DayEventListProps {
   selectedDate: Date | null
+  eventsByDate: Map<string, CalendarEvent[]>
+  isTagHidden: (tagId: string | null | undefined) => boolean
   onEventClick: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
 }
 
-export function DayEventList({ selectedDate, onEventClick }: DayEventListProps) {
+export function DayEventList({ selectedDate, eventsByDate, isTagHidden, onEventClick }: DayEventListProps) {
   const { t } = useTranslation()
-  const eventsByDate = useCalendarEventsCache(s => s.eventsByDate)
-  const isTagHidden = useTagFilterStore(s => s.isTagHidden)
   const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)
 
   async function handleComplete(todo: Todo) {

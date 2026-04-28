@@ -1,42 +1,35 @@
-import { useMemo, useEffect } from 'react'
+import { useMemo } from 'react'
 import { buildCalendarGrid } from './calendarUtils'
 import MainCalendarGrid from './MainCalendarGrid'
-import { useUiStore } from '../stores/uiStore'
-import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
-import { useHolidayCache } from '../repositories/caches/holidayCache'
-import { useSettingsCache } from '../repositories/caches/settingsCache'
+import type { WeekStartDay, EventDisplayLevel } from '../repositories/caches/settingsCache'
 import type { CalendarEvent } from '../domain/functions/eventTime'
 
-interface MainCalendarProps {
+export interface MainCalendarProps {
+  currentMonth: Date
+  weekStartDay: WeekStartDay
+  eventDisplayLevel: EventDisplayLevel
   today?: Date
   onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
 }
 
-export default function MainCalendar({ today: todayProp, onEventClick }: MainCalendarProps) {
+export default function MainCalendar({
+  currentMonth,
+  weekStartDay,
+  eventDisplayLevel,
+  today: todayProp,
+  onEventClick,
+}: MainCalendarProps) {
   const todayKey = todayProp
     ? `${todayProp.getFullYear()}-${todayProp.getMonth()}-${todayProp.getDate()}`
     : ''
   const today = useMemo(() => {
     if (!todayProp) return new Date()
     return new Date(todayProp.getFullYear(), todayProp.getMonth(), todayProp.getDate())
-  }, [todayKey])
-
-  const currentMonth = useUiStore(s => s.currentMonth)
-  const fetchEventsForYear = useCalendarEventsCache(s => s.fetchEventsForYear)
-  const fetchHolidays = useHolidayCache(s => s.fetchHolidays)
-  const weekStartDay = useSettingsCache(s => s.calendarAppearance.weekStartDay)
-  const eventDisplayLevel = useSettingsCache(s => s.calendarAppearance.eventDisplayLevel)
+  }, [todayKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const year = currentMonth.getFullYear()
   const month = currentMonth.getMonth()
   const days = useMemo(() => buildCalendarGrid(year, month, today, weekStartDay), [year, month, today, weekStartDay])
-
-  useEffect(() => {
-    if (days.length === 0) return
-    const years = new Set(days.map(d => d.date.getFullYear()))
-    years.forEach(y => fetchEventsForYear(y))
-    years.forEach(y => fetchHolidays(y))
-  }, [days, fetchEventsForYear, fetchHolidays])
 
   // full 모드는 콘텐츠가 자라는 만큼 페이지 스크롤이 발생해야 함
   const overflowClass = eventDisplayLevel === 'full' ? 'overflow-y-auto' : 'overflow-hidden'

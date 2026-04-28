@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
 import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
-import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
 import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
@@ -73,15 +72,15 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: Uncomple
   )
 }
 
-interface UncompletedTodoListProps {
+export interface UncompletedTodoListProps {
+  todos: Todo[]
+  isTagHidden: (tagId: string | null | undefined) => boolean
+  onReload: () => Promise<void>
   onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
 }
 
-export function UncompletedTodoList({ onEventClick }: UncompletedTodoListProps) {
+export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick }: UncompletedTodoListProps) {
   const { t } = useTranslation()
-  const todos = useUncompletedTodosCache(s => s.todos)
-  const reload = useUncompletedTodosCache(s => s.fetch)
-  const { isTagHidden } = useTagFilterStore()
   const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)
 
   async function handleComplete(todo: Todo) {
@@ -137,7 +136,7 @@ export function UncompletedTodoList({ onEventClick }: UncompletedTodoListProps) 
         </span>
         <div className="flex-1 h-px bg-gray-100" />
         <button
-          onClick={() => reload()}
+          onClick={onReload}
           className="shrink-0 text-[#ccc] hover:text-[#999] transition-colors"
           aria-label="refresh"
         >
