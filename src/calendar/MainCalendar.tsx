@@ -3,7 +3,7 @@ import { buildCalendarGrid } from './calendarUtils'
 import MainCalendarGrid from './MainCalendarGrid'
 import { useUiStore } from '../stores/uiStore'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
-import { useHolidayStore } from '../stores/holidayStore'
+import { useHolidayCache } from '../repositories/caches/holidayCache'
 import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 
@@ -23,7 +23,7 @@ export default function MainCalendar({ today: todayProp, onEventClick }: MainCal
 
   const currentMonth = useUiStore(s => s.currentMonth)
   const fetchEventsForYear = useCalendarEventsCache(s => s.fetchEventsForYear)
-  const fetchHolidays = useHolidayStore(s => s.fetchHolidays)
+  const fetchHolidays = useHolidayCache(s => s.fetchHolidays)
   const weekStartDay = useCalendarAppearanceStore(s => s.weekStartDay)
   const eventDisplayLevel = useCalendarAppearanceStore(s => s.eventDisplayLevel)
 

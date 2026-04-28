@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import MainCalendar from '../../src/calendar/MainCalendar'
 import { useUiStore } from '../../src/stores/uiStore'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
-import { useHolidayStore } from '../../src/stores/holidayStore'
+import { useHolidayCache } from '../../src/repositories/caches/holidayCache'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import { todoApi } from '../../src/api/todoApi'
 
@@ -37,7 +37,7 @@ describe('MainCalendar', () => {
       currentMonth: new Date(2026, 2, 1), // March 2026
     })
     useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, loadedYears: new Set() })
-    useHolidayStore.setState({ holidays: new Map(), loadedYears: new Set() })
+    useHolidayCache.setState({ holidays: new Map(), loadedYears: new Set() })
     useEventTagListCache.setState({ tags: new Map() })
   })
 

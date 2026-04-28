@@ -6,7 +6,7 @@ import { formatDateKey } from '../utils/eventTimeUtils'
 import { buildWeekEventStack, type EventOnWeekRow } from './weekEventStackBuilder'
 import { useUiStore } from '../stores/uiStore'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
-import { useHolidayStore } from '../stores/holidayStore'
+import { useHolidayCache } from '../repositories/caches/holidayCache'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
@@ -83,7 +83,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
   const selectedDate = useUiStore(s => s.selectedDate)
   const setSelectedDate = useUiStore(s => s.setSelectedDate)
   const eventsByDate = useCalendarEventsCache(s => s.eventsByDate)
-  const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
+  const getHolidayNames = useHolidayCache(s => s.getHolidayNames)
   const isTagHidden = useTagFilterStore(s => s.isTagHidden)
   const {
     rowHeight,

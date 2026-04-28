@@ -4,7 +4,7 @@ import { useUiStore } from '../stores/uiStore'
 import { formatDateKey } from '../utils/eventTimeUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
 import { useForemostEventStore } from '../stores/foremostEventStore'
-import { useHolidayStore } from '../stores/holidayStore'
+import { useHolidayCache } from '../repositories/caches/holidayCache'
 import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 import { ForemostEventBanner } from './ForemostEventBanner'
 import { UncompletedTodoList } from './UncompletedTodoList'
@@ -43,7 +43,7 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
   const toggleRightPanel = useUiStore(s => s.toggleRightPanel)
   const rightPanelMode = useUiStore(s => s.rightPanelMode)
   const openArchivePanel = useUiStore(s => s.openArchivePanel)
-  const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
+  const getHolidayNames = useHolidayCache(s => s.getHolidayNames)
   const showHolidayInEventList = useCalendarAppearanceStore(s => s.showHolidayInEventList)
   const showLunarCalendar = useCalendarAppearanceStore(s => s.showLunarCalendar)
   const showUncompletedTodos = useCalendarAppearanceStore(s => s.showUncompletedTodos)

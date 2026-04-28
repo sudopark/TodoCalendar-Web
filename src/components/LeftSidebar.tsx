@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DayButton } from 'react-day-picker'
 import { useUiStore } from '../stores/uiStore'
-import { useHolidayStore } from '../stores/holidayStore'
+import { useHolidayCache } from '../repositories/caches/holidayCache'
 import { useEventFormStore } from '../stores/eventFormStore'
 import { Calendar } from '@/components/ui/calendar'
 import CalendarList from './CalendarList'
@@ -84,8 +84,8 @@ export default function LeftSidebar() {
   const selectedDate = useUiStore(s => s.selectedDate)
   const setSelectedDate = useUiStore(s => s.setSelectedDate)
   const setSidebarMonth = useUiStore(s => s.setSidebarMonth)
-  const fetchHolidays = useHolidayStore(s => s.fetchHolidays)
-  const getHolidayNames = useHolidayStore(s => s.getHolidayNames)
+  const fetchHolidays = useHolidayCache(s => s.fetchHolidays)
+  const getHolidayNames = useHolidayCache(s => s.getHolidayNames)
 
   // 월 변경 시 해당 연도 공휴일 로드 (이전·다음 달 경계 연도 포함)
   useEffect(() => {

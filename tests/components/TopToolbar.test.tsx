@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { useUiStore } from '../../src/stores/uiStore'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
-import { useHolidayStore } from '../../src/stores/holidayStore'
+import { useHolidayCache } from '../../src/repositories/caches/holidayCache'
 import TopToolbar from '../../src/components/TopToolbar'
 
 function renderToolbar() {
