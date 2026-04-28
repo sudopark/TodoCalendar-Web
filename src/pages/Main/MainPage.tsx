@@ -75,10 +75,32 @@ export function MainPage() {
   return (
     <div className="h-screen bg-slate-50">
       <div className="flex h-full flex-col overflow-hidden">
-        <TopToolbar />
+        <TopToolbar
+          currentMonth={vm.currentMonth}
+          sidebarOpen={vm.sidebarOpen}
+          loading={vm.loading}
+          onToggleSidebar={vm.toggleSidebar}
+          onGoToToday={vm.goToToday}
+          onGoToPrevMonth={vm.goToPrevMonth}
+          onGoToNextMonth={vm.goToNextMonth}
+          onRefresh={vm.refresh}
+        />
         <div className="flex flex-1 min-h-0">
-          <LeftSidebar />
-          <MainCalendar onEventClick={handleEventClick} />
+          <LeftSidebar
+            sidebarOpen={vm.sidebarOpen}
+            sidebarMonth={vm.sidebarMonth}
+            selectedDate={vm.selectedDate}
+            getHolidayNames={vm.getHolidayNames}
+            onSetSelectedDate={vm.setSelectedDate}
+            onSetSidebarMonth={vm.setSidebarMonth}
+            onOpenEventForm={vm.openEventForm}
+          />
+          <MainCalendar
+            currentMonth={vm.currentMonth}
+            weekStartDay={vm.weekStartDay}
+            eventDisplayLevel={vm.eventDisplayLevel}
+            onEventClick={handleEventClick}
+          />
 
           {/* 인라인 패널: 열리면 중앙 캘린더가 줄어듦 */}
           <div
@@ -88,7 +110,23 @@ export function MainPage() {
           >
             <div className="w-[408px] h-full py-4 pr-4">
               <div className="h-full rounded-lg border border-border-calendar bg-white shadow-sm overflow-hidden">
-                <RightEventPanel onEventClick={handleEventClick} />
+                <RightEventPanel
+                  selectedDate={vm.selectedDate}
+                  rightPanelMode={vm.rightPanelMode}
+                  foremostEvent={vm.foremostEvent}
+                  currentTodos={vm.currentTodos}
+                  uncompletedTodos={vm.uncompletedTodos}
+                  showUncompletedTodos={vm.showUncompletedTodos}
+                  showHolidayInEventList={vm.showHolidayInEventList}
+                  showLunarCalendar={vm.showLunarCalendar}
+                  eventsByDate={vm.eventsByDate}
+                  isTagHidden={vm.isTagHidden}
+                  getHolidayNames={vm.getHolidayNames}
+                  onReloadUncompletedTodos={vm.reloadUncompletedTodos}
+                  onToggleRightPanel={vm.toggleRightPanel}
+                  onOpenArchivePanel={vm.openArchivePanel}
+                  onEventClick={handleEventClick}
+                />
               </div>
             </div>
           </div>

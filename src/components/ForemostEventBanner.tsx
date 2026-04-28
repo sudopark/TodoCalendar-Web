@@ -1,19 +1,19 @@
 import { useTranslation } from 'react-i18next'
-import { useForemostEventCache } from '../repositories/caches/foremostEventCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
 import { TimeDescription } from './TimeDescription'
+import type { ForemostEvent } from '../models'
 import type { Todo } from '../models/Todo'
 import type { Schedule } from '../models/Schedule'
 import type { CalendarEvent } from '../domain/functions/eventTime'
 
-interface ForemostEventBannerProps {
+export interface ForemostEventBannerProps {
+  foremostEvent: ForemostEvent | null
   onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
 }
 
-export function ForemostEventBanner({ onEventClick }: ForemostEventBannerProps) {
-  const foremostEvent = useForemostEventCache(s => s.foremostEvent)
+export function ForemostEventBanner({ foremostEvent, onEventClick }: ForemostEventBannerProps) {
   const { t } = useTranslation()
   const fontSizeWeight = useSettingsCache(s => s.calendarAppearance.eventListFontSizeWeight)
   const nameFontSize = `${14 + fontSizeWeight}px`

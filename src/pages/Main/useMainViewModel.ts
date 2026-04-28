@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useCallback } from 'react'
 import { useRepositories } from '../../composition/RepositoriesProvider'
 import { useUiStore } from '../../stores/uiStore'
 import { useTagFilterStore } from '../../stores/tagFilterStore'
@@ -6,7 +6,8 @@ import { useCalendarEventsCache } from '../../repositories/caches/calendarEvents
 import { useHolidayCache } from '../../repositories/caches/holidayCache'
 import { useForemostEventCache } from '../../repositories/caches/foremostEventCache'
 import { useEventTagListCache } from '../../repositories/caches/eventTagListCache'
-import { useSettingsCache } from '../../repositories/caches/settingsCache'
+import { useSettingsCache, type WeekStartDay, type EventDisplayLevel } from '../../repositories/caches/settingsCache'
+import { useEventFormStore } from '../../stores/eventFormStore'
 import { useCurrentTodos } from '../../repositories/hooks/useCurrentTodos'
 import { useUncompletedTodos } from '../../repositories/hooks/useUncompletedTodos'
 import { useMonthEvents } from '../../repositories/hooks/useMonthEvents'
@@ -14,30 +15,56 @@ import { buildCalendarGrid } from '../../calendar/calendarUtils'
 import type { CalendarEvent } from '../../domain/functions/eventTime'
 import type { ForemostEvent, EventTag } from '../../models'
 import type { Todo } from '../../models/Todo'
+import type { RightPanelMode } from '../../stores/uiStore'
 
 // MARK: - Interface
 
 export interface MainViewModel {
-  // 캘린더 영역
+  // ── 캘린더 영역 ──────────────────────────────────────────────────
   currentMonth: Date
+  sidebarMonth: Date
   monthEvents: CalendarEvent[]
-  weekStartDay: number
-  eventDisplayLevel: string
+  eventsByDate: Map<string, CalendarEvent[]>
+  loading: boolean
+  weekStartDay: WeekStartDay
+  eventDisplayLevel: EventDisplayLevel
 
-  // 우측 패널
+  // ── 사이드바 ─────────────────────────────────────────────────────
+  sidebarOpen: boolean
   selectedDate: Date | null
+  getHolidayNames: (dateKey: string) => string[]
+
+  // ── 우측 패널 ─────────────────────────────────────────────────────
   rightPanelOpen: boolean
+  rightPanelMode: RightPanelMode
   foremostEvent: ForemostEvent | null
   currentTodos: Todo[]
   uncompletedTodos: Todo[]
   showUncompletedTodos: boolean
+  showHolidayInEventList: boolean
+  showLunarCalendar: boolean
 
-  // 태그 필터
+  // ── 태그 필터 ─────────────────────────────────────────────────────
   tags: EventTag[]
   isTagHidden: (tagId: string | null | undefined) => boolean
 
-  // 공휴일
-  getHolidayNames: (dateKey: string) => string[]
+  // ── uiStore 액션 ─────────────────────────────────────────────────
+  setSelectedDate: (date: Date) => void
+  setSidebarMonth: (date: Date) => void
+  toggleSidebar: () => void
+  goToPrevMonth: () => void
+  goToNextMonth: () => void
+  goToToday: () => void
+  toggleRightPanel: () => void
+  openArchivePanel: () => void
+  exitArchivePanel: () => void
+
+  // ── 이벤트 폼 액션 ───────────────────────────────────────────────
+  openEventForm: (rect: DOMRect | null, type: 'todo' | 'schedule') => void
+
+  // ── 데이터 refresh ────────────────────────────────────────────────
+  refresh: () => void
+  reloadUncompletedTodos: () => Promise<void>
 }
 
 // MARK: - Hook
@@ -47,18 +74,39 @@ export function useMainViewModel(): MainViewModel {
 
   // ── UI 상태 ──────────────────────────────────────────────────────
   const currentMonth = useUiStore(s => s.currentMonth)
+  const sidebarMonth = useUiStore(s => s.sidebarMonth)
+  const sidebarOpen = useUiStore(s => s.sidebarOpen)
   const selectedDate = useUiStore(s => s.selectedDate)
   const rightPanelOpen = useUiStore(s => s.rightPanelOpen)
+  const rightPanelMode = useUiStore(s => s.rightPanelMode)
+
+  // ── UI 액션 ──────────────────────────────────────────────────────
+  const setSelectedDate = useUiStore(s => s.setSelectedDate)
+  const setSidebarMonth = useUiStore(s => s.setSidebarMonth)
+  const toggleSidebar = useUiStore(s => s.toggleSidebar)
+  const goToPrevMonth = useUiStore(s => s.goToPrevMonth)
+  const goToNextMonth = useUiStore(s => s.goToNextMonth)
+  const goToToday = useUiStore(s => s.goToToday)
+  const toggleRightPanel = useUiStore(s => s.toggleRightPanel)
+  const openArchivePanel = useUiStore(s => s.openArchivePanel)
+  const exitArchivePanel = useUiStore(s => s.exitArchivePanel)
+
+  // ── 이벤트 폼 액션 ───────────────────────────────────────────────
+  const openEventForm = useEventFormStore(s => s.openForm)
 
   // ── 설정 ──────────────────────────────────────────────────────────
   const weekStartDay = useSettingsCache(s => s.calendarAppearance.weekStartDay)
   const eventDisplayLevel = useSettingsCache(s => s.calendarAppearance.eventDisplayLevel)
   const showUncompletedTodos = useSettingsCache(s => s.calendarAppearance.showUncompletedTodos)
+  const showHolidayInEventList = useSettingsCache(s => s.calendarAppearance.showHolidayInEventList)
+  const showLunarCalendar = useSettingsCache(s => s.calendarAppearance.showLunarCalendar)
 
   // ── 달력 이벤트 구독 ───────────────────────────────────────────────
   const year = currentMonth.getFullYear()
   const month = currentMonth.getMonth()
   const monthEvents = useMonthEvents(year, month)
+  const eventsByDate = useCalendarEventsCache(s => s.eventsByDate)
+  const loading = useCalendarEventsCache(s => s.loading)
 
   // ── 투두 목록 구독 ─────────────────────────────────────────────────
   const currentTodos = useCurrentTodos()
@@ -105,19 +153,62 @@ export function useMainViewModel(): MainViewModel {
     tagRepo.fetchAll()
   }, [tagRepo])
 
+  // LeftSidebar도 월 변경 시 공휴일 fetch — ViewModel이 통합 처리
+  useEffect(() => {
+    const sbYear = sidebarMonth.getFullYear()
+    const sbMonth = sidebarMonth.getMonth()
+    const years = new Set([sbYear])
+    if (sbMonth === 0) years.add(sbYear - 1)
+    if (sbMonth === 11) years.add(sbYear + 1)
+    years.forEach(y => holidayRepo.fetch(y))
+  }, [sidebarMonth, holidayRepo])
+
+  // ── 액션 ──────────────────────────────────────────────────────────
+
+  const refresh = useCallback(() => {
+    const today = new Date()
+    const gridDays = buildCalendarGrid(year, month, today)
+    const years = [...new Set(gridDays.map(d => d.date.getFullYear()))]
+    useCalendarEventsCache.getState().refreshYears(years)
+    useHolidayCache.getState().refreshHolidays(years)
+  }, [year, month])
+
+  const reloadUncompletedTodos = useCallback(async () => {
+    await eventRepo.fetchUncompletedTodos()
+  }, [eventRepo])
+
   return {
     currentMonth,
+    sidebarMonth,
     monthEvents,
+    eventsByDate,
+    loading,
     weekStartDay,
     eventDisplayLevel,
+    sidebarOpen,
     selectedDate,
+    getHolidayNames,
     rightPanelOpen,
+    rightPanelMode,
     foremostEvent,
     currentTodos,
     uncompletedTodos,
     showUncompletedTodos,
+    showHolidayInEventList,
+    showLunarCalendar,
     tags,
     isTagHidden,
-    getHolidayNames,
+    setSelectedDate,
+    setSidebarMonth,
+    toggleSidebar,
+    goToPrevMonth,
+    goToNextMonth,
+    goToToday,
+    toggleRightPanel,
+    openArchivePanel,
+    exitArchivePanel,
+    openEventForm,
+    refresh,
+    reloadUncompletedTodos,
   }
 }

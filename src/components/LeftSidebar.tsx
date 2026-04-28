@@ -1,9 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DayButton } from 'react-day-picker'
-import { useUiStore } from '../stores/uiStore'
-import { useHolidayCache } from '../repositories/caches/holidayCache'
-import { useEventFormStore } from '../stores/eventFormStore'
 import { Calendar } from '@/components/ui/calendar'
 import CalendarList from './CalendarList'
 import { formatDateKey } from '../domain/functions/eventTime'
@@ -42,11 +39,6 @@ function MiniCalendarDayButton({
   const isToday = modifiers.today
   const isSelected = modifiers.selected
 
-  // 선택된 날: text-primary 톤 배경(soft slate) + 흰색 텍스트
-  // 오늘(미선택): surface-sunken 배경
-  // 이전/다음 달: tertiary gray
-  // 일/공휴일(미선택): danger-soft (탁한 red)
-  // 일반: text-primary
   const bgStyle = isSelected
     ? 'bg-text-primary rounded-full'
     : isToday
@@ -74,28 +66,28 @@ function MiniCalendarDayButton({
   )
 }
 
-export default function LeftSidebar() {
+export interface LeftSidebarProps {
+  sidebarOpen: boolean
+  sidebarMonth: Date
+  selectedDate: Date | null
+  getHolidayNames: (dateKey: string) => string[]
+  onSetSelectedDate: (date: Date) => void
+  onSetSidebarMonth: (date: Date) => void
+  onOpenEventForm: (rect: DOMRect | null, type: 'todo' | 'schedule') => void
+}
+
+export default function LeftSidebar({
+  sidebarOpen,
+  sidebarMonth,
+  selectedDate,
+  getHolidayNames,
+  onSetSelectedDate,
+  onSetSidebarMonth,
+  onOpenEventForm,
+}: LeftSidebarProps) {
   const { t } = useTranslation()
   const [showCreateMenu, setShowCreateMenu] = useState(false)
   const createButtonRef = useRef<HTMLButtonElement>(null)
-  const openForm = useEventFormStore(s => s.openForm)
-  const sidebarOpen = useUiStore(s => s.sidebarOpen)
-  const sidebarMonth = useUiStore(s => s.sidebarMonth)
-  const selectedDate = useUiStore(s => s.selectedDate)
-  const setSelectedDate = useUiStore(s => s.setSelectedDate)
-  const setSidebarMonth = useUiStore(s => s.setSidebarMonth)
-  const fetchHolidays = useHolidayCache(s => s.fetchHolidays)
-  const getHolidayNames = useHolidayCache(s => s.getHolidayNames)
-
-  // 월 변경 시 해당 연도 공휴일 로드 (이전·다음 달 경계 연도 포함)
-  useEffect(() => {
-    const year = sidebarMonth.getFullYear()
-    const month = sidebarMonth.getMonth()
-    const years = new Set([year])
-    if (month === 0) years.add(year - 1)
-    if (month === 11) years.add(year + 1)
-    years.forEach(y => fetchHolidays(y))
-  }, [sidebarMonth, fetchHolidays])
 
   const formatWeekdayName = (date: Date) => {
     const dayIndex = date.getDay()
@@ -153,7 +145,7 @@ export default function LeftSidebar() {
                   onClick={() => {
                     setShowCreateMenu(false)
                     const rect = createButtonRef.current?.getBoundingClientRect() ?? null
-                    openForm(rect, 'todo')
+                    onOpenEventForm(rect, 'todo')
                   }}
                 >
                   <svg className="h-4 w-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,7 +160,7 @@ export default function LeftSidebar() {
                   onClick={() => {
                     setShowCreateMenu(false)
                     const rect = createButtonRef.current?.getBoundingClientRect() ?? null
-                    openForm(rect, 'schedule')
+                    onOpenEventForm(rect, 'schedule')
                   }}
                 >
                   <svg className="h-4 w-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,9 +178,9 @@ export default function LeftSidebar() {
             className="!bg-transparent"
             mode="single"
             selected={selectedDate ?? undefined}
-            onSelect={(date) => date && setSelectedDate(date)}
+            onSelect={(date) => date && onSetSelectedDate(date)}
             month={sidebarMonth}
-            onMonthChange={setSidebarMonth}
+            onMonthChange={onSetSidebarMonth}
             formatters={{ formatWeekdayName }}
             modifiers={{ sunday: isSundayModifier }}
             classNames={{

@@ -2,12 +2,12 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import MainCalendar from '../../src/calendar/MainCalendar'
-import { useUiStore } from '../../src/stores/uiStore'
+import MainCalendar, { type MainCalendarProps } from '../../src/calendar/MainCalendar'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import { useHolidayCache } from '../../src/repositories/caches/holidayCache'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
-import { todoApi } from '../../src/api/todoApi'
+import type { CalendarEvent } from '../../src/domain/functions/eventTime'
+import type { Todo } from '../../src/models/Todo'
 
 vi.mock('../../src/api/todoApi', () => ({
   todoApi: { getTodos: vi.fn(async () => []) },
@@ -21,10 +21,20 @@ vi.mock('../../src/api/holidayApi', () => ({
 
 const today = new Date(2026, 2, 15) // March 15, 2026
 
-function renderCalendar(todayProp = today, onEventClick?: (calEvent: unknown, anchorRect: DOMRect) => void) {
+function defaultProps(overrides: Partial<MainCalendarProps> = {}): MainCalendarProps {
+  return {
+    currentMonth: new Date(2026, 2, 1), // March 2026
+    weekStartDay: 0,
+    eventDisplayLevel: 'medium',
+    today,
+    ...overrides,
+  }
+}
+
+function renderCalendar(props?: Partial<MainCalendarProps>) {
   return render(
     <MemoryRouter>
-      <MainCalendar today={todayProp} onEventClick={onEventClick as never} />
+      <MainCalendar {...defaultProps(props)} />
     </MemoryRouter>
   )
 }
@@ -32,10 +42,6 @@ function renderCalendar(todayProp = today, onEventClick?: (calEvent: unknown, an
 describe('MainCalendar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    useUiStore.setState({
-      selectedDate: null,
-      currentMonth: new Date(2026, 2, 1), // March 2026
-    })
     useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, loadedYears: new Set() })
     useHolidayCache.setState({ holidays: new Map(), loadedYears: new Set() })
     useEventTagListCache.setState({ tags: new Map() })
@@ -53,38 +59,36 @@ describe('MainCalendar', () => {
     expect(cells.length).toBeGreaterThan(0)
   })
 
-  it('uiStore의 currentMonth가 변경되면 해당 달 캘린더를 표시한다', () => {
-    // given: currentMonth가 4월로 변경된 상태
-    useUiStore.setState({ currentMonth: new Date(2026, 3, 1) }) // April 2026
+  it('currentMonth prop이 변경되면 해당 달 캘린더를 표시한다', () => {
+    // given: currentMonth가 4월
+    renderCalendar({ currentMonth: new Date(2026, 3, 1) })
 
-    // when: MainCalendar 렌더
-    renderCalendar()
-
-    // then: 날짜 셀이 4월 기준으로 표시된다 (4월 1일 포함)
+    // then: 날짜 셀이 4월 기준으로 표시된다 (4월 30일 포함)
     const cells = screen.getAllByTestId('day-cell')
     const dayNumbers = Array.from(cells).map(c => c.querySelector('div')?.textContent)
-    // April has 30 days, so 30 should appear in the grid
     expect(dayNumbers).toContain('30')
   })
 
   it('이벤트가 있는 날짜에 이벤트 dot이 표시된다', async () => {
-    // given: 3월 15일에 이벤트가 있는 상태 (API가 해당 todo를 반환)
-    // March 15, 2026 00:00 KST = 1742216400 seconds (approx), event_time.at makes it show on that day
+    // given: 3월 15일에 이벤트가 있는 상태 (캐시에 직접 주입)
     const march15Timestamp = Math.floor(new Date(2026, 2, 15, 9, 0, 0).getTime() / 1000)
-    vi.mocked(todoApi.getTodos).mockResolvedValueOnce([
-      {
-        uuid: 't1',
-        name: '오늘의 할 일',
-        is_current: false,
-        event_tag_id: null,
-        event_time: { time_type: 'at', timestamp: march15Timestamp },
-      },
-    ])
+    const todo = {
+      uuid: 't1',
+      name: '오늘의 할 일',
+      is_current: false,
+      event_tag_id: null,
+      event_time: { time_type: 'at' as const, timestamp: march15Timestamp },
+    }
+    useCalendarEventsCache.setState({
+      eventsByDate: new Map([['2026-03-15', [{ type: 'todo' as const, event: todo as unknown as Todo } satisfies CalendarEvent]]]),
+      loading: false,
+      loadedYears: new Set([2026]),
+    })
 
     // when: MainCalendar 렌더
     renderCalendar()
 
-    // then: 이벤트 dot이 표시된다 (fetch 완료 후)
+    // then: 이벤트 dot이 표시된다
     await waitFor(() => {
       const dots = screen.getAllByTestId('event-dots')
       expect(dots.length).toBeGreaterThan(0)
@@ -96,19 +100,22 @@ describe('MainCalendar', () => {
     const user = userEvent.setup()
     const onEventClick = vi.fn()
     const march10Timestamp = Math.floor(new Date(2026, 2, 10, 9, 0, 0).getTime() / 1000)
-    vi.mocked(todoApi.getTodos).mockResolvedValueOnce([
-      {
-        uuid: 'preview-todo',
-        name: '미리보기 할 일',
-        is_current: false,
-        event_tag_id: null,
-        event_time: { time_type: 'at', timestamp: march10Timestamp },
-      },
-    ])
+    const todo = {
+      uuid: 'preview-todo',
+      name: '미리보기 할 일',
+      is_current: false,
+      event_tag_id: null,
+      event_time: { time_type: 'at' as const, timestamp: march10Timestamp },
+    }
+    useCalendarEventsCache.setState({
+      eventsByDate: new Map([['2026-03-10', [{ type: 'todo' as const, event: todo as unknown as Todo } satisfies CalendarEvent]]]),
+      loading: false,
+      loadedYears: new Set([2026]),
+    })
 
-    renderCalendar(today, onEventClick)
+    renderCalendar({ onEventClick })
 
-    // when: 이벤트 바 클릭 (fetch 완료 후 event-bar 나타남)
+    // when: 이벤트 바 클릭
     await waitFor(() => {
       expect(screen.getAllByTestId('event-bar').length).toBeGreaterThan(0)
     })

@@ -1,11 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { CheckCircle2 } from 'lucide-react'
-import { useUiStore } from '../stores/uiStore'
 import { formatDateKey } from '../domain/functions/eventTime'
 import type { CalendarEvent } from '../domain/functions/eventTime'
-import { useForemostEventCache } from '../repositories/caches/foremostEventCache'
-import { useHolidayCache } from '../repositories/caches/holidayCache'
-import { useSettingsCache } from '../repositories/caches/settingsCache'
+import type { ForemostEvent } from '../models'
+import type { Todo } from '../models/Todo'
 import { ForemostEventBanner } from './ForemostEventBanner'
 import { UncompletedTodoList } from './UncompletedTodoList'
 import { CurrentTodoList } from './CurrentTodoList'
@@ -13,6 +11,7 @@ import { DayEventList } from './DayEventList'
 import { QuickTodoInput } from './QuickTodoInput'
 import { CreateEventButton } from './CreateEventButton'
 import { ArchivePanel } from './ArchivePanel'
+import type { RightPanelMode } from '../stores/uiStore'
 
 function formatLunarDate(date: Date, locale: string): string | null {
   try {
@@ -32,21 +31,42 @@ function SectionHeader({ label }: { label: string }) {
   )
 }
 
-interface RightEventPanelProps {
-  onEventClick: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
+export interface RightEventPanelProps {
+  selectedDate?: Date | null
+  rightPanelMode?: RightPanelMode
+  foremostEvent?: ForemostEvent | null
+  currentTodos?: Todo[]
+  uncompletedTodos?: Todo[]
+  showUncompletedTodos?: boolean
+  showHolidayInEventList?: boolean
+  showLunarCalendar?: boolean
+  eventsByDate?: Map<string, CalendarEvent[]>
+  isTagHidden?: (tagId: string | null | undefined) => boolean
+  getHolidayNames?: (dateKey: string) => string[]
+  onReloadUncompletedTodos?: () => Promise<void>
+  onToggleRightPanel?: () => void
+  onOpenArchivePanel?: () => void
+  onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
 }
 
-export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
+export function RightEventPanel({
+  selectedDate = null,
+  rightPanelMode = 'dayEvents',
+  foremostEvent = null,
+  currentTodos = [],
+  uncompletedTodos = [],
+  showUncompletedTodos = true,
+  showHolidayInEventList = true,
+  showLunarCalendar = false,
+  eventsByDate = new Map(),
+  isTagHidden = () => false,
+  getHolidayNames = () => [],
+  onReloadUncompletedTodos = async () => {},
+  onToggleRightPanel = () => {},
+  onOpenArchivePanel = () => {},
+  onEventClick = () => {},
+}: RightEventPanelProps) {
   const { t, i18n } = useTranslation()
-  const selectedDate = useUiStore(s => s.selectedDate)
-  const foremostEvent = useForemostEventCache(s => s.foremostEvent)
-  const toggleRightPanel = useUiStore(s => s.toggleRightPanel)
-  const rightPanelMode = useUiStore(s => s.rightPanelMode)
-  const openArchivePanel = useUiStore(s => s.openArchivePanel)
-  const getHolidayNames = useHolidayCache(s => s.getHolidayNames)
-  const showHolidayInEventList = useSettingsCache(s => s.calendarAppearance.showHolidayInEventList)
-  const showLunarCalendar = useSettingsCache(s => s.calendarAppearance.showLunarCalendar)
-  const showUncompletedTodos = useSettingsCache(s => s.calendarAppearance.showUncompletedTodos)
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
 
   if (rightPanelMode === 'archive') {
@@ -67,14 +87,14 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
       {/* 우상단 액션 — 아카이브 진입 + 패널 닫기 */}
       <div className="absolute top-2 right-3 z-10 flex items-center gap-0.5">
         <button
-          onClick={openArchivePanel}
+          onClick={onOpenArchivePanel}
           aria-label={t('todo.done_list', '완료된 할 일')}
           className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
         >
           <CheckCircle2 className="h-4 w-4" />
         </button>
         <button
-          onClick={toggleRightPanel}
+          onClick={onToggleRightPanel}
           aria-label={t('common.close', '패널 닫기')}
           className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
         >
@@ -106,19 +126,35 @@ export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
           {foremostEvent?.event && (
             <div className="mb-6">
               <SectionHeader label={t('event.foremost', 'Foremost')} />
-              <ForemostEventBanner onEventClick={onEventClick} />
+              <ForemostEventBanner foremostEvent={foremostEvent} onEventClick={onEventClick} />
             </div>
           )}
 
-          {showUncompletedTodos && <UncompletedTodoList onEventClick={onEventClick} />}
+          {showUncompletedTodos && (
+            <UncompletedTodoList
+              todos={uncompletedTodos}
+              isTagHidden={isTagHidden}
+              onReload={onReloadUncompletedTodos}
+              onEventClick={onEventClick}
+            />
+          )}
 
-          <CurrentTodoList onEventClick={onEventClick} />
+          <CurrentTodoList
+            todos={currentTodos}
+            isTagHidden={isTagHidden}
+            onEventClick={onEventClick}
+          />
 
           {/* 이벤트 섹션 */}
           {selectedDate && (
             <div>
               <SectionHeader label={t('main.events_title', 'Events')} />
-              <DayEventList selectedDate={selectedDate} onEventClick={onEventClick} />
+              <DayEventList
+                selectedDate={selectedDate}
+                eventsByDate={eventsByDate}
+                isTagHidden={isTagHidden}
+                onEventClick={onEventClick}
+              />
             </div>
           )}
         </div>
