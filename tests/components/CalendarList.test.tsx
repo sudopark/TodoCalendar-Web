@@ -110,16 +110,16 @@ describe('CalendarList', () => {
     expect(useTagFilterStore.getState().hiddenTagIds.has('tag-2')).toBe(false)
   })
 
-  it('숨긴 태그는 opacity-50 클래스가 적용된다', () => {
+  it('숨긴 태그는 aria-pressed=false 상태로 표시된다', () => {
     // given: tag-2 숨김 상태
     useTagFilterStore.setState({ hiddenTagIds: new Set(['tag-2']) })
 
     // when
     renderCalendarList()
 
-    // then: '개인' 태그 행에 opacity-50
-    const personalTagRow = screen.getByText('개인').closest('.opacity-50')
-    expect(personalTagRow).toBeInTheDocument()
+    // then: '개인' 태그 버튼이 aria-pressed=false (숨김 상태)
+    const personalTagBtn = screen.getByRole('button', { name: '개인' })
+    expect(personalTagBtn).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('숨긴 태그 행 클릭 시 태그가 다시 표시된다', () => {
@@ -135,13 +135,13 @@ describe('CalendarList', () => {
     expect(useTagFilterStore.getState().hiddenTagIds.has('tag-1')).toBe(false)
   })
 
-  it('헤더 chevron 버튼 클릭 시 /tags 경로로 이동한다', () => {
+  it('헤더 chevron 버튼 클릭 시 /settings/editEvent/tags 경로로 이동한다', () => {
     // given / when
     renderCalendarList()
     fireEvent.click(screen.getByRole('button', { name: /태그 관리/i }))
 
     // then
-    expect(mockNavigate.mock.calls[0][0]).toBe('/tags')
+    expect(mockNavigate.mock.calls[0][0]).toBe('/settings/editEvent/tags')
   })
 
   it('태그가 없으면 기본/공휴일 태그만 표시한다', () => {

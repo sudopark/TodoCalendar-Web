@@ -97,7 +97,7 @@ describe('TagDropdown', () => {
     expect(screen.getByRole('button', { name: /태그 관리/ })).toBeInTheDocument()
   })
 
-  it('"태그 관리" 링크 클릭 시 /tags로 이동하고 background state가 전달된다', async () => {
+  it('"태그 관리" 링크 클릭 시 /settings/editEvent/tags로 이동한다', async () => {
     let captured: ReturnType<typeof useLocation> | null = null
 
     render(
@@ -105,7 +105,7 @@ describe('TagDropdown', () => {
         <Routes>
           <Route path="/" element={<TagDropdown value={null} onChange={vi.fn()} showManageLink />} />
           <Route
-            path="/tags"
+            path="/settings/editEvent/tags"
             element={<LocationCapture onLocation={l => { captured = l }} />}
           />
         </Routes>
@@ -113,7 +113,6 @@ describe('TagDropdown', () => {
     )
     await userEvent.click(screen.getByRole('button', { name: /태그 관리/ }))
 
-    expect(captured?.pathname).toBe('/tags')
-    expect((captured?.state as any)?.background?.pathname).toBe('/')
+    expect(captured?.pathname).toBe('/settings/editEvent/tags')
   })
 })
