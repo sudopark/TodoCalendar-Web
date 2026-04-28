@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import { useSettingsCache } from '../../../../repositories/caches/settingsCache'
 
 const SAMPLE_EVENTS = [
   { name: '디자인 리뷰', time: '10:00 — 11:00', color: '#AB47BC' },
@@ -11,17 +10,18 @@ const SAMPLE_UNCOMPLETED = [
   { name: '메일 회신' },
 ]
 
+interface Props {
+  eventListFontSizeWeight: number
+  showHolidayInEventList: boolean
+  showLunarCalendar: boolean
+  showUncompletedTodos: boolean
+}
+
 /**
  * 우측 패널(이벤트 리스트) 미리보기 — 글꼴 크기/공휴일/음력/미완료 옵션 즉시 반영
  */
-export function EventListPreview() {
+export function EventListPreview({ eventListFontSizeWeight, showHolidayInEventList, showLunarCalendar, showUncompletedTodos }: Props) {
   const { t } = useTranslation()
-  const {
-    eventListFontSizeWeight,
-    showHolidayInEventList,
-    showLunarCalendar,
-    showUncompletedTodos,
-  } = useSettingsCache(s => s.calendarAppearance)
 
   const nameFontSize = `${14 + eventListFontSizeWeight}px`
 

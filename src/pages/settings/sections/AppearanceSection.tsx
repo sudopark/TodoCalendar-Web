@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { useThemeStore } from '../../../stores/themeStore'
-import { useSettingsCache, type EventDisplayLevel, type WeekStartDay } from '../../../repositories/caches/settingsCache'
+import type { CalendarAppearance, EventDisplayLevel, WeekStartDay } from '../../../repositories/caches/settingsCache'
 import {
   SettingsSection,
   settingsBtnSecondary,
@@ -62,10 +61,22 @@ function Field({ label, children }: FieldProps) {
   )
 }
 
-export function AppearanceSection() {
+interface Props {
+  theme: 'system' | 'light' | 'dark'
+  setTheme: (theme: 'system' | 'light' | 'dark') => void
+  calendarAppearance: CalendarAppearance
+  setAppearance: (updates: Partial<CalendarAppearance>) => void
+  resetAppearanceToDefaults: () => void
+}
+
+export function AppearanceSection({
+  theme,
+  setTheme,
+  calendarAppearance,
+  setAppearance,
+  resetAppearanceToDefaults,
+}: Props) {
   const { t } = useTranslation()
-  const theme = useThemeStore(s => s.theme)
-  const setTheme = useThemeStore(s => s.setTheme)
   const {
     weekStartDay,
     accentDays,
@@ -76,9 +87,7 @@ export function AppearanceSection() {
     showHolidayInEventList,
     showLunarCalendar,
     showUncompletedTodos,
-  } = useSettingsCache(s => s.calendarAppearance)
-  const setAppearance = useSettingsCache(s => s.setAppearance)
-  const resetToDefaults = useSettingsCache(s => s.resetAppearanceToDefaults)
+  } = calendarAppearance
 
   const themeOptions = [
     { id: 'system' as const, label: t('settings.theme_system') },
@@ -90,7 +99,10 @@ export function AppearanceSection() {
     <div className="space-y-14">
       {/* === 캘린더 외관 === */}
       <SettingsSection title={t('settings.calendar_appearance', '캘린더 외관')}>
-        <CalendarAppearancePreview />
+        <CalendarAppearancePreview
+          weekStartDay={weekStartDay}
+          accentDays={accentDays}
+        />
 
         <Field label={t('settings.week_start_day', '주 시작 요일')}>
           <div className="flex gap-1.5 flex-wrap">
@@ -149,7 +161,11 @@ export function AppearanceSection() {
 
       {/* === 캘린더 내 이벤트 표시 === */}
       <SettingsSection title={t('settings.event_display_section', '캘린더 이벤트 표시')}>
-        <EventDisplayPreview />
+        <EventDisplayPreview
+          eventDisplayLevel={eventDisplayLevel}
+          eventFontSizeWeight={eventFontSizeWeight}
+          showEventNames={showEventNames}
+        />
 
         <Field label={t('settings.event_display_level', '이벤트 표시 레벨')}>
           <div className="flex gap-2">
@@ -198,7 +214,12 @@ export function AppearanceSection() {
 
       {/* === 이벤트 리스트(우측 패널) 옵션 === */}
       <SettingsSection title={t('settings.event_list_section', '이벤트 리스트 표시')}>
-        <EventListPreview />
+        <EventListPreview
+          eventListFontSizeWeight={eventListFontSizeWeight}
+          showHolidayInEventList={showHolidayInEventList}
+          showLunarCalendar={showLunarCalendar}
+          showUncompletedTodos={showUncompletedTodos}
+        />
 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -235,7 +256,7 @@ export function AppearanceSection() {
 
       {/* === 외관 전체 초기화 (페이지 푸터) === */}
       <div className="pt-2">
-        <button className={settingsBtnSecondary} onClick={resetToDefaults}>
+        <button className={settingsBtnSecondary} onClick={resetAppearanceToDefaults}>
           {t('settings.reset_defaults')}
         </button>
       </div>
