@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useSettingsCache } from '../../../repositories/caches/settingsCache'
+import type { TimezoneSetting } from '../../../repositories/caches/settingsCache'
 import { SettingsSection, settingsInput, settingsLabel } from '../SettingsSection'
 import {
   buildTimezoneList,
@@ -50,12 +50,14 @@ function TimezoneRow({ info, selected, systemBadgeLabel, onClick }: TimezoneRowP
   )
 }
 
-export function TimezoneSection() {
+interface Props {
+  timezone: TimezoneSetting
+  setTimezone: (tz: string | null) => void
+}
+
+export function TimezoneSection({ timezone, setTimezone }: Props) {
   const { t, i18n } = useTranslation()
-  const timezone = useSettingsCache(s => s.timezone.timezone)
-  const systemTimezone = useSettingsCache(s => s.timezone.systemTimezone)
-  const isCustom = useSettingsCache(s => s.timezone.isCustom)
-  const setTimezone = useSettingsCache(s => s.setTimezone)
+  const { timezone: currentTz, systemTimezone, isCustom } = timezone
 
   const [query, setQuery] = useState('')
   const locale = i18n.language || 'en'
@@ -76,8 +78,8 @@ export function TimezoneSection() {
   )
 
   const pinnedInfo = useMemo(
-    () => (isCustom ? getTimezoneInfo(timezone, locale) : systemInfo),
-    [isCustom, timezone, systemInfo, locale],
+    () => (isCustom ? getTimezoneInfo(currentTz, locale) : systemInfo),
+    [isCustom, currentTz, systemInfo, locale],
   )
 
   const handleSelect = (info: TimezoneInfo, asSystem: boolean) => {
@@ -85,7 +87,7 @@ export function TimezoneSection() {
       if (!isCustom) return
       setTimezone(null)
     } else {
-      if (isCustom && info.identifier === timezone) return
+      if (isCustom && info.identifier === currentTz) return
       setTimezone(info.identifier)
     }
   }
@@ -135,7 +137,7 @@ export function TimezoneSection() {
           <li key={tz.identifier}>
             <TimezoneRow
               info={tz}
-              selected={isCustom && tz.identifier === timezone}
+              selected={isCustom && tz.identifier === currentTz}
               onClick={() => handleSelect(tz, false)}
             />
           </li>

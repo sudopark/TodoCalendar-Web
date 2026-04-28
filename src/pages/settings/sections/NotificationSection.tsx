@@ -1,11 +1,15 @@
 import { useTranslation } from 'react-i18next'
-import { useSettingsCache } from '../../../repositories/caches/settingsCache'
+import type { NotificationSetting } from '../../../repositories/caches/settingsCache'
 import { SettingsSection, settingsBtnSecondary } from '../SettingsSection'
 
-export function NotificationSection() {
+interface Props {
+  notification: NotificationSetting
+  requestNotificationPermission: () => Promise<void>
+}
+
+export function NotificationSection({ notification, requestNotificationPermission }: Props) {
   const { t } = useTranslation()
-  const permission = useSettingsCache(s => s.notification.permission)
-  const requestPermission = useSettingsCache(s => s.requestNotificationPermission)
+  const { permission } = notification
 
   return (
     <SettingsSection title={t('settings.notification')}>
@@ -15,7 +19,7 @@ export function NotificationSection() {
         <p className="text-sm text-red-500">{t('settings.notification_denied')}</p>
       ) : (
         <div>
-          <button className={settingsBtnSecondary} onClick={requestPermission}>
+          <button className={settingsBtnSecondary} onClick={requestNotificationPermission}>
             {t('settings.notification_allow')}
           </button>
         </div>
