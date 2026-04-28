@@ -131,7 +131,7 @@ test('Todo 폼에서 "업무" 태그를 선택하고 저장하면 Current 목록
   await page.waitForLoadState('networkidle')
 
   await page.getByTestId('create-event-button').click()
-  await page.getByRole('button', { name: 'Todo', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Todo', exact: true }).click()
   await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
 
   // 이름 입력 후 저장

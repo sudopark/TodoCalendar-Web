@@ -27,8 +27,8 @@ test("FAB 클릭 후 Todo 선택 시 배경에 메인 페이지 캘린더가 유
 
   // when — FAB 클릭 후 Todo 선택
   await page.getByTestId('create-event-button').click()
-  await expect(page.getByRole('button', { name: 'Todo', exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'Todo', exact: true }).click()
+  await expect(page.getByRole('menuitem', { name: 'Todo', exact: true })).toBeVisible()
+  await page.getByRole('menuitem', { name: 'Todo', exact: true }).click()
 
   // then — 팝오버가 열린다
   await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
@@ -44,8 +44,8 @@ test("FAB 클릭 후 Schedule 선택 시 배경에 메인 페이지 캘린더가
 
   // when — FAB 클릭 후 Schedule 선택
   await page.getByTestId('create-event-button').click()
-  await expect(page.getByRole('button', { name: 'Schedule', exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'Schedule', exact: true }).click()
+  await expect(page.getByRole('menuitem', { name: 'Schedule', exact: true })).toBeVisible()
+  await page.getByRole('menuitem', { name: 'Schedule', exact: true }).click()
 
   // then — 팝오버가 열린다
   await expect(page.getByTestId('event-form-backdrop')).toBeVisible()
