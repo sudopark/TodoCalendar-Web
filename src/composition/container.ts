@@ -6,11 +6,13 @@ import { eventTagApi } from '../api/eventTagApi'
 import { settingApi } from '../api/settingApi'
 import { holidayApi } from '../api/holidayApi'
 import { doneTodoApi } from '../api/doneTodoApi'
+import { foremostApi } from '../api/foremostApi'
 import { EventRepository } from '../repositories/EventRepository'
 import { EventDetailRepository } from '../repositories/EventDetailRepository'
 import { TagRepository } from '../repositories/TagRepository'
 import { HolidayRepository } from '../repositories/HolidayRepository'
 import { DoneTodoRepository } from '../repositories/DoneTodoRepository'
+import { ForemostEventRepository } from '../repositories/ForemostEventRepository'
 
 const holidayRepo = new HolidayRepository({
   api: holidayApi,
@@ -25,6 +27,7 @@ export interface Repositories {
   tagRepo: TagRepository
   holidayRepo: HolidayRepository
   doneTodoRepo: DoneTodoRepository
+  foremostEventRepo: ForemostEventRepository
 }
 
 export const repositories: Repositories = {
@@ -33,4 +36,5 @@ export const repositories: Repositories = {
   tagRepo: new TagRepository({ eventTagApi, settingApi }),
   holidayRepo,
   doneTodoRepo: new DoneTodoRepository({ api: doneTodoApi }),
+  foremostEventRepo: new ForemostEventRepository({ api: foremostApi }),
 }
