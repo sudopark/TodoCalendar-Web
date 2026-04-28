@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import TopToolbar from '../../components/TopToolbar'
@@ -10,8 +10,9 @@ import { EventDetailPopover } from '../../components/EventDetail/EventDetailPopo
 import { RepeatingScopeDialog } from '../../components/RepeatingScopeDialog'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
 import { useMainViewModel } from './useMainViewModel'
+import { useRepositories } from '../../composition/RepositoriesProvider'
+import { EventDeletionService } from '../../domain/services/EventDeletionService'
 import { useToastStore } from '../../stores/toastStore'
-import { deleteTodoEvent, deleteScheduleEvent } from '../../utils/eventDeleteHelper'
 import type { CalendarEvent } from '../../domain/functions/eventTime'
 import type { RepeatScope } from '../../components/RepeatingScopeDialog'
 
@@ -26,6 +27,8 @@ export function MainPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const vm = useMainViewModel()
+  const { eventRepo } = useRepositories()
+  const deletionService = useMemo(() => new EventDeletionService({ eventRepo }), [eventRepo])
 
   const [popover, setPopover] = useState<PopoverState | null>(null)
   const [showDeleteScope, setShowDeleteScope] = useState(false)
@@ -62,9 +65,9 @@ export function MainPage() {
     setShowDeleteScope(false)
     try {
       if (popover.calEvent.type === 'todo') {
-        await deleteTodoEvent(popover.calEvent.event, scope)
+        await deletionService.deleteTodo(popover.calEvent.event, scope)
       } else {
-        await deleteScheduleEvent(popover.calEvent.event, scope)
+        await deletionService.deleteSchedule(popover.calEvent.event, scope)
       }
       setPopover(null)
     } catch {
