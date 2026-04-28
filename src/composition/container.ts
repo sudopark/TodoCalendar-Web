@@ -16,6 +16,7 @@ import { HolidayRepository } from '../repositories/HolidayRepository'
 import { DoneTodoRepository } from '../repositories/DoneTodoRepository'
 import { ForemostEventRepository } from '../repositories/ForemostEventRepository'
 import { AuthRepository } from '../repositories/AuthRepository'
+import { SettingsRepository } from '../repositories/SettingsRepository'
 
 const holidayRepo = new HolidayRepository({
   api: holidayApi,
@@ -37,6 +38,7 @@ export interface Repositories {
   doneTodoRepo: DoneTodoRepository
   foremostEventRepo: ForemostEventRepository
   authRepo: AuthRepository
+  settingsRepo: SettingsRepository
 }
 
 export const repositories: Repositories = {
@@ -47,4 +49,5 @@ export const repositories: Repositories = {
   doneTodoRepo: new DoneTodoRepository({ api: doneTodoApi }),
   foremostEventRepo: new ForemostEventRepository({ api: foremostApi }),
   authRepo,
+  settingsRepo: new SettingsRepository(),
 }
