@@ -31,10 +31,7 @@ describe('eventTagListCache — replaceAll', () => {
 
   it('defaultColors가 null이면 defaultTagColors가 null로 설정된다', () => {
     // given
-    useEventTagListCache.setState({
-      tags: new Map(),
-      defaultTagColors: { default: '#111', holiday: '#222' },
-    } as any)
+    useEventTagListCache.setState({ defaultTagColors: { default: '#111', holiday: '#222' } })
 
     // when
     useEventTagListCache.getState().replaceAll([], null)

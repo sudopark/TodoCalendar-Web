@@ -1,8 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 
-// container.ts → EventRepository → 캐시 → todoApi/scheduleApi → Firebase 연쇄 초기화 차단
+// container.ts → Repository → 캐시 → api → Firebase 연쇄 초기화 차단
+vi.mock('../../src/firebase', () => ({ auth: {} }))
 vi.mock('../../src/api/todoApi', () => ({ todoApi: {} }))
 vi.mock('../../src/api/scheduleApi', () => ({ scheduleApi: {} }))
+vi.mock('../../src/api/eventTagApi', () => ({ eventTagApi: {} }))
+vi.mock('../../src/api/settingApi', () => ({ settingApi: {} }))
 
 import { renderHook } from '@testing-library/react'
 import { RepositoriesProvider, useRepositories } from '../../src/composition/RepositoriesProvider'
