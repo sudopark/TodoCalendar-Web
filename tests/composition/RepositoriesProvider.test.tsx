@@ -6,6 +6,7 @@ vi.mock('../../src/api/todoApi', () => ({ todoApi: {} }))
 vi.mock('../../src/api/scheduleApi', () => ({ scheduleApi: {} }))
 vi.mock('../../src/api/eventTagApi', () => ({ eventTagApi: {} }))
 vi.mock('../../src/api/settingApi', () => ({ settingApi: {} }))
+vi.mock('../../src/api/doneTodoApi', () => ({ doneTodoApi: {} }))
 
 import { renderHook } from '@testing-library/react'
 import { RepositoriesProvider, useRepositories } from '../../src/composition/RepositoriesProvider'
