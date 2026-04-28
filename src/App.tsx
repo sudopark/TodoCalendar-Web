@@ -5,13 +5,13 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { Header } from './components/Header'
 import { LoadingSkeleton } from './components/LoadingSkeleton'
 import { ToastContainer } from './components/Toast'
-import { LoginPage } from './pages/LoginPage'
 import { MainPage } from './pages/Main/MainPage'
 import { TodoFormPage } from './pages/TodoForm/TodoFormPage'
 import { ScheduleFormPage } from './pages/ScheduleForm/ScheduleFormPage'
 import { RepositoriesProvider } from './composition/RepositoriesProvider'
 import './stores/themeStore'
 
+const LoginPage = React.lazy(() => import('./pages/Login/LoginPage').then(m => ({ default: m.LoginPage })))
 const SettingsPage = React.lazy(() => import('./pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
 

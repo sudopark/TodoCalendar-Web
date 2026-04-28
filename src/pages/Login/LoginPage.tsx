@@ -1,37 +1,19 @@
-import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { useAuthStore } from '../stores/authStore'
-import { useRepositories } from '../composition/RepositoriesProvider'
+import { useAuthStore } from '../../stores/authStore'
+import { useLoginViewModel } from './useLoginViewModel'
 
 export function LoginPage() {
   const { t } = useTranslation()
   const account = useAuthStore(s => s.account)
-  const { authRepo } = useRepositories()
   const location = useLocation()
   const from = (location.state as { from?: Location })?.from?.pathname || '/'
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+
+  const vm = useLoginViewModel()
 
   if (account) {
     return <Navigate to={from} replace />
-  }
-
-  async function handleSignIn(action: () => Promise<void>) {
-    setLoading(true)
-    setError(null)
-    try {
-      await action()
-    } catch (e: unknown) {
-      if (e instanceof Error && 'code' in e && (e as { code: string }).code === 'auth/popup-closed-by-user') {
-        setLoading(false)
-        return
-      }
-      setError(t('login.error'))
-    } finally {
-      setLoading(false)
-    }
   }
 
   return (
@@ -40,16 +22,16 @@ export function LoginPage() {
         <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-100 mb-2">{t('login.title')}</h1>
         <p className="text-sm text-center text-gray-500 dark:text-gray-400 mb-8">{t('login.subtitle')}</p>
 
-        {error && (
+        {vm.errorKey && (
           <div role="alert" className="mb-4 p-3 text-sm text-red-700 bg-red-50 rounded-lg">
-            {error}
+            {t(vm.errorKey)}
           </div>
         )}
 
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => handleSignIn(() => authRepo.signInWithGoogle())}
-            disabled={loading}
+            onClick={vm.signInWithGoogle}
+            disabled={vm.loading}
             className="flex items-center justify-center gap-2 w-full py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -62,8 +44,8 @@ export function LoginPage() {
           </button>
 
           <button
-            onClick={() => handleSignIn(() => authRepo.signInWithApple())}
-            disabled={loading}
+            onClick={vm.signInWithApple}
+            disabled={vm.loading}
             className="flex items-center justify-center gap-2 w-full py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
