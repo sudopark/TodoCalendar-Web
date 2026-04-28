@@ -6,6 +6,12 @@ export class AuthExpiredError extends Error {
   constructor() { super('Session expired') }
 }
 
+let onUnauthorized: (() => void) | null = null
+
+export function setUnauthorizedHandler(handler: () => void): void {
+  onUnauthorized = handler
+}
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const token = await tokenProvider.getToken()
   const response = await fetch(`${BASE_URL}${path}`, {
@@ -19,8 +25,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 
   if (!response.ok) {
     if (response.status === 401) {
-      const { useAuthStore } = await import('../stores/authStore')
-      await useAuthStore.getState().signOut()
+      onUnauthorized?.()
       throw new AuthExpiredError()
     }
     throw new Error(`API error: ${response.status}`)

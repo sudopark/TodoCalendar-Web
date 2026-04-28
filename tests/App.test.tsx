@@ -7,9 +7,6 @@ vi.mock('../src/stores/authStore', () => ({
   useAuthStore: () => ({
     account: { uid: 'test-user' },
     loading: false,
-    signInWithGoogle: vi.fn(),
-    signInWithApple: vi.fn(),
-    signOut: vi.fn(),
   }),
 }))
 

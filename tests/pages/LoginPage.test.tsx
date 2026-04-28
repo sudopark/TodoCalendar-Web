@@ -3,9 +3,14 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { LoginPage } from '../../src/pages/LoginPage'
 import { useAuthStore } from '../../src/stores/authStore'
+import { useRepositories } from '../../src/composition/RepositoriesProvider'
 
 vi.mock('../../src/stores/authStore', () => ({
   useAuthStore: vi.fn(),
+}))
+
+vi.mock('../../src/composition/RepositoriesProvider', () => ({
+  useRepositories: vi.fn(),
 }))
 
 function renderLoginPage() {
@@ -22,11 +27,15 @@ describe('LoginPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(useAuthStore).mockReturnValue({
-      signInWithGoogle: mockSignInWithGoogle,
-      signInWithApple: mockSignInWithApple,
-      account: null,
-      loading: false,
+    // LoginPage는 useAuthStore(s => s.account) 셀렉터 형태로 호출한다
+    vi.mocked(useAuthStore).mockImplementation((selector: any) =>
+      selector({ account: null, loading: false })
+    )
+    vi.mocked(useRepositories).mockReturnValue({
+      authRepo: {
+        signInWithGoogle: mockSignInWithGoogle,
+        signInWithApple: mockSignInWithApple,
+      },
     } as any)
   })
 
