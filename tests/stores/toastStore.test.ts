@@ -9,17 +9,17 @@ describe('toastStore', () => {
 
   it('show 호출 시 toasts 배열에 항목이 추가된다', () => {
     // when
-    useToastStore.getState().show('저장 완료')
+    useToastStore.getState().show('event.created.todo')
 
     // then
     const toasts = useToastStore.getState().toasts
     expect(toasts).toHaveLength(1)
-    expect(toasts[0].message).toBe('저장 완료')
+    expect(toasts[0].key).toBe('event.created.todo')
   })
 
   it('show 호출 시 타입을 지정하지 않으면 기본 타입은 info이다', () => {
     // when
-    useToastStore.getState().show('알림')
+    useToastStore.getState().show('error.unknown')
 
     // then
     expect(useToastStore.getState().toasts[0].type).toBe('info')
@@ -27,16 +27,26 @@ describe('toastStore', () => {
 
   it('show 호출 시 타입을 지정하면 해당 타입이 설정된다', () => {
     // when
-    useToastStore.getState().show('에러 발생', 'error')
+    useToastStore.getState().show('error.unknown', 'error')
 
     // then
     expect(useToastStore.getState().toasts[0].type).toBe('error')
   })
 
+  it('show 호출 시 params를 전달하면 저장된다', () => {
+    // when
+    useToastStore.getState().show('dev.seeder.done', 'success', { summary: '태그 3' })
+
+    // then
+    const toasts = useToastStore.getState().toasts
+    expect(toasts).toHaveLength(1)
+    expect(toasts[0].params).toEqual({ summary: '태그 3' })
+  })
+
   it('dismiss 호출 시 해당 항목이 제거된다', () => {
     // given
-    useToastStore.getState().show('첫 번째')
-    useToastStore.getState().show('두 번째')
+    useToastStore.getState().show('event.created.todo')
+    useToastStore.getState().show('event.created.schedule')
     const firstId = useToastStore.getState().toasts[0].id
 
     // when
@@ -45,7 +55,7 @@ describe('toastStore', () => {
     // then
     const toasts = useToastStore.getState().toasts
     expect(toasts).toHaveLength(1)
-    expect(toasts[0].message).toBe('두 번째')
+    expect(toasts[0].key).toBe('event.created.schedule')
   })
 
   it('3초 후 자동으로 dismiss된다', () => {
@@ -53,7 +63,7 @@ describe('toastStore', () => {
     vi.useFakeTimers()
 
     // when
-    useToastStore.getState().show('자동 삭제')
+    useToastStore.getState().show('error.unknown')
     expect(useToastStore.getState().toasts).toHaveLength(1)
 
     // then
