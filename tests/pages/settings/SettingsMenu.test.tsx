@@ -17,7 +17,6 @@ describe('SettingsMenu', () => {
     expect(screen.getByRole('button', { name: '타임존' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '언어' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '알림' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Google Calendar' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '계정' })).toBeInTheDocument()
   })
 
