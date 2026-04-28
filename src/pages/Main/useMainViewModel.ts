@@ -118,7 +118,13 @@ export function useMainViewModel(): MainViewModel {
   // ── 태그 목록 구독 ─────────────────────────────────────────────────
   const tagsMap = useEventTagListCache(s => s.tags)
   const tags = useMemo(() => Array.from(tagsMap.values()), [tagsMap])
-  const isTagHidden = useTagFilterStore(s => s.isTagHidden)
+  // hiddenTagIds Set 자체를 구독해야 toggleTag 시 리렌더가 흐른다.
+  // store 의 isTagHidden 함수 참조는 set 호출에도 변하지 않아, 함수만 구독하면 자식 트리에 변경이 전파되지 않는다.
+  const hiddenTagIds = useTagFilterStore(s => s.hiddenTagIds)
+  const isTagHidden = useCallback(
+    (tagId: string | null | undefined) => !!tagId && hiddenTagIds.has(tagId),
+    [hiddenTagIds],
+  )
 
   // ── 공휴일 ────────────────────────────────────────────────────────
   const getHolidayNames = useHolidayCache(s => s.getHolidayNames)

@@ -47,7 +47,7 @@ export function TagManagementPanel({ onClose }: Props) {
   }
 
   return (
-    <div className="flex flex-col">
+    <div data-testid="tag-management-panel" className="flex flex-col">
       {/* 헤더 — 뒤로가기 + 타이틀 + 새 태그 추가 */}
       <div className="flex items-center gap-2 mb-6">
         <button
@@ -72,7 +72,7 @@ export function TagManagementPanel({ onClose }: Props) {
       </div>
 
       {/* 리스트 — 얇은 row divider */}
-      <ul className="divide-y divide-gray-100">
+      <ul data-testid="tag-row-list" className="divide-y divide-gray-100">
         {rows.map(row => (
           <li key={row.id}>
             <TagRow row={row} onEdit={() => setPanel({ kind: 'edit', row })} />
