@@ -7,7 +7,7 @@ import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
 import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from '../domain/functions/repeating'
-import { refreshAllTodoStores } from '../utils/todoActions'
+import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
 import type { Todo } from '../models'
 import type { CalendarEvent } from '../domain/functions/eventTime'
@@ -107,7 +107,10 @@ export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick
       }
 
       if (todo.repeating) {
-        await refreshAllTodoStores()
+        await Promise.all([
+          useUncompletedTodosCache.getState().fetch(),
+          useCurrentTodosCache.getState().fetch(),
+        ]).catch(e => console.warn('Todo stores refresh failed:', e))
       } else {
         removeEvent(todo.uuid)
         removeTodo(todo.uuid)

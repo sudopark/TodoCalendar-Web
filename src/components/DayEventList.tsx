@@ -7,7 +7,8 @@ import { tagDisplayName } from '../domain/functions/tagDisplay'
 import { TimeDescription } from './TimeDescription'
 import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
 import { nextRepeatingTime, getStartTimestamp } from '../domain/functions/repeating'
-import { refreshTodoListStores } from '../utils/todoActions'
+import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
+import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'
 import { formatDateKey } from '../domain/functions/eventTime'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
 import type { CalendarEvent } from '../domain/functions/eventTime'
@@ -115,10 +116,16 @@ export function DayEventList({ selectedDate, eventsByDate, isTagHidden, onEventC
       }
 
       if (todo.repeating) {
-        await refreshTodoListStores()
+        await Promise.all([
+          useUncompletedTodosCache.getState().fetch(),
+          useCurrentTodosCache.getState().fetch(),
+        ]).catch(e => console.warn('Todo stores refresh failed:', e))
       } else {
         removeEvent(todo.uuid)
-        await refreshTodoListStores()
+        await Promise.all([
+          useUncompletedTodosCache.getState().fetch(),
+          useCurrentTodosCache.getState().fetch(),
+        ]).catch(e => console.warn('Todo stores refresh failed:', e))
       }
     } catch (e) {
       console.warn('완료 처리 실패:', e)
