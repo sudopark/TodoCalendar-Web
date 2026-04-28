@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAuthStore } from '../../../stores/authStore'
 import { useToastStore } from '../../../stores/toastStore'
 import { accountApi } from '../../../api/accountApi'
 import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { SettingsSection, settingsBtnSecondary, settingsBtnDanger } from '../SettingsSection'
-import { useRepositories } from '../../../composition/RepositoriesProvider'
+import type { Account } from '../../../stores/authStore'
 
-export function AccountSection() {
+interface Props {
+  account: Account | null
+  signOut: () => Promise<void>
+}
+
+export function AccountSection({ account, signOut }: Props) {
   const { t } = useTranslation()
-  const account = useAuthStore(s => s.account)
-  const { authRepo } = useRepositories()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -20,7 +22,7 @@ export function AccountSection() {
     try {
       await accountApi.deleteAccount()
       useToastStore.getState().show(t('settings.account_deleted'), 'success')
-      await authRepo.signOut()
+      await signOut()
     } catch (e) {
       console.warn('계정 삭제 실패:', e)
       useToastStore.getState().show(t('settings.account_delete_failed'), 'error')
@@ -36,7 +38,7 @@ export function AccountSection() {
           <p className="text-sm text-[#6b6b6b]">{account.email ?? account.uid}</p>
         )}
         <div>
-          <button className={settingsBtnSecondary} onClick={() => authRepo.signOut()}>
+          <button className={settingsBtnSecondary} onClick={() => signOut()}>
             {t('settings.logout')}
           </button>
         </div>

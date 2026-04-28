@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useSettingsCache } from '../../../repositories/caches/settingsCache'
-import { useEventTagListCache } from '../../../repositories/caches/eventTagListCache'
+import type { EventDefaults } from '../../../repositories/caches/settingsCache'
+import type { DefaultTagColors, EventTag } from '../../../models'
 import { APP_FALLBACK_DEFAULT_COLOR } from '../../../domain/tag/resolveEventTag'
 import { SettingsSection, settingsInput, settingsLabel } from '../SettingsSection'
 
@@ -55,18 +55,28 @@ function SelectedTagChip({ name, color, active, onClick }: SelectedTagChipProps)
   )
 }
 
-export function EditEventSection() {
+interface Props {
+  eventDefaults: EventDefaults
+  setEventDefaults: (updates: Partial<EventDefaults>) => void
+  tags: Map<string, EventTag>
+  defaultTagColors: DefaultTagColors | null
+  onNavigate: (path: string) => void
+}
+
+export function EditEventSection({
+  eventDefaults,
+  setEventDefaults,
+  tags,
+  defaultTagColors,
+  onNavigate,
+}: Props) {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const { subView } = useParams<{ subView?: string }>()
   const {
     defaultTagId,
     defaultNotificationSeconds,
     defaultAllDayNotificationSeconds,
-  } = useSettingsCache(s => s.eventDefaults)
-  const setDefaults = useSettingsCache(s => s.setEventDefaults)
-  const tags = useEventTagListCache(s => s.tags)
-  const defaultTagColors = useEventTagListCache(s => s.defaultTagColors)
+  } = eventDefaults
 
   const notificationPresets = useNotificationPresets()
   const tagsOpen = subView === 'tags'
@@ -91,7 +101,7 @@ export function EditEventSection() {
             name={selectedName}
             color={selectedColor}
             active={defaultTagOpen}
-            onClick={() => navigate('/settings/editEvent/defaultTag')}
+            onClick={() => onNavigate('/settings/editEvent/defaultTag')}
           />
         </div>
 
@@ -100,7 +110,7 @@ export function EditEventSection() {
           <select
             className={cn(settingsInput, 'max-w-[60%]')}
             value={defaultNotificationSeconds ?? ''}
-            onChange={e => setDefaults({
+            onChange={e => setEventDefaults({
               defaultNotificationSeconds: e.target.value ? Number(e.target.value) : null,
             })}
           >
@@ -115,7 +125,7 @@ export function EditEventSection() {
           <select
             className={cn(settingsInput, 'max-w-[60%]')}
             value={defaultAllDayNotificationSeconds ?? ''}
-            onChange={e => setDefaults({
+            onChange={e => setEventDefaults({
               defaultAllDayNotificationSeconds: e.target.value ? Number(e.target.value) : null,
             })}
           >
@@ -129,7 +139,7 @@ export function EditEventSection() {
       <SettingsSection title={t('settings.management', '관리')}>
         <button
           type="button"
-          onClick={() => navigate('/settings/editEvent/tags')}
+          onClick={() => onNavigate('/settings/editEvent/tags')}
           aria-current={tagsOpen ? 'page' : undefined}
           className={`w-full flex items-center justify-between px-3 py-3 rounded-lg text-sm transition-colors ${
             tagsOpen
