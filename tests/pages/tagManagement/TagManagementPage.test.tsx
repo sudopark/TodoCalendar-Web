@@ -5,8 +5,18 @@ import { MemoryRouter } from 'react-router-dom'
 import { TagManagementPage } from '../../../src/pages/tagManagement/TagManagementPage'
 import { useEventTagListCache } from '../../../src/repositories/caches/eventTagListCache'
 import { useTagFilterStore } from '../../../src/stores/tagFilterStore'
+import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvider'
+import { TagRepository } from '../../../src/repositories/TagRepository'
+import type { Repositories } from '../../../src/composition/container'
 
 vi.mock('../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: vi.fn(() => () => {}),
+  signInWithPopup: vi.fn(),
+  signOut: vi.fn(),
+  GoogleAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+  OAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+}))
 
 vi.mock('../../../src/api/eventTagApi', () => ({
   eventTagApi: {
@@ -34,20 +44,42 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => mockNavigate }
 })
 
-function renderPage() {
-  return render(<MemoryRouter><TagManagementPage /></MemoryRouter>)
+async function makeFakeRepos(): Promise<Repositories> {
+  const { eventTagApi } = await import('../../../src/api/eventTagApi')
+  const { settingApi } = await import('../../../src/api/settingApi')
+  return {
+    tagRepo: new TagRepository({ eventTagApi, settingApi }),
+    eventRepo: {} as unknown as Repositories['eventRepo'],
+    eventDetailRepo: {} as unknown as Repositories['eventDetailRepo'],
+    holidayRepo: {} as unknown as Repositories['holidayRepo'],
+    doneTodoRepo: {} as unknown as Repositories['doneTodoRepo'],
+    foremostEventRepo: {} as unknown as Repositories['foremostEventRepo'],
+    authRepo: {} as unknown as Repositories['authRepo'],
+    settingsRepo: {} as unknown as Repositories['settingsRepo'],
+  }
+}
+
+function renderPage(repos: Repositories) {
+  return render(
+    <RepositoriesProvider value={repos}>
+      <MemoryRouter><TagManagementPage /></MemoryRouter>
+    </RepositoriesProvider>,
+  )
 }
 
 describe('TagManagementPage', () => {
-  beforeEach(() => {
+  let repos: Repositories
+
+  beforeEach(async () => {
     vi.clearAllMocks()
     useEventTagListCache.setState({ tags: new Map(), defaultTagColors: null })
     localStorage.clear()
     useTagFilterStore.setState({ hiddenTagIds: new Set() })
+    repos = await makeFakeRepos()
   })
 
   it('마운트되면 fetchAll이 호출되고 Default/Holiday/유저 태그가 순서대로 렌더된다', async () => {
-    renderPage()
+    renderPage(repos)
 
     await waitFor(() => expect(screen.getByText('Work')).toBeInTheDocument())
 
@@ -57,7 +89,7 @@ describe('TagManagementPage', () => {
 
   it('닫기 버튼을 누르면 navigate(-1)이 호출된다', async () => {
     const user = userEvent.setup()
-    renderPage()
+    renderPage(repos)
     await waitFor(() => expect(screen.getByText('Work')).toBeInTheDocument())
 
     await user.click(screen.getByRole('button', { name: /태그 관리 닫기|Close tag manager/ }))
@@ -67,7 +99,7 @@ describe('TagManagementPage', () => {
 
   it('"+" 버튼을 누르면 TagEditPanel이 create 모드로 열린다', async () => {
     const user = userEvent.setup()
-    renderPage()
+    renderPage(repos)
     await waitFor(() => expect(screen.getByText('Work')).toBeInTheDocument())
 
     await user.click(screen.getByRole('button', { name: /새 태그 추가|Add new tag/ }))
@@ -77,7 +109,7 @@ describe('TagManagementPage', () => {
 
   it('유저 태그 행의 info 버튼을 누르면 편집 패널이 열리고 이름 input에 기존 이름이 채워진다', async () => {
     const user = userEvent.setup()
-    renderPage()
+    renderPage(repos)
     await waitFor(() => expect(screen.getByText('Work')).toBeInTheDocument())
 
     const infoButtons = screen.getAllByRole('button', { name: /태그 상세 열기|Open tag detail/ })
@@ -90,7 +122,7 @@ describe('TagManagementPage', () => {
 
   it('기본 태그(default) 행의 info 버튼을 누르면 이름이 readonly인 편집 패널이 열린다', async () => {
     const user = userEvent.setup()
-    renderPage()
+    renderPage(repos)
     await waitFor(() => expect(screen.getByText('Work')).toBeInTheDocument())
 
     const infoButtons = screen.getAllByRole('button', { name: /태그 상세 열기|Open tag detail/ })

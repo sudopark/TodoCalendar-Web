@@ -3,9 +3,19 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TagEditPanel } from '../../../src/pages/tagManagement/components/TagEditPanel'
 import { useEventTagListCache } from '../../../src/repositories/caches/eventTagListCache'
+import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvider'
+import { TagRepository } from '../../../src/repositories/TagRepository'
+import type { Repositories } from '../../../src/composition/container'
 import type { TagRowModel } from '../../../src/domain/tag/buildTagRows'
 
 vi.mock('../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: vi.fn(() => () => {}),
+  signInWithPopup: vi.fn(),
+  signOut: vi.fn(),
+  GoogleAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+  OAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+}))
 
 vi.mock('../../../src/api/eventTagApi', () => ({
   eventTagApi: {
@@ -24,17 +34,43 @@ vi.mock('../../../src/api/settingApi', () => ({
   },
 }))
 
+async function makeFakeRepos(): Promise<Repositories> {
+  const { eventTagApi } = await import('../../../src/api/eventTagApi')
+  const { settingApi } = await import('../../../src/api/settingApi')
+  return {
+    tagRepo: new TagRepository({ eventTagApi, settingApi }),
+    eventRepo: {} as unknown as Repositories['eventRepo'],
+    eventDetailRepo: {} as unknown as Repositories['eventDetailRepo'],
+    holidayRepo: {} as unknown as Repositories['holidayRepo'],
+    doneTodoRepo: {} as unknown as Repositories['doneTodoRepo'],
+    foremostEventRepo: {} as unknown as Repositories['foremostEventRepo'],
+    authRepo: {} as unknown as Repositories['authRepo'],
+    settingsRepo: {} as unknown as Repositories['settingsRepo'],
+  }
+}
+
+function renderPanel(mode: Parameters<typeof TagEditPanel>[0]['mode'], onClose = vi.fn(), repos: Repositories) {
+  return render(
+    <RepositoriesProvider value={repos}>
+      <TagEditPanel mode={mode} onClose={onClose} />
+    </RepositoriesProvider>,
+  )
+}
+
 const customRow: TagRowModel = { id: 'tag-1', kind: 'custom', name: '업무', color: '#ff0000' }
 const defaultRow: TagRowModel = { id: 'default', kind: 'default', name: '기본', color: '#1111aa' }
 
 describe('TagEditPanel — create 모드', () => {
-  beforeEach(() => {
+  let repos: Repositories
+
+  beforeEach(async () => {
     useEventTagListCache.setState({ tags: new Map(), defaultTagColors: { default: '#111', holiday: '#222' } })
     vi.clearAllMocks()
+    repos = await makeFakeRepos()
   })
 
   it('이름 input과 색상 팔레트가 모두 활성화되고 삭제 버튼은 노출되지 않는다', () => {
-    render(<TagEditPanel mode={{ kind: 'create' }} onClose={() => {}} />)
+    renderPanel({ kind: 'create' }, vi.fn(), repos)
 
     const nameInput = screen.getByLabelText(/이름|Name/)
     expect(nameInput).not.toBeDisabled()
@@ -47,7 +83,7 @@ describe('TagEditPanel — create 모드', () => {
     const { eventTagApi } = await import('../../../src/api/eventTagApi')
     vi.mocked(eventTagApi.createTag).mockResolvedValue({ uuid: 'new-id', name: '신규', color_hex: '#22c55e' })
 
-    render(<TagEditPanel mode={{ kind: 'create' }} onClose={onClose} />)
+    renderPanel({ kind: 'create' }, onClose, repos)
     await user.type(screen.getByLabelText(/이름|Name/), '신규')
     await user.click(screen.getByTitle('#22c55e'))
     await user.click(screen.getByRole('button', { name: /^저장$|^Save$/ }))
@@ -58,16 +94,19 @@ describe('TagEditPanel — create 모드', () => {
 })
 
 describe('TagEditPanel — edit(custom) 모드', () => {
-  beforeEach(() => {
+  let repos: Repositories
+
+  beforeEach(async () => {
     useEventTagListCache.setState({
       tags: new Map([['tag-1', { uuid: 'tag-1', name: '업무', color_hex: '#ff0000' }]]),
       defaultTagColors: { default: '#111', holiday: '#222' },
     })
     vi.clearAllMocks()
+    repos = await makeFakeRepos()
   })
 
   it('이름 input, 색상 팔레트, 삭제 버튼이 모두 노출된다', () => {
-    render(<TagEditPanel mode={{ kind: 'edit', row: customRow }} onClose={() => {}} />)
+    renderPanel({ kind: 'edit', row: customRow }, vi.fn(), repos)
 
     expect(screen.getByLabelText(/이름|Name/)).toHaveValue('업무')
     expect(screen.getByRole('button', { name: /^삭제$|^Delete$/ })).toBeInTheDocument()
@@ -79,7 +118,7 @@ describe('TagEditPanel — edit(custom) 모드', () => {
     const { eventTagApi } = await import('../../../src/api/eventTagApi')
     vi.mocked(eventTagApi.updateTag).mockResolvedValue({ uuid: 'tag-1', name: '새이름', color_hex: '#22c55e' })
 
-    render(<TagEditPanel mode={{ kind: 'edit', row: customRow }} onClose={onClose} />)
+    renderPanel({ kind: 'edit', row: customRow }, onClose, repos)
     const nameInput = screen.getByLabelText(/이름|Name/)
     await user.clear(nameInput)
     await user.type(nameInput, '새이름')
@@ -92,7 +131,7 @@ describe('TagEditPanel — edit(custom) 모드', () => {
 
   it('삭제 버튼을 누르면 DeleteTagDialog가 열린다', async () => {
     const user = userEvent.setup()
-    render(<TagEditPanel mode={{ kind: 'edit', row: customRow }} onClose={() => {}} />)
+    renderPanel({ kind: 'edit', row: customRow }, vi.fn(), repos)
 
     await user.click(screen.getByRole('button', { name: /^삭제$|^Delete$/ }))
 
@@ -102,13 +141,16 @@ describe('TagEditPanel — edit(custom) 모드', () => {
 })
 
 describe('TagEditPanel — edit(default) 모드', () => {
-  beforeEach(() => {
+  let repos: Repositories
+
+  beforeEach(async () => {
     useEventTagListCache.setState({ tags: new Map(), defaultTagColors: { default: '#111', holiday: '#222' } })
     vi.clearAllMocks()
+    repos = await makeFakeRepos()
   })
 
   it('이름 input이 readonly이고, 색상 팔레트는 활성화, 삭제 버튼은 없다', () => {
-    render(<TagEditPanel mode={{ kind: 'edit', row: defaultRow }} onClose={() => {}} />)
+    renderPanel({ kind: 'edit', row: defaultRow }, vi.fn(), repos)
 
     const nameInput = screen.getByLabelText(/이름|Name/)
     expect(nameInput).toHaveAttribute('readonly')
@@ -123,7 +165,7 @@ describe('TagEditPanel — edit(default) 모드', () => {
     const { settingApi } = await import('../../../src/api/settingApi')
     vi.mocked(settingApi.updateDefaultTagColors).mockResolvedValue({ default: '#22c55e', holiday: '#222' })
 
-    render(<TagEditPanel mode={{ kind: 'edit', row: defaultRow }} onClose={onClose} />)
+    renderPanel({ kind: 'edit', row: defaultRow }, onClose, repos)
     await user.click(screen.getByTitle('#22c55e'))
     await user.click(screen.getByRole('button', { name: /^저장$|^Save$/ }))
 
