@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { LoginPage } from '../../src/pages/LoginPage'
-import { useAuthStore } from '../../src/stores/authStore'
-import { useRepositories } from '../../src/composition/RepositoriesProvider'
+import { LoginPage } from '../../../src/pages/Login/LoginPage'
+import { useAuthStore } from '../../../src/stores/authStore'
+import { useRepositories } from '../../../src/composition/RepositoriesProvider'
 
-vi.mock('../../src/stores/authStore', () => ({
+vi.mock('../../../src/stores/authStore', () => ({
   useAuthStore: vi.fn(),
 }))
 
-vi.mock('../../src/composition/RepositoriesProvider', () => ({
+vi.mock('../../../src/composition/RepositoriesProvider', () => ({
   useRepositories: vi.fn(),
 }))
 
