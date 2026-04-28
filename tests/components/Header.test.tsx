@@ -12,13 +12,12 @@ describe('Header', () => {
     )
   }
 
-  it('캘린더, Done, 설정 탭 링크를 렌더한다', () => {
+  it('캘린더, 설정 탭 링크를 렌더한다', () => {
     // given / when
     renderHeader('/')
 
-    // then
+    // then: 현재 헤더에는 캘린더와 설정 탭만 있다
     expect(screen.getByRole('link', { name: '캘린더' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: '완료' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '설정' })).toBeInTheDocument()
   })
 
@@ -28,15 +27,15 @@ describe('Header', () => {
 
     // then
     expect(screen.getByRole('link', { name: '캘린더' })).toHaveClass('bg-gray-100')
-    expect(screen.getByRole('link', { name: '완료' })).not.toHaveClass('bg-gray-100')
+    expect(screen.getByRole('link', { name: '설정' })).not.toHaveClass('bg-gray-100')
   })
 
-  it('/done 경로에서 완료 탭이 active 클래스를 갖는다', () => {
+  it('/settings 경로에서 설정 탭이 active 클래스를 갖는다', () => {
     // given / when
-    renderHeader('/done')
+    renderHeader('/settings')
 
     // then
-    expect(screen.getByRole('link', { name: '완료' })).toHaveClass('bg-gray-100')
+    expect(screen.getByRole('link', { name: '설정' })).toHaveClass('bg-gray-100')
     expect(screen.getByRole('link', { name: '캘린더' })).not.toHaveClass('bg-gray-100')
   })
 })

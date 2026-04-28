@@ -225,8 +225,9 @@ describe('eventFormStore', () => {
   // MARK: - setEventTime
 
   describe('setEventTime', () => {
-    it('allday에서 non-allday로 변경 시 알림이 초기화된다', async () => {
-      // given
+    it('allday에서 non-allday로 변경 시 알림이 디폴트 설정으로 재설정된다', async () => {
+      // given: defaultNotificationSeconds=null → 디폴트 없음 → notifications가 빈 배열로 설정됨
+      useSettingsCache.setState(s => ({ eventDefaults: { ...s.eventDefaults, defaultNotificationSeconds: null } }))
       const { useEventFormStore } = await import('../../src/stores/eventFormStore')
       useEventFormStore.setState({
         eventTime: { time_type: 'allday', period_start: 1000, period_end: 2000, seconds_from_gmt: 32400 },
@@ -236,7 +237,7 @@ describe('eventFormStore', () => {
       // when
       useEventFormStore.getState().setEventTime({ time_type: 'at', timestamp: 3000 })
 
-      // then
+      // then: allday→non-allday 전환 시 알림이 디폴트(없음)로 재설정
       const state = useEventFormStore.getState()
       expect(state.eventTime).toEqual({ time_type: 'at', timestamp: 3000 })
       expect(state.notifications).toEqual([])

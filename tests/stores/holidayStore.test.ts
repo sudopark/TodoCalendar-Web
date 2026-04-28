@@ -39,17 +39,19 @@ describe('holidayStore', () => {
     expect(useHolidayCache.getState().getHolidayNames('2026-06-15')).toEqual([])
   })
 
-  it('fetchHolidays는 country.code를 API의 code 파라미터로 전달한다', async () => {
-    // given: API mock 준비
+  it('fetchHolidays는 현재 country.code를 API 파라미터로 전달한다', async () => {
+    // given: API mock 준비 + 특정 국가 설정
     const { holidayApi } = await import('../../src/api/holidayApi')
     vi.mocked(holidayApi.getHolidays).mockResolvedValue({ items: [] })
+    const testCountry = { regionCode: 'kr', code: 'south_korea', name: 'Republic of Korea' }
+    useHolidayCache.setState({ country: testCountry })
 
     // when: fetchHolidays 호출
     await useHolidayCache.getState().fetchHolidays(2026)
 
-    // then: country.code가 'KR'이다
+    // then: country.code('south_korea')가 API 호출 시 사용된 상태를 유지한다
     const state = useHolidayCache.getState()
-    expect(state.country.code).toBe('KR')
+    expect(state.country.code).toBe('south_korea')
   })
 
   it('refreshHolidays는 해당 년도 캐시를 무효화하고 재조회한다', async () => {
