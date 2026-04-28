@@ -19,16 +19,57 @@ import { NotificationSection } from './sections/NotificationSection'
 import { AccountSection } from './sections/AccountSection'
 import { TagManagementPanel } from './tagManagement/TagManagementPanel'
 import { DefaultTagPickerPanel } from './sections/DefaultTagPickerPanel'
+import { useSettingsViewModel } from './useSettingsViewModel'
+import type { SettingsViewModel } from './useSettingsViewModel'
 
-function renderSection(id: SettingCategoryId) {
+function renderSection(id: SettingCategoryId, vm: SettingsViewModel, onNavigate: (path: string) => void) {
   switch (id) {
-    case 'appearance': return <AppearanceSection />
-    case 'editEvent': return <EditEventSection />
-    case 'holiday': return <HolidaySection />
-    case 'timezone': return <TimezoneSection />
+    case 'appearance': return (
+      <AppearanceSection
+        theme={vm.theme}
+        setTheme={vm.setTheme}
+        calendarAppearance={vm.calendarAppearance}
+        setAppearance={vm.setAppearance}
+        resetAppearanceToDefaults={vm.resetAppearanceToDefaults}
+      />
+    )
+    case 'editEvent': return (
+      <EditEventSection
+        eventDefaults={vm.eventDefaults}
+        setEventDefaults={vm.setEventDefaults}
+        tags={vm.tags}
+        defaultTagColors={vm.defaultTagColors}
+        onNavigate={onNavigate}
+      />
+    )
+    case 'holiday': return (
+      <HolidaySection
+        country={vm.country}
+        availableCountries={vm.availableCountries}
+        availableCountriesLoaded={vm.availableCountriesLoaded}
+        fetchAvailableCountries={vm.fetchAvailableCountries}
+        setCountry={vm.setCountry}
+      />
+    )
+    case 'timezone': return (
+      <TimezoneSection
+        timezone={vm.timezone}
+        setTimezone={vm.setTimezone}
+      />
+    )
     case 'language': return <LanguageSection />
-    case 'notification': return <NotificationSection />
-    case 'account': return <AccountSection />
+    case 'notification': return (
+      <NotificationSection
+        notification={vm.notification}
+        requestNotificationPermission={vm.requestNotificationPermission}
+      />
+    )
+    case 'account': return (
+      <AccountSection
+        account={vm.account}
+        signOut={vm.signOut}
+      />
+    )
   }
 }
 
@@ -36,6 +77,7 @@ export function SettingsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { categoryId, subView } = useParams<{ categoryId?: string; subView?: string }>()
+  const vm = useSettingsViewModel()
 
   const hasExplicitCategory = isSettingCategoryId(categoryId)
   const selected: SettingCategoryId = hasExplicitCategory ? categoryId : DEFAULT_SETTING_CATEGORY
@@ -107,7 +149,7 @@ export function SettingsPage() {
               </h2>
             </div>
           )}
-          {renderSection(selected)}
+          {renderSection(selected, vm, navigate)}
         </main>
 
         {/* 우측 서브 패널 — editEvent의 tags / defaultTag 서브뷰 */}
@@ -118,7 +160,13 @@ export function SettingsPage() {
         )}
         {defaultTagPanelOpen && (
           <aside className="px-4 py-6 md:px-10 md:py-10 block">
-            <DefaultTagPickerPanel onClose={handleCloseSubPanel} />
+            <DefaultTagPickerPanel
+              tags={vm.tags}
+              defaultTagColors={vm.defaultTagColors}
+              defaultTagId={vm.eventDefaults.defaultTagId}
+              setDefaultTagId={(id) => vm.setEventDefaults({ defaultTagId: id })}
+              onClose={handleCloseSubPanel}
+            />
           </aside>
         )}
       </div>
