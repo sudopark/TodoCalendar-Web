@@ -3,11 +3,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { ForemostEventBanner } from '../../src/components/ForemostEventBanner'
-import { useForemostEventStore } from '../../src/stores/foremostEventStore'
+import { useForemostEventCache } from '../../src/repositories/caches/foremostEventCache'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
 import type { CalendarEvent } from '../../src/utils/eventTimeUtils'
 
-vi.mock('../../src/stores/foremostEventStore', () => ({ useForemostEventStore: vi.fn() }))
+vi.mock('../../src/repositories/caches/foremostEventCache', () => ({ useForemostEventCache: vi.fn() }))
 vi.mock('../../src/api/foremostApi', () => ({
   foremostApi: { getForemostEvent: async () => null },
 }))
@@ -35,7 +35,7 @@ describe('ForemostEventBanner', () => {
   })
 
   it('고정 이벤트가 없으면 아무것도 렌더링하지 않는다', () => {
-    vi.mocked(useForemostEventStore).mockImplementation((selector: any) =>
+    vi.mocked(useForemostEventCache).mockImplementation((selector: any) =>
       selector({ foremostEvent: null, fetch: vi.fn() })
     )
 
@@ -46,7 +46,7 @@ describe('ForemostEventBanner', () => {
 
   it('고정 이벤트가 있으면 이벤트 이름을 배너에 표시한다', () => {
     const todo = { uuid: 'fe1', name: '중요한 할 일', is_current: false, event_time: null }
-    vi.mocked(useForemostEventStore).mockImplementation((selector: any) =>
+    vi.mocked(useForemostEventCache).mockImplementation((selector: any) =>
       selector({ foremostEvent: { event_id: 'fe1', is_todo: true, event: todo }, fetch: vi.fn() })
     )
 
@@ -58,7 +58,7 @@ describe('ForemostEventBanner', () => {
 
   it('배너를 클릭하면 onEventClick이 todo 타입으로 호출된다', async () => {
     const todo = { uuid: 'fe-nav', name: '고정 이벤트', is_current: false, event_time: null }
-    vi.mocked(useForemostEventStore).mockImplementation((selector: any) =>
+    vi.mocked(useForemostEventCache).mockImplementation((selector: any) =>
       selector({ foremostEvent: { event_id: 'fe-nav', is_todo: true, event: todo }, fetch: vi.fn() })
     )
 

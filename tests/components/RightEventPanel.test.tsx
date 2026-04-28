@@ -3,10 +3,10 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { RightEventPanel } from '../../src/components/RightEventPanel'
 import { useUiStore } from '../../src/stores/uiStore'
-import { useForemostEventStore } from '../../src/stores/foremostEventStore'
+import { useForemostEventCache } from '../../src/repositories/caches/foremostEventCache'
 import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 
-vi.mock('../../src/stores/foremostEventStore', () => ({ useForemostEventStore: vi.fn() }))
+vi.mock('../../src/repositories/caches/foremostEventCache', () => ({ useForemostEventCache: vi.fn() }))
 vi.mock('../../src/repositories/caches/eventTagListCache', () => ({
   useEventTagListCache: vi.fn((selector: any) => selector({ tags: new Map() })),
   DEFAULT_TAG_ID: 'default',
@@ -35,7 +35,7 @@ vi.mock('react-router-dom', async () => {
 })
 
 function mockForemostStore(foremostEvent: any) {
-  vi.mocked(useForemostEventStore).mockImplementation((selector: any) =>
+  vi.mocked(useForemostEventCache).mockImplementation((selector: any) =>
     selector({ foremostEvent, fetch: vi.fn() })
   )
 }

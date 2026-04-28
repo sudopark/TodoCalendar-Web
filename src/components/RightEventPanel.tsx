@@ -3,7 +3,7 @@ import { CheckCircle2 } from 'lucide-react'
 import { useUiStore } from '../stores/uiStore'
 import { formatDateKey } from '../utils/eventTimeUtils'
 import type { CalendarEvent } from '../utils/eventTimeUtils'
-import { useForemostEventStore } from '../stores/foremostEventStore'
+import { useForemostEventCache } from '../repositories/caches/foremostEventCache'
 import { useHolidayCache } from '../repositories/caches/holidayCache'
 import { useCalendarAppearanceStore } from '../stores/calendarAppearanceStore'
 import { ForemostEventBanner } from './ForemostEventBanner'
@@ -39,7 +39,7 @@ interface RightEventPanelProps {
 export function RightEventPanel({ onEventClick }: RightEventPanelProps) {
   const { t, i18n } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
-  const foremostEvent = useForemostEventStore(s => s.foremostEvent)
+  const foremostEvent = useForemostEventCache(s => s.foremostEvent)
   const toggleRightPanel = useUiStore(s => s.toggleRightPanel)
   const rightPanelMode = useUiStore(s => s.rightPanelMode)
   const openArchivePanel = useUiStore(s => s.openArchivePanel)

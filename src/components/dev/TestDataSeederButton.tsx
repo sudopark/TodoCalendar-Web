@@ -4,7 +4,7 @@ import { useEventTagListCache } from '../../repositories/caches/eventTagListCach
 import { useCalendarEventsCache } from '../../repositories/caches/calendarEventsCache'
 import { useCurrentTodosCache } from '../../repositories/caches/currentTodosCache'
 import { useUncompletedTodosCache } from '../../repositories/caches/uncompletedTodosCache'
-import { useForemostEventStore } from '../../stores/foremostEventStore'
+import { useForemostEventCache } from '../../repositories/caches/foremostEventCache'
 import { useDoneTodosCache } from '../../repositories/caches/doneTodosCache'
 import { useToastStore } from '../../stores/toastStore'
 
@@ -32,7 +32,7 @@ export default function TestDataSeederButton() {
       await Promise.allSettled([
         useCurrentTodosCache.getState().fetch(),
         useUncompletedTodosCache.getState().fetch(),
-        useForemostEventStore.getState().fetch(),
+        useForemostEventCache.getState().fetch(),
       ])
 
       // Done todos는 페이지네이션 상태 초기화 후 첫 페이지 재로딩
