@@ -117,7 +117,7 @@ describe('DoneTodosPage', () => {
     // then
     await waitFor(() => {
       const toasts = useToastStore.getState().toasts
-      expect(toasts.some(t => t.message === '되돌리기에 실패했습니다' && t.type === 'error')).toBe(true)
+      expect(toasts.some(t => t.key === 'todo.revert_failed' && t.type === 'error')).toBe(true)
     })
     warnSpy.mockRestore()
   })
@@ -138,7 +138,7 @@ describe('DoneTodosPage', () => {
     // then
     await waitFor(() => {
       const toasts = useToastStore.getState().toasts
-      expect(toasts.some(t => t.message === '삭제에 실패했습니다' && t.type === 'error')).toBe(true)
+      expect(toasts.some(t => t.key === 'todo.delete_failed' && t.type === 'error')).toBe(true)
     })
     warnSpy.mockRestore()
   })

@@ -98,7 +98,7 @@ export function ArchivePanel() {
       await fetchCurrentTodos()
     } catch (e) {
       console.warn('되돌리기 실패:', e)
-      useToastStore.getState().show(t('todo.revert_failed'), 'error')
+      useToastStore.getState().show('todo.revert_failed', 'error')
     }
   }
 
@@ -166,7 +166,7 @@ export function ArchivePanel() {
               await remove(confirmId)
             } catch (e) {
               console.warn('삭제 실패:', e)
-              useToastStore.getState().show(t('todo.delete_failed'), 'error')
+              useToastStore.getState().show('todo.delete_failed', 'error')
             }
             setConfirmId(null)
           }}

@@ -21,11 +21,11 @@ export function AccountSection({ account, signOut }: Props) {
     setDeleting(true)
     try {
       await accountApi.deleteAccount()
-      useToastStore.getState().show(t('settings.account_deleted'), 'success')
+      useToastStore.getState().show('settings.account_deleted', 'success')
       await signOut()
     } catch (e) {
       console.warn('계정 삭제 실패:', e)
-      useToastStore.getState().show(t('settings.account_delete_failed'), 'error')
+      useToastStore.getState().show('settings.account_delete_failed', 'error')
     } finally {
       setDeleting(false)
     }

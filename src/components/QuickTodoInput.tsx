@@ -26,9 +26,8 @@ export function QuickTodoInput() {
       })
       useCurrentTodosCache.getState().addTodo(created)
       setValue('')
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      useToastStore.getState().show(message, 'error')
+    } catch {
+      useToastStore.getState().show('error.unknown', 'error')
     } finally {
       setSubmitting(false)
     }

@@ -39,7 +39,7 @@ export function ScheduleFormPage() {
     // 그 외 에러는 toast 표시; save_detail_failed 포함
     // dismissMessage 는 호출하지 않음 — successKey 가 함께 세팅된 경우 successKey effect 가 먼저 실행되도록 보장
     if (!vm.errorKey.includes('invalid_')) {
-      useToastStore.getState().show(t(vm.errorKey), 'error')
+      useToastStore.getState().show(vm.errorKey, 'error')
     }
   }, [vm.errorKey]) // eslint-disable-line react-hooks/exhaustive-deps
 

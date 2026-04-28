@@ -16,7 +16,7 @@ export default function TestDataSeederButton() {
     setRunning(true)
     const toast = useToastStore.getState().show
     try {
-      toast('테스트 데이터 주입 시작', 'info')
+      toast('dev.seeder.start', 'info')
 
       const cleanupErrors = await cleanupTestData()
       const result = await seedTestData()
@@ -45,13 +45,13 @@ export default function TestDataSeederButton() {
         (result.foremostSet ? ', foremost ✓' : '')
 
       if (totalErrors === 0) {
-        toast(`테스트 데이터 주입 완료 — ${summary}`, 'success')
+        toast('dev.seeder.done', 'success', { summary })
       } else {
-        toast(`테스트 데이터 주입 완료 (실패 ${totalErrors}건) — ${summary}`, 'error')
+        toast('dev.seeder.done_with_errors', 'error', { count: totalErrors, summary })
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
-      toast(`테스트 데이터 주입 실패: ${msg}`, 'error')
+      toast('dev.seeder.failed', 'error', { msg })
     } finally {
       setRunning(false)
     }
