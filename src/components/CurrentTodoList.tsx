@@ -130,7 +130,7 @@ export function CurrentTodoList({ todos, isTagHidden, onEventClick }: CurrentTod
   if (visibleTodos.length === 0) return null
 
   return (
-    <section className="mb-6">
+    <section data-testid="current-todo-list" className="mb-6">
       <div className="flex items-center gap-3 mb-3">
         <span className="text-[11px] font-semibold uppercase tracking-widest text-[#bbb] shrink-0">Current Todo</span>
         <div className="flex-1 h-px bg-gray-100" />

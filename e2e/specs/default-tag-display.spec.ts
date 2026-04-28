@@ -77,10 +77,11 @@ test('유저가 디폴트 태그를 지정하면 태그 없이 저장된 Todo에
   await page.goto('/')
   await page.waitForLoadState('networkidle')
 
-  // then: "태그 미지정 할일"이 리스트에 노출되고, 그 행에 디폴트 태그명 "개인"이 같이 보인다
-  const todoRow = page.getByText('태그 미지정 할일').first()
-  await expect(todoRow).toBeVisible()
-  await expect(page.getByText('개인')).toBeVisible()
+  // then: Current Todo 섹션에 "태그 미지정 할일"이 노출되고, 그 행에 디폴트 태그명 "개인" 뱃지가 함께 표시된다
+  // (사이드바 TagFilter 에도 "개인" 라벨이 노출되므로 testid 영역으로 한정)
+  const currentTodoList = page.getByTestId('current-todo-list')
+  await expect(currentTodoList.getByText('태그 미지정 할일')).toBeVisible()
+  await expect(currentTodoList.getByText('개인')).toBeVisible()
 })
 
 test('서버 디폴트 색상이 비어있어도 이벤트는 정상 렌더되고 앱 내장 기본 색상/이름이 노출된다', async ({ page, context }) => {

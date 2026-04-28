@@ -84,7 +84,11 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
   const setSelectedDate = useUiStore(s => s.setSelectedDate)
   const eventsByDate = useCalendarEventsCache(s => s.eventsByDate)
   const getHolidayNames = useHolidayCache(s => s.getHolidayNames)
-  const isTagHidden = useTagFilterStore(s => s.isTagHidden)
+  // hiddenTagIds Set 자체를 구독한다 — store 의 isTagHidden 함수 참조는 set 호출 시에도 변하지 않아,
+  // 함수만 구독하면 toggleTag 후에도 useMemo 가 재계산되지 않는다.
+  const hiddenTagIds = useTagFilterStore(s => s.hiddenTagIds)
+  const isTagHidden = (tagId: string | null | undefined) =>
+    !!tagId && hiddenTagIds.has(tagId)
   const {
     rowHeight,
     weekStartDay,
@@ -139,7 +143,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
       }
     }
     return filtered
-  }, [eventsByDate, isTagHidden])
+  }, [eventsByDate, hiddenTagIds]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 주별 이벤트 스택 — minimal 모드는 스택 불필요
   const weekStacks = useMemo(
