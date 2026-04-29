@@ -127,7 +127,14 @@ export function useMainViewModel(): MainViewModel {
   )
 
   // ── 공휴일 ────────────────────────────────────────────────────────
-  const getHolidayNames = useHolidayCache(s => s.getHolidayNames)
+  // holidays Map 자체를 구독해야 setHolidaysForYear 후 리렌더가 흐른다.
+  // store 의 getHolidayNames 함수 참조는 set 호출에도 변하지 않아, 함수만 구독하면
+  // hiddenTagIds 회귀와 동일하게 자식 트리에 변경이 전파되지 않는다.
+  const holidaysMap = useHolidayCache(s => s.holidays)
+  const getHolidayNames = useCallback(
+    (dateKey: string) => holidaysMap.get(dateKey) ?? [],
+    [holidaysMap],
+  )
 
   // ── fetch side effects ────────────────────────────────────────────
   // 캘린더 그리드가 표시하는 연도(들)에 대해 이벤트 + 공휴일 fetch
