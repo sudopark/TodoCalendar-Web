@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo, type MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, RotateCcw, Trash2 } from 'lucide-react'
 import { useDoneTodosCache } from '../repositories/caches/doneTodosCache'
@@ -13,13 +13,24 @@ interface DoneTodoRowProps {
   item: DoneTodo
   onRevert: (id: string) => void
   onRequestDelete: (id: string) => void
+  onClick?: (item: DoneTodo, anchorRect: DOMRect) => void
 }
 
-function DoneTodoRow({ item, onRevert, onRequestDelete }: DoneTodoRowProps) {
+function DoneTodoRow({ item, onRevert, onRequestDelete, onClick }: DoneTodoRowProps) {
   const { t } = useTranslation()
   const resolved = useResolvedEventTag(item.event_tag_id)
+
+  function handleRowClick(e: MouseEvent<HTMLLIElement>) {
+    if (!onClick) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    onClick(item, rect)
+  }
+
   return (
-    <li className="flex items-center gap-3 py-2.5">
+    <li
+      className={`flex items-center gap-3 py-2.5 rounded-md px-2 -mx-2 transition-colors ${onClick ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+      onClick={handleRowClick}
+    >
       <span
         className="h-2 w-2 shrink-0 rounded-full ring-2 ring-white"
         style={{ backgroundColor: resolved.color }}
@@ -28,7 +39,7 @@ function DoneTodoRow({ item, onRevert, onRequestDelete }: DoneTodoRowProps) {
       <button
         type="button"
         aria-label={t('todo.revert')}
-        onClick={() => onRevert(item.uuid)}
+        onClick={(e) => { e.stopPropagation(); onRevert(item.uuid) }}
         className="shrink-0 p-1.5 rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors"
       >
         <RotateCcw className="h-4 w-4" />
@@ -36,7 +47,7 @@ function DoneTodoRow({ item, onRevert, onRequestDelete }: DoneTodoRowProps) {
       <button
         type="button"
         aria-label={t('common.delete')}
-        onClick={() => onRequestDelete(item.uuid)}
+        onClick={(e) => { e.stopPropagation(); onRequestDelete(item.uuid) }}
         className="shrink-0 p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
       >
         <Trash2 className="h-4 w-4" />
@@ -54,7 +65,11 @@ function SectionHeader({ label }: { label: string }) {
   )
 }
 
-export function ArchivePanel() {
+export interface ArchivePanelProps {
+  onDoneTodoClick?: (doneTodo: DoneTodo, anchorRect: DOMRect) => void
+}
+
+export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
   const { t, i18n } = useTranslation()
   const exitArchivePanel = useUiStore(s => s.exitArchivePanel)
   const toggleRightPanel = useUiStore(s => s.toggleRightPanel)
@@ -145,6 +160,7 @@ export function ArchivePanel() {
                     item={item}
                     onRevert={handleRevert}
                     onRequestDelete={setConfirmId}
+                    onClick={onDoneTodoClick}
                   />
                 ))}
               </ul>
