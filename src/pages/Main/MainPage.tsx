@@ -6,6 +6,7 @@ import MainCalendar from '../../calendar/MainCalendar'
 import { RightEventPanel } from '../../components/RightEventPanel'
 import { EventFormPopover } from '../../components/eventForm/EventFormPopover'
 import { EventDetailPopover } from '../../components/EventDetail/EventDetailPopover'
+import { DoneTodoDetailPopover } from '../../components/DoneTodoDetail/DoneTodoDetailPopover'
 import { RepeatingScopeDialog } from '../../components/RepeatingScopeDialog'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
 import { useMainViewModel } from './useMainViewModel'
@@ -14,9 +15,15 @@ import { EventDeletionService } from '../../domain/services/EventDeletionService
 import { useToastStore } from '../../stores/toastStore'
 import type { CalendarEvent } from '../../domain/functions/eventTime'
 import type { RepeatScope } from '../../components/RepeatingScopeDialog'
+import type { DoneTodo } from '../../models'
 
 interface PopoverState {
   calEvent: CalendarEvent
+  anchorRect: DOMRect
+}
+
+interface DoneTodoPopoverState {
+  doneTodo: DoneTodo
   anchorRect: DOMRect
 }
 
@@ -29,6 +36,7 @@ export function MainPage() {
   const deletionService = useMemo(() => new EventDeletionService({ eventRepo }), [eventRepo])
 
   const [popover, setPopover] = useState<PopoverState | null>(null)
+  const [doneTodoPopover, setDoneTodoPopover] = useState<DoneTodoPopoverState | null>(null)
   const [showDeleteScope, setShowDeleteScope] = useState(false)
 
   function handleEventClick(calEvent: CalendarEvent, anchorRect: DOMRect) {
@@ -37,6 +45,14 @@ export function MainPage() {
 
   function handleClosePopover() {
     setPopover(null)
+  }
+
+  function handleDoneTodoClick(doneTodo: DoneTodo, anchorRect: DOMRect) {
+    setDoneTodoPopover({ doneTodo, anchorRect })
+  }
+
+  function handleCloseDoneTodoPopover() {
+    setDoneTodoPopover(null)
   }
 
   function handleEdit() {
@@ -127,6 +143,7 @@ export function MainPage() {
                   onToggleRightPanel={vm.toggleRightPanel}
                   onOpenArchivePanel={vm.openArchivePanel}
                   onEventClick={handleEventClick}
+                  onDoneTodoClick={handleDoneTodoClick}
                 />
               </div>
             </div>
@@ -142,6 +159,16 @@ export function MainPage() {
           onClose={handleClosePopover}
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
+        />
+      )}
+
+      {doneTodoPopover && (
+        <DoneTodoDetailPopover
+          doneTodo={doneTodoPopover.doneTodo}
+          anchorRect={doneTodoPopover.anchorRect}
+          onClose={handleCloseDoneTodoPopover}
+          onReverted={handleCloseDoneTodoPopover}
+          onDeleted={handleCloseDoneTodoPopover}
         />
       )}
 

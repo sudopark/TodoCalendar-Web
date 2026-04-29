@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { CheckCircle2 } from 'lucide-react'
 import { formatDateKey } from '../domain/functions/eventTime'
 import type { CalendarEvent } from '../domain/functions/eventTime'
-import type { ForemostEvent } from '../models'
+import type { ForemostEvent, DoneTodo } from '../models'
 import type { Todo } from '../models/Todo'
 import { ForemostEventBanner } from './ForemostEventBanner'
 import { UncompletedTodoList } from './UncompletedTodoList'
@@ -47,6 +47,7 @@ export interface RightEventPanelProps {
   onToggleRightPanel?: () => void
   onOpenArchivePanel?: () => void
   onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
+  onDoneTodoClick?: (doneTodo: DoneTodo, anchorRect: DOMRect) => void
 }
 
 export function RightEventPanel({
@@ -65,12 +66,13 @@ export function RightEventPanel({
   onToggleRightPanel = () => {},
   onOpenArchivePanel = () => {},
   onEventClick = () => {},
+  onDoneTodoClick,
 }: RightEventPanelProps) {
   const { t, i18n } = useTranslation()
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
 
   if (rightPanelMode === 'archive') {
-    return <ArchivePanel />
+    return <ArchivePanel onDoneTodoClick={onDoneTodoClick} />
   }
 
   const dateTitle = selectedDate
