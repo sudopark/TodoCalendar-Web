@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useMemo, type MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, RotateCcw, Trash2 } from 'lucide-react'
 import { useDoneTodosCache } from '../repositories/caches/doneTodosCache'
-import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useToastStore } from '../stores/toastStore'
 import { useUiStore } from '../stores/uiStore'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -74,7 +73,6 @@ export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
   const exitArchivePanel = useUiStore(s => s.exitArchivePanel)
   const toggleRightPanel = useUiStore(s => s.toggleRightPanel)
   const { items, hasMore, fetchNext, revert, remove, reset } = useDoneTodosCache()
-  const fetchCurrentTodos = useCurrentTodosCache(s => s.fetch)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
 
@@ -109,8 +107,9 @@ export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
 
   const handleRevert = async (id: string) => {
     try {
+      // cache.revert 가 응답 todo 를 currentTodosCache 에 직접 addTodo — fetchCurrentTodos 의존 제거.
+      // BFF 일관성 의존으로 빈 todo 가 노출되던 회귀 차단.
       await revert(id)
-      await fetchCurrentTodos()
     } catch (e) {
       console.warn('되돌리기 실패:', e)
       useToastStore.getState().show('todo.revert_failed', 'error')

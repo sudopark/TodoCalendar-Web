@@ -1,5 +1,6 @@
 import type { DoneTodo } from '../models/DoneTodo'
 import type { Todo } from '../models/Todo'
+import type { RevertDoneTodoResponse } from '../api/doneTodoApi'
 import { useDoneTodosCache } from './caches/doneTodosCache'
 
 const PAGE_SIZE = 20
@@ -10,7 +11,7 @@ const PAGE_SIZE = 20
 export interface DoneTodoApi {
   getDoneTodos(size: number, cursor?: number): Promise<DoneTodo[]>
   deleteDoneTodo(id: string): Promise<{ status: string }>
-  revertDoneTodo(id: string): Promise<Todo>
+  revertDoneTodo(id: string): Promise<RevertDoneTodoResponse>
 }
 
 interface Deps {
@@ -47,9 +48,9 @@ export class DoneTodoRepository {
   // ── mutate: api 호출 + 캐시 갱신 ──────────────────────────────────
 
   async revert(id: string): Promise<Todo> {
-    const restored = await this.deps.api.revertDoneTodo(id)
+    const response = await this.deps.api.revertDoneTodo(id)
     useDoneTodosCache.getState().removeItem(id)
-    return restored
+    return response.todo
   }
 
   async remove(id: string): Promise<void> {
