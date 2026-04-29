@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor, act } from '@testing-library/react'
 import { useDoneTodoDetailPopoverViewModel } from '../../../src/components/DoneTodoDetail/useDoneTodoDetailPopoverViewModel'
 import { useDoneTodosCache } from '../../../src/repositories/caches/doneTodosCache'
+import { useCurrentTodosCache } from '../../../src/repositories/caches/currentTodosCache'
 import type { DoneTodo } from '../../../src/models'
 
 const mockGetDoneTodoDetail = vi.fn()
@@ -31,6 +32,8 @@ beforeEach(() => {
   mockRevertDoneTodo.mockReset().mockResolvedValue({ uuid: 'd-1', name: '완료된 일', is_current: true })
   mockDeleteDoneTodo.mockReset().mockResolvedValue({ status: 'ok' })
   useDoneTodosCache.setState({ items: [sample], cursor: null, hasMore: false, isLoading: false })
+  // viewmodel.revert 가 fetchCurrentTodos 까지 await — fetch 만 stub
+  useCurrentTodosCache.setState({ fetch: async () => {} } as never, false)
 })
 
 describe('useDoneTodoDetailPopoverViewModel', () => {
