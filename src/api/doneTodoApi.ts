@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient'
-import type { DoneTodo, Todo } from '../models'
+import type { DoneTodo, EventDetail, Todo } from '../models'
 
 export const doneTodoApi = {
   getDoneTodos(size: number, cursor?: number): Promise<DoneTodo[]> {
@@ -15,5 +15,9 @@ export const doneTodoApi = {
 
   revertDoneTodo(id: string): Promise<Todo> {
     return apiClient.post(`/v1/todos/dones/${id}/revert`)
+  },
+
+  getDoneTodoDetail(id: string): Promise<EventDetail> {
+    return apiClient.get(`/v1/event_details/done/${id}`)
   },
 }

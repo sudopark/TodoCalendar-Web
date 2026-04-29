@@ -1,4 +1,5 @@
 import type { EventTime } from './EventTime'
+import type { NotificationOption } from './NotificationOption'
 
 export interface DoneTodo {
   uuid: string
@@ -7,4 +8,5 @@ export interface DoneTodo {
   done_at?: number | null
   event_time?: EventTime | null
   event_tag_id?: string | null
+  notification_options?: NotificationOption[] | null
 }
