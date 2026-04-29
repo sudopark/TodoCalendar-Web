@@ -29,7 +29,8 @@ vi.mock('../src/api/foremostApi', () => ({
 }))
 
 vi.mock('../src/api/holidayApi', () => ({
-  holidayApi: { getHolidays: async () => [] },
+  // HolidayResponse 는 { items: HolidayItem[] } 형태이므로 빈 응답도 동일 형태로 mock 한다.
+  holidayApi: { getHolidays: async () => ({ items: [] }) },
 }))
 
 vi.mock('../src/api/eventTagApi', () => ({
