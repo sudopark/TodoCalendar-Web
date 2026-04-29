@@ -36,6 +36,16 @@ function tagPanel(page: Page) {
   return page.getByTestId('tag-management-panel')
 }
 
+test('레거시 /tags 경로는 /settings/editEvent/tags 로 redirect 된다', async ({ page }) => {
+  // 라우팅 contract 검증: 폐지된 /tags 라우트가 새 경로로 안전하게 흘러간다.
+  await mockTagEndpoints(page, [])
+
+  await page.goto('/tags')
+  await page.waitForLoadState('networkidle')
+
+  await expect(page).toHaveURL(/\/settings\/editEvent\/tags$/)
+})
+
 test('태그 관리 패널 진입 시 헤더와 기본/휴일 행, 유저 태그가 순서대로 렌더된다', async ({ page }) => {
   await mockTagEndpoints(page, [{ uuid: 'u-1', name: '업무' }])
 
