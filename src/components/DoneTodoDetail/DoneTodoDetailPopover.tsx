@@ -95,8 +95,9 @@ export function DoneTodoDetailPopover({
             aria-label={t('todo.revert', '되돌리기')}
             disabled={vm.isReverting}
             onClick={async () => {
-              await vm.revert()
-              onReverted()
+              // 실패 시 popover 는 그대로 두고 토스트만 노출 — 사용자 재시도 동선 보존
+              const ok = await vm.revert()
+              if (ok) onReverted()
             }}
             className={ACTION_BTN}
           >
@@ -187,9 +188,10 @@ export function DoneTodoDetailPopover({
           message={t('todo.done_delete_confirm')}
           danger
           onConfirm={async () => {
-            await vm.remove()
+            const ok = await vm.remove()
             setShowDeleteConfirm(false)
-            onDeleted()
+            // 실패 시에는 popover 를 닫지 않아 사용자가 재시도하거나 확인할 수 있게 한다
+            if (ok) onDeleted()
           }}
           onCancel={() => setShowDeleteConfirm(false)}
         />

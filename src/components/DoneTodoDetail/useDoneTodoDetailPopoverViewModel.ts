@@ -7,8 +7,9 @@ import type { DoneTodo, EventDetail } from '../../models'
 
 export interface DoneTodoDetailPopoverViewModel {
   detail: EventDetail | null
-  revert: () => Promise<void>
-  remove: () => Promise<void>
+  /** 성공 시 true, 실패(또는 중복 호출 차단) 시 false 를 반환 — 호출자가 popover close 등 후속 동선을 분기. */
+  revert: () => Promise<boolean>
+  remove: () => Promise<boolean>
   isReverting: boolean
   isDeleting: boolean
 }
@@ -44,32 +45,36 @@ export function useDoneTodoDetailPopoverViewModel(
     return () => { cancelled = true }
   }, [doneTodo.uuid])
 
-  const revert = useCallback(async () => {
-    if (revertingRef.current) return
+  const revert = useCallback(async (): Promise<boolean> => {
+    if (revertingRef.current) return false
     revertingRef.current = true
     setIsReverting(true)
     try {
       // ArchivePanel.handleRevert 와 동일한 후처리 — 되돌린 todo 가 즉시 Current Todo 목록에 반영되도록.
       await cacheRevert(doneTodo.uuid)
       await fetchCurrentTodos()
+      return true
     } catch (e) {
       console.warn('Done todo 되돌리기 실패:', e)
       useToastStore.getState().show('todo.revert_failed', 'error')
+      return false
     } finally {
       revertingRef.current = false
       setIsReverting(false)
     }
   }, [cacheRevert, doneTodo.uuid, fetchCurrentTodos])
 
-  const remove = useCallback(async () => {
-    if (deletingRef.current) return
+  const remove = useCallback(async (): Promise<boolean> => {
+    if (deletingRef.current) return false
     deletingRef.current = true
     setIsDeleting(true)
     try {
       await cacheRemove(doneTodo.uuid)
+      return true
     } catch (e) {
       console.warn('Done todo 삭제 실패:', e)
       useToastStore.getState().show('todo.delete_failed', 'error')
+      return false
     } finally {
       deletingRef.current = false
       setIsDeleting(false)
