@@ -23,6 +23,14 @@ test('완료된 할 일 패널을 열면 헤더가 렌더된다', async ({ page 
   await expect(page.getByRole('heading', { name: '완료된 할 일' })).toBeVisible()
 })
 
+test('레거시 /done 경로는 메인 페이지로 redirect 된다', async ({ page }) => {
+  // 라우팅 contract 검증: 폐지된 라우트가 영구적으로 / 로 안전하게 흘러간다.
+  await page.goto('/done')
+  await page.waitForLoadState('networkidle')
+
+  await expect(page).toHaveURL('/')
+})
+
 test('완료된 할 일이 없으면 빈 상태 메시지가 표시된다', async ({ page }) => {
   // given — API가 빈 배열을 반환하도록 모킹
   await page.route('**/v1/todos/dones**', async route => {
