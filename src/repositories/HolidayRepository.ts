@@ -36,7 +36,9 @@ export class HolidayRepository {
   async fetch(year: number): Promise<void> {
     const { code } = useHolidayCache.getState().country
     const response = await this.api.getHolidays(year, this.locale, code)
-    useHolidayCache.getState().setHolidaysForYear(year, response.items)
+    // 응답이 { items } 가 아닌 빈 객체로 오는 환경(예: 미모킹 단위 테스트)에도
+    // setHolidaysForYear 가 unhandled rejection 을 일으키지 않도록 빈 배열 fallback.
+    useHolidayCache.getState().setHolidaysForYear(year, response?.items ?? [])
   }
 
   // ── observe: snapshot ────────────────────────────────────────────
