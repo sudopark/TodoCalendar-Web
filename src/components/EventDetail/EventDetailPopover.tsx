@@ -4,11 +4,12 @@ import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { Pencil, Trash2, X, Clock, Repeat, Bell, MapPin, FileText, Link2 } from 'lucide-react'
 import type { CalendarEvent } from '../../domain/functions/eventTime'
-import type { Repeating, NotificationOption } from '../../models'
+import type { Repeating } from '../../models'
 import { useResolvedEventTag } from '../../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../../domain/functions/tagDisplay'
 import { EventTimeDisplay } from '../EventTimeDisplay'
 import { useEventDetailPopoverViewModel } from './useEventDetailPopoverViewModel'
+import { formatNotification } from '../../utils/formatNotification'
 
 function repeatingLabel(repeating: Repeating, t: TFunction): string {
   const { option } = repeating
@@ -20,39 +21,6 @@ function repeatingLabel(repeating: Repeating, t: TFunction): string {
     case 'every_year_some_day': return t('repeat.every_year_some_day')
     case 'lunar_calendar_every_year': return `${t('repeat.every_year', { n: 1 })} (${t('repeat.lunar')})`
   }
-}
-
-const TIME_PRESET_KEYS: { key: string; seconds: number }[] = [
-  { key: 'notif.on_time', seconds: 0 },
-  { key: 'notif.1min_before', seconds: -60 },
-  { key: 'notif.5min_before', seconds: -300 },
-  { key: 'notif.10min_before', seconds: -600 },
-  { key: 'notif.15min_before', seconds: -900 },
-  { key: 'notif.30min_before', seconds: -1800 },
-  { key: 'notif.1hour_before', seconds: -3600 },
-  { key: 'notif.2hour_before', seconds: -7200 },
-  { key: 'notif.1day_before', seconds: -86400 },
-  { key: 'notif.2day_before', seconds: -172800 },
-  { key: 'notif.1week_before', seconds: -604800 },
-]
-
-const ALLDAY_PRESET_KEYS: { key: string; dayOffset: number; hour: number; minute: number }[] = [
-  { key: 'notif.allday_same_day_9am', dayOffset: 0, hour: 9, minute: 0 },
-  { key: 'notif.allday_same_day_noon', dayOffset: 0, hour: 12, minute: 0 },
-  { key: 'notif.allday_1day_before_9am', dayOffset: -1, hour: 9, minute: 0 },
-  { key: 'notif.allday_2day_before_9am', dayOffset: -2, hour: 9, minute: 0 },
-  { key: 'notif.allday_1week_before_9am', dayOffset: -7, hour: 9, minute: 0 },
-]
-
-function formatNotification(option: NotificationOption, t: TFunction): string {
-  if (option.type === 'time') {
-    const preset = TIME_PRESET_KEYS.find(p => p.seconds === option.seconds)
-    return preset ? t(preset.key) : `${Math.abs(option.seconds)}초 전`
-  }
-  const preset = ALLDAY_PRESET_KEYS.find(
-    p => p.dayOffset === option.dayOffset && p.hour === option.hour && p.minute === option.minute,
-  )
-  return preset ? t(preset.key) : `${Math.abs(option.dayOffset)}일 전 ${option.hour}:${String(option.minute).padStart(2, '0')}`
 }
 
 const ACTION_BTN = 'p-1.5 rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors'
