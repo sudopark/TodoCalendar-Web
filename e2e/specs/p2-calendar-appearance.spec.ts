@@ -38,23 +38,10 @@ test('localStorage에 기본값(rowHeight 70)이 없을 때 캘린더 주 행은
   expect(minHeight).toBe('70px')
 })
 
-test('localStorage에 fontSize를 설정하면 캘린더 셀이 해당 폰트 크기를 반영한다', async ({ page }) => {
-  // given — 커스텀 fontSize(16px) 설정
-  const customFontSize = 16
-  await page.addInitScript(({ key, value }) => {
-    localStorage.setItem(key, JSON.stringify(value))
-  }, { key: 'calendar_appearance', value: { rowHeight: 70, fontSize: customFontSize, showEventNames: true } })
-
-  // when
-  await page.goto('/')
-  await page.waitForLoadState('networkidle')
-
-  // then — day-cell의 fontSize 스타일이 커스텀 값을 반영한다
-  const firstCell = page.getByTestId('day-cell').first()
-  await expect(firstCell).toBeVisible()
-  const fontSize = await firstCell.evaluate(el => (el as HTMLElement).style.fontSize)
-  expect(fontSize).toBe(`${customFontSize}px`)
-})
+// NOTE: 새 4-layer 아키텍처(#66) 이후 CalendarAppearance 의 단일 fontSize 필드는 폐기되고
+// eventFontSizeWeight / eventListFontSizeWeight 두 가중치로 분리됐다. day-cell 자체에 inline
+// fontSize 가 적용되지 않으므로 기존 "fontSize → 셀 fontSize 반영" 시나리오는 의미를 잃었다.
+// 새 가중치 검증 시나리오는 #86 의 out of scope("신규 시나리오 추가") 이므로 별도 이슈에서 추가한다.
 
 test('rowHeight를 매우 작게 설정해도 캘린더가 정상 렌더된다', async ({ page }) => {
   // given — 최솟값에 가까운 rowHeight
