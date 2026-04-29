@@ -25,7 +25,7 @@ function makeFakeApi(overrides: Partial<DoneTodoApi> = {}): DoneTodoApi {
   return {
     getDoneTodos: overrides.getDoneTodos ?? vi.fn(async () => []),
     deleteDoneTodo: overrides.deleteDoneTodo ?? vi.fn(async () => ({ status: 'ok' })),
-    revertDoneTodo: overrides.revertDoneTodo ?? vi.fn(async () => makeTodo('reverted')),
+    revertDoneTodo: overrides.revertDoneTodo ?? vi.fn(async () => ({ todo: makeTodo('reverted'), detail: null })),
   }
 }
 
@@ -87,11 +87,11 @@ describe('DoneTodoRepository — revert', () => {
   beforeEach(resetCache)
 
   it('revert 후 캐시에서 해당 항목이 제거되고 복원된 Todo가 반환된다', async () => {
-    // given
+    // given — 응답은 iOS RevertTodoResultMapper 와 동일한 { todo, detail } 형태
     useDoneTodosCache.setState({ items: [makeDone('d1'), makeDone('d2')] })
     const restored = makeTodo('d1')
     const repo = new DoneTodoRepository({
-      api: makeFakeApi({ revertDoneTodo: vi.fn(async () => restored) }),
+      api: makeFakeApi({ revertDoneTodo: vi.fn(async () => ({ todo: restored, detail: null })) }),
     })
 
     // when

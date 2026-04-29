@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { doneTodoApi } from '../../api/doneTodoApi'
 import { useDoneTodosCache } from '../../repositories/caches/doneTodosCache'
-import { useCurrentTodosCache } from '../../repositories/caches/currentTodosCache'
 import { useToastStore } from '../../stores/toastStore'
 import type { DoneTodo, EventDetail } from '../../models'
 
@@ -23,7 +22,6 @@ export function useDoneTodoDetailPopoverViewModel(
 
   const cacheRevert = useDoneTodosCache(s => s.revert)
   const cacheRemove = useDoneTodosCache(s => s.remove)
-  const fetchCurrentTodos = useCurrentTodosCache(s => s.fetch)
 
   // useCallback deps 의 isReverting/isDeleting 으로 매 렌더마다 reference 가 깨지지 않도록
   // useRef 로 in-flight 플래그를 관리한다.
@@ -50,9 +48,8 @@ export function useDoneTodoDetailPopoverViewModel(
     revertingRef.current = true
     setIsReverting(true)
     try {
-      // ArchivePanel.handleRevert 와 동일한 후처리 — 되돌린 todo 가 즉시 Current Todo 목록에 반영되도록.
+      // cache.revert 가 응답 todo 를 currentTodosCache 에 직접 addTodo 한다 — 빈 todo 회귀 차단.
       await cacheRevert(doneTodo.uuid)
-      await fetchCurrentTodos()
       return true
     } catch (e) {
       console.warn('Done todo 되돌리기 실패:', e)
@@ -62,7 +59,7 @@ export function useDoneTodoDetailPopoverViewModel(
       revertingRef.current = false
       setIsReverting(false)
     }
-  }, [cacheRevert, doneTodo.uuid, fetchCurrentTodos])
+  }, [cacheRevert, doneTodo.uuid])
 
   const remove = useCallback(async (): Promise<boolean> => {
     if (deletingRef.current) return false

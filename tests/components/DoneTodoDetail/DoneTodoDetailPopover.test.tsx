@@ -7,7 +7,10 @@ import { useCurrentTodosCache } from '../../../src/repositories/caches/currentTo
 import type { DoneTodo } from '../../../src/models'
 
 const mockGetDoneTodoDetail = vi.fn()
-const mockRevertDoneTodo = vi.fn(async () => ({ uuid: 'd-1', name: '완료된 일', is_current: true }))
+const mockRevertDoneTodo = vi.fn(async () => ({
+  todo: { uuid: 'd-1', name: '완료된 일', is_current: true },
+  detail: null,
+}))
 const mockDeleteDoneTodo = vi.fn(async () => ({ status: 'ok' }))
 
 vi.mock('../../../src/api/doneTodoApi', () => ({
@@ -39,11 +42,13 @@ const sample: DoneTodo = {
 
 beforeEach(() => {
   mockGetDoneTodoDetail.mockReset().mockResolvedValue(null)
-  mockRevertDoneTodo.mockReset().mockResolvedValue({ uuid: 'd-1', name: '완료된 일', is_current: true })
+  mockRevertDoneTodo.mockReset().mockResolvedValue({
+    todo: { uuid: 'd-1', name: '완료된 일', is_current: true },
+    detail: null,
+  })
   mockDeleteDoneTodo.mockReset().mockResolvedValue({ status: 'ok' })
   useDoneTodosCache.setState({ items: [sample], cursor: null, hasMore: false, isLoading: false })
-  // viewmodel.revert 가 fetchCurrentTodos 까지 await 하므로 cache.fetch 를 stub 한다
-  useCurrentTodosCache.setState({ fetch: async () => {} } as never, false)
+  useCurrentTodosCache.getState().reset()
 })
 
 function renderPopover(overrides: Partial<{
