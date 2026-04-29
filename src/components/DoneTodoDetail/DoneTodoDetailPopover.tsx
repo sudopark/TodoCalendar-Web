@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RotateCcw, Trash2, X, Clock, Bell, MapPin, FileText, Link2 } from 'lucide-react'
 import type { DoneTodo } from '../../models'
@@ -7,9 +7,10 @@ import { useDoneTodoDetailPopoverViewModel } from './useDoneTodoDetailPopoverVie
 import { useResolvedEventTag } from '../../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../../domain/functions/tagDisplay'
 import { ConfirmDialog } from '../ConfirmDialog'
+import { EventTimeDisplay } from '../EventTimeDisplay'
 import { formatNotification } from '../../utils/formatNotification'
 
-const POPOVER_WIDTH = 360
+const POPOVER_WIDTH = 320
 const THRESHOLD = 200
 
 const ACTION_BTN = 'p-1.5 rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50'
@@ -36,7 +37,8 @@ export function DoneTodoDetailPopover({
   const resolved = useResolvedEventTag(doneTodo.event_tag_id)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  // ESC 닫기 — ConfirmDialog 가 열려 있을 때는 dialog 가 stopPropagation 책임
+  // ESC 닫기 — ConfirmDialog 가 떠 있는 동안에는 dialog 자체의 ESC 핸들러가 onCancel 을 처리하도록
+  // popover 측 ESC 는 showDeleteConfirm guard 로 일시 비활성. dialog 가 닫히면 다시 활성.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape' && !showDeleteConfirm) onClose()
@@ -59,20 +61,8 @@ export function DoneTodoDetailPopover({
       })
     : null
 
-  const originTimeText = useMemo(() => {
-    if (!doneTodo.event_time) return null
-    const time = doneTodo.event_time
-    if (time.time_type === 'at') {
-      return new Date(time.timestamp * 1000).toLocaleString(dateLocale)
-    }
-    if (time.time_type === 'allday') {
-      return new Date(time.period_start * 1000).toLocaleDateString(dateLocale)
-    }
-    if (time.time_type === 'period') {
-      return `${new Date(time.period_start * 1000).toLocaleString(dateLocale)} ~ ${new Date(time.period_end * 1000).toLocaleString(dateLocale)}`
-    }
-    return null
-  }, [doneTodo.event_time, dateLocale])
+  // 원래 시간(originEventTime) — EventTimeDisplay 재사용으로 EventDetailPopover 와 포맷 일관성 확보
+  const originEventTime = doneTodo.event_time ?? null
 
   const notifications = doneTodo.notification_options ?? null
   const notificationText = notifications && notifications.length > 0
@@ -90,9 +80,9 @@ export function DoneTodoDetailPopover({
         onClick={onClose}
         data-testid="done-todo-detail-backdrop"
       />
-      {/* 카드 */}
+      {/* 카드 — EventDetailPopover 와 톤 정합 (rounded-xl, shadow-xl, gray-100 border, 폭 320) */}
       <div
-        className="fixed z-50 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-border-light p-5"
+        className="fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 p-5"
         style={{ top, left, transform: `translateY(${translateY})`, width: POPOVER_WIDTH }}
         data-testid="done-todo-detail-popover"
       >
@@ -149,12 +139,12 @@ export function DoneTodoDetailPopover({
               </div>
             </div>
           )}
-          {originTimeText && (
+          {originEventTime && (
             <div className={INFO_ROW}>
               <Clock className={INFO_ICON} />
               <div>
                 <p className="text-[11px] uppercase tracking-wider text-[#bbb]">{t('todo.original_time_label', '원래 시간')}</p>
-                <p>{originTimeText}</p>
+                <p><EventTimeDisplay eventTime={originEventTime} /></p>
               </div>
             </div>
           )}
