@@ -12,6 +12,9 @@ export default defineConfig({
     baseURL: BASE_URL,
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
+    // PLAYWRIGHT_VIDEO=on 으로 모든 케이스에 대해 .webm 영상을 남긴다.
+    // CLAUDE.md 의 "playwright --video on 후 test-results .webm 영상 검토" 흐름을 위함.
+    video: (process.env.PLAYWRIGHT_VIDEO ?? 'retain-on-failure') as 'on' | 'off' | 'retain-on-failure' | 'on-first-retry',
   },
   projects: [
     {
