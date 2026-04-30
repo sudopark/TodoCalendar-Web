@@ -100,17 +100,24 @@ export const useDoneTodosCache = create<DoneTodosCacheState>((set, get) => ({
 
   revert: async (id: string) => {
     try {
-      // 백엔드 응답은 iOS RevertTodoResultMapper 와 동일한 { todo, detail } 형태 — todo 를 풀어 사용한다.
-      // EventRepository.completeTodo 와 일관된 분기로 calendarEvents/currentTodos 양쪽에 직접 추가하여,
-      // BFF 의 GET /v1/todos 일관성에 의존하지 않고 원래 todo 형태(scheduled or current) 그대로 즉시 복구된다.
+      // 응답 추출 전에 done todo 의 원래 형태(event_time 유무)를 기억해 둔다.
+      // 백엔드가 revert 응답의 todo.is_current 를 어떻게 채우든, 사용자 의도("원래 todo 형태로 복구")는
+      // done 되기 전 todo 의 형태로 돌아가는 것 — DoneTodo.event_time 으로 판단한다.
+      //   · DoneTodo.event_time 있음 → 원래 scheduled → calendarEventsCache 로만 복구
+      //   · DoneTodo.event_time 없음 → 원래 untimed → currentTodosCache 로 복구
+      // 응답의 is_current 만 신뢰하면 BFF 가 항상 true 로 답하는 환경에서 scheduled todo 가 current 목록에
+      // 잘못 전환되는 회귀가 발생한다.
+      const doneTodoBefore = get().items.find(i => i.uuid === id)
+      const wasScheduled = !!doneTodoBefore?.event_time
+
       const response = await doneTodoApi.revertDoneTodo(id)
       const restored = response?.todo
       set(state => ({ items: state.items.filter(i => i.uuid !== id), generation: state.generation + 1 }))
+
       if (restored) {
-        if (restored.event_time) {
+        if (wasScheduled) {
           useCalendarEventsCache.getState().addEvent({ type: 'todo', event: restored })
-        }
-        if (restored.is_current) {
+        } else {
           useCurrentTodosCache.getState().addTodo(restored)
         }
       }

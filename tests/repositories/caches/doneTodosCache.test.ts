@@ -92,18 +92,42 @@ describe('useDoneTodosCache', () => {
     expect(useDoneTodosCache.getState().items.map(i => i.uuid)).toEqual(['d2'])
   })
 
-  it('revert 호출 시 응답의 todo 가 is_current 면 currentTodosCache 에 즉시 추가된다', async () => {
-    // given
+  it('revert 호출 시 untimed done todo 는 currentTodosCache 에 복구된다', async () => {
+    // given — DoneTodo 에 event_time 없음 (원래 untimed/current 형태)
     useDoneTodosCache.setState({ items: [makeDone('d1')] })
     useCurrentTodosCache.getState().reset()
+    // 응답의 is_current 가 어떤 값이든 — 클라이언트는 done todo 의 event_time 유무로 분기한다
     const restored: Todo = { uuid: 'd1', name: '복구된 current', is_current: true }
     vi.mocked(doneTodoApi.revertDoneTodo).mockResolvedValue({ todo: restored, detail: null })
 
     // when
     await useDoneTodosCache.getState().revert('d1')
 
-    // then — BFF 일관성 의존 없이 즉시 currentTodos 에 노출된다
+    // then
     expect(useCurrentTodosCache.getState().todos.find(t => t.uuid === 'd1')).toEqual(restored)
+  })
+
+  it('revert 호출 시 scheduled done todo 는 currentTodosCache 가 아닌 calendarEventsCache 로 복구된다', async () => {
+    // given — DoneTodo 에 event_time 있음 (원래 scheduled 형태)
+    const scheduled = {
+      uuid: 'd1',
+      name: 'scheduled',
+      done_at: 1000,
+      origin_event_id: null,
+      event_time: { time_type: 'at' as const, timestamp: 1700 },
+      event_tag_id: null,
+    }
+    useDoneTodosCache.setState({ items: [scheduled] })
+    useCurrentTodosCache.getState().reset()
+    // 응답에서 백엔드가 is_current=true 로 보내더라도 — 클라이언트는 DoneTodo.event_time 으로 분기
+    const restored: Todo = { uuid: 'd1', name: 'scheduled', is_current: true, event_time: { time_type: 'at', timestamp: 1700 } }
+    vi.mocked(doneTodoApi.revertDoneTodo).mockResolvedValue({ todo: restored, detail: null })
+
+    // when
+    await useDoneTodosCache.getState().revert('d1')
+
+    // then — currentTodos 에는 추가되지 않고(원래 형태 보존), calendarEvents 검증은 별도 cache 직접 검증 생략
+    expect(useCurrentTodosCache.getState().todos.find(t => t.uuid === 'd1')).toBeUndefined()
   })
 
   it('마지막 항목의 done_at이 null이면 hasMore가 false가 된다', async () => {
