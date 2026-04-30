@@ -6,8 +6,12 @@ import { useCurrentTodosCache } from '../../../src/repositories/caches/currentTo
 import type { DoneTodo } from '../../../src/models'
 
 const mockGetDoneTodoDetail = vi.fn()
+const mockCancelDoneTodo = vi.fn(async () => ({
+  reverted: { uuid: 'todo-1', name: '완료된 일', is_current: true },
+  done_id: 'd-1',
+}))
 const mockRevertDoneTodo = vi.fn(async () => ({
-  todo: { uuid: 'd-1', name: '완료된 일', is_current: true },
+  todo: { uuid: 'todo-1', name: '완료된 일', is_current: true },
   detail: null,
 }))
 const mockDeleteDoneTodo = vi.fn(async () => ({ status: 'ok' }))
@@ -17,6 +21,7 @@ vi.mock('../../../src/api/doneTodoApi', () => ({
     getDoneTodos: vi.fn(async () => []),
     deleteDoneTodo: (id: string) => mockDeleteDoneTodo(id),
     revertDoneTodo: (id: string) => mockRevertDoneTodo(id),
+    cancelDoneTodo: (body: unknown) => mockCancelDoneTodo(body),
     getDoneTodoDetail: (id: string) => mockGetDoneTodoDetail(id),
   },
 }))
@@ -32,12 +37,21 @@ const sample: DoneTodo = {
 
 beforeEach(() => {
   mockGetDoneTodoDetail.mockReset()
+  mockCancelDoneTodo.mockReset().mockResolvedValue({
+    reverted: { uuid: 'todo-1', name: '완료된 일', is_current: true },
+    done_id: 'd-1',
+  })
   mockRevertDoneTodo.mockReset().mockResolvedValue({
-    todo: { uuid: 'd-1', name: '완료된 일', is_current: true },
+    todo: { uuid: 'todo-1', name: '완료된 일', is_current: true },
     detail: null,
   })
   mockDeleteDoneTodo.mockReset().mockResolvedValue({ status: 'ok' })
-  useDoneTodosCache.setState({ items: [sample], cursor: null, hasMore: false, isLoading: false })
+  useDoneTodosCache.setState({
+    items: [{ ...sample, origin_event_id: 'todo-1' }],
+    cursor: null,
+    hasMore: false,
+    isLoading: false,
+  })
   useCurrentTodosCache.getState().reset()
 })
 
