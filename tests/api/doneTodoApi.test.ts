@@ -36,7 +36,7 @@ describe('doneTodoApi', () => {
     expect((options as RequestInit).method).toBe('GET')
   })
 
-  it('deleteDoneTodo(id)가 /v1/todos/dones/:id로 DELETE 호출한다', async () => {
+  it('deleteDoneTodo(id)가 /v2/todos/dones/:id로 DELETE 호출한다 (iOS removeDoneTodo 와 동일 prefix)', async () => {
     fetchSpy.mockResolvedValue(
       new Response(JSON.stringify({ status: 'ok' }), { status: 200, headers: { 'content-type': 'application/json' } })
     )
@@ -45,7 +45,7 @@ describe('doneTodoApi', () => {
     await doneTodoApi.deleteDoneTodo('done-1')
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos/dones/done-1')
+    expect(String(url)).toContain('/v2/todos/dones/done-1')
     expect((options as RequestInit).method).toBe('DELETE')
   })
 
