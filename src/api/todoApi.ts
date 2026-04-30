@@ -1,6 +1,21 @@
 import { apiClient } from './apiClient'
 import type { Todo, DoneTodo, EventTime, Repeating, NotificationOption } from '../models'
 
+/**
+ * iOS `TodoMakeParams.asJson()` 와 동일한 5개 필드만 추려낸다.
+ * BFF 의 complete 핸들러가 origin 을 firestore 문서에 그대로 spread 하므로,
+ * `uuid` / `is_current` / `repeating_turn` / `exclude_repeatings` 같은 식별·상태 필드를 보내면
+ * 저장된 done 문서가 오염되어 이후 revert / delete 가 잘못된 id 로 호출된다.
+ */
+function buildCompleteOrigin(origin: Todo): Record<string, unknown> {
+  const sanitized: Record<string, unknown> = { name: origin.name }
+  if (origin.event_tag_id != null) sanitized.event_tag_id = origin.event_tag_id
+  if (origin.event_time != null) sanitized.event_time = origin.event_time
+  if (origin.repeating != null) sanitized.repeating = origin.repeating
+  if (origin.notification_options != null) sanitized.notification_options = origin.notification_options
+  return sanitized
+}
+
 export const todoApi = {
   getTodos(lower: number, upper: number): Promise<Todo[]> {
     return apiClient.get(`/v1/todos?lower=${lower}&upper=${upper}`)
@@ -27,7 +42,10 @@ export const todoApi = {
   },
 
   completeTodo(id: string, body: { origin: Todo; next_event_time?: EventTime; next_repeating_turn?: number }): Promise<DoneTodo> {
-    return apiClient.post(`/v1/todos/todo/${id}/complete`, body)
+    const sanitized: Record<string, unknown> = { origin: buildCompleteOrigin(body.origin) }
+    if (body.next_event_time != null) sanitized.next_event_time = body.next_event_time
+    if (body.next_repeating_turn != null) sanitized.next_repeating_turn = body.next_repeating_turn
+    return apiClient.post(`/v1/todos/todo/${id}/complete`, sanitized)
   },
 
   replaceTodo(id: string, body: { new: Record<string, unknown>; origin_next_event_time?: EventTime; next_repeating_turn?: number }): Promise<{ new_todo: Todo; next_repeating?: Todo }> {
