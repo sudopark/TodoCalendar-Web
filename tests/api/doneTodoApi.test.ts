@@ -49,16 +49,16 @@ describe('doneTodoApi', () => {
     expect((options as RequestInit).method).toBe('DELETE')
   })
 
-  it('revertDoneTodo(id)가 /v1/todos/dones/:id/revert로 POST 호출한다', async () => {
+  it('revertDoneTodo(id)가 /v2/todos/dones/:id/revert로 POST 호출한다 (BFF v2 응답 형태 정합)', async () => {
     fetchSpy.mockResolvedValue(
-      new Response(JSON.stringify({ uuid: 'todo-1' }), { status: 200, headers: { 'content-type': 'application/json' } })
+      new Response(JSON.stringify({ todo: { uuid: 'todo-1', name: 'restored' }, detail: null }), { status: 200, headers: { 'content-type': 'application/json' } })
     )
 
     const { doneTodoApi } = await import('../../src/api/doneTodoApi')
     await doneTodoApi.revertDoneTodo('done-1')
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos/dones/done-1/revert')
+    expect(String(url)).toContain('/v2/todos/dones/done-1/revert')
     expect((options as RequestInit).method).toBe('POST')
   })
 
