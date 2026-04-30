@@ -23,8 +23,12 @@ export const doneTodoApi = {
     return apiClient.delete(`/v1/todos/dones/${id}`)
   },
 
+  // BFF 는 path prefix 로 v1/v2 분기 (functions/index.js 의 setVersion). v1 의 revertDoneTodo 는 평면 Todo 만 반환하고
+  // doneTodoService.#runRevertDoneTodo 에 makeTodo await 누락 race 회귀가 있어 빈 todo 가 생기는 것으로 보인다.
+  // v2 의 revertDoneTodoV2 는 { todo, detail } 형태로 반환하고 detail 도 함께 복원해 iOS 와 정합한다.
+  // → revert 만 v2 path 로 호출. 다른 todo endpoint 의 v1 → v2 마이그레이션은 별도 이슈.
   revertDoneTodo(id: string): Promise<RevertDoneTodoResponse> {
-    return apiClient.post(`/v1/todos/dones/${id}/revert`)
+    return apiClient.post(`/v2/todos/dones/${id}/revert`)
   },
 
   getDoneTodoDetail(id: string): Promise<EventDetail> {
