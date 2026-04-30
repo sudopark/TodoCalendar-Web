@@ -14,6 +14,7 @@ vi.mock('../../src/api/doneTodoApi', () => ({
     getDoneTodos: vi.fn(),
     deleteDoneTodo: vi.fn(),
     revertDoneTodo: vi.fn(),
+    cancelDoneTodo: vi.fn(),
   },
 }))
 
@@ -103,9 +104,9 @@ describe('DoneTodosPage', () => {
   })
 
   it('되돌리기 실패 시 에러 토스트가 표시된다', async () => {
-    // given
+    // given — cache.revert 가 cancelDoneTodo 를 호출하므로 그쪽을 reject
     vi.mocked(doneTodoApi.getDoneTodos).mockResolvedValue([makeDone('d1')])
-    vi.mocked(doneTodoApi.revertDoneTodo).mockRejectedValue(new Error('fail'))
+    vi.mocked(doneTodoApi.cancelDoneTodo).mockRejectedValue(new Error('fail'))
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     renderPage()
@@ -144,11 +145,12 @@ describe('DoneTodosPage', () => {
   })
 
   it('되돌리기 버튼 클릭 시 항목이 목록에서 제거된다', async () => {
-    // given
+    // given — cache.revert 는 cancelDoneTodo 를 호출하고 응답의 reverted 필드를 사용
     vi.mocked(doneTodoApi.getDoneTodos).mockResolvedValue([makeDone('d1')])
-    vi.mocked(doneTodoApi.revertDoneTodo).mockResolvedValue({
-      uuid: 'd1', name: '완료-d1', is_current: true,
-    } as any)
+    vi.mocked(doneTodoApi.cancelDoneTodo).mockResolvedValue({
+      reverted: { uuid: 'todo-1', name: '완료-d1', is_current: true } as any,
+      done_id: 'd1',
+    })
     vi.mocked(todoApi.getCurrentTodos).mockResolvedValue([])
 
     renderPage()

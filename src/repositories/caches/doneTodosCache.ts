@@ -100,21 +100,36 @@ export const useDoneTodosCache = create<DoneTodosCacheState>((set, get) => ({
 
   revert: async (id: string) => {
     try {
-      // 응답 추출 전에 done todo 의 원래 형태(event_time 유무)를 기억해 둔다.
-      // 백엔드가 revert 응답의 todo.is_current 를 어떻게 채우든, 사용자 의도("원래 todo 형태로 복구")는
-      // done 되기 전 todo 의 형태로 돌아가는 것 — DoneTodo.event_time 으로 판단한다.
-      //   · DoneTodo.event_time 있음 → 원래 scheduled → calendarEventsCache 로만 복구
-      //   · DoneTodo.event_time 없음 → 원래 untimed → currentTodosCache 로 복구
-      // 응답의 is_current 만 신뢰하면 BFF 가 항상 true 로 답하는 환경에서 scheduled todo 가 current 목록에
-      // 잘못 전환되는 회귀가 발생한다.
+      // BFF 의 plain revert(`POST /v*/todos/dones/{id}/revert`) 는 doneTodo lookup race 회귀로
+      // 빈 todo(이름/시간 모두 비어있음) 를 만든다. 그래서 client 가 doneTodo 가 들고 있는 origin 정보를
+      // body 로 직접 보내는 cancelDoneTodo(`POST /v2/todos/dones/cancel`) 흐름을 사용한다 — iOS 와 정합.
       const doneTodoBefore = get().items.find(i => i.uuid === id)
-      const wasScheduled = !!doneTodoBefore?.event_time
+      if (!doneTodoBefore) {
+        // cache 에 없는 done — 안전하게 일반 revert 로 폴백
+        await doneTodoApi.revertDoneTodo(id)
+        set(state => ({ items: state.items.filter(i => i.uuid !== id), generation: state.generation + 1 }))
+        return { uuid: id, name: '', is_current: true } as Todo
+      }
+      const wasScheduled = !!doneTodoBefore.event_time
 
-      const response = await doneTodoApi.revertDoneTodo(id)
-      const restored = response?.todo
+      const response = await doneTodoApi.cancelDoneTodo({
+        origin: {
+          // origin.uuid 는 BFF controller 에서 todoId 로 사용된다 — done todo 의 origin_event_id 가 진짜 todo uuid.
+          // origin_event_id 가 없으면 새 todo 로 만들어지도록 done todo uuid 를 폴백으로 사용.
+          uuid: doneTodoBefore.origin_event_id ?? doneTodoBefore.uuid,
+          name: doneTodoBefore.name,
+          event_tag_id: doneTodoBefore.event_tag_id ?? null,
+          event_time: doneTodoBefore.event_time ?? null,
+          notification_options: doneTodoBefore.notification_options ?? null,
+        },
+        done_id: id,
+      })
+
+      const restored = response?.reverted
       set(state => ({ items: state.items.filter(i => i.uuid !== id), generation: state.generation + 1 }))
 
       if (restored) {
+        // 원래 형태 보존: scheduled 였던 todo 는 calendarEvents 로, untimed 는 currentTodos 로.
         if (wasScheduled) {
           useCalendarEventsCache.getState().addEvent({ type: 'todo', event: restored })
         } else {
