@@ -31,28 +31,7 @@ npm run test:e2e:ui
 
 ## Architecture Overview
 
-React 19 + TypeScript 웹 클라이언트. Vite 빌드, Tailwind CSS 스타일링, Zustand 상태 관리.
-
-```
-src/
-├── App.tsx              # 루트 컴포넌트 (ErrorBoundary + React.lazy 라우트 분할)
-├── main.tsx             # 엔트리포인트
-├── index.css            # Tailwind 임포트 + safe-area 지원
-├── firebase.ts          # Firebase 앱 초기화
-├── api/                 # REST API 클라이언트 (apiClient + 도메인별 모듈)
-├── calendar/            # 캘린더 컴포넌트 (MonthCalendar, CalendarGrid)
-├── components/          # 재사용 UI 컴포넌트
-│   ├── AuthGuard.tsx    # 인증 게이트 + 부트 스토어 초기화
-│   ├── ErrorBoundary.tsx # React 에러 경계
-│   ├── Toast.tsx        # 글로벌 토스트 알림
-│   └── LoadingSkeleton.tsx # 로딩 스켈레톤
-├── models/              # TypeScript 데이터 모델
-├── pages/               # 페이지 컴포넌트 (lazy 로딩)
-├── stores/              # Zustand 스토어 (authStore, toastStore 등)
-└── utils/               # 유틸리티 함수
-tests/                   # Vitest 단위/컴포넌트 테스트
-e2e/                     # Playwright E2E 테스트
-```
+React 19 + TypeScript + Vite + Tailwind + Zustand. 구조는 `ls src/`로 확인. 진입점은 `src/main.tsx` → `src/App.tsx` (ErrorBoundary + React.lazy 라우트 분할).
 
 ### 에러 처리 패턴
 
@@ -70,7 +49,7 @@ e2e/                     # Playwright E2E 테스트
 ### 브랜치 전략
 - 이슈 작업 시 반드시 **이슈 번호 기반 브랜치** 생성: `feature/#13-main-screen-redesign`, `fix/#42-calendar-bug`
 - 서브이슈가 있으면 서브이슈 번호 기반으로 별도 브랜치: `feature/#14-top-toolbar`
-- develop 브랜치에 직접 커밋 금지
+- develop 브랜치에 직접 커밋 금지 (단, 사용자가 명시적으로 허용한 경우는 예외)
 
 ### 커밋 규칙
 - **단계적으로 커밋**: 한 뭉태기로 몰아서 커밋하지 말 것
@@ -94,53 +73,13 @@ e2e/                     # Playwright E2E 테스트
 - PR 생성 전 E2E 테스트 실행하여 통과 확인
 - PR에는 해당 이슈 번호 참조
 
-### 서브에이전트 기반 병렬 작업 플로우
+### 서브에이전트 기반 병렬 작업
 
-큰 작업을 여러 서브태스크로 나눠서 작업할 때의 전체 흐름:
+큰 작업을 worktree로 쪼개 병렬 실행할 때의 단계별 흐름은 `.claude/agent-workflow.md` 참조. 일반 작업은 위 규칙만으로 충분.
 
-```
-1. 계획 수립
-   - 이슈 분석 → 서브태스크 분리 → 파일 충돌 맵 작성
-   - 각 태스크의 복잡도에 따라 모델 배정 (S: haiku, M: sonnet, L/XL: opus)
-
-2. 서브에이전트 작업 (worktree + 이슈 브랜치)
-   - 독립 파일을 수정하는 태스크는 worktree 격리로 병렬 실행
-   - 같은 파일을 수정하는 태스크는 순차 실행
-   - 각 에이전트는 최신 develop 기반으로 이슈 번호 브랜치 생성
-   - TDD 플로우: 테스트 작성 → 구현 → 단계적 커밋
-   - 작업 완료 후 push → PR 생성
-
-3. 리뷰 ↔ 반영 반복 (리뷰 에이전트 + 구현 에이전트)
-   아래 과정을 **지적사항이 모두 해소될 때까지 반복**:
-
-   a. 리뷰 요청 → 리뷰 에이전트 실행
-      - **이슈 티켓 확인 필수**: `gh issue view <번호>`로 이슈 내용을 먼저 읽고, 요구사항이 빠짐없이 구현되었는지 항목별로 대조 검증
-      - PR diff를 읽고 인라인 코멘트 작성
-      - 아키텍처, 안전성, 테스트 커버리지 검토
-      - 이슈에 명시된 요구사항 중 누락된 항목이 있으면 🔴 필수수정으로 지적
-
-   b. 구현 에이전트가 리뷰 코멘트 반영
-      - 🔴 필수수정 항목은 반드시 반영
-      - 🟡 권장 항목은 판단하여 반영
-      - 수정 후 push
-
-   c. 다시 리뷰 요청 → 리뷰 에이전트가 재검토
-      - 이전 지적사항이 해소되었는지 확인
-      - 새로운 문제가 없는지 확인
-
-   d. 모든 지적사항 해소 → 리뷰 에이전트가 approve
-
-4. 머지 및 동기화
-   - ⚠️ 반드시 리뷰 approve + push 완료 후 머지 (머지 후 push 금지)
-   - `gh pr merge --rebase` 로 rebase merge
-   - 머지 직후 로컬 develop pull: `git pull --rebase origin develop`
-   - 다음 태스크는 최신 develop 기반으로 새 브랜치 생성
-```
-
-**핵심 규칙:**
-- 머지는 반드시 **rebase merge** (`--rebase`)
-- 리뷰 피드백 반영은 반드시 **머지 전에 push 완료**
-- 다음 태스크 브랜치는 반드시 **최신 develop 기반**으로 생성
+핵심만:
+- 머지는 반드시 **rebase merge** (`--rebase`), 리뷰 approve + push 완료 후
+- 다음 태스크 브랜치는 항상 **최신 develop 기반**
 
 ## Testing Strategy
 
