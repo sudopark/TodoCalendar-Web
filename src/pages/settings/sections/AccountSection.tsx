@@ -35,7 +35,7 @@ export function AccountSection({ account, signOut }: Props) {
     <div className="space-y-10">
       <SettingsSection title={t('settings.account')}>
         {account && (
-          <p className="text-sm text-[#6b6b6b]">{account.email ?? account.uid}</p>
+          <p className="text-sm text-fg-secondary">{account.email ?? account.uid}</p>
         )}
         <div>
           <button className={settingsBtnSecondary} onClick={() => signOut()}>

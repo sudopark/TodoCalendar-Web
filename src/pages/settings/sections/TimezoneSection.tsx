@@ -26,7 +26,7 @@ function TimezoneRow({ info, selected, systemBadgeLabel, onClick }: TimezoneRowP
       aria-pressed={selected}
       className={cn(
         'w-full flex items-start gap-3 px-3 py-2.5 text-left transition-colors',
-        selected ? 'text-[#1f1f1f] bg-gray-50' : 'text-[#1f1f1f] hover:bg-gray-50',
+        selected ? 'text-fg bg-gray-50' : 'text-fg hover:bg-gray-50',
       )}
     >
       <div className="flex-1 min-w-0">
@@ -45,7 +45,7 @@ function TimezoneRow({ info, selected, systemBadgeLabel, onClick }: TimezoneRowP
           )}
         </div>
       </div>
-      {selected && <Check className="h-4 w-4 mt-1 text-[#1f1f1f] shrink-0" strokeWidth={3} />}
+      {selected && <Check className="h-4 w-4 mt-1 text-fg shrink-0" strokeWidth={3} />}
     </button>
   )
 }

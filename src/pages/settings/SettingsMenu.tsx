@@ -19,11 +19,11 @@ export function SettingsMenu({ selected, onSelect, onBack }: Props) {
           type="button"
           onClick={onBack}
           aria-label={t('settings.back')}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="text-lg font-semibold text-[#1f1f1f]">{t('settings.title')}</h1>
+        <h1 className="text-lg font-semibold text-fg">{t('settings.title')}</h1>
       </div>
 
       <ul className="flex flex-col py-3">
@@ -38,12 +38,12 @@ export function SettingsMenu({ selected, onSelect, onBack }: Props) {
                 className={cn(
                   'relative flex w-full items-center px-6 py-2.5 text-left text-sm transition-colors',
                   isSelected
-                    ? 'font-semibold text-[#1f1f1f]'
-                    : 'font-medium text-[#6b6b6b] hover:text-[#1f1f1f] hover:bg-gray-50',
+                    ? 'font-semibold text-fg'
+                    : 'font-medium text-fg-secondary hover:text-fg hover:bg-gray-50',
                 )}
               >
                 {isSelected && (
-                  <span className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-[#1f1f1f]" aria-hidden="true" />
+                  <span className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-action" aria-hidden="true" />
                 )}
                 {t(cat.labelKey)}
               </button>

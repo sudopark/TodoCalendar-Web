@@ -35,7 +35,7 @@ function ToggleSwitch({ on, onChange, ariaLabel }: { on: boolean; onChange: () =
       aria-label={ariaLabel}
       className={cn(
         'relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0',
-        on ? 'bg-[#1f1f1f]' : 'bg-gray-300',
+        on ? 'bg-action' : 'bg-gray-300',
       )}
     >
       <span
@@ -114,8 +114,8 @@ export function AppearanceSection({
                 className={cn(
                   'rounded-full px-3 h-8 text-sm font-medium transition-colors',
                   weekStartDay === opt.value
-                    ? 'bg-[#1f1f1f] text-white'
-                    : 'bg-gray-100 text-[#1f1f1f] hover:bg-gray-200',
+                    ? 'bg-action text-action-fg'
+                    : 'bg-gray-100 text-fg hover:bg-gray-200',
                 )}
               >
                 {t(`calendar.weekdays.${opt.key}`, opt.key.toUpperCase())}
@@ -128,7 +128,7 @@ export function AppearanceSection({
           <div className="space-y-3">
             {(['holiday', 'sunday', 'saturday'] as const).map(key => (
               <div key={key} className="flex items-center justify-between">
-                <span className="text-sm text-[#1f1f1f]">{t(`settings.accent_${key}`, key)}</span>
+                <span className="text-sm text-fg">{t(`settings.accent_${key}`, key)}</span>
                 <ToggleSwitch
                   on={accentDays[key]}
                   onChange={() => setAppearance({ accentDays: { ...accentDays, [key]: !accentDays[key] } })}
@@ -148,8 +148,8 @@ export function AppearanceSection({
                 className={cn(
                   'rounded-full px-4 h-9 text-sm font-medium transition-colors',
                   theme === opt.id
-                    ? 'bg-[#1f1f1f] text-white'
-                    : 'bg-gray-100 text-[#1f1f1f] hover:bg-gray-200',
+                    ? 'bg-action text-action-fg'
+                    : 'bg-gray-100 text-fg hover:bg-gray-200',
                 )}
               >
                 {opt.label}
@@ -177,8 +177,8 @@ export function AppearanceSection({
                 className={cn(
                   'rounded-full px-4 h-9 text-sm font-medium transition-colors',
                   eventDisplayLevel === opt.value
-                    ? 'bg-[#1f1f1f] text-white'
-                    : 'bg-gray-100 text-[#1f1f1f] hover:bg-gray-200',
+                    ? 'bg-action text-action-fg'
+                    : 'bg-gray-100 text-fg hover:bg-gray-200',
                 )}
               >
                 {t(`settings.event_display_${opt.key}`, opt.key)}
@@ -198,12 +198,12 @@ export function AppearanceSection({
             max={7}
             value={eventFontSizeWeight}
             onChange={e => setAppearance({ eventFontSizeWeight: Number(e.target.value) })}
-            className="w-full accent-[#1f1f1f]"
+            className="w-full accent-action"
           />
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm text-[#1f1f1f]">{t('settings.show_event_names', '이벤트 이름 표시')}</span>
+          <span className="text-sm text-fg">{t('settings.show_event_names', '이벤트 이름 표시')}</span>
           <ToggleSwitch
             on={showEventNames}
             onChange={() => setAppearance({ showEventNames: !showEventNames })}
@@ -232,7 +232,7 @@ export function AppearanceSection({
             max={7}
             value={eventListFontSizeWeight}
             onChange={e => setAppearance({ eventListFontSizeWeight: Number(e.target.value) })}
-            className="w-full accent-[#1f1f1f]"
+            className="w-full accent-action"
           />
         </div>
 
@@ -243,7 +243,7 @@ export function AppearanceSection({
             { key: 'showUncompletedTodos', label: t('settings.show_uncompleted_todos', '미완료 할 일 표시'), value: showUncompletedTodos },
           ].map(opt => (
             <div key={opt.key} className="flex items-center justify-between">
-              <span className="text-sm text-[#1f1f1f]">{opt.label}</span>
+              <span className="text-sm text-fg">{opt.label}</span>
               <ToggleSwitch
                 on={opt.value}
                 onChange={() => setAppearance({ [opt.key]: !opt.value } as never)}
