@@ -46,11 +46,11 @@ export function ForemostEventBanner({ foremostEvent, onEventClick }: ForemostEve
         </div>
         <div className="flex-1 min-w-0 py-0.5">
           <p
-            className="truncate font-semibold text-[#1f1f1f] leading-snug group-hover:text-black transition-colors duration-150"
+            className="truncate font-semibold text-fg leading-snug group-hover:text-black transition-colors duration-150"
             style={{ fontSize: nameFontSize }}
           >{event.name}</p>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-            <span className="text-xs text-[#aaa] leading-none">
+            <span className="text-xs text-fg-quaternary leading-none">
               <TimeDescription eventTime={eventTime} />
             </span>
             {tagName && (

@@ -25,7 +25,7 @@ function formatLunarDate(date: Date, locale: string): string | null {
 function SectionHeader({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 mb-3">
-      <span className="text-[11px] font-semibold uppercase tracking-widest text-[#bbb] shrink-0">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-widest text-fg-quaternary shrink-0">{label}</span>
       <div className="flex-1 h-px bg-gray-100" />
     </div>
   )
@@ -112,11 +112,11 @@ export function RightEventPanel({
           {/* 날짜 헤더 — 우측 padding으로 X 버튼 영역 회피 */}
           {selectedDate && (
             <div className="mb-6 pr-20">
-              <h1 className="text-2xl font-bold text-[#323232]">{dateTitle}</h1>
+              <h1 className="text-2xl font-bold text-fg">{dateTitle}</h1>
               <div className="flex flex-wrap items-center gap-x-2 mt-0.5">
-                <p className="text-sm text-[#969696]">{weekdayText}</p>
+                <p className="text-sm text-fg-tertiary">{weekdayText}</p>
                 {lunarText && (
-                  <p className="text-sm text-[#969696]">· {t('settings.lunar_prefix', '음력')} {lunarText}</p>
+                  <p className="text-sm text-fg-tertiary">· {t('settings.lunar_prefix', '음력')} {lunarText}</p>
                 )}
               </div>
               {showHolidayInEventList && holidayNames.length > 0 && (

@@ -40,7 +40,7 @@ export function QuickTodoInput() {
         style={{ backgroundColor: tagColor }}
       />
       <input
-        className="flex-1 bg-transparent text-sm text-[#1f1f1f] placeholder:text-[#ccc] outline-none"
+        className="flex-1 bg-transparent text-sm text-fg placeholder:text-fg-quaternary outline-none"
         placeholder={t('main.quick_todo_placeholder', 'Add a new task...')}
         value={value}
         onChange={e => setValue(e.target.value)}

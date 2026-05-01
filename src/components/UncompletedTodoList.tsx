@@ -47,11 +47,11 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: Uncomple
       <div className="flex-1 min-w-0 py-0.5 flex items-start gap-2">
         <div className="flex-1 min-w-0">
           <p
-            className="truncate font-semibold text-[#ea4444] leading-snug"
+            className="truncate font-semibold text-danger leading-snug"
             style={{ fontSize: nameFontSize }}
           >{todo.name}</p>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-            <span className="text-xs text-[#aaa] leading-none">Todo</span>
+            <span className="text-xs text-fg-quaternary leading-none">Todo</span>
             {tagName && (
               <span
                 className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
@@ -64,7 +64,7 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: Uncomple
         </div>
         <button
           aria-label={todo.name}
-          className="shrink-0 h-5 w-5 rounded-full border-2 border-[#ccd0dc] hover:border-[#323232] transition-colors mt-0.5"
+          className="shrink-0 h-5 w-5 rounded-full border-2 border-line-strong hover:border-fg transition-colors mt-0.5"
           onClick={(e) => { e.stopPropagation(); onComplete(todo) }}
         />
       </div>
@@ -134,13 +134,13 @@ export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick
   return (
     <section className="mb-6">
       <div className="flex items-center gap-3 mb-3">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-[#bbb] shrink-0">
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-fg-quaternary shrink-0">
           {t('todo.uncompleted')}
         </span>
         <div className="flex-1 h-px bg-gray-100" />
         <button
           onClick={onReload}
-          className="shrink-0 text-[#ccc] hover:text-[#999] transition-colors"
+          className="shrink-0 text-fg-quaternary hover:text-fg-tertiary transition-colors"
           aria-label="refresh"
         >
           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
