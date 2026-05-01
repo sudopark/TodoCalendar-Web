@@ -13,9 +13,9 @@ import { formatNotification } from '../../utils/formatNotification'
 const POPOVER_WIDTH = 320
 const THRESHOLD = 200
 
-const ACTION_BTN = 'p-1.5 rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50'
-const INFO_ROW = 'flex items-start gap-2 text-[13px] text-[#6b6b6b] dark:text-gray-300 leading-snug'
-const INFO_ICON = 'h-4 w-4 text-[#bbb] mt-0.5 shrink-0'
+const ACTION_BTN = 'p-1.5 rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50'
+const INFO_ROW = 'flex items-start gap-2 text-[13px] text-fg-secondary dark:text-gray-300 leading-snug'
+const INFO_ICON = 'h-4 w-4 text-fg-quaternary mt-0.5 shrink-0'
 
 export interface DoneTodoDetailPopoverProps {
   doneTodo: DoneTodo
@@ -123,10 +123,10 @@ export function DoneTodoDetailPopover({
         </div>
 
         {/* 이름 + 태그 */}
-        <p className="pr-24 text-lg font-semibold text-[#1f1f1f] dark:text-gray-100">{doneTodo.name}</p>
+        <p className="pr-24 text-lg font-semibold text-fg dark:text-gray-100">{doneTodo.name}</p>
         <div className="mt-1 flex items-center gap-2">
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: tagColor }} />
-          <span className="text-xs text-[#6b6b6b] dark:text-gray-400">{tagName}</span>
+          <span className="text-xs text-fg-secondary dark:text-gray-400">{tagName}</span>
         </div>
 
         {/* 본문: 시간 / 알림 / url / memo / place */}
@@ -135,7 +135,7 @@ export function DoneTodoDetailPopover({
             <div className={INFO_ROW}>
               <Clock className={INFO_ICON} />
               <div>
-                <p className="text-[11px] uppercase tracking-wider text-[#bbb]">{t('todo.done_at_label', '완료 시각')}</p>
+                <p className="text-[11px] uppercase tracking-wider text-fg-quaternary">{t('todo.done_at_label', '완료 시각')}</p>
                 <p>{doneTimeText}</p>
               </div>
             </div>
@@ -144,7 +144,7 @@ export function DoneTodoDetailPopover({
             <div className={INFO_ROW}>
               <Clock className={INFO_ICON} />
               <div>
-                <p className="text-[11px] uppercase tracking-wider text-[#bbb]">{t('todo.original_time_label', '원래 시간')}</p>
+                <p className="text-[11px] uppercase tracking-wider text-fg-quaternary">{t('todo.original_time_label', '원래 시간')}</p>
                 <p><EventTimeDisplay eventTime={originEventTime} /></p>
               </div>
             </div>

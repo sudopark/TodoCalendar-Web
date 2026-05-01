@@ -23,9 +23,9 @@ function repeatingLabel(repeating: Repeating, t: TFunction): string {
   }
 }
 
-const ACTION_BTN = 'p-1.5 rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors'
-const INFO_ROW = 'flex items-start gap-2 text-[13px] text-[#6b6b6b] leading-snug'
-const INFO_ICON = 'h-4 w-4 text-[#bbb] mt-0.5 shrink-0'
+const ACTION_BTN = 'p-1.5 rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors'
+const INFO_ROW = 'flex items-start gap-2 text-[13px] text-fg-secondary leading-snug'
+const INFO_ICON = 'h-4 w-4 text-fg-quaternary mt-0.5 shrink-0'
 
 export interface EventDetailPopoverProps {
   calEvent: CalendarEvent
@@ -90,7 +90,7 @@ export function EventDetailPopover({
               style={{ backgroundColor: tagColor }}
               data-testid="tag-color-dot"
             />
-            <h3 className="text-[15px] font-semibold text-[#1f1f1f] leading-snug break-words min-w-0">
+            <h3 className="text-[15px] font-semibold text-fg leading-snug break-words min-w-0">
               {event.name}
             </h3>
           </div>
@@ -174,7 +174,7 @@ export function EventDetailPopover({
                 href={vm.eventDetail.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-w-0 text-[#1f1f1f] underline underline-offset-2 hover:opacity-60 transition-opacity break-all"
+                className="min-w-0 text-fg underline underline-offset-2 hover:opacity-60 transition-opacity break-all"
               >
                 {vm.eventDetail.url}
               </a>

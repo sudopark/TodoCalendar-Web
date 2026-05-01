@@ -75,7 +75,7 @@ export function TagDropdown({ value, onChange, showManageLink = false }: TagDrop
       {showManageLink && (
         <button
           type="button"
-          className="text-xs text-[#1f1f1f] underline underline-offset-2 hover:opacity-60 transition-opacity"
+          className="text-xs text-fg underline underline-offset-2 hover:opacity-60 transition-opacity"
           onClick={() => navigate('/settings/editEvent/tags')}
         >
           {t('tag.manage')} &gt;
