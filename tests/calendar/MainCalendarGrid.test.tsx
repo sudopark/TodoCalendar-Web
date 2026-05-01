@@ -168,33 +168,32 @@ describe('MainCalendarGrid', () => {
       expect(numberCircle?.className).toMatch(/ring/)
     })
 
-    it('오늘 날짜 숫자에 원형 오늘 배경색(#1f1f1f)이 적용된다', () => {
+    it('오늘 날짜 숫자에 원형 강조 배경이 적용된다', () => {
       // given: 오늘(2026-03-15)이 포함된 캘린더, 아무것도 선택 안 됨
       useUiStore.setState({ selectedDate: null })
 
       // when: MainCalendarGrid 렌더
       render(<MainCalendarGrid days={marchDays} />)
 
-      // then: 오늘 숫자 원형에 오늘 배경색 적용
+      // then: 오늘 숫자 원형에 배경 스타일이 적용 (색상값은 토큰 var라 구체값 검증 안 함)
       const cells = screen.getAllByTestId('day-cell')
       const todayIndex = marchDays.findIndex(d => d.isToday)
       const numberCircle = cells[todayIndex].querySelector('.rounded-full')
-      expect(numberCircle).toHaveStyle({ backgroundColor: '#1f1f1f' })
+      expect(numberCircle?.getAttribute('style') ?? '').toMatch(/background-color/)
     })
 
-    it('선택되지 않은 일반 날 셀에는 강조 배경색이 없다', () => {
+    it('선택되지 않은 일반 날 셀의 숫자 원형에는 강조 배경이 없다', () => {
       // given: 아무것도 선택되지 않은 상태
       useUiStore.setState({ selectedDate: null })
 
       // when: MainCalendarGrid 렌더
       render(<MainCalendarGrid days={marchDays} />)
 
-      // then: 3월 10일(일반 날) 셀에는 선택/오늘 배경색이 없다
+      // then: 3월 10일(일반 날) 숫자 원형에 강조 배경 스타일이 없다
       const cells = screen.getAllByTestId('day-cell')
       const march10Index = marchDays.findIndex(d => d.isCurrentMonth && d.dayOfMonth === 10)
-      const normalCell = cells[march10Index]
-      expect(normalCell).not.toHaveStyle({ backgroundColor: '#303646' })
-      expect(normalCell).not.toHaveStyle({ backgroundColor: '#f4f4f4' })
+      const numberCircle = cells[march10Index].querySelector('.rounded-full')
+      expect(numberCircle?.getAttribute('style') ?? '').not.toMatch(/background-color/)
     })
   })
 })
