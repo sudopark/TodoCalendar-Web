@@ -40,8 +40,8 @@ function SelectedTagChip({ name, color, active, onClick }: SelectedTagChipProps)
       className={cn(
         'inline-flex items-center gap-2 rounded-full px-3 h-8 text-sm font-medium transition-colors max-w-full',
         active
-          ? 'bg-gray-100 text-[#1f1f1f]'
-          : 'bg-gray-100 text-[#1f1f1f] hover:bg-gray-200',
+          ? 'bg-gray-100 text-fg'
+          : 'bg-gray-100 text-fg hover:bg-gray-200',
       )}
     >
       <span
@@ -143,8 +143,8 @@ export function EditEventSection({
           aria-current={tagsOpen ? 'page' : undefined}
           className={`w-full flex items-center justify-between px-3 py-3 rounded-lg text-sm transition-colors ${
             tagsOpen
-              ? 'bg-gray-50 text-[#1f1f1f] font-semibold'
-              : 'text-[#1f1f1f] hover:bg-gray-50 font-medium'
+              ? 'bg-gray-50 text-fg font-semibold'
+              : 'text-fg hover:bg-gray-50 font-medium'
           }`}
         >
           <span>{t('tag.event_types', '이벤트 종류')}</span>

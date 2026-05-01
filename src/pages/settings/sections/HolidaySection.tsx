@@ -19,12 +19,12 @@ function CountryRow({ country, selected, onClick }: CountryRowProps) {
       aria-pressed={selected}
       className={cn(
         'w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors',
-        selected ? 'text-[#1f1f1f] font-semibold bg-gray-50' : 'text-[#1f1f1f] hover:bg-gray-50',
+        selected ? 'text-fg font-semibold bg-gray-50' : 'text-fg hover:bg-gray-50',
       )}
     >
       <span className="flex-1 truncate">{country.name}</span>
       <span className="shrink-0 text-xs uppercase tracking-wider text-gray-400">{country.regionCode}</span>
-      {selected && <Check className="h-4 w-4 text-[#1f1f1f] shrink-0" strokeWidth={3} />}
+      {selected && <Check className="h-4 w-4 text-fg shrink-0" strokeWidth={3} />}
     </button>
   )
 }

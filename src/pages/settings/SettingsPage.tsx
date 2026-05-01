@@ -140,11 +140,11 @@ export function SettingsPage() {
                 type="button"
                 onClick={() => navigate('/settings')}
                 aria-label={t('settings.back')}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <h2 className="text-base font-semibold text-[#1f1f1f]">
+              <h2 className="text-base font-semibold text-fg">
                 {category && t(category.labelKey)}
               </h2>
             </div>

@@ -43,11 +43,11 @@ export function DefaultTagPickerPanel({ onClose, tags, defaultTagColors, default
           type="button"
           onClick={onClose}
           aria-label={t('settings.back')}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h2 className="flex-1 text-lg font-semibold text-[#1f1f1f]">
+        <h2 className="flex-1 text-lg font-semibold text-fg">
           {t('settings.default_tag')}
         </h2>
       </div>
@@ -62,7 +62,7 @@ export function DefaultTagPickerPanel({ onClose, tags, defaultTagColors, default
                 onClick={() => setDefaultTagId(opt.id)}
                 className={cn(
                   'w-full flex items-center gap-3 py-3 text-left transition-colors',
-                  isSelected ? 'text-[#1f1f1f] font-semibold' : 'text-[#1f1f1f] hover:bg-gray-50',
+                  isSelected ? 'text-fg font-semibold' : 'text-fg hover:bg-gray-50',
                 )}
               >
                 <span
@@ -71,7 +71,7 @@ export function DefaultTagPickerPanel({ onClose, tags, defaultTagColors, default
                   aria-hidden="true"
                 />
                 <span className="flex-1 truncate text-sm">{opt.name}</span>
-                {isSelected && <Check className="h-4 w-4 text-[#1f1f1f] shrink-0" strokeWidth={3} />}
+                {isSelected && <Check className="h-4 w-4 text-fg shrink-0" strokeWidth={3} />}
               </button>
             </li>
           )

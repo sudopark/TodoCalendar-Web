@@ -14,7 +14,7 @@ export function NotificationSection({ notification, requestNotificationPermissio
   return (
     <SettingsSection title={t('settings.notification')}>
       {permission === 'granted' ? (
-        <p className="text-sm text-[#1f1f1f]">{t('settings.notification_granted')}</p>
+        <p className="text-sm text-fg">{t('settings.notification_granted')}</p>
       ) : permission === 'denied' ? (
         <p className="text-sm text-red-500">{t('settings.notification_denied')}</p>
       ) : (
