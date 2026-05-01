@@ -18,7 +18,7 @@ export function EventTimeSection({
   required,
 }: EventTimeSectionProps) {
   return (
-    <section className="rounded-xl border border-border-light bg-background p-5 shadow-sm space-y-4">
+    <section className="rounded-xl border border-line bg-background p-5 shadow-sm space-y-4">
       <EventTimePickerCore
         value={eventTime}
         onChange={onEventTimeChange}

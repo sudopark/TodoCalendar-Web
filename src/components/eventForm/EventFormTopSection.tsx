@@ -20,14 +20,14 @@ export function EventFormTopSection() {
   return (
     <div className="space-y-4">
       {/* Name input + DDay inline chip */}
-      <div className="flex items-center gap-3 pb-2 border-b border-border-light focus-within:border-text-primary transition-colors">
+      <div className="flex items-center gap-3 pb-2 border-b border-line focus-within:border-fg transition-colors">
         <div
           className="w-3 h-3 rounded-full shrink-0"
           style={{ backgroundColor: tagColor }}
           data-testid="event-form-tag-swatch"
         />
         <input
-          className="flex-1 min-w-0 text-lg font-semibold bg-transparent outline-none placeholder:text-text-tertiary placeholder:font-normal"
+          className="flex-1 min-w-0 text-lg font-semibold bg-transparent outline-none placeholder:text-fg-tertiary placeholder:font-normal"
           placeholder={t('event.namePlaceholder', '이벤트 이름')}
           value={name}
           onChange={e => setName(e.target.value)}

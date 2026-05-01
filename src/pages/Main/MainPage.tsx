@@ -126,7 +126,7 @@ export function MainPage() {
             }`}
           >
             <div className="w-[408px] h-full py-4 pr-4">
-              <div className="h-full rounded-lg border border-border-calendar bg-white shadow-sm overflow-hidden">
+              <div className="h-full rounded-lg border border-line bg-white shadow-sm overflow-hidden">
                 <RightEventPanel
                   selectedDate={vm.selectedDate}
                   rightPanelMode={vm.rightPanelMode}

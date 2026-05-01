@@ -28,12 +28,12 @@ export default function CalendarList() {
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-text-secondary text-[10px] font-semibold uppercase tracking-[0.08em]">
+        <p className="text-fg-secondary text-[10px] font-semibold uppercase tracking-[0.08em]">
           {t('main.event_types', '이벤트 종류')}
         </p>
         <button
           onClick={() => navigate('/settings/editEvent/tags')}
-          className="flex items-center gap-1 rounded px-1.5 py-0.5 text-text-tertiary hover:text-text-secondary hover:bg-surface-sunken transition-colors"
+          className="flex items-center gap-1 rounded px-1.5 py-0.5 text-fg-tertiary hover:text-fg-secondary hover:bg-surface-sunken transition-colors"
           aria-label={t('tag.manage', '태그 관리')}
         >
           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,7 +71,7 @@ export default function CalendarList() {
                   </svg>
                 )}
               </span>
-              <span className={`flex-1 text-sm truncate ${hidden ? 'text-text-tertiary' : 'text-text-primary'}`}>
+              <span className={`flex-1 text-sm truncate ${hidden ? 'text-fg-tertiary' : 'text-fg'}`}>
                 {tag.name}
               </span>
             </button>

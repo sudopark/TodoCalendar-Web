@@ -23,17 +23,17 @@ export function CreateEventButton() {
         aria-label={t('main.create_event', 'Create')}
         aria-haspopup="menu"
         aria-expanded={showMenu}
-        className="flex w-full items-center justify-between rounded-full bg-white border border-border-light px-4 py-2.5 shadow-sm hover:shadow transition-shadow"
+        className="flex w-full items-center justify-between rounded-full bg-white border border-line px-4 py-2.5 shadow-sm hover:shadow transition-shadow"
         onClick={() => setShowMenu(!showMenu)}
       >
-        <span className="flex items-center gap-2 text-text-primary">
+        <span className="flex items-center gap-2 text-fg">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           <span className="text-sm font-medium">{t('main.create_event', 'Create')}</span>
         </span>
         <svg
-          className={cn('h-3.5 w-3.5 text-text-tertiary transition-transform', showMenu && 'rotate-180')}
+          className={cn('h-3.5 w-3.5 text-fg-tertiary transition-transform', showMenu && 'rotate-180')}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -46,25 +46,25 @@ export function CreateEventButton() {
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
           <div
             role="menu"
-            className="absolute bottom-full left-0 mb-1.5 z-50 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-border-light shadow-lg"
+            className="absolute bottom-full left-0 mb-1.5 z-50 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-line shadow-lg"
           >
             <button
               role="menuitem"
-              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
+              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
               onClick={() => handleSelect('todo')}
             >
-              <svg className="h-4 w-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4 text-fg-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Todo
             </button>
-            <div className="border-t border-border-light dark:border-gray-700" />
+            <div className="border-t border-line dark:border-gray-700" />
             <button
               role="menuitem"
-              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
+              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
               onClick={() => handleSelect('schedule')}
             >
-              <svg className="h-4 w-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4 text-fg-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               Schedule

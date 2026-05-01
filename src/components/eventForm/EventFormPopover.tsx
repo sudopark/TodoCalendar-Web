@@ -179,14 +179,14 @@ export function EventFormPopover() {
           {/* Header: drag handle + title + close */}
           <div
             onMouseDown={handleDragMouseDown}
-            className="shrink-0 flex items-center gap-2 px-5 py-3 border-b border-border-light bg-surface-sunken/60 cursor-move"
+            className="shrink-0 flex items-center gap-2 px-5 py-3 border-b border-line bg-surface-sunken/60 cursor-move"
           >
             <GripHorizontal
-              className="h-4 w-4 text-text-tertiary shrink-0"
+              className="h-4 w-4 text-fg-tertiary shrink-0"
               aria-label={t('eventForm.drag_handle', '드래그하여 이동')}
               data-focus-skip
             />
-            <h2 id={TITLE_ID} className="flex-1 text-sm font-semibold text-text-primary select-none">
+            <h2 id={TITLE_ID} className="flex-1 text-sm font-semibold text-fg select-none">
               {t('eventForm.title_new', '새 이벤트 추가')}
             </h2>
             <button
@@ -194,7 +194,7 @@ export function EventFormPopover() {
               aria-label={t('common.close')}
               data-testid="event-form-close-btn"
               disabled={closeDisabled}
-              className="shrink-0 p-1 rounded text-text-tertiary hover:text-text-primary hover:bg-surface-sunken disabled:opacity-40 transition-colors"
+              className="shrink-0 p-1 rounded text-fg-tertiary hover:text-fg hover:bg-surface-sunken disabled:opacity-40 transition-colors"
               onClick={handleCloseRequest}
             >
               <X size={16} />
@@ -212,7 +212,7 @@ export function EventFormPopover() {
             </CardContent>
           </div>
 
-          <CardFooter className="px-5 py-3 border-t border-border-light bg-card shrink-0 flex-col items-stretch gap-2">
+          <CardFooter className="px-5 py-3 border-t border-line bg-card shrink-0 flex-col items-stretch gap-2">
             {error && (
               <p className="text-xs text-destructive text-center" role="alert">
                 {error}
