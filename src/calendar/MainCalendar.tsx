@@ -35,7 +35,7 @@ export default function MainCalendar({
   const overflowClass = eventDisplayLevel === 'full' ? 'overflow-y-auto' : 'overflow-hidden'
 
   return (
-    <div className={`flex-1 flex flex-col bg-white px-2 pt-2 pb-4 ${overflowClass}`}>
+    <div className={`flex-1 flex flex-col bg-surface px-2 pt-2 pb-4 ${overflowClass}`}>
       <MainCalendarGrid days={days} onEventClick={onEventClick} />
     </div>
   )

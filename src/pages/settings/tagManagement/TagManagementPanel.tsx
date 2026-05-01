@@ -54,7 +54,7 @@ export function TagManagementPanel({ onClose }: Props) {
           type="button"
           onClick={onClose}
           aria-label={t('tag.close_page', '태그 관리 닫기')}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -65,14 +65,14 @@ export function TagManagementPanel({ onClose }: Props) {
           type="button"
           onClick={() => setPanel({ kind: 'create' })}
           aria-label={t('tag.add_new', '새 태그 추가')}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors"
         >
           <Plus className="h-5 w-5" />
         </button>
       </div>
 
       {/* 리스트 — 얇은 row divider */}
-      <ul data-testid="tag-row-list" className="divide-y divide-gray-100">
+      <ul data-testid="tag-row-list" className="divide-y divide-line">
         {rows.map(row => (
           <li key={row.id}>
             <TagRow row={row} onEdit={() => setPanel({ kind: 'edit', row })} />

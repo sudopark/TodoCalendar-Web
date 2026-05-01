@@ -97,14 +97,14 @@ export function NotificationPicker({ value, onChange, isAllDay }: NotificationPi
           {value.map((opt, i) => (
             <span
               key={i}
-              className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+              className="inline-flex items-center gap-1 rounded-full bg-surface-sunken px-3 py-1 text-sm text-fg-secondary"
             >
               {optionLabel(opt)}
               <button
                 type="button"
                 onClick={() => removeAt(i)}
                 aria-label={t('notif.remove')}
-                className="ml-1 rounded-full p-0.5 hover:bg-gray-200 dark:hover:bg-gray-600"
+                className="ml-1 rounded-full p-0.5 hover:bg-surface-sunken"
               >
                 <X size={12} />
               </button>
@@ -119,7 +119,7 @@ export function NotificationPicker({ value, onChange, isAllDay }: NotificationPi
           onClick={() => setOpen(v => !v)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="inline-flex items-center gap-1 rounded-md border border-dashed border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          className="inline-flex items-center gap-1 rounded-md border border-dashed border-line-strong bg-surface px-3 py-1.5 text-sm text-fg-secondary hover:bg-surface-elevated"
         >
           <Plus size={14} aria-hidden="true" />
           {t('notif.add_button')}
@@ -128,10 +128,10 @@ export function NotificationPicker({ value, onChange, isAllDay }: NotificationPi
         {open && (
           <div
             role="listbox"
-            className="absolute left-0 z-10 mt-1 min-w-[220px] max-h-64 overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-md dark:bg-gray-800 dark:border-gray-700"
+            className="absolute left-0 z-10 mt-1 min-w-[220px] max-h-64 overflow-auto rounded-md border border-line bg-surface-elevated py-1 shadow-md"
           >
             {!hasAvailable && (
-              <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">{t('notif.no_more_options')}</div>
+              <div className="px-3 py-2 text-sm text-fg-tertiary">{t('notif.no_more_options')}</div>
             )}
             {isAllDay
               ? availableAllDay.map(p => (
@@ -140,7 +140,7 @@ export function NotificationPicker({ value, onChange, isAllDay }: NotificationPi
                     type="button"
                     role="option"
                     onClick={() => addAllDayPreset(p)}
-                    className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                    className="block w-full px-3 py-2 text-left text-sm text-fg-secondary hover:bg-surface-sunken"
                   >
                     {t(p.key)}
                   </button>
@@ -151,7 +151,7 @@ export function NotificationPicker({ value, onChange, isAllDay }: NotificationPi
                     type="button"
                     role="option"
                     onClick={() => addTimePreset(p)}
-                    className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                    className="block w-full px-3 py-2 text-left text-sm text-fg-secondary hover:bg-surface-sunken"
                   >
                     {t(p.key)}
                   </button>

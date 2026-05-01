@@ -35,11 +35,11 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: Uncomple
       {/* 타임라인: 도트 + 연결선 */}
       <div className="flex flex-col items-center shrink-0 w-3">
         <div
-          className="w-2 h-2 rounded-full shrink-0 mt-1.5 ring-2 ring-white group-hover:scale-125 transition-transform duration-150"
+          className="w-2 h-2 rounded-full shrink-0 mt-1.5 ring-2 ring-surface group-hover:scale-125 transition-transform duration-150"
           style={{ backgroundColor: color }}
         />
         {!isLast && (
-          <div className="flex-1 w-px bg-gray-200 mt-1.5" />
+          <div className="flex-1 w-px bg-line mt-1.5" />
         )}
       </div>
 
@@ -137,7 +137,7 @@ export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick
         <span className="text-[11px] font-semibold uppercase tracking-widest text-fg-quaternary shrink-0">
           {t('todo.uncompleted')}
         </span>
-        <div className="flex-1 h-px bg-gray-100" />
+        <div className="flex-1 h-px bg-line" />
         <button
           onClick={onReload}
           className="shrink-0 text-fg-quaternary hover:text-fg-tertiary transition-colors"

@@ -23,7 +23,7 @@ function repeatingLabel(repeating: Repeating, t: TFunction): string {
   }
 }
 
-const ACTION_BTN = 'p-1.5 rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors'
+const ACTION_BTN = 'p-1.5 rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors'
 const INFO_ROW = 'flex items-start gap-2 text-[13px] text-fg-secondary leading-snug'
 const INFO_ICON = 'h-4 w-4 text-fg-quaternary mt-0.5 shrink-0'
 
@@ -78,15 +78,15 @@ export function EventDetailPopover({
         onClick={onClose}
       />
       <div
-        className="fixed z-40 rounded-xl shadow-xl bg-white border border-gray-100 overflow-hidden min-w-[280px] max-w-[320px] animate-in fade-in-0 duration-150"
+        className="fixed z-40 rounded-xl shadow-xl bg-surface-elevated border border-line overflow-hidden min-w-[280px] max-w-[320px] animate-in fade-in-0 duration-150"
         style={{ top, left, transform: `translateY(${translateY})` }}
         data-testid="event-detail-popover"
       >
         {/* 헤더 — 이벤트 이름 + 액션 3버튼 */}
-        <div className="flex items-start gap-2 px-4 pt-3.5 pb-3 border-b border-gray-100">
+        <div className="flex items-start gap-2 px-4 pt-3.5 pb-3 border-b border-line">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span
-              className="h-2 w-2 shrink-0 rounded-full ring-2 ring-white"
+              className="h-2 w-2 shrink-0 rounded-full ring-2 ring-surface-elevated"
               style={{ backgroundColor: tagColor }}
               data-testid="tag-color-dot"
             />

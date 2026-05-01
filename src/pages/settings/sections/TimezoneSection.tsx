@@ -26,22 +26,22 @@ function TimezoneRow({ info, selected, systemBadgeLabel, onClick }: TimezoneRowP
       aria-pressed={selected}
       className={cn(
         'w-full flex items-start gap-3 px-3 py-2.5 text-left transition-colors',
-        selected ? 'text-fg bg-gray-50' : 'text-fg hover:bg-gray-50',
+        selected ? 'text-fg bg-surface-elevated' : 'text-fg hover:bg-surface-elevated',
       )}
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className={cn('truncate text-sm', selected && 'font-semibold')}>{info.title}</span>
           {systemBadgeLabel && (
-            <span className="shrink-0 rounded-full border border-gray-200 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-gray-500">
+            <span className="shrink-0 rounded-full border border-line px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-fg-tertiary">
               {systemBadgeLabel}
             </span>
           )}
         </div>
-        <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-500">
+        <div className="mt-0.5 flex items-center gap-2 text-xs text-fg-tertiary">
           <span className="truncate">{info.identifier}</span>
           {info.abbreviation && (
-            <span className="shrink-0 text-gray-400">· {info.abbreviation}</span>
+            <span className="shrink-0 text-fg-quaternary">· {info.abbreviation}</span>
           )}
         </div>
       </div>
@@ -96,7 +96,7 @@ export function TimezoneSection({ timezone, setTimezone }: Props) {
     <SettingsSection title={t('settings.timezone')}>
       <div className="space-y-2">
         <p className={settingsLabel}>{t('settings.timezone_current', '현재 선택')}</p>
-        <div className="rounded-lg border border-gray-100 overflow-hidden">
+        <div className="rounded-lg border border-line overflow-hidden">
           <TimezoneRow
             info={pinnedInfo}
             selected
@@ -107,7 +107,7 @@ export function TimezoneSection({ timezone, setTimezone }: Props) {
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-quaternary pointer-events-none" />
         <input
           type="text"
           value={query}
@@ -117,7 +117,7 @@ export function TimezoneSection({ timezone, setTimezone }: Props) {
         />
       </div>
 
-      <ul className="max-h-[60vh] overflow-y-auto divide-y divide-gray-100 rounded-lg border border-gray-100">
+      <ul className="max-h-[60vh] overflow-y-auto divide-y divide-line rounded-lg border border-line">
         {systemMatchesQuery && (
           <li>
             <TimezoneRow
@@ -129,7 +129,7 @@ export function TimezoneSection({ timezone, setTimezone }: Props) {
           </li>
         )}
         {filteredOthers.length === 0 && !systemMatchesQuery && (
-          <li className="px-3 py-4 text-sm text-gray-400 text-center">
+          <li className="px-3 py-4 text-sm text-fg-quaternary text-center">
             {t('settings.timezone_no_results', '검색 결과 없음')}
           </li>
         )}

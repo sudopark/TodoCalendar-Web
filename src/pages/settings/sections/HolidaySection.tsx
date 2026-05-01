@@ -19,11 +19,11 @@ function CountryRow({ country, selected, onClick }: CountryRowProps) {
       aria-pressed={selected}
       className={cn(
         'w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors',
-        selected ? 'text-fg font-semibold bg-gray-50' : 'text-fg hover:bg-gray-50',
+        selected ? 'text-fg font-semibold bg-surface-elevated' : 'text-fg hover:bg-surface-elevated',
       )}
     >
       <span className="flex-1 truncate">{country.name}</span>
-      <span className="shrink-0 text-xs uppercase tracking-wider text-gray-400">{country.regionCode}</span>
+      <span className="shrink-0 text-xs uppercase tracking-wider text-fg-quaternary">{country.regionCode}</span>
       {selected && <Check className="h-4 w-4 text-fg shrink-0" strokeWidth={3} />}
     </button>
   )
@@ -74,13 +74,13 @@ export function HolidaySection({
     <SettingsSection title={t('settings.holiday_country')}>
       <div className="space-y-2">
         <p className={settingsLabel}>{t('settings.country_current', '현재 선택')}</p>
-        <div className="rounded-lg border border-gray-100 overflow-hidden">
+        <div className="rounded-lg border border-line overflow-hidden">
           <CountryRow country={pinnedCountry} selected onClick={() => { /* already selected */ }} />
         </div>
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-fg-quaternary pointer-events-none" />
         <input
           type="text"
           value={query}
@@ -90,14 +90,14 @@ export function HolidaySection({
         />
       </div>
 
-      <ul className="max-h-[60vh] overflow-y-auto divide-y divide-gray-100 rounded-lg border border-gray-100">
+      <ul className="max-h-[60vh] overflow-y-auto divide-y divide-line rounded-lg border border-line">
         {!availableCountriesLoaded && availableCountries.length === 0 && (
-          <li className="px-3 py-4 text-sm text-gray-400 text-center">
+          <li className="px-3 py-4 text-sm text-fg-quaternary text-center">
             {t('common.loading', '불러오는 중...')}
           </li>
         )}
         {availableCountriesLoaded && filtered.length === 0 && (
-          <li className="px-3 py-4 text-sm text-gray-400 text-center">
+          <li className="px-3 py-4 text-sm text-fg-quaternary text-center">
             {t('settings.country_no_results', '검색 결과 없음')}
           </li>
         )}

@@ -14,12 +14,12 @@ export function SettingsMenu({ selected, onSelect, onBack }: Props) {
 
   return (
     <nav className="flex flex-col" aria-label={t('settings.title')}>
-      <div className="flex items-center gap-2 px-4 py-4 border-b border-gray-100">
+      <div className="flex items-center gap-2 px-4 py-4 border-b border-line">
         <button
           type="button"
           onClick={onBack}
           aria-label={t('settings.back')}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -39,7 +39,7 @@ export function SettingsMenu({ selected, onSelect, onBack }: Props) {
                   'relative flex w-full items-center px-6 py-2.5 text-left text-sm transition-colors',
                   isSelected
                     ? 'font-semibold text-fg'
-                    : 'font-medium text-fg-secondary hover:text-fg hover:bg-gray-50',
+                    : 'font-medium text-fg-secondary hover:text-fg hover:bg-surface-elevated',
                 )}
               >
                 {isSelected && (

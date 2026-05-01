@@ -45,7 +45,7 @@ export function CalendarAppearancePreview({ weekStartDay, accentDays }: Props) {
   )
 
   return (
-    <div className="rounded-lg border border-gray-100 bg-white p-4">
+    <div className="rounded-lg border border-line bg-surface p-4">
       <div className="grid grid-cols-7 mb-1">
         {weekdayKeys.map((k, i) => {
           const dow = (weekStartDay + i) % 7

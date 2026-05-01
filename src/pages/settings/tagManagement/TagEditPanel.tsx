@@ -104,7 +104,7 @@ export function TagEditPanel({ mode, onBack }: TagEditPanelProps) {
           type="button"
           onClick={onBack}
           aria-label={t('tag.close_panel', 'Close panel')}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -117,7 +117,7 @@ export function TagEditPanel({ mode, onBack }: TagEditPanelProps) {
         </label>
         <input
           id="tag-edit-name"
-          className={`${settingsInput} read-only:bg-gray-50 read-only:text-fg-secondary`}
+          className={`${settingsInput} read-only:bg-surface-elevated read-only:text-fg-secondary`}
           value={name}
           onChange={e => setName(e.target.value)}
           readOnly={isReadonlyName}

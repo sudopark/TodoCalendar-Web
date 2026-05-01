@@ -23,7 +23,7 @@ export function CreateEventButton() {
         aria-label={t('main.create_event', 'Create')}
         aria-haspopup="menu"
         aria-expanded={showMenu}
-        className="flex w-full items-center justify-between rounded-full bg-white border border-line px-4 py-2.5 shadow-sm hover:shadow transition-shadow"
+        className="flex w-full items-center justify-between rounded-full bg-surface border border-line px-4 py-2.5 shadow-sm hover:shadow transition-shadow"
         onClick={() => setShowMenu(!showMenu)}
       >
         <span className="flex items-center gap-2 text-fg">
@@ -46,11 +46,11 @@ export function CreateEventButton() {
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
           <div
             role="menu"
-            className="absolute bottom-full left-0 mb-1.5 z-50 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-line shadow-lg"
+            className="absolute bottom-full left-0 mb-1.5 z-50 w-full overflow-hidden rounded-xl bg-surface-elevated border border-line shadow-lg"
           >
             <button
               role="menuitem"
-              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
+              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken transition-colors"
               onClick={() => handleSelect('todo')}
             >
               <svg className="h-4 w-4 text-fg-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,10 +58,10 @@ export function CreateEventButton() {
               </svg>
               Todo
             </button>
-            <div className="border-t border-line dark:border-gray-700" />
+            <div className="border-t border-line" />
             <button
               role="menuitem"
-              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
+              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken transition-colors"
               onClick={() => handleSelect('schedule')}
             >
               <svg className="h-4 w-4 text-fg-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -90,7 +90,7 @@ export function MainPage() {
   }
 
   return (
-    <div className="h-screen bg-slate-50">
+    <div className="h-screen bg-surface-elevated">
       <div className="flex h-full flex-col overflow-hidden">
         <TopToolbar
           currentMonth={vm.currentMonth}
@@ -126,7 +126,7 @@ export function MainPage() {
             }`}
           >
             <div className="w-[408px] h-full py-4 pr-4">
-              <div className="h-full rounded-lg border border-line bg-white shadow-sm overflow-hidden">
+              <div className="h-full rounded-lg border border-line bg-surface shadow-sm overflow-hidden">
                 <RightEventPanel
                   selectedDate={vm.selectedDate}
                   rightPanelMode={vm.rightPanelMode}

@@ -24,7 +24,7 @@ export function ColorPalette({ colors = PRESET_COLORS, selected, onChange }: Col
           aria-pressed={selected === color}
           onClick={() => onChange(color)}
           className={`h-7 w-7 rounded-full border-2 transition-transform ${
-            selected === color ? 'border-gray-800 scale-110' : 'border-transparent'
+            selected === color ? 'border-action scale-110' : 'border-transparent'
           }`}
           style={{ backgroundColor: color }}
         />

@@ -13,8 +13,8 @@ import { formatNotification } from '../../utils/formatNotification'
 const POPOVER_WIDTH = 320
 const THRESHOLD = 200
 
-const ACTION_BTN = 'p-1.5 rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50'
-const INFO_ROW = 'flex items-start gap-2 text-[13px] text-fg-secondary dark:text-gray-300 leading-snug'
+const ACTION_BTN = 'p-1.5 rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors disabled:opacity-50'
+const INFO_ROW = 'flex items-start gap-2 text-[13px] text-fg-secondary leading-snug'
 const INFO_ICON = 'h-4 w-4 text-fg-quaternary mt-0.5 shrink-0'
 
 export interface DoneTodoDetailPopoverProps {
@@ -82,7 +82,7 @@ export function DoneTodoDetailPopover({
       />
       {/* 카드 — EventDetailPopover 와 톤 정합 (rounded-xl, shadow-xl, gray-100 border, 폭 320) */}
       <div
-        className="fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 p-5"
+        className="fixed z-50 bg-surface-elevated rounded-xl shadow-xl border border-line p-5"
         style={{ top, left, transform: `translateY(${translateY})`, width: POPOVER_WIDTH }}
         data-testid="done-todo-detail-popover"
       >
@@ -108,7 +108,7 @@ export function DoneTodoDetailPopover({
             aria-label={t('common.delete', '삭제')}
             disabled={vm.isDeleting}
             onClick={() => setShowDeleteConfirm(true)}
-            className={`${ACTION_BTN} hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30`}
+            className={`${ACTION_BTN} hover:text-red-500 hover:bg-red-50`}
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -123,10 +123,10 @@ export function DoneTodoDetailPopover({
         </div>
 
         {/* 이름 + 태그 */}
-        <p className="pr-24 text-lg font-semibold text-fg dark:text-gray-100">{doneTodo.name}</p>
+        <p className="pr-24 text-lg font-semibold text-fg">{doneTodo.name}</p>
         <div className="mt-1 flex items-center gap-2">
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: tagColor }} />
-          <span className="text-xs text-fg-secondary dark:text-gray-400">{tagName}</span>
+          <span className="text-xs text-fg-secondary">{tagName}</span>
         </div>
 
         {/* 본문: 시간 / 알림 / url / memo / place */}
