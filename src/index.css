@@ -5,20 +5,39 @@
 
 @theme {
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+
+  /* 사이드바 — 유지 (별도 카테고리, 본 PR 비스코프) */
   --color-sidebar-bg: #1e293b;
   --color-sidebar-text: #cbd5e1;
   --color-sidebar-text-dim: #64748b;
-  --color-surface: #f8f9fa;
-  --color-surface-alt: #f1f4f5;
-  --color-brand: #1d4ed8;
-  --color-brand-dark: #005bc1;
-  --color-border-light: #e2e8f0;
-  --color-border-calendar: #e5e7eb;
-  --color-text-primary: #334155;
-  --color-text-secondary: #64748b;
-  --color-text-tertiary: #94a3b8;
+
+  /* === 신규 의미 토큰 (이슈 #75) === */
+  /* Text (4) */
+  --color-fg: #1f1f1f;
+  --color-fg-secondary: #6b6b6b;
+  --color-fg-tertiary: #969696;
+  --color-fg-quaternary: #bbb;
+
+  /* Surface (3) */
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f8f9fa;
   --color-surface-sunken: #f1f5f9;
-  --color-danger-soft: #e11d48;
+
+  /* Border (2) */
+  --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+
+  /* Action (2) */
+  --color-action: #1f1f1f;
+  --color-action-fg: #ffffff;
+
+  /* Brand (1) */
+  --color-brand: #1d4ed8;
+
+  /* State (3) */
+  --color-danger: #e11d48;
+  --color-warning: #f59e0b;
+  --color-success: #16a34a;
 }
 
 html {
@@ -135,6 +154,28 @@ html {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* === 신규 의미 토큰 다크값 (이슈 #75) === */
+  --color-fg: #fbfbfb;
+  --color-fg-secondary: #c4c4c4;
+  --color-fg-tertiary: #969696;
+  --color-fg-quaternary: #6e6e6e;
+
+  --color-surface: #252525;
+  --color-surface-elevated: #353535;
+  --color-surface-sunken: #444444;
+
+  --color-line: rgba(255, 255, 255, 0.10);
+  --color-line-strong: rgba(255, 255, 255, 0.20);
+
+  --color-action: #fbfbfb;
+  --color-action-fg: #1f1f1f;
+
+  --color-brand: #60a5fa;
+
+  --color-danger: #fb7185;
+  --color-warning: #fbbf24;
+  --color-success: #4ade80;
 }
 
 @layer base {
