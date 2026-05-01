@@ -53,7 +53,7 @@ export function CalendarAppearancePreview({ weekStartDay, accentDays }: Props) {
           return (
             <div
               key={k}
-              className={`text-center text-[10px] font-semibold uppercase tracking-widest ${isAccent ? 'text-[#e8a5a5]' : 'text-[#bbb]'}`}
+              className={`text-center text-[10px] font-semibold uppercase tracking-widest ${isAccent ? 'text-[#e8a5a5]' : 'text-fg-quaternary'}`}
             >
               {t(`calendar.weekdays.${k}`, k)}
             </div>
@@ -66,7 +66,7 @@ export function CalendarAppearancePreview({ weekStartDay, accentDays }: Props) {
             {week.map(cell => (
               <div
                 key={`${wi}-${cell.num}`}
-                className={`text-center py-1 text-xs ${accent(cell.dow, cell.isHoliday) ? 'text-red-400' : 'text-[#1f1f1f]'}`}
+                className={`text-center py-1 text-xs ${accent(cell.dow, cell.isHoliday) ? 'text-red-400' : 'text-fg'}`}
               >
                 {cell.num}
               </div>
