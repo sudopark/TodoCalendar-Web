@@ -30,12 +30,12 @@ export function EventFormHeader({
   const nameInputId = `${idPrefix}-event-name`
 
   return (
-    <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-border-light bg-background px-4 py-4">
+    <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-line bg-background px-4 py-4">
       <button
         type="button"
         aria-label={t('common.cancel')}
         onClick={onClose}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-text-secondary hover:text-text-primary hover:bg-surface-sunken transition-colors"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-fg-secondary hover:text-fg hover:bg-surface-sunken transition-colors"
       >
         <X size={20} />
       </button>
@@ -46,7 +46,7 @@ export function EventFormHeader({
           id={nameInputId}
           aria-label={t('event.name')}
           placeholder={t('event.namePlaceholder', '이벤트 이름 추가')}
-          className="w-full border-b border-transparent bg-transparent pr-6 text-2xl font-normal tracking-tight text-text-primary outline-none focus:border-text-primary placeholder:text-text-tertiary transition-colors"
+          className="w-full border-b border-transparent bg-transparent pr-6 text-2xl font-normal tracking-tight text-fg outline-none focus:border-fg placeholder:text-fg-tertiary transition-colors"
           value={name}
           onChange={e => onNameChange(e.target.value)}
         />

@@ -37,7 +37,7 @@ export function MoreActionsMenu({ onCopy, onDelete }: MoreActionsMenuProps) {
         aria-label={t('eventForm.more_actions')}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary hover:text-text-primary hover:bg-surface-sunken transition-colors"
+        className="flex h-9 w-9 items-center justify-center rounded-full text-fg-secondary hover:text-fg hover:bg-surface-sunken transition-colors"
         onClick={() => setOpen(v => !v)}
       >
         <MoreHorizontal size={18} aria-hidden="true" />
@@ -47,20 +47,20 @@ export function MoreActionsMenu({ onCopy, onDelete }: MoreActionsMenuProps) {
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
             role="menu"
-            className="absolute right-0 z-50 mt-1.5 min-w-[10rem] overflow-hidden rounded-xl border border-border-light bg-background shadow-lg"
+            className="absolute right-0 z-50 mt-1.5 min-w-[10rem] overflow-hidden rounded-xl border border-line bg-background shadow-lg"
           >
             <button
               type="button"
               role="menuitem"
-              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-surface-sunken transition-colors"
+              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken transition-colors"
               onClick={() => { setOpen(false); onCopy() }}
             >
-              <Copy className="h-4 w-4 text-text-secondary" />
+              <Copy className="h-4 w-4 text-fg-secondary" />
               {t('eventForm.copy')}
             </button>
             {onDelete && (
               <>
-                <div className="border-t border-border-light" />
+                <div className="border-t border-line" />
                 <button
                   type="button"
                   role="menuitem"

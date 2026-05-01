@@ -40,7 +40,7 @@ function MiniCalendarDayButton({
   const isSelected = modifiers.selected
 
   const bgStyle = isSelected
-    ? 'bg-text-primary rounded-full'
+    ? 'bg-fg rounded-full'
     : isToday
       ? 'bg-surface-sunken rounded-full'
       : 'hover:bg-surface-sunken hover:rounded-full'
@@ -48,10 +48,10 @@ function MiniCalendarDayButton({
   const textColor = isSelected
     ? 'text-white font-semibold'
     : isOutside
-      ? 'text-text-tertiary'
+      ? 'text-fg-tertiary'
       : isSunday || isHoliday
-        ? 'text-danger-soft'
-        : 'text-text-primary'
+        ? 'text-danger'
+        : 'text-fg'
 
   return (
     <button
@@ -114,17 +114,17 @@ export default function LeftSidebar({
             data-testid="sidebar-create-event"
             aria-haspopup="menu"
             aria-expanded={showCreateMenu}
-            className="flex w-full items-center justify-between rounded-full bg-white border border-border-light px-4 py-2.5 shadow-sm hover:shadow transition-shadow"
+            className="flex w-full items-center justify-between rounded-full bg-white border border-line px-4 py-2.5 shadow-sm hover:shadow transition-shadow"
             onClick={() => setShowCreateMenu(!showCreateMenu)}
           >
-            <span className="flex items-center gap-2 text-text-primary">
+            <span className="flex items-center gap-2 text-fg">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               <span className="text-sm font-medium">{t('main.create_event', 'Create')}</span>
             </span>
             <svg
-              className={cn('h-3.5 w-3.5 text-text-tertiary transition-transform', showCreateMenu && 'rotate-180')}
+              className={cn('h-3.5 w-3.5 text-fg-tertiary transition-transform', showCreateMenu && 'rotate-180')}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -137,33 +137,33 @@ export default function LeftSidebar({
               <div className="fixed inset-0 z-40" onClick={() => setShowCreateMenu(false)} />
               <div
                 role="menu"
-                className="absolute top-full left-0 mt-1.5 z-50 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-border-light shadow-lg"
+                className="absolute top-full left-0 mt-1.5 z-50 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-line shadow-lg"
               >
                 <button
                   role="menuitem"
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
                   onClick={() => {
                     setShowCreateMenu(false)
                     const rect = createButtonRef.current?.getBoundingClientRect() ?? null
                     onOpenEventForm(rect, 'todo')
                   }}
                 >
-                  <svg className="h-4 w-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 text-fg-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   Todo
                 </button>
-                <div className="border-t border-border-light dark:border-gray-700" />
+                <div className="border-t border-line dark:border-gray-700" />
                 <button
                   role="menuitem"
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
                   onClick={() => {
                     setShowCreateMenu(false)
                     const rect = createButtonRef.current?.getBoundingClientRect() ?? null
                     onOpenEventForm(rect, 'schedule')
                   }}
                 >
-                  <svg className="h-4 w-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 text-fg-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   Schedule
@@ -188,12 +188,12 @@ export default function LeftSidebar({
               months: 'relative flex flex-col gap-0',
               month: 'flex w-full flex-col gap-2',
               month_caption: 'flex h-7 w-full items-center justify-center px-7',
-              caption_label: 'text-sm font-semibold text-text-primary select-none',
+              caption_label: 'text-sm font-semibold text-fg select-none',
               nav: 'absolute inset-x-0 top-0 flex w-full items-center justify-between',
-              button_previous: 'rounded p-0.5 hover:bg-surface-sunken text-text-secondary h-7 w-7 flex items-center justify-center transition-colors',
-              button_next: 'rounded p-0.5 hover:bg-surface-sunken text-text-secondary h-7 w-7 flex items-center justify-center transition-colors',
+              button_previous: 'rounded p-0.5 hover:bg-surface-sunken text-fg-secondary h-7 w-7 flex items-center justify-center transition-colors',
+              button_next: 'rounded p-0.5 hover:bg-surface-sunken text-fg-secondary h-7 w-7 flex items-center justify-center transition-colors',
               weekdays: 'flex',
-              weekday: 'flex-1 text-center text-[10px] font-normal uppercase tracking-wide text-text-tertiary py-1',
+              weekday: 'flex-1 text-center text-[10px] font-normal uppercase tracking-wide text-fg-tertiary py-1',
               week: 'mt-0.5 flex w-full',
               day: 'flex-1 flex items-center justify-center py-0.5',
               today: '',

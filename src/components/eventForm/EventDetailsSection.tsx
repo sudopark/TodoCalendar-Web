@@ -20,7 +20,7 @@ interface EventDetailsSectionProps {
 }
 
 const inputClass =
-  'w-full rounded-md border border-border-light bg-transparent px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-tertiary focus:border-text-primary transition-colors'
+  'w-full rounded-md border border-line bg-transparent px-3 py-2 text-sm text-fg outline-none placeholder:text-fg-tertiary focus:border-fg transition-colors'
 
 interface RowProps {
   icon: React.ReactNode
@@ -31,7 +31,7 @@ interface RowProps {
 function Row({ icon, children, align = 'center' }: RowProps) {
   return (
     <div className={`flex gap-3 ${align === 'start' ? 'items-start' : 'items-center'}`}>
-      <div className={`flex h-6 w-6 shrink-0 items-center justify-center text-text-tertiary ${align === 'start' ? 'mt-2' : ''}`} aria-hidden="true">
+      <div className={`flex h-6 w-6 shrink-0 items-center justify-center text-fg-tertiary ${align === 'start' ? 'mt-2' : ''}`} aria-hidden="true">
         {icon}
       </div>
       <div className="flex-1 min-w-0">{children}</div>
@@ -59,7 +59,7 @@ export function EventDetailsSection({
   const memoId = `${fieldPrefix}-memo`
 
   return (
-    <section className="space-y-4 rounded-xl border border-border-light bg-background p-5 shadow-sm">
+    <section className="space-y-4 rounded-xl border border-line bg-background p-5 shadow-sm">
       {/* Tag */}
       <Row icon={<TagIcon className="h-4 w-4" />}>
         <TagDropdown value={tagId} onChange={onTagChange} showManageLink />

@@ -29,10 +29,10 @@ export function RepeatingSection({ eventTime, repeating, onRepeatingChange }: Re
         <PopoverTrigger
           className="flex-1 flex items-center justify-between rounded-md border border-input bg-transparent px-2.5 py-1.5 text-sm hover:bg-surface-sunken focus-visible:ring-2 focus-visible:ring-ring/50 outline-none transition-colors"
         >
-          <span className={isOn ? 'text-text-primary font-medium' : 'text-text-tertiary'}>
+          <span className={isOn ? 'text-fg font-medium' : 'text-fg-tertiary'}>
             {summary}
           </span>
-          <span className="text-xs text-text-tertiary">
+          <span className="text-xs text-fg-tertiary">
             {t('repeating.edit', '수정')}
           </span>
         </PopoverTrigger>
