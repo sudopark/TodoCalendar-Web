@@ -21,7 +21,7 @@ const DATE_NUMBER_HEIGHT = 28
 // 날짜 숫자 아래 이벤트 바 시작 오프셋(px)
 const EVENT_AREA_TOP_OFFSET = 4
 
-const TODAY_BG = '#1f1f1f'
+const TODAY_BG = 'var(--color-action)'
 
 interface MainCalendarGridProps {
   days: CalendarDay[]
@@ -55,7 +55,7 @@ function EventBar({ ev, timeType, showEventNames, fontSizeWeight, onEventClick }
 
   return (
     <div
-      className="flex items-center h-5 rounded px-1.5 py-0.5 leading-tight cursor-pointer pointer-events-auto overflow-hidden text-[#1f1f1f]"
+      className="flex items-center h-5 rounded px-1.5 py-0.5 leading-tight cursor-pointer pointer-events-auto overflow-hidden text-fg"
       data-testid="event-bar"
       style={{
         gridColumn: `${ev.startCol} / ${ev.endCol + 1}`,
@@ -186,7 +186,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
           return (
             <div
               key={key}
-              className={`px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest ${accent ? 'text-[#e8a5a5]' : 'text-[#bbb]'}`}
+              className={`px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest ${accent ? 'text-[#e8a5a5]' : 'text-fg-quaternary'}`}
             >
               {t(`calendar.weekdays.${key}`, key.toUpperCase())}
             </div>
@@ -224,7 +224,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
 
                 const circleBg = day.isToday ? TODAY_BG : undefined
                 const ringClass = isSelected && !day.isToday
-                  ? 'ring-2 ring-[#1f1f1f] ring-offset-1 ring-offset-white'
+                  ? 'ring-2 ring-action ring-offset-1 ring-offset-white'
                   : ''
 
                 const accent = (
@@ -239,7 +239,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                     ? 'text-gray-300'
                     : accent
                       ? 'text-red-400'
-                      : 'text-[#1f1f1f]'
+                      : 'text-fg'
 
                 return (
                   <div
@@ -306,7 +306,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
 
                   {hiddenCount > 0 && (
                     <div className="grid grid-cols-7">
-                      <div className="col-span-7 text-[10px] font-medium text-[#969696] px-2 pointer-events-auto">
+                      <div className="col-span-7 text-[10px] font-medium text-fg-tertiary px-2 pointer-events-auto">
                         +{hiddenCount} more
                       </div>
                     </div>

@@ -52,11 +52,11 @@ function EventItem({ calEvent, onEventClick, onComplete, isLast }: {
       <div className="flex-1 min-w-0 py-0.5 flex items-start gap-2">
         <div className="flex-1 min-w-0">
           <p
-            className="truncate font-semibold text-[#1f1f1f] leading-snug group-hover:text-black transition-colors duration-150"
+            className="truncate font-semibold text-fg leading-snug group-hover:text-black transition-colors duration-150"
             style={{ fontSize: nameFontSize }}
           >{name}</p>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-            <span className="text-xs text-[#aaa] leading-none">
+            <span className="text-xs text-fg-quaternary leading-none">
               <TimeDescription eventTime={event_time} />
             </span>
             {tagName && (
@@ -73,7 +73,7 @@ function EventItem({ calEvent, onEventClick, onComplete, isLast }: {
         {calEvent.type === 'todo' && (
           <button
             aria-label={name}
-            className="shrink-0 h-5 w-5 rounded-full border-2 border-[#ccd0dc] hover:border-[#323232] transition-colors mt-0.5"
+            className="shrink-0 h-5 w-5 rounded-full border-2 border-line-strong hover:border-fg transition-colors mt-0.5"
             onClick={(e) => { e.stopPropagation(); onComplete(calEvent.event) }}
           />
         )}
@@ -157,7 +157,7 @@ export function DayEventList({ selectedDate, eventsByDate, isTagHidden, onEventC
     <>
       <div className="flex flex-col">
         {sorted.length === 0 ? (
-          <div className="flex items-center justify-center py-8 text-sm text-[#969696]">
+          <div className="flex items-center justify-center py-8 text-sm text-fg-tertiary">
             {t('event.no_events')}
           </div>
         ) : (

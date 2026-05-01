@@ -47,11 +47,11 @@ function CurrentTodoRow({ todo, onEventClick, onComplete, isLast }: CurrentTodoR
       <div className="flex-1 min-w-0 py-0.5 flex items-start gap-2">
         <div className="flex-1 min-w-0">
           <p
-            className="truncate font-semibold text-[#1f1f1f] leading-snug group-hover:text-black transition-colors duration-150"
+            className="truncate font-semibold text-fg leading-snug group-hover:text-black transition-colors duration-150"
             style={{ fontSize: nameFontSize }}
           >{todo.name}</p>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-            <span className="text-xs text-[#aaa] leading-none">Todo</span>
+            <span className="text-xs text-fg-quaternary leading-none">Todo</span>
             {tagName && (
               <span
                 className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
@@ -64,7 +64,7 @@ function CurrentTodoRow({ todo, onEventClick, onComplete, isLast }: CurrentTodoR
         </div>
         <button
           aria-label={todo.name}
-          className="shrink-0 h-5 w-5 rounded-full border-2 border-[#ccd0dc] hover:border-[#323232] transition-colors mt-0.5"
+          className="shrink-0 h-5 w-5 rounded-full border-2 border-line-strong hover:border-fg transition-colors mt-0.5"
           onClick={(e) => { e.stopPropagation(); onComplete(todo) }}
         />
       </div>
@@ -132,7 +132,7 @@ export function CurrentTodoList({ todos, isTagHidden, onEventClick }: CurrentTod
   return (
     <section data-testid="current-todo-list" className="mb-6">
       <div className="flex items-center gap-3 mb-3">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-[#bbb] shrink-0">Current Todo</span>
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-fg-quaternary shrink-0">Current Todo</span>
         <div className="flex-1 h-px bg-gray-100" />
       </div>
       <div className="flex flex-col">

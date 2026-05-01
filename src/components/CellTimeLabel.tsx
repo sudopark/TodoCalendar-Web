@@ -81,15 +81,15 @@ function ScheduleTimeLabel({ eventTime }: { eventTime: EventTime }) {
 
 function SingleLine({ text }: { text: string }) {
   return (
-    <p className="text-xs text-[#323232] text-center truncate leading-tight">{text}</p>
+    <p className="text-xs text-fg text-center truncate leading-tight">{text}</p>
   )
 }
 
 function DoubleLine({ top, bottom }: { top: string; bottom: string }) {
   return (
     <div className="flex flex-col items-center">
-      <p className="text-xs text-[#323232] truncate leading-tight">{top}</p>
-      <p className="text-[10px] text-[#646464] truncate leading-tight">{bottom}</p>
+      <p className="text-xs text-fg truncate leading-tight">{top}</p>
+      <p className="text-[10px] text-fg-secondary truncate leading-tight">{bottom}</p>
     </div>
   )
 }

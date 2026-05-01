@@ -34,12 +34,12 @@ function DoneTodoRow({ item, onRevert, onRequestDelete, onClick }: DoneTodoRowPr
         className="h-2 w-2 shrink-0 rounded-full ring-2 ring-white"
         style={{ backgroundColor: resolved.color }}
       />
-      <p className="min-w-0 flex-1 truncate text-sm text-[#1f1f1f]">{item.name}</p>
+      <p className="min-w-0 flex-1 truncate text-sm text-fg">{item.name}</p>
       <button
         type="button"
         aria-label={t('todo.revert')}
         onClick={(e) => { e.stopPropagation(); onRevert(item.uuid) }}
-        className="shrink-0 p-1.5 rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors"
+        className="shrink-0 p-1.5 rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
       >
         <RotateCcw className="h-4 w-4" />
       </button>
@@ -58,7 +58,7 @@ function DoneTodoRow({ item, onRevert, onRequestDelete, onClick }: DoneTodoRowPr
 function SectionHeader({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 mb-3">
-      <span className="text-[11px] font-semibold uppercase tracking-widest text-[#bbb] shrink-0">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-widest text-fg-quaternary shrink-0">{label}</span>
       <div className="flex-1 h-px bg-gray-100" />
     </div>
   )
@@ -138,15 +138,15 @@ export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
               type="button"
               onClick={exitArchivePanel}
               aria-label={t('settings.back', '뒤로')}
-              className="shrink-0 -ml-2 flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors"
+              className="shrink-0 -ml-2 flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <h1 className="text-2xl font-bold text-[#323232]">{t('todo.done_list')}</h1>
+            <h1 className="text-2xl font-bold text-fg">{t('todo.done_list')}</h1>
           </div>
 
           {items.length === 0 && hasMore === false && (
-            <p className="py-8 text-center text-sm text-[#969696]">{t('todo.done_empty')}</p>
+            <p className="py-8 text-center text-sm text-fg-tertiary">{t('todo.done_empty')}</p>
           )}
 
           {Array.from(groups.entries()).map(([dateKey, groupItems]) => (
@@ -166,7 +166,7 @@ export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
             </section>
           ))}
 
-          <div ref={sentinelRef} className="py-2 text-center text-xs text-[#bbb]">
+          <div ref={sentinelRef} className="py-2 text-center text-xs text-fg-quaternary">
             {!hasMore && items.length > 0 && t('todo.all_shown')}
           </div>
         </div>

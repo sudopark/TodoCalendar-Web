@@ -32,8 +32,8 @@ export default function TopToolbar({
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
   const monthLabel = currentMonth.toLocaleDateString(dateLocale, { month: 'long' })
 
-  const iconBtn = 'rounded-full p-2 text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors'
-  const navBtn = 'rounded-full p-2 text-gray-300 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors'
+  const iconBtn = 'rounded-full p-2 text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors'
+  const navBtn = 'rounded-full p-2 text-gray-300 hover:text-fg hover:bg-gray-50 transition-colors'
 
   return (
     <div className="flex h-16 items-center bg-white border-b border-gray-100 shrink-0">
@@ -47,7 +47,7 @@ export default function TopToolbar({
         <button
           onClick={onToggleSidebar}
           aria-label={t('main.toggle_sidebar', '사이드바 토글')}
-          className="shrink-0 rounded-full p-2 mx-2 text-gray-500 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors"
+          className="shrink-0 rounded-full p-2 mx-2 text-gray-500 hover:text-fg hover:bg-gray-50 transition-colors"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -60,7 +60,7 @@ export default function TopToolbar({
           )}
         >
           <img src="/logo-light.png" alt="To-do Calendar" className="h-7 shrink-0" />
-          <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#1f1f1f] whitespace-nowrap">
+          <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-fg whitespace-nowrap">
             To-do Calendar
           </span>
         </div>
@@ -77,10 +77,10 @@ export default function TopToolbar({
 
           {/* 월 타이틀 — 연도는 캡션, 월은 히어로 */}
           <div data-testid="toolbar-month-title" className="flex flex-col items-center leading-none min-w-[7rem] py-1">
-            <span data-testid="toolbar-year" className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#bbb]">
+            <span data-testid="toolbar-year" className="text-[10px] font-semibold uppercase tracking-[0.25em] text-fg-quaternary">
               {year}
             </span>
-            <span data-testid="toolbar-month" className="mt-1 text-[18px] font-semibold text-[#1f1f1f] tracking-tight">
+            <span data-testid="toolbar-month" className="mt-1 text-[18px] font-semibold text-fg tracking-tight">
               {monthLabel}
             </span>
           </div>
@@ -95,7 +95,7 @@ export default function TopToolbar({
         <button
           onClick={onGoToToday}
           aria-label={t('main.today', '오늘')}
-          className="rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-[#1f1f1f] hover:bg-gray-50 transition-colors"
+          className="rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-fg hover:bg-gray-50 transition-colors"
         >
           {t('main.today', '오늘')}
         </button>
