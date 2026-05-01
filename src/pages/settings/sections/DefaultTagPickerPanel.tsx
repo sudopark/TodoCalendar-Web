@@ -43,7 +43,7 @@ export function DefaultTagPickerPanel({ onClose, tags, defaultTagColors, default
           type="button"
           onClick={onClose}
           aria-label={t('settings.back')}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -52,7 +52,7 @@ export function DefaultTagPickerPanel({ onClose, tags, defaultTagColors, default
         </h2>
       </div>
 
-      <ul className="divide-y divide-gray-100">
+      <ul className="divide-y divide-line">
         {options.map(opt => {
           const isSelected = opt.id === defaultTagId
           return (
@@ -62,7 +62,7 @@ export function DefaultTagPickerPanel({ onClose, tags, defaultTagColors, default
                 onClick={() => setDefaultTagId(opt.id)}
                 className={cn(
                   'w-full flex items-center gap-3 py-3 text-left transition-colors',
-                  isSelected ? 'text-fg font-semibold' : 'text-fg hover:bg-gray-50',
+                  isSelected ? 'text-fg font-semibold' : 'text-fg hover:bg-surface-elevated',
                 )}
               >
                 <span

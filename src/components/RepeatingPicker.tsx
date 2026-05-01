@@ -258,7 +258,7 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
           aria-haspopup="menu"
           aria-expanded={open}
           onClick={() => setOpen(v => !v)}
-          className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+          className="inline-flex items-center gap-1 rounded-md border border-line-strong bg-surface px-3 py-1.5 text-sm text-fg-secondary hover:bg-surface-elevated"
         >
           {buttonLabel}
           <ChevronDown size={14} aria-hidden="true" />
@@ -267,19 +267,19 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
         {open && (
           <div
             role="menu"
-            className="absolute left-0 z-10 mt-1 max-h-80 min-w-[220px] overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-md dark:bg-gray-800 dark:border-gray-700"
+            className="absolute left-0 z-10 mt-1 max-h-80 min-w-[220px] overflow-auto rounded-md border border-line bg-surface-elevated py-1 shadow-md"
           >
             <button
               type="button"
               role="menuitem"
               onClick={() => handleSelectPreset(null)}
-              className={`block w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                !value ? 'font-medium text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
+              className={`block w-full px-3 py-2 text-left text-sm hover:bg-surface-sunken ${
+                !value ? 'font-medium text-blue-600' : 'text-fg-secondary'
               }`}
             >
               {t('repeating.not_repeat')}
             </button>
-            <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
+            <div className="my-1 border-t border-line" />
             {presets.map(p => {
               const isSelected = value && optionsEqual(p.option, value.option)
               return (
@@ -288,8 +288,8 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
                   type="button"
                   role="menuitem"
                   onClick={() => handleSelectPreset(p)}
-                  className={`block w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                    isSelected ? 'font-medium text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
+                  className={`block w-full px-3 py-2 text-left text-sm hover:bg-surface-sunken ${
+                    isSelected ? 'font-medium text-blue-600' : 'text-fg-secondary'
                   }`}
                 >
                   {p.text}
@@ -302,10 +302,10 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
 
       {/* 종료 조건: 반복이 설정된 경우에만 노출 */}
       {value && (
-        <div className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+        <div className="inline-flex items-center gap-2 text-sm text-fg-secondary">
           <select
             aria-label={t('repeating.end_condition')}
-            className="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+            className="rounded-md border border-line-strong bg-surface px-2 py-1.5 text-sm"
             value={endType}
             onChange={e => handleEndTypeChange(e.target.value as EndType)}
           >
@@ -317,7 +317,7 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
             <input
               type="date"
               aria-label={t('repeating.end_on_date')}
-              className="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="rounded-md border border-line-strong bg-surface px-2 py-1.5 text-sm"
               value={endDate}
               onChange={e => handleEndDateChange(e.target.value)}
             />
@@ -327,7 +327,7 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
               type="number"
               min={1}
               aria-label={t('repeating.end_after_count', { n: endCount })}
-              className="w-20 rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="w-20 rounded-md border border-line-strong bg-surface px-2 py-1.5 text-sm"
               value={endCount}
               onChange={e => handleEndCountChange(Math.max(1, Number(e.target.value) || 1))}
             />

@@ -50,17 +50,17 @@ export function ConfirmDialog({ title, message, confirmLabel, onConfirm, onCance
       aria-modal="true"
       aria-labelledby="confirm-dialog-message"
     >
-      <div ref={dialogRef} className="mx-4 w-full max-w-sm rounded-xl bg-white dark:bg-gray-800 p-6 shadow-lg">
-        {title && <h2 className="text-base font-semibold text-gray-900 dark:text-white">{title}</h2>}
+      <div ref={dialogRef} className="mx-4 w-full max-w-sm rounded-xl bg-surface-elevated p-6 shadow-lg">
+        {title && <h2 className="text-base font-semibold text-fg">{title}</h2>}
         <p
           id="confirm-dialog-message"
-          className={`text-sm text-gray-700 dark:text-gray-300${title ? ' mt-2' : ''}`}
+          className={`text-sm text-fg-secondary${title ? ' mt-2' : ''}`}
         >
           {message}
         </p>
         <div className="mt-5 flex justify-end gap-2">
           <button
-            className="rounded-lg px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="rounded-lg px-4 py-2 text-sm text-fg-tertiary hover:bg-surface-sunken"
             onClick={onCancel}
           >
             {t('common.cancel')}

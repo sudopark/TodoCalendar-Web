@@ -27,11 +27,11 @@ function DoneTodoRow({ item, onRevert, onRequestDelete, onClick }: DoneTodoRowPr
 
   return (
     <li
-      className={`flex items-center gap-3 py-2.5 rounded-md px-2 -mx-2 transition-colors ${onClick ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+      className={`flex items-center gap-3 py-2.5 rounded-md px-2 -mx-2 transition-colors ${onClick ? 'cursor-pointer hover:bg-surface-elevated' : ''}`}
       onClick={handleRowClick}
     >
       <span
-        className="h-2 w-2 shrink-0 rounded-full ring-2 ring-white"
+        className="h-2 w-2 shrink-0 rounded-full ring-2 ring-surface"
         style={{ backgroundColor: resolved.color }}
       />
       <p className="min-w-0 flex-1 truncate text-sm text-fg">{item.name}</p>
@@ -39,7 +39,7 @@ function DoneTodoRow({ item, onRevert, onRequestDelete, onClick }: DoneTodoRowPr
         type="button"
         aria-label={t('todo.revert')}
         onClick={(e) => { e.stopPropagation(); onRevert(item.uuid) }}
-        className="shrink-0 p-1.5 rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
+        className="shrink-0 p-1.5 rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors"
       >
         <RotateCcw className="h-4 w-4" />
       </button>
@@ -47,7 +47,7 @@ function DoneTodoRow({ item, onRevert, onRequestDelete, onClick }: DoneTodoRowPr
         type="button"
         aria-label={t('common.delete')}
         onClick={(e) => { e.stopPropagation(); onRequestDelete(item.uuid) }}
-        className="shrink-0 p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+        className="shrink-0 p-1.5 rounded-full text-fg-quaternary hover:text-red-500 hover:bg-red-50 transition-colors"
       >
         <Trash2 className="h-4 w-4" />
       </button>
@@ -59,7 +59,7 @@ function SectionHeader({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 mb-3">
       <span className="text-[11px] font-semibold uppercase tracking-widest text-fg-quaternary shrink-0">{label}</span>
-      <div className="flex-1 h-px bg-gray-100" />
+      <div className="flex-1 h-px bg-line" />
     </div>
   )
 }
@@ -117,12 +117,12 @@ export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
   }
 
   return (
-    <div className="w-full h-full flex flex-col bg-white relative">
+    <div className="w-full h-full flex flex-col bg-surface relative">
       {/* 닫기(X) — 우측 상단 absolute, 아카이브 모드에서도 패널 전체 닫기 */}
       <button
         onClick={toggleRightPanel}
         aria-label={t('common.close')}
-        className="absolute top-2 right-3 z-10 p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+        className="absolute top-2 right-3 z-10 p-1.5 rounded-full hover:bg-surface-sunken transition-colors text-fg-quaternary hover:text-fg-secondary"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M6 6l12 12M18 6L6 18" />
@@ -138,7 +138,7 @@ export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
               type="button"
               onClick={exitArchivePanel}
               aria-label={t('settings.back', '뒤로')}
-              className="shrink-0 -ml-2 flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
+              className="shrink-0 -ml-2 flex h-9 w-9 items-center justify-center rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>

@@ -26,8 +26,8 @@ describe('Header', () => {
     renderHeader('/')
 
     // then
-    expect(screen.getByRole('link', { name: '캘린더' })).toHaveClass('bg-gray-100')
-    expect(screen.getByRole('link', { name: '설정' })).not.toHaveClass('bg-gray-100')
+    expect(screen.getByRole('link', { name: '캘린더' })).toHaveClass('bg-surface-sunken')
+    expect(screen.getByRole('link', { name: '설정' })).not.toHaveClass('bg-surface-sunken')
   })
 
   it('/settings 경로에서 설정 탭이 active 클래스를 갖는다', () => {
@@ -35,7 +35,7 @@ describe('Header', () => {
     renderHeader('/settings')
 
     // then
-    expect(screen.getByRole('link', { name: '설정' })).toHaveClass('bg-gray-100')
-    expect(screen.getByRole('link', { name: '캘린더' })).not.toHaveClass('bg-gray-100')
+    expect(screen.getByRole('link', { name: '설정' })).toHaveClass('bg-surface-sunken')
+    expect(screen.getByRole('link', { name: '캘린더' })).not.toHaveClass('bg-surface-sunken')
   })
 })

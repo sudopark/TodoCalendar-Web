@@ -105,7 +105,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-surface">
       <div
         className={cn(
           'md:grid',
@@ -117,7 +117,7 @@ export function SettingsPage() {
         {/* 좌측 메뉴 */}
         <aside
           className={cn(
-            'border-r border-gray-100',
+            'border-r border-line',
             !hasExplicitCategory ? 'block' : 'hidden md:block',
           )}
         >
@@ -128,19 +128,19 @@ export function SettingsPage() {
         <main
           className={cn(
             'px-4 py-6 md:px-10 md:py-10',
-            subPanelOpen ? 'md:border-r md:border-gray-100' : '',
+            subPanelOpen ? 'md:border-r md:border-line' : '',
             // mobile 표시 규칙: 카테고리 선택됨 AND 서브 패널이 mobile에서 가리는 중이 아님
             hasExplicitCategory && !subPanelOpen ? 'block' : 'hidden',
             'md:block',
           )}
         >
           {hasExplicitCategory && !subPanelOpen && (
-            <div className="md:hidden flex items-center gap-2 mb-8 -mx-4 px-4 pb-3 border-b border-gray-100">
+            <div className="md:hidden flex items-center gap-2 mb-8 -mx-4 px-4 pb-3 border-b border-line">
               <button
                 type="button"
                 onClick={() => navigate('/settings')}
                 aria-label={t('settings.back')}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>

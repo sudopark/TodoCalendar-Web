@@ -46,7 +46,7 @@ function MiniCalendarDayButton({
       : 'hover:bg-surface-sunken hover:rounded-full'
 
   const textColor = isSelected
-    ? 'text-white font-semibold'
+    ? 'text-action-fg font-semibold'
     : isOutside
       ? 'text-fg-tertiary'
       : isSunday || isHoliday
@@ -97,7 +97,7 @@ export default function LeftSidebar({
   return (
     <div
       className={cn(
-        'hidden md:flex flex-col transition-[width] duration-200 bg-slate-50 overflow-hidden shrink-0',
+        'hidden md:flex flex-col transition-[width] duration-200 bg-surface-elevated overflow-hidden shrink-0',
         sidebarOpen ? SIDEBAR_WIDTH_CLASS : 'w-0'
       )}
     >
@@ -114,7 +114,7 @@ export default function LeftSidebar({
             data-testid="sidebar-create-event"
             aria-haspopup="menu"
             aria-expanded={showCreateMenu}
-            className="flex w-full items-center justify-between rounded-full bg-white border border-line px-4 py-2.5 shadow-sm hover:shadow transition-shadow"
+            className="flex w-full items-center justify-between rounded-full bg-surface border border-line px-4 py-2.5 shadow-sm hover:shadow transition-shadow"
             onClick={() => setShowCreateMenu(!showCreateMenu)}
           >
             <span className="flex items-center gap-2 text-fg">
@@ -137,11 +137,11 @@ export default function LeftSidebar({
               <div className="fixed inset-0 z-40" onClick={() => setShowCreateMenu(false)} />
               <div
                 role="menu"
-                className="absolute top-full left-0 mt-1.5 z-50 w-full overflow-hidden rounded-xl bg-white dark:bg-gray-800 border border-line shadow-lg"
+                className="absolute top-full left-0 mt-1.5 z-50 w-full overflow-hidden rounded-xl bg-surface-elevated border border-line shadow-lg"
               >
                 <button
                   role="menuitem"
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken transition-colors"
                   onClick={() => {
                     setShowCreateMenu(false)
                     const rect = createButtonRef.current?.getBoundingClientRect() ?? null
@@ -153,10 +153,10 @@ export default function LeftSidebar({
                   </svg>
                   Todo
                 </button>
-                <div className="border-t border-line dark:border-gray-700" />
+                <div className="border-t border-line" />
                 <button
                   role="menuitem"
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken dark:hover:bg-gray-700 transition-colors"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-fg hover:bg-surface-sunken transition-colors"
                   onClick={() => {
                     setShowCreateMenu(false)
                     const rect = createButtonRef.current?.getBoundingClientRect() ?? null

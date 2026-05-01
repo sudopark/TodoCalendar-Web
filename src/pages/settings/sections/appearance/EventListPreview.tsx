@@ -27,7 +27,7 @@ export function EventListPreview({ eventListFontSizeWeight, showHolidayInEventLi
   const nameFontSize = `${14 + eventListFontSizeWeight}px`
 
   return (
-    <div className="rounded-lg border border-gray-100 bg-white p-4 space-y-4">
+    <div className="rounded-lg border border-line bg-surface p-4 space-y-4">
       {/* 날짜 헤더 */}
       <div>
         <h3 className="text-base font-bold text-fg">2026년 4월 27일</h3>
@@ -49,11 +49,11 @@ export function EventListPreview({ eventListFontSizeWeight, showHolidayInEventLi
             <span className="text-[10px] font-semibold uppercase tracking-widest text-fg-quaternary">
               {t('todo.uncompleted', '미완료')}
             </span>
-            <div className="flex-1 h-px bg-gray-100" />
+            <div className="flex-1 h-px bg-line" />
           </div>
           {SAMPLE_UNCOMPLETED.map(t2 => (
             <div key={t2.name} className="flex items-center gap-2 py-1">
-              <span className="h-2 w-2 rounded-full ring-2 ring-white shrink-0" style={{ backgroundColor: PRESET_COLORS[6] }} />
+              <span className="h-2 w-2 rounded-full ring-2 ring-surface shrink-0" style={{ backgroundColor: PRESET_COLORS[6] }} />
               <span className="font-semibold text-danger" style={{ fontSize: nameFontSize }}>{t2.name}</span>
             </div>
           ))}
@@ -66,11 +66,11 @@ export function EventListPreview({ eventListFontSizeWeight, showHolidayInEventLi
           <span className="text-[10px] font-semibold uppercase tracking-widest text-fg-quaternary">
             {t('main.events_title', 'Events')}
           </span>
-          <div className="flex-1 h-px bg-gray-100" />
+          <div className="flex-1 h-px bg-line" />
         </div>
         {SAMPLE_EVENTS.map(e => (
           <div key={e.name} className="flex items-start gap-2 py-1">
-            <span className="h-2 w-2 mt-1.5 rounded-full ring-2 ring-white shrink-0" style={{ backgroundColor: e.color }} />
+            <span className="h-2 w-2 mt-1.5 rounded-full ring-2 ring-surface shrink-0" style={{ backgroundColor: e.color }} />
             <div className="min-w-0">
               <p className="font-semibold text-fg" style={{ fontSize: nameFontSize }}>{e.name}</p>
               <p className="text-[11px] text-fg-quaternary">{e.time}</p>

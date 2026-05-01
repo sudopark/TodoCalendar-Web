@@ -63,7 +63,7 @@ export default function TestDataSeederButton() {
       disabled={running}
       aria-label="테스트 데이터 주입"
       title="테스트 데이터 주입 (개발환경 전용)"
-      className="rounded-full p-2 hover:bg-gray-100 text-gray-500 disabled:opacity-50"
+      className="rounded-full p-2 hover:bg-surface-sunken text-fg-tertiary disabled:opacity-50"
     >
       <span className={`inline-block text-base leading-none ${running ? 'animate-pulse' : ''}`}>
         🧪

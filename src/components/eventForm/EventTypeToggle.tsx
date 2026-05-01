@@ -21,14 +21,14 @@ export function EventTypeToggle() {
     >
       <ToggleGroupItem
         value="todo"
-        className="flex-1 h-8 gap-1.5 rounded-full text-xs font-medium text-fg-secondary aria-pressed:bg-white aria-pressed:text-fg aria-pressed:shadow-sm transition-all"
+        className="flex-1 h-8 gap-1.5 rounded-full text-xs font-medium text-fg-secondary aria-pressed:bg-surface aria-pressed:text-fg aria-pressed:shadow-sm transition-all"
       >
         <CheckCircle2 className="h-3.5 w-3.5" />
         {t('eventType.todo', 'Todo')}
       </ToggleGroupItem>
       <ToggleGroupItem
         value="schedule"
-        className="flex-1 h-8 gap-1.5 rounded-full text-xs font-medium text-fg-secondary aria-pressed:bg-white aria-pressed:text-fg aria-pressed:shadow-sm transition-all"
+        className="flex-1 h-8 gap-1.5 rounded-full text-xs font-medium text-fg-secondary aria-pressed:bg-surface aria-pressed:text-fg aria-pressed:shadow-sm transition-all"
       >
         <CalendarDays className="h-3.5 w-3.5" />
         {t('eventType.schedule', 'Schedule')}

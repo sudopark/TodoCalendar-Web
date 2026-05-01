@@ -26,7 +26,7 @@ function SectionHeader({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 mb-3">
       <span className="text-[11px] font-semibold uppercase tracking-widest text-fg-quaternary shrink-0">{label}</span>
-      <div className="flex-1 h-px bg-gray-100" />
+      <div className="flex-1 h-px bg-line" />
     </div>
   )
 }
@@ -85,20 +85,20 @@ export function RightEventPanel({
   const lunarText = selectedDate && showLunarCalendar ? formatLunarDate(selectedDate, dateLocale) : null
 
   return (
-    <div className="w-full h-full flex flex-col bg-white relative">
+    <div className="w-full h-full flex flex-col bg-surface relative">
       {/* 우상단 액션 — 아카이브 진입 + 패널 닫기 */}
       <div className="absolute top-2 right-3 z-10 flex items-center gap-0.5">
         <button
           onClick={onOpenArchivePanel}
           aria-label={t('todo.done_list', '완료된 할 일')}
-          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+          className="p-1.5 rounded-full hover:bg-surface-sunken transition-colors text-fg-quaternary hover:text-fg-secondary"
         >
           <CheckCircle2 className="h-4 w-4" />
         </button>
         <button
           onClick={onToggleRightPanel}
           aria-label={t('common.close', '패널 닫기')}
-          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+          className="p-1.5 rounded-full hover:bg-surface-sunken transition-colors text-fg-quaternary hover:text-fg-secondary"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 6l12 12M18 6L6 18" />

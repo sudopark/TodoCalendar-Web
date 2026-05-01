@@ -40,8 +40,8 @@ function SelectedTagChip({ name, color, active, onClick }: SelectedTagChipProps)
       className={cn(
         'inline-flex items-center gap-2 rounded-full px-3 h-8 text-sm font-medium transition-colors max-w-full',
         active
-          ? 'bg-gray-100 text-fg'
-          : 'bg-gray-100 text-fg hover:bg-gray-200',
+          ? 'bg-surface-sunken text-fg'
+          : 'bg-surface-sunken text-fg hover:bg-surface-sunken',
       )}
     >
       <span
@@ -50,7 +50,7 @@ function SelectedTagChip({ name, color, active, onClick }: SelectedTagChipProps)
         aria-hidden="true"
       />
       <span className="truncate">{name}</span>
-      <ChevronRight className="h-3.5 w-3.5 text-gray-500 shrink-0" />
+      <ChevronRight className="h-3.5 w-3.5 text-fg-tertiary shrink-0" />
     </button>
   )
 }
@@ -143,12 +143,12 @@ export function EditEventSection({
           aria-current={tagsOpen ? 'page' : undefined}
           className={`w-full flex items-center justify-between px-3 py-3 rounded-lg text-sm transition-colors ${
             tagsOpen
-              ? 'bg-gray-50 text-fg font-semibold'
-              : 'text-fg hover:bg-gray-50 font-medium'
+              ? 'bg-surface-elevated text-fg font-semibold'
+              : 'text-fg hover:bg-surface-elevated font-medium'
           }`}
         >
           <span>{t('tag.event_types', '이벤트 종류')}</span>
-          <ChevronRight className="h-4 w-4 text-gray-400" />
+          <ChevronRight className="h-4 w-4 text-fg-quaternary" />
         </button>
       </SettingsSection>
     </div>

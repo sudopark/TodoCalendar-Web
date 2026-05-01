@@ -35,11 +35,11 @@ function CurrentTodoRow({ todo, onEventClick, onComplete, isLast }: CurrentTodoR
       {/* 타임라인: 도트 + 연결선 */}
       <div className="flex flex-col items-center shrink-0 w-3">
         <div
-          className="w-2 h-2 rounded-full shrink-0 mt-1.5 ring-2 ring-white group-hover:scale-125 transition-transform duration-150"
+          className="w-2 h-2 rounded-full shrink-0 mt-1.5 ring-2 ring-surface group-hover:scale-125 transition-transform duration-150"
           style={{ backgroundColor: color }}
         />
         {!isLast && (
-          <div className="flex-1 w-px bg-gray-200 mt-1.5" />
+          <div className="flex-1 w-px bg-line mt-1.5" />
         )}
       </div>
 
@@ -47,7 +47,7 @@ function CurrentTodoRow({ todo, onEventClick, onComplete, isLast }: CurrentTodoR
       <div className="flex-1 min-w-0 py-0.5 flex items-start gap-2">
         <div className="flex-1 min-w-0">
           <p
-            className="truncate font-semibold text-fg leading-snug group-hover:text-black transition-colors duration-150"
+            className="truncate font-semibold text-fg leading-snug group-hover:text-fg transition-colors duration-150"
             style={{ fontSize: nameFontSize }}
           >{todo.name}</p>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
@@ -133,7 +133,7 @@ export function CurrentTodoList({ todos, isTagHidden, onEventClick }: CurrentTod
     <section data-testid="current-todo-list" className="mb-6">
       <div className="flex items-center gap-3 mb-3">
         <span className="text-[11px] font-semibold uppercase tracking-widest text-fg-quaternary shrink-0">Current Todo</span>
-        <div className="flex-1 h-px bg-gray-100" />
+        <div className="flex-1 h-px bg-line" />
       </div>
       <div className="flex flex-col">
         {visibleTodos.map((todo, i) => (

@@ -164,7 +164,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
 
   // 주 컨테이너 className/style 계산
   function getWeekClass(isLastWeek: boolean): string {
-    const base = `relative grid grid-cols-7${!isLastWeek ? ' border-b border-gray-100' : ''}`
+    const base = `relative grid grid-cols-7${!isLastWeek ? ' border-b border-line' : ''}`
     return isFull ? base : `flex-1 ${base}`
   }
 
@@ -234,9 +234,9 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                 )
 
                 const dateTextColor = day.isToday
-                  ? 'text-white font-semibold'
+                  ? 'text-action-fg font-semibold'
                   : !day.isCurrentMonth
-                    ? 'text-gray-300'
+                    ? 'text-fg-quaternary'
                     : accent
                       ? 'text-red-400'
                       : 'text-fg'
@@ -244,7 +244,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                 return (
                   <div
                     key={di}
-                    className="flex flex-col pt-1.5 px-1.5 pb-1 cursor-pointer transition-colors hover:bg-gray-50"
+                    className="flex flex-col pt-1.5 px-1.5 pb-1 cursor-pointer transition-colors hover:bg-surface-elevated"
                     data-testid="day-cell"
                     data-today={day.isToday || undefined}
                     data-selected={isSelected || undefined}

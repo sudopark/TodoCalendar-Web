@@ -35,12 +35,12 @@ function ToggleSwitch({ on, onChange, ariaLabel }: { on: boolean; onChange: () =
       aria-label={ariaLabel}
       className={cn(
         'relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0',
-        on ? 'bg-action' : 'bg-gray-300',
+        on ? 'bg-action' : 'bg-line-strong',
       )}
     >
       <span
         className={cn(
-          'inline-block h-4 w-4 rounded-full bg-white shadow transition-transform',
+          'inline-block h-4 w-4 rounded-full bg-action-fg shadow transition-transform',
           on ? 'translate-x-6' : 'translate-x-1',
         )}
       />
@@ -115,7 +115,7 @@ export function AppearanceSection({
                   'rounded-full px-3 h-8 text-sm font-medium transition-colors',
                   weekStartDay === opt.value
                     ? 'bg-action text-action-fg'
-                    : 'bg-gray-100 text-fg hover:bg-gray-200',
+                    : 'bg-surface-sunken text-fg hover:bg-surface-sunken',
                 )}
               >
                 {t(`calendar.weekdays.${opt.key}`, opt.key.toUpperCase())}
@@ -149,7 +149,7 @@ export function AppearanceSection({
                   'rounded-full px-4 h-9 text-sm font-medium transition-colors',
                   theme === opt.id
                     ? 'bg-action text-action-fg'
-                    : 'bg-gray-100 text-fg hover:bg-gray-200',
+                    : 'bg-surface-sunken text-fg hover:bg-surface-sunken',
                 )}
               >
                 {opt.label}
@@ -178,7 +178,7 @@ export function AppearanceSection({
                   'rounded-full px-4 h-9 text-sm font-medium transition-colors',
                   eventDisplayLevel === opt.value
                     ? 'bg-action text-action-fg'
-                    : 'bg-gray-100 text-fg hover:bg-gray-200',
+                    : 'bg-surface-sunken text-fg hover:bg-surface-sunken',
                 )}
               >
                 {t(`settings.event_display_${opt.key}`, opt.key)}

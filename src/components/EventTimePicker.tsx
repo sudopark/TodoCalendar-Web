@@ -67,7 +67,7 @@ function formatTimezoneLabel(): string {
 }
 
 const pillInput =
-  'rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 focus:bg-white focus:border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-800 dark:focus:border-gray-500 outline-none'
+  'rounded-md border border-transparent bg-surface-sunken hover:bg-surface-sunken focus:bg-surface focus:border-line-strong px-3 py-1.5 text-sm outline-none'
 
 interface EventTimePickerProps {
   value: EventTime | null
@@ -197,7 +197,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
             />
           </div>
 
-          <span className="px-3 text-sm font-medium text-gray-500 dark:text-gray-400">{t('eventTime.to')}</span>
+          <span className="px-3 text-sm font-medium text-fg-tertiary">{t('eventTime.to')}</span>
 
           {/* 종료 그룹 — 종료 시간을 시작 시간에 가까운 쪽으로, 종료 날짜는 맨 오른쪽 */}
           <div className="flex flex-wrap items-center gap-2">
@@ -246,7 +246,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
               handleValueChange({ ...internal, period_start: ts - internal.seconds_from_gmt })
             }}
           />
-          <span className="px-3 text-sm font-medium text-gray-500 dark:text-gray-400">{t('eventTime.to')}</span>
+          <span className="px-3 text-sm font-medium text-fg-tertiary">{t('eventTime.to')}</span>
           <input
             aria-label={t('eventTime.end_date')}
             type="date"
@@ -264,7 +264,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
       )}
 
       {type !== 'none' && (
-        <div className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="text-xs text-fg-tertiary">
           {formatTimezoneLabel()}
         </div>
       )}

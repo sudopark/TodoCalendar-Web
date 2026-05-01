@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { useToastStore } from '../stores/toastStore'
 
-const bgColor = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-gray-800' }
+const bgColor = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-action' }
+const fgColor = { success: 'text-white', error: 'text-white', info: 'text-action-fg' }
 
 export function ToastContainer() {
   const { t } = useTranslation()
@@ -15,7 +16,7 @@ export function ToastContainer() {
         <div
           key={toast.id}
           role="alert"
-          className={`${bgColor[toast.type]} rounded-lg px-4 py-2 text-sm text-white shadow-lg`}
+          className={`${bgColor[toast.type]} ${fgColor[toast.type]} rounded-lg px-4 py-2 text-sm shadow-lg`}
           onClick={() => dismiss(toast.id)}
         >
           {t(toast.key, toast.params as Record<string, string> | undefined)}
