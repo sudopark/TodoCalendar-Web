@@ -4,6 +4,7 @@ import { scheduleApi } from '../api/scheduleApi'
 import { foremostApi } from '../api/foremostApi'
 import { doneTodoApi } from '../api/doneTodoApi'
 import type { EventTag, Todo, EventTime, Repeating, NotificationOption } from '../models'
+import { PRESET_COLORS } from '../components/ColorPalette'
 
 export const TEST_PREFIX = '[TEST] '
 
@@ -95,11 +96,11 @@ interface SeederTag {
 }
 
 const TAGS: SeederTag[] = [
-  { key: 'work', name: `${TEST_PREFIX}Work`, color_hex: '#F44336' },
-  { key: 'personal', name: `${TEST_PREFIX}Personal`, color_hex: '#2196F3' },
-  { key: 'study', name: `${TEST_PREFIX}Study`, color_hex: '#9C27B0' },
-  { key: 'health', name: `${TEST_PREFIX}Health`, color_hex: '#4CAF50' },
-  { key: 'travel', name: `${TEST_PREFIX}Travel`, color_hex: '#FF9800' },
+  { key: 'work', name: `${TEST_PREFIX}Work`, color_hex: PRESET_COLORS[0] },     // red
+  { key: 'personal', name: `${TEST_PREFIX}Personal`, color_hex: PRESET_COLORS[4] }, // blue
+  { key: 'study', name: `${TEST_PREFIX}Study`, color_hex: PRESET_COLORS[5] },   // purple
+  { key: 'health', name: `${TEST_PREFIX}Health`, color_hex: PRESET_COLORS[3] }, // green
+  { key: 'travel', name: `${TEST_PREFIX}Travel`, color_hex: PRESET_COLORS[1] }, // orange
 ]
 
 interface SeedResult {
