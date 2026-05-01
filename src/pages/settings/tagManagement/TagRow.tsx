@@ -35,13 +35,13 @@ export function TagRow({ row, onEdit }: TagRowProps) {
         )}
       </button>
 
-      <span className="flex-1 truncate text-sm text-[#1f1f1f]">{row.name}</span>
+      <span className="flex-1 truncate text-sm text-fg">{row.name}</span>
 
       <button
         type="button"
         aria-label={t('tag.open_detail', 'Open tag detail')}
         onClick={onEdit}
-        className="shrink-0 p-1.5 rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors"
+        className="shrink-0 p-1.5 rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
       >
         <Pencil className="h-4 w-4" />
       </button>

@@ -104,11 +104,11 @@ export function TagEditPanel({ mode, onBack }: TagEditPanelProps) {
           type="button"
           onClick={onBack}
           aria-label={t('tag.close_panel', 'Close panel')}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-[#1f1f1f] hover:bg-gray-50 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:text-fg hover:bg-gray-50 transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h2 className="flex-1 text-lg font-semibold text-[#1f1f1f]">{title}</h2>
+        <h2 className="flex-1 text-lg font-semibold text-fg">{title}</h2>
       </div>
 
       <div className="space-y-2">
@@ -117,14 +117,14 @@ export function TagEditPanel({ mode, onBack }: TagEditPanelProps) {
         </label>
         <input
           id="tag-edit-name"
-          className={`${settingsInput} read-only:bg-gray-50 read-only:text-[#6b6b6b]`}
+          className={`${settingsInput} read-only:bg-gray-50 read-only:text-fg-secondary`}
           value={name}
           onChange={e => setName(e.target.value)}
           readOnly={isReadonlyName}
           placeholder={t('tag.new_placeholder', '새 태그 이름')}
         />
         {isReadonlyName && (
-          <p className="text-xs text-[#969696]">
+          <p className="text-xs text-fg-tertiary">
             {t('tag.readonly_name_notice', '기본 태그 이름은 변경할 수 없습니다')}
           </p>
         )}
