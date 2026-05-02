@@ -21,21 +21,21 @@ describe('Header', () => {
     expect(screen.getByRole('link', { name: '설정' })).toBeInTheDocument()
   })
 
-  it('/ 경로에서 캘린더 탭이 active 클래스를 갖는다', () => {
+  it('/ 경로에서 캘린더 탭이 aria-current="page" 속성을 갖는다', () => {
     // given / when
     renderHeader('/')
 
-    // then
-    expect(screen.getByRole('link', { name: '캘린더' })).toHaveClass('bg-surface-sunken')
-    expect(screen.getByRole('link', { name: '설정' })).not.toHaveClass('bg-surface-sunken')
+    // then: NavLink는 활성 시 aria-current="page"를 자동 부착
+    expect(screen.getByRole('link', { name: '캘린더' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: '설정' })).not.toHaveAttribute('aria-current')
   })
 
-  it('/settings 경로에서 설정 탭이 active 클래스를 갖는다', () => {
+  it('/settings 경로에서 설정 탭이 aria-current="page" 속성을 갖는다', () => {
     // given / when
     renderHeader('/settings')
 
-    // then
-    expect(screen.getByRole('link', { name: '설정' })).toHaveClass('bg-surface-sunken')
-    expect(screen.getByRole('link', { name: '캘린더' })).not.toHaveClass('bg-surface-sunken')
+    // then: NavLink는 활성 시 aria-current="page"를 자동 부착
+    expect(screen.getByRole('link', { name: '설정' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: '캘린더' })).not.toHaveAttribute('aria-current')
   })
 })
