@@ -30,7 +30,7 @@ describe('ToastContainer', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument()
   })
 
-  it('error 타입이면 bg-red-600 클래스가 적용된다', () => {
+  it('error 타입이면 data-toast-type="error" 속성이 부착된다', () => {
     // given
     useToastStore.setState({
       toasts: [{ id: '1', key: 'error.unknown', type: 'error' }],
@@ -40,10 +40,10 @@ describe('ToastContainer', () => {
     render(<ToastContainer />)
 
     // then
-    expect(screen.getByRole('alert')).toHaveClass('bg-red-600')
+    expect(screen.getByRole('alert')).toHaveAttribute('data-toast-type', 'error')
   })
 
-  it('success 타입이면 bg-green-600 클래스가 적용된다', () => {
+  it('success 타입이면 data-toast-type="success" 속성이 부착된다', () => {
     // given
     useToastStore.setState({
       toasts: [{ id: '1', key: 'event.created.todo', type: 'success' }],
@@ -53,7 +53,7 @@ describe('ToastContainer', () => {
     render(<ToastContainer />)
 
     // then
-    expect(screen.getByRole('alert')).toHaveClass('bg-green-600')
+    expect(screen.getByRole('alert')).toHaveAttribute('data-toast-type', 'success')
   })
 
   it('클릭하면 해당 toast가 제거된다', async () => {

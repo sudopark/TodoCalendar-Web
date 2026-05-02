@@ -224,7 +224,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
 
                 const circleBg = day.isToday ? TODAY_BG : undefined
                 const ringClass = isSelected && !day.isToday
-                  ? 'ring-2 ring-action ring-offset-1 ring-offset-white'
+                  ? 'ring-2 ring-action ring-offset-1 ring-offset-surface'
                   : ''
 
                 const accent = (
@@ -238,7 +238,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                   : !day.isCurrentMonth
                     ? 'text-fg-quaternary'
                     : accent
-                      ? 'text-red-400'
+                      ? 'text-danger'
                       : 'text-fg'
 
                 return (

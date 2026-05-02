@@ -9,7 +9,7 @@ export function NotFoundPage() {
       <p className="mt-4 text-lg text-fg-secondary">{t('error.page_not_found')}</p>
       <Link
         to="/"
-        className="mt-6 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        className="mt-6 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand/90"
       >
         {t('error.go_home')}
       </Link>

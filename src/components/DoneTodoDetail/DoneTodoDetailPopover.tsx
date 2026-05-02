@@ -108,7 +108,7 @@ export function DoneTodoDetailPopover({
             aria-label={t('common.delete', '삭제')}
             disabled={vm.isDeleting}
             onClick={() => setShowDeleteConfirm(true)}
-            className={`${ACTION_BTN} hover:text-red-500 hover:bg-red-50`}
+            className={`${ACTION_BTN} hover:text-danger hover:bg-danger/10`}
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -162,7 +162,7 @@ export function DoneTodoDetailPopover({
                 href={vm.detail.url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-blue-600 dark:text-blue-400 hover:underline truncate"
+                className="text-fg underline underline-offset-2 hover:opacity-60 transition-opacity truncate"
               >
                 {vm.detail.url}
               </a>

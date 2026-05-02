@@ -120,7 +120,7 @@ export function RightEventPanel({
                 )}
               </div>
               {showHolidayInEventList && holidayNames.length > 0 && (
-                <p className="mt-1 text-sm text-red-400 font-medium">{holidayNames.join(', ')}</p>
+                <p className="mt-1 text-sm text-danger font-medium">{holidayNames.join(', ')}</p>
               )}
             </div>
           )}

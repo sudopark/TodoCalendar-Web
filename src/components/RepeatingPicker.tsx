@@ -274,7 +274,7 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
               role="menuitem"
               onClick={() => handleSelectPreset(null)}
               className={`block w-full px-3 py-2 text-left text-sm hover:bg-surface-sunken ${
-                !value ? 'font-medium text-blue-600' : 'text-fg-secondary'
+                !value ? 'font-medium text-brand' : 'text-fg-secondary'
               }`}
             >
               {t('repeating.not_repeat')}
@@ -289,7 +289,7 @@ export function RepeatingPicker({ value, onChange, startTimestamp }: RepeatingPi
                   role="menuitem"
                   onClick={() => handleSelectPreset(p)}
                   className={`block w-full px-3 py-2 text-left text-sm hover:bg-surface-sunken ${
-                    isSelected ? 'font-medium text-blue-600' : 'text-fg-secondary'
+                    isSelected ? 'font-medium text-brand' : 'text-fg-secondary'
                   }`}
                 >
                   {p.text}

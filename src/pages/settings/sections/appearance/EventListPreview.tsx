@@ -38,7 +38,7 @@ export function EventListPreview({ eventListFontSizeWeight, showHolidayInEventLi
           )}
         </div>
         {showHolidayInEventList && (
-          <p className="mt-1 text-xs text-red-400 font-medium">{t('settings.preview_holiday_sample', '식목일')}</p>
+          <p className="mt-1 text-xs text-danger font-medium">{t('settings.preview_holiday_sample', '식목일')}</p>
         )}
       </div>
 

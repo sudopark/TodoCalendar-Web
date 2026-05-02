@@ -26,7 +26,7 @@ export function DeleteTagDialog({ tagName, onDeleteTagOnly, onDeleteTagAndEvents
           </button>
           <button
             type="button"
-            className="px-4 py-3 text-left text-sm text-red-500 hover:bg-red-50 transition-colors"
+            className="px-4 py-3 text-left text-sm text-danger hover:bg-danger/10 transition-colors"
             onClick={onDeleteTagAndEvents}
           >
             {t('tag.delete_tag_and_events')}
