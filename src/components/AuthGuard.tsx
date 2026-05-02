@@ -36,7 +36,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div data-testid="loading-spinner" className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <div data-testid="loading-spinner" className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }

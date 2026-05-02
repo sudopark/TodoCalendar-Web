@@ -66,7 +66,7 @@ export function CalendarAppearancePreview({ weekStartDay, accentDays }: Props) {
             {week.map(cell => (
               <div
                 key={`${wi}-${cell.num}`}
-                className={`text-center py-1 text-xs ${accent(cell.dow, cell.isHoliday) ? 'text-red-400' : 'text-fg'}`}
+                className={`text-center py-1 text-xs ${accent(cell.dow, cell.isHoliday) ? 'text-danger' : 'text-fg'}`}
               >
                 {cell.num}
               </div>

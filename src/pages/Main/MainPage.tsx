@@ -90,7 +90,7 @@ export function MainPage() {
   }
 
   return (
-    <div className="h-screen bg-surface-elevated">
+    <div className="h-screen bg-surface">
       <div className="flex h-full flex-col overflow-hidden">
         <TopToolbar
           currentMonth={vm.currentMonth}

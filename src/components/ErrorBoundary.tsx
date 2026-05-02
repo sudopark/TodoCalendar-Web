@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface">
           <p className="text-lg font-semibold text-fg">{i18n.t('error.something_wrong')}</p>
           <button
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+            className="rounded-lg bg-brand px-4 py-2 text-sm text-white hover:bg-brand/90"
             onClick={() => window.location.reload()}
           >
             {i18n.t('error.refresh')}

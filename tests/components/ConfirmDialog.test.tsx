@@ -55,24 +55,24 @@ describe('ConfirmDialog', () => {
     expect(onCancel).toHaveBeenCalled()
   })
 
-  it('danger 플래그가 있으면 확인 버튼에 red 스타일이 적용된다', () => {
+  it('danger 플래그가 있으면 확인 버튼에 data-variant="danger" 속성이 부착된다', () => {
     // given / when
     render(
       <ConfirmDialog message="삭제?" onConfirm={vi.fn()} onCancel={vi.fn()} danger />
     )
 
     // then
-    expect(screen.getByRole('button', { name: '확인' })).toHaveClass('bg-red-500')
+    expect(screen.getByRole('button', { name: '확인' })).toHaveAttribute('data-variant', 'danger')
   })
 
-  it('danger=false이면 blue 스타일이 적용된다', () => {
+  it('danger=false이면 확인 버튼에 data-variant="primary" 속성이 부착된다', () => {
     // given / when
     render(
       <ConfirmDialog message="확인?" onConfirm={vi.fn()} onCancel={vi.fn()} danger={false} />
     )
 
     // then
-    expect(screen.getByRole('button', { name: '확인' })).toHaveClass('bg-blue-500')
+    expect(screen.getByRole('button', { name: '확인' })).toHaveAttribute('data-variant', 'primary')
   })
 
   it('confirmLabel로 버튼 텍스트를 변경할 수 있다', () => {

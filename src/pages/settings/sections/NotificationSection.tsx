@@ -16,7 +16,7 @@ export function NotificationSection({ notification, requestNotificationPermissio
       {permission === 'granted' ? (
         <p className="text-sm text-fg">{t('settings.notification_granted')}</p>
       ) : permission === 'denied' ? (
-        <p className="text-sm text-red-500">{t('settings.notification_denied')}</p>
+        <p className="text-sm text-danger">{t('settings.notification_denied')}</p>
       ) : (
         <div>
           <button className={settingsBtnSecondary} onClick={requestNotificationPermission}>

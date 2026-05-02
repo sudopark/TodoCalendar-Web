@@ -47,7 +47,7 @@ function DoneTodoRow({ item, onRevert, onRequestDelete, onClick }: DoneTodoRowPr
         type="button"
         aria-label={t('common.delete')}
         onClick={(e) => { e.stopPropagation(); onRequestDelete(item.uuid) }}
-        className="shrink-0 p-1.5 rounded-full text-fg-quaternary hover:text-red-500 hover:bg-red-50 transition-colors"
+        className="shrink-0 p-1.5 rounded-full text-fg-quaternary hover:text-danger hover:bg-danger/10 transition-colors"
       >
         <Trash2 className="h-4 w-4" />
       </button>

@@ -23,7 +23,7 @@ export function LoginPage() {
         <p className="text-sm text-center text-fg-tertiary mb-8">{t('login.subtitle')}</p>
 
         {vm.errorKey && (
-          <div role="alert" className="mb-4 p-3 text-sm text-red-700 bg-red-50 rounded-lg">
+          <div role="alert" className="mb-4 p-3 text-sm text-danger bg-danger/10 rounded-lg">
             {t(vm.errorKey)}
           </div>
         )}

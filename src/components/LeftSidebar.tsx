@@ -40,7 +40,7 @@ function MiniCalendarDayButton({
   const isSelected = modifiers.selected
 
   const bgStyle = isSelected
-    ? 'bg-fg rounded-full'
+    ? 'bg-action rounded-full'
     : isToday
       ? 'bg-surface-sunken rounded-full'
       : 'hover:bg-surface-sunken hover:rounded-full'

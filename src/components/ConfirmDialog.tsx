@@ -66,8 +66,9 @@ export function ConfirmDialog({ title, message, confirmLabel, onConfirm, onCance
             {t('common.cancel')}
           </button>
           <button
+            data-variant={danger ? 'danger' : 'primary'}
             className={`rounded-lg px-4 py-2 text-sm font-medium text-white ${
-              danger ? 'bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700' : 'bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700'
+              danger ? 'bg-danger hover:bg-danger/90' : 'bg-brand hover:bg-brand/90'
             }`}
             onClick={onConfirm}
           >
