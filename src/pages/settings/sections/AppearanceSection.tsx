@@ -115,7 +115,7 @@ export function AppearanceSection({
                   'rounded-full px-3 h-8 text-sm font-medium transition-colors',
                   weekStartDay === opt.value
                     ? 'bg-action text-action-fg'
-                    : 'bg-surface-sunken text-fg hover:bg-surface-sunken',
+                    : 'bg-surface-sunken text-fg hover:bg-surface-elevated',
                 )}
               >
                 {t(`calendar.weekdays.${opt.key}`, opt.key.toUpperCase())}
@@ -149,7 +149,7 @@ export function AppearanceSection({
                   'rounded-full px-4 h-9 text-sm font-medium transition-colors',
                   theme === opt.id
                     ? 'bg-action text-action-fg'
-                    : 'bg-surface-sunken text-fg hover:bg-surface-sunken',
+                    : 'bg-surface-sunken text-fg hover:bg-surface-elevated',
                 )}
               >
                 {opt.label}
@@ -178,7 +178,7 @@ export function AppearanceSection({
                   'rounded-full px-4 h-9 text-sm font-medium transition-colors',
                   eventDisplayLevel === opt.value
                     ? 'bg-action text-action-fg'
-                    : 'bg-surface-sunken text-fg hover:bg-surface-sunken',
+                    : 'bg-surface-sunken text-fg hover:bg-surface-elevated',
                 )}
               >
                 {t(`settings.event_display_${opt.key}`, opt.key)}

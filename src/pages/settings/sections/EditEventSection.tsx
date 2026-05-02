@@ -41,7 +41,7 @@ function SelectedTagChip({ name, color, active, onClick }: SelectedTagChipProps)
         'inline-flex items-center gap-2 rounded-full px-3 h-8 text-sm font-medium transition-colors max-w-full',
         active
           ? 'bg-surface-sunken text-fg'
-          : 'bg-surface-sunken text-fg hover:bg-surface-sunken',
+          : 'bg-surface-sunken text-fg hover:bg-surface-elevated',
       )}
     >
       <span
