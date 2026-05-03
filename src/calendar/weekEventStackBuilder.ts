@@ -1,5 +1,6 @@
 import type { CalendarDay } from './calendarUtils'
 import type { CalendarEvent } from '../domain/functions/eventTime'
+import { eventTimeToStartDate } from '../domain/functions/eventTime'
 
 // 반복 이벤트의 각 인스턴스를 구분하기 위한 dedup 키.
 // 같은 uuid의 multi-day 이벤트는 같은 turn을 가지므로 하나의 span으로 병합되고,
@@ -29,6 +30,14 @@ interface DeduplicatedEvent {
   startCol: number
   endCol: number
   spanLength: number
+  startTimestamp: number  // 정렬 tie-break: 종일 이벤트(그 날 00:00)가 시간 이벤트보다 먼저 옴
+}
+
+// CalendarEvent 의 시작 timestamp (초). event_time 이 없으면 0.
+function eventStartTs(calEvent: CalendarEvent): number {
+  const t = calEvent.event.event_time
+  if (!t) return 0
+  return Math.floor(eventTimeToStartDate(t).getTime() / 1000)
 }
 
 /**
@@ -74,6 +83,7 @@ export function buildWeekEventStack(
           startCol: col,
           endCol: col,
           spanLength: 1,
+          startTimestamp: eventStartTs(ev),
         })
       }
     }
@@ -81,11 +91,13 @@ export function buildWeekEventStack(
 
   if (eventMap.size === 0) return { rows: [] }
 
-  // 정렬: 길이 desc → 시작일 asc → 이름 asc
+  // 정렬: 길이 desc → 시작 column asc → 시작 timestamp asc (종일 이벤트가 시간 이벤트보다 먼저)
+  // iOS WeekEventStackBuilder.sortUnStackedEvents 와 동일하게 length → lowerBound 우선.
+  // 이름 정렬은 의도적으로 제외 — 알파벳에 따른 row 배치 흔들림(예: 종일 "피부과 예약"이 "A standup" 뒤로 밀림)을 방지.
   let remaining = Array.from(eventMap.values()).sort((a, b) => {
     if (b.spanLength !== a.spanLength) return b.spanLength - a.spanLength
     if (a.startCol !== b.startCol) return a.startCol - b.startCol
-    return a.event.event.name.localeCompare(b.event.event.name)
+    return a.startTimestamp - b.startTimestamp
   })
 
   const rows: EventRow[] = []
@@ -102,14 +114,17 @@ export function buildWeekEventStack(
     rows.push(row)
   }
 
-  // 행 정렬: 총 커버 일수 desc → 첫 이벤트 시작일 asc
+  // 행 정렬: 총 커버 일수 desc → 첫 이벤트 시작일 asc → 행 내 이벤트 개수 asc
+  // iOS 정렬 (eventExistsLength desc, firstEventDaySequence asc, count asc) 와 동일.
+  // count asc 가 있어야 "단일 긴 이벤트 row" 가 "여러 짧은 이벤트가 합쳐진 같은 cover row" 보다 위로 온다.
   rows.sort((a, b) => {
     const coverA = a.reduce((sum, e) => sum + (e.endCol - e.startCol + 1), 0)
     const coverB = b.reduce((sum, e) => sum + (e.endCol - e.startCol + 1), 0)
     if (coverB !== coverA) return coverB - coverA
     const firstStartA = Math.min(...a.map(e => e.startCol))
     const firstStartB = Math.min(...b.map(e => e.startCol))
-    return firstStartA - firstStartB
+    if (firstStartA !== firstStartB) return firstStartA - firstStartB
+    return a.length - b.length
   })
 
   return { rows }
