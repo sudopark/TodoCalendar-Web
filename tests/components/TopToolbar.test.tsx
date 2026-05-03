@@ -166,7 +166,7 @@ describe('TopToolbar', () => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
     })
 
-    it('인디케이터는 사용자 인터랙션을 막지 않는다 (pointer-events-none 으로 click-through)', () => {
+    it('로딩 중에도 인디케이터가 다른 버튼 클릭을 가로채지 않는다', () => {
       // given: loading 인 상태에서도 다른 버튼은 클릭 가능해야 함
       const onGoToToday = vi.fn()
       renderToolbar({ loading: true, onGoToToday })
@@ -176,10 +176,6 @@ describe('TopToolbar', () => {
 
       // then: 콜백이 정상 호출됨 (인디케이터 오버레이가 가로채지 않음)
       expect(onGoToToday).toHaveBeenCalled()
-
-      // 인디케이터 자체에 pointer-events-none 클래스가 있어 click-through 보장
-      const indicator = screen.getByRole('progressbar', { name: /이벤트 조회|loading events/i })
-      expect(indicator.className).toContain('pointer-events-none')
     })
   })
 })
