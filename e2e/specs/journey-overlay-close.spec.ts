@@ -136,7 +136,7 @@ test('/tags 오버레이에서 닫기 버튼을 클릭하면 메인 페이지로
   await page.goto('/tags')
   await expect(page.getByRole('heading', { name: '이벤트 종류' })).toBeVisible()
 
-  // 닫기 버튼 클릭 (TagManagementPage의 닫기 버튼)
+  // 닫기 버튼 클릭 (TagManagementPanel의 닫기 버튼)
   await page.getByRole('button', { name: '태그 관리 닫기' }).click()
 
   // then — 메인 페이지로 돌아간다
