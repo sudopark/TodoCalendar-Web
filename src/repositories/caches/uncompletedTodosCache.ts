@@ -19,7 +19,8 @@ export const useUncompletedTodosCache = create<UncompletedTodosState>((set, get)
 
   fetch: async () => {
     try {
-      const todos = await todoApi.getUncompletedTodos()
+      const refTime = Math.floor(Date.now() / 1000)
+      const todos = await todoApi.getUncompletedTodos(refTime)
       set({ todos })
     } catch (e) {
       console.warn('미완료 Todo 로드 실패:', e)

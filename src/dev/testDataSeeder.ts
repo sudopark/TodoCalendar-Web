@@ -148,7 +148,7 @@ export async function cleanupTestData(): Promise<string[]> {
 
   const ranged = (await safe('list todos (range)', errors, () => todoApi.getTodos(widePast, wideFuture))) ?? []
   const current = (await safe('list current todos', errors, () => todoApi.getCurrentTodos())) ?? []
-  const uncompleted = (await safe('list uncompleted todos', errors, () => todoApi.getUncompletedTodos())) ?? []
+  const uncompleted = (await safe('list uncompleted todos', errors, () => todoApi.getUncompletedTodos(Math.floor(Date.now() / 1000)))) ?? []
 
   const todoById = new Map<string, Todo>()
   for (const t of [...ranged, ...current, ...uncompleted]) todoById.set(t.uuid, t)

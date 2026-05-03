@@ -13,7 +13,7 @@ import type { CalendarEvent } from '../domain/functions/eventTime'
 export interface TodoApi {
   getTodos(lower: number, upper: number): Promise<Todo[]>
   getCurrentTodos(): Promise<Todo[]>
-  getUncompletedTodos(): Promise<Todo[]>
+  getUncompletedTodos(refTime: number): Promise<Todo[]>
   getTodo(id: string): Promise<Todo>
   createTodo(body: { name: string; event_tag_id?: string; event_time?: EventTime; repeating?: Repeating; notification_options?: NotificationOption[]; is_current?: boolean }): Promise<Todo>
   updateTodo(id: string, body: Partial<Pick<Todo, 'name' | 'event_tag_id' | 'event_time' | 'repeating' | 'notification_options'>>): Promise<Todo>
@@ -67,7 +67,8 @@ export class EventRepository {
   }
 
   async fetchUncompletedTodos(): Promise<void> {
-    const todos = await this.deps.todoApi.getUncompletedTodos()
+    const refTime = Math.floor(Date.now() / 1000)
+    const todos = await this.deps.todoApi.getUncompletedTodos(refTime)
     useUncompletedTodosCache.getState().replaceAll(todos)
   }
 

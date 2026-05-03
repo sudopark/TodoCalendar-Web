@@ -35,12 +35,13 @@ describe('todoApi', () => {
     expect((options as RequestInit).method).toBe('GET')
   })
 
-  it('getUncompletedTodos()가 /v1/todos/uncompleted로 GET 호출한다', async () => {
+  it('getUncompletedTodos(refTime)가 /v1/todos/uncompleted?refTime= 으로 GET 호출한다', async () => {
     const { todoApi } = await import('../../src/api/todoApi')
-    await todoApi.getUncompletedTodos()
+    await todoApi.getUncompletedTodos(1700000000)
 
     const [url, options] = fetchSpy.mock.calls[0]
     expect(String(url)).toContain('/v1/todos/uncompleted')
+    expect(String(url)).toContain('refTime=1700000000')
     expect((options as RequestInit).method).toBe('GET')
   })
 
