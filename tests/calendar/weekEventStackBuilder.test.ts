@@ -321,8 +321,8 @@ describe('buildWeekEventStack', () => {
         event_tag_id: null,
         event_time: {
           time_type: 'allday',
-          period_start: tueStartTs - offsetSec,
-          period_end: tueStartTs - offsetSec + 86400,
+          period_start: tueStartTs,
+          period_end: tueStartTs + 86400 - 1, // iOS endOfDay: 그 날 23:59:59
           seconds_from_gmt: offsetSec,
         },
       } as Schedule,

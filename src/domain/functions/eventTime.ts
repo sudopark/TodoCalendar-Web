@@ -8,7 +8,7 @@ export function eventTimeToStartDate(eventTime: EventTime): Date {
     case 'period':
       return new Date(eventTime.period_start * 1000)
     case 'allday':
-      return new Date((eventTime.period_start + eventTime.seconds_from_gmt) * 1000)
+      return alldayLocalDate(eventTime.period_start, eventTime.seconds_from_gmt)
   }
 }
 
@@ -19,10 +19,24 @@ export function eventTimeToEndDate(eventTime: EventTime): Date {
     case 'period':
       return new Date(eventTime.period_end * 1000)
     case 'allday':
-      // iOS EventTime.allDay 의 Range 는 half-open [lower, upper) — period_end 는 종료 다음 날 00:00 이다.
-      // 캘린더 day enumerate 가 종료 다음 날까지 포함하지 않도록 1일(86400s) 차감해 마지막 종일 일자의 시각으로 변환.
-      return new Date((eventTime.period_end + eventTime.seconds_from_gmt - 86400) * 1000)
+      return alldayLocalDate(eventTime.period_end, eventTime.seconds_from_gmt)
   }
+}
+
+// 종일(allday) 이벤트는 등록 시 정한 timezone(seconds_from_gmt) 의 일자가 의미 단위다.
+// 사용자 로컬 timezone 과 무관하게 "이벤트가 등록된 그 날짜" 를 캘린더 그리드에 그대로 매핑하기 위해
+// event tz 를 고정 기준으로 잡아 그 tz 의 일자를 추출하고, 사용자 로컬 자정 Date 로 변환한다.
+//
+// 기법: (period + seconds_from_gmt) timestamp 의 UTC wall-clock 시각이 곧 event tz 의 wall-clock 시각이다
+// (offset 만큼 timestamp 를 평행이동시킨 결과를 UTC 로 표현하면 그 tz 의 시각이 그대로 나온다).
+// 따라서 UTC 메소드로 뽑은 y/m/d 가 event tz 의 일자. 그 y/m/d 로 new Date(y, m, d) 를 만들면
+// 사용자 로컬 tz 의 자정 Date 가 되어 캘린더 day-cell 에 정확히 떨어진다.
+//
+// iOS Calendar.endOfDay 가 "그 날 23:59:59" 를 반환하므로 period_end 는 종료 날의 마지막 초.
+// 이 값에 동일 변환을 적용하면 종료 날 23:59:59 → UTC 평행이동 후 그 tz 의 같은 종료 날 시각 → 종료 일자 그대로 추출.
+function alldayLocalDate(periodSeconds: number, secondsFromGMT: number): Date {
+  const wallLikeUTC = new Date((periodSeconds + secondsFromGMT) * 1000)
+  return new Date(wallLikeUTC.getUTCFullYear(), wallLikeUTC.getUTCMonth(), wallLikeUTC.getUTCDate())
 }
 
 export function dateToTimestamp(date: Date): number {
