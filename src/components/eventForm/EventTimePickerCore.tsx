@@ -28,23 +28,6 @@ function localSecondsFromGmt(): number {
   return -(new Date().getTimezoneOffset() * 60)
 }
 
-function startOfTodayTs(): number {
-  const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  return Math.floor(d.getTime() / 1000)
-}
-
-// #106: iOS EventTime.allDay 와 동일한 포맷으로 emit 한다.
-//   period_start = event tz 의 시작일 00:00 epoch
-//   period_end   = event tz 의 종료일 23:59:59 epoch (Calendar.endOfDay 패턴, +86400-1)
-// 이 포맷이어야 alldayLocalDate(#103) 의 (period + offset) UTC date 추출이 정확히 일자를 잡고
-// 캘린더에 다일로 표시된다.
-
-export function newAlldayEventTime(secondsFromGMT: number): EventTime {
-  const start = startOfTodayTs()
-  return { time_type: 'allday', period_start: start, period_end: start + 86400 - 1, seconds_from_gmt: secondsFromGMT }
-}
-
 export function alldayWithStart(prev: EventTime, newStartTs: number): EventTime {
   if (prev.time_type !== 'allday') return prev
   // 시작이 종료보다 뒤로 가면 종료를 시작 + 86400 - 1 (1일 종일) 로 정정
@@ -67,6 +50,32 @@ export function alldayDateInputValue(periodSeconds: number, secondsFromGMT: numb
   const wall = new Date((periodSeconds + secondsFromGMT) * 1000)
   const p = (n: number) => String(n).padStart(2, '0')
   return `${wall.getUTCFullYear()}-${p(wall.getUTCMonth() + 1)}-${p(wall.getUTCDate())}`
+}
+
+// #108: 타입 토글 시 prev value 의 기준 timestamp 를 보존해 selectedDate 손실 차단.
+// prev=null 일 때만 now 를 baseTs 로 사용한다 (기존 동작 유지).
+export function nextEventTimeForType(
+  prev: EventTime | null,
+  type: 'at' | 'period' | 'allday',
+  now: number,
+  secondsFromGMT: number,
+): EventTime {
+  const baseTs =
+    prev === null ? now
+    : prev.time_type === 'at' ? prev.timestamp
+    : prev.time_type === 'period' ? prev.period_start
+    : prev.period_start  // allday — 이미 event tz 자정 epoch
+  if (type === 'at') {
+    return { time_type: 'at', timestamp: baseTs }
+  }
+  if (type === 'period') {
+    return { time_type: 'period', period_start: baseTs, period_end: baseTs + 3600 }
+  }
+  // allday: baseTs 의 일자의 local 자정으로 정규화
+  const d = new Date(baseTs * 1000)
+  d.setHours(0, 0, 0, 0)
+  const start = Math.floor(d.getTime() / 1000)
+  return { time_type: 'allday', period_start: start, period_end: start + 86400 - 1, seconds_from_gmt: secondsFromGMT }
 }
 
 // --- Component ---
@@ -99,24 +108,11 @@ export function EventTimePickerCore({ value, onChange, allowNone }: EventTimePic
       onChange(null)
       return
     }
-    let next: EventTime
-    if (type === 'at') {
-      next = { time_type: 'at', timestamp: now }
-    } else if (type === 'period') {
-      next = { time_type: 'period', period_start: now, period_end: now + 3600 }
-    } else {
-      next = newAlldayEventTime(localSecondsFromGmt())
-    }
-    onChange(next)
+    onChange(nextEventTimeForType(value, type, now, localSecondsFromGmt()))
   }
 
   function handleAllDayToggle(checked: boolean) {
-    if (checked) {
-      handleTypeChange('allday')
-    } else {
-      const ts = value?.time_type === 'allday' ? value.period_start : now
-      onChange({ time_type: 'at', timestamp: ts })
-    }
+    handleTypeChange(checked ? 'allday' : 'at')
   }
 
   // dark:[color-scheme:dark] — 다크모드에서 native datetime-local / date 의 calendar picker indicator 가 어두운 배경에 안 보이는 이슈 해결
