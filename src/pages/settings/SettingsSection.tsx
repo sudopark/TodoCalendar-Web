@@ -12,7 +12,7 @@ export function SettingsSection({ title, children, tone = 'default' }: SettingsS
   return (
     <section className="space-y-6">
       <div className="flex items-center gap-3">
-        <span className={`text-[11px] font-semibold uppercase tracking-widest shrink-0 ${titleColor}`}>
+        <span className={`text-section-label font-semibold uppercase tracking-widest shrink-0 ${titleColor}`}>
           {title}
         </span>
         <div className={`flex-1 h-px ${ruleColor}`} />

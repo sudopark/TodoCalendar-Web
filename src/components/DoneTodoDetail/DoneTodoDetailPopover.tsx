@@ -14,7 +14,7 @@ const POPOVER_WIDTH = 320
 const THRESHOLD = 200
 
 const ACTION_BTN = 'p-1.5 rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors disabled:opacity-50'
-const INFO_ROW = 'flex items-start gap-2 text-[13px] text-fg-secondary leading-snug'
+const INFO_ROW = 'flex items-start gap-2 text-info text-fg-secondary leading-snug'
 const INFO_ICON = 'h-4 w-4 text-fg-quaternary mt-0.5 shrink-0'
 
 export interface DoneTodoDetailPopoverProps {
@@ -135,7 +135,7 @@ export function DoneTodoDetailPopover({
             <div className={INFO_ROW}>
               <Clock className={INFO_ICON} />
               <div>
-                <p className="text-[11px] uppercase tracking-wider text-fg-quaternary">{t('todo.done_at_label', '완료 시각')}</p>
+                <p className="text-section-label uppercase tracking-wider text-fg-quaternary">{t('todo.done_at_label', '완료 시각')}</p>
                 <p>{doneTimeText}</p>
               </div>
             </div>
@@ -144,7 +144,7 @@ export function DoneTodoDetailPopover({
             <div className={INFO_ROW}>
               <Clock className={INFO_ICON} />
               <div>
-                <p className="text-[11px] uppercase tracking-wider text-fg-quaternary">{t('todo.original_time_label', '원래 시간')}</p>
+                <p className="text-section-label uppercase tracking-wider text-fg-quaternary">{t('todo.original_time_label', '원래 시간')}</p>
                 <p><EventTimeDisplay eventTime={originEventTime} /></p>
               </div>
             </div>

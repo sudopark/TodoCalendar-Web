@@ -186,7 +186,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
           return (
             <div
               key={key}
-              className={`px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest ${accent ? 'text-[#e8a5a5]' : 'text-fg-quaternary'}`}
+              className={`px-3 py-1.5 text-section-label font-semibold uppercase tracking-widest ${accent ? 'text-[#e8a5a5]' : 'text-fg-quaternary'}`}
             >
               {t(`calendar.weekdays.${key}`, key.toUpperCase())}
             </div>
@@ -306,7 +306,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
 
                   {hiddenCount > 0 && (
                     <div className="grid grid-cols-7">
-                      <div className="col-span-7 text-[10px] font-medium text-fg-tertiary px-2 pointer-events-auto">
+                      <div className="col-span-7 text-meta font-medium text-fg-tertiary px-2 pointer-events-auto">
                         +{hiddenCount} more
                       </div>
                     </div>

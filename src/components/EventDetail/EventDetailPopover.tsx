@@ -24,7 +24,7 @@ function repeatingLabel(repeating: Repeating, t: TFunction): string {
 }
 
 const ACTION_BTN = 'p-1.5 rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors'
-const INFO_ROW = 'flex items-start gap-2 text-[13px] text-fg-secondary leading-snug'
+const INFO_ROW = 'flex items-start gap-2 text-info text-fg-secondary leading-snug'
 const INFO_ICON = 'h-4 w-4 text-fg-quaternary mt-0.5 shrink-0'
 
 export interface EventDetailPopoverProps {
@@ -127,7 +127,7 @@ export function EventDetailPopover({
           {tagName && (
             <div data-testid="popover-tag-name">
               <span
-                className="inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
+                className="inline-block text-meta font-semibold px-1.5 py-0.5 rounded-full leading-none"
                 style={{ color: tagColor, backgroundColor: `${tagColor}22` }}
               >
                 {tagName}

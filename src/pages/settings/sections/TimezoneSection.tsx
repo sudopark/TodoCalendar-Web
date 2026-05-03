@@ -33,7 +33,7 @@ function TimezoneRow({ info, selected, systemBadgeLabel, onClick }: TimezoneRowP
         <div className="flex items-center gap-2">
           <span className={cn('truncate text-sm', selected && 'font-semibold')}>{info.title}</span>
           {systemBadgeLabel && (
-            <span className="shrink-0 rounded-full border border-line px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-fg-tertiary">
+            <span className="shrink-0 rounded-full border border-line px-1.5 py-0.5 text-meta font-medium uppercase tracking-wider text-fg-tertiary">
               {systemBadgeLabel}
             </span>
           )}

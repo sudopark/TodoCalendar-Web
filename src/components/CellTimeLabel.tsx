@@ -89,7 +89,7 @@ function DoubleLine({ top, bottom }: { top: string; bottom: string }) {
   return (
     <div className="flex flex-col items-center">
       <p className="text-xs text-fg truncate leading-tight">{top}</p>
-      <p className="text-[10px] text-fg-secondary truncate leading-tight">{bottom}</p>
+      <p className="text-meta text-fg-secondary truncate leading-tight">{bottom}</p>
     </div>
   )
 }
