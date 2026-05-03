@@ -25,8 +25,8 @@ export const todoApi = {
     return apiClient.get('/v1/todos')
   },
 
-  getUncompletedTodos(): Promise<Todo[]> {
-    return apiClient.get('/v1/todos/uncompleted')
+  getUncompletedTodos(refTime: number): Promise<Todo[]> {
+    return apiClient.get(`/v1/todos/uncompleted?refTime=${refTime}`)
   },
 
   getTodo(id: string): Promise<Todo> {
