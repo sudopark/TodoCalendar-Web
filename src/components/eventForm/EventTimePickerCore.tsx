@@ -34,6 +34,47 @@ function localSecondsFromGmt(): number {
   return -(new Date().getTimezoneOffset() * 60)
 }
 
+function startOfTodayTs(): number {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  return Math.floor(d.getTime() / 1000)
+}
+
+// #106: iOS EventTime.allDay 와 동일한 포맷으로 emit 한다.
+//   period_start = event tz 의 시작일 00:00 epoch
+//   period_end   = event tz 의 종료일 23:59:59 epoch (Calendar.endOfDay 패턴, +86400-1)
+// 이 포맷이어야 alldayLocalDate(#103) 의 (period + offset) UTC date 추출이 정확히 일자를 잡고
+// 캘린더에 다일로 표시된다.
+
+export function newAlldayEventTime(secondsFromGMT: number): EventTime {
+  const start = startOfTodayTs()
+  return { time_type: 'allday', period_start: start, period_end: start + 86400 - 1, seconds_from_gmt: secondsFromGMT }
+}
+
+export function alldayWithStart(prev: EventTime, newStartTs: number): EventTime {
+  if (prev.time_type !== 'allday') return prev
+  // 시작이 종료보다 뒤로 가면 종료를 시작 + 86400 - 1 (1일 종일) 로 정정
+  const period_end = prev.period_end < newStartTs ? newStartTs + 86400 - 1 : prev.period_end
+  return { ...prev, period_start: newStartTs, period_end }
+}
+
+// 입력은 종료 날짜의 자정 epoch (dateInputToTs 결과). +86400-1 로 그 날 23:59:59 로 변환.
+// 시작보다 앞서면 null 반환 (변경 거부).
+export function alldayWithEnd(prev: EventTime, newEndDateTs: number): EventTime | null {
+  if (prev.time_type !== 'allday') return null
+  const period_end = newEndDateTs + 86400 - 1
+  if (period_end < prev.period_start) return null
+  return { ...prev, period_end }
+}
+
+// allday date input 의 value (yyyy-mm-dd) 표시: event tz (secondsFromGMT) 기준 일자를 추출.
+// (period + offset) timestamp 의 UTC wall-clock 시각이 곧 event tz 의 wall-clock — UTC 메소드로 yyyy-mm-dd 추출.
+export function alldayDateInputValue(periodSeconds: number, secondsFromGMT: number): string {
+  const wall = new Date((periodSeconds + secondsFromGMT) * 1000)
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${wall.getUTCFullYear()}-${p(wall.getUTCMonth() + 1)}-${p(wall.getUTCDate())}`
+}
+
 // --- Component ---
 
 type TimeType = 'none' | 'at' | 'period' | 'allday'
@@ -70,7 +111,7 @@ export function EventTimePickerCore({ value, onChange, allowNone }: EventTimePic
     } else if (type === 'period') {
       next = { time_type: 'period', period_start: now, period_end: now + 3600 }
     } else {
-      next = { time_type: 'allday', period_start: now, period_end: now, seconds_from_gmt: localSecondsFromGmt() }
+      next = newAlldayEventTime(localSecondsFromGmt())
     }
     onChange(next)
   }
@@ -194,11 +235,11 @@ export function EventTimePickerCore({ value, onChange, allowNone }: EventTimePic
               aria-label={t('eventTime.start_date')}
               type="date"
               className={inputClass}
-              value={tsToDateInput(value.period_start + value.seconds_from_gmt)}
+              value={alldayDateInputValue(value.period_start, value.seconds_from_gmt)}
               onChange={e => {
                 const ts = dateInputToTs(e.target.value)
                 if (ts === null || value.time_type !== 'allday') return
-                onChange({ ...value, period_start: ts - value.seconds_from_gmt })
+                onChange(alldayWithStart(value, ts))
               }}
             />
           </div>
@@ -209,13 +250,13 @@ export function EventTimePickerCore({ value, onChange, allowNone }: EventTimePic
               aria-label={t('eventTime.end_date')}
               type="date"
               className={inputClass}
-              value={tsToDateInput(value.period_end + value.seconds_from_gmt)}
+              value={alldayDateInputValue(value.period_end, value.seconds_from_gmt)}
               onChange={e => {
                 const ts = dateInputToTs(e.target.value)
                 if (ts === null || value.time_type !== 'allday') return
-                const newEnd = ts - value.seconds_from_gmt
-                if (newEnd < value.period_start) return
-                onChange({ ...value, period_end: newEnd })
+                const next = alldayWithEnd(value, ts)
+                if (next === null) return
+                onChange(next)
               }}
             />
           </div>
