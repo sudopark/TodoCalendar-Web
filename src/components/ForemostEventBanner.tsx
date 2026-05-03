@@ -55,7 +55,7 @@ export function ForemostEventBanner({ foremostEvent, onEventClick }: ForemostEve
             </span>
             {tagName && (
               <span
-                className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
+                className="shrink-0 text-meta font-semibold px-1.5 py-0.5 rounded-full leading-none"
                 style={{ color: resolved.color, backgroundColor: `${resolved.color}22` }}
               >
                 {tagName}

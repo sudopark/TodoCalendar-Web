@@ -57,7 +57,7 @@ function MiniCalendarDayButton({
     <button
       {...props}
       className={cn(
-        'flex h-7 w-7 items-center justify-center text-[12px] mx-auto cursor-pointer bg-transparent border-0 p-0 transition-colors',
+        'flex h-7 w-7 items-center justify-center text-xs mx-auto cursor-pointer bg-transparent border-0 p-0 transition-colors',
         bgStyle,
         textColor,
         className
@@ -193,7 +193,7 @@ export default function LeftSidebar({
               button_previous: 'rounded p-0.5 hover:bg-surface-sunken text-fg-secondary h-7 w-7 flex items-center justify-center transition-colors',
               button_next: 'rounded p-0.5 hover:bg-surface-sunken text-fg-secondary h-7 w-7 flex items-center justify-center transition-colors',
               weekdays: 'flex',
-              weekday: 'flex-1 text-center text-[10px] font-normal uppercase tracking-wide text-fg-tertiary py-1',
+              weekday: 'flex-1 text-center text-meta font-normal uppercase tracking-wide text-fg-tertiary py-1',
               week: 'mt-0.5 flex w-full',
               day: 'flex-1 flex items-center justify-center py-0.5',
               today: '',

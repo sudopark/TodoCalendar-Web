@@ -53,7 +53,7 @@ export function CalendarAppearancePreview({ weekStartDay, accentDays }: Props) {
           return (
             <div
               key={k}
-              className={`text-center text-[10px] font-semibold uppercase tracking-widest ${isAccent ? 'text-[#e8a5a5]' : 'text-fg-quaternary'}`}
+              className={`text-center text-meta font-semibold uppercase tracking-widest ${isAccent ? 'text-[#e8a5a5]' : 'text-fg-quaternary'}`}
             >
               {t(`calendar.weekdays.${k}`, k)}
             </div>

@@ -25,7 +25,7 @@ function formatLunarDate(date: Date, locale: string): string | null {
 function SectionHeader({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 mb-3">
-      <span className="text-[11px] font-semibold uppercase tracking-widest text-fg-quaternary shrink-0">{label}</span>
+      <span className="text-section-label font-semibold uppercase tracking-widest text-fg-quaternary shrink-0">{label}</span>
       <div className="flex-1 h-px bg-line" />
     </div>
   )

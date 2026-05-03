@@ -46,7 +46,7 @@ export function EventListPreview({ eventListFontSizeWeight, showHolidayInEventLi
       {showUncompletedTodos && (
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-fg-quaternary">
+            <span className="text-meta font-semibold uppercase tracking-widest text-fg-quaternary">
               {t('todo.uncompleted', '미완료')}
             </span>
             <div className="flex-1 h-px bg-line" />
@@ -63,7 +63,7 @@ export function EventListPreview({ eventListFontSizeWeight, showHolidayInEventLi
       {/* 이벤트 */}
       <div>
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-fg-quaternary">
+          <span className="text-meta font-semibold uppercase tracking-widest text-fg-quaternary">
             {t('main.events_title', 'Events')}
           </span>
           <div className="flex-1 h-px bg-line" />
@@ -73,7 +73,7 @@ export function EventListPreview({ eventListFontSizeWeight, showHolidayInEventLi
             <span className="h-2 w-2 mt-1.5 rounded-full ring-2 ring-surface shrink-0" style={{ backgroundColor: e.color }} />
             <div className="min-w-0">
               <p className="font-semibold text-fg" style={{ fontSize: nameFontSize }}>{e.name}</p>
-              <p className="text-[11px] text-fg-quaternary">{e.time}</p>
+              <p className="text-section-label text-fg-quaternary">{e.time}</p>
             </div>
           </div>
         ))}

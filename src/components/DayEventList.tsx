@@ -61,7 +61,7 @@ function EventItem({ calEvent, onEventClick, onComplete, isLast }: {
             </span>
             {tagName && (
               <span
-                className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
+                className="shrink-0 text-meta font-semibold px-1.5 py-0.5 rounded-full leading-none"
                 style={{ color, backgroundColor: `${color}22` }}
               >
                 {tagName}

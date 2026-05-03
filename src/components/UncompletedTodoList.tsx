@@ -54,7 +54,7 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: Uncomple
             <span className="text-xs text-fg-quaternary leading-none">Todo</span>
             {tagName && (
               <span
-                className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none"
+                className="shrink-0 text-meta font-semibold px-1.5 py-0.5 rounded-full leading-none"
                 style={{ color, backgroundColor: `${color}22` }}
               >
                 {tagName}
@@ -134,7 +134,7 @@ export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick
   return (
     <section className="mb-6">
       <div className="flex items-center gap-3 mb-3">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-fg-quaternary shrink-0">
+        <span className="text-section-label font-semibold uppercase tracking-widest text-fg-quaternary shrink-0">
           {t('todo.uncompleted')}
         </span>
         <div className="flex-1 h-px bg-line" />

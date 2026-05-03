@@ -60,7 +60,7 @@ export default function TopToolbar({
           )}
         >
           <img src="/logo-light.png" alt="To-do Calendar" className="h-7 shrink-0" />
-          <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-fg whitespace-nowrap">
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-fg whitespace-nowrap">
             To-do Calendar
           </span>
         </div>
@@ -77,10 +77,10 @@ export default function TopToolbar({
 
           {/* 월 타이틀 — 연도는 캡션, 월은 히어로 */}
           <div data-testid="toolbar-month-title" className="flex flex-col items-center leading-none min-w-[7rem] py-1">
-            <span data-testid="toolbar-year" className="text-[10px] font-semibold uppercase tracking-[0.25em] text-fg-quaternary">
+            <span data-testid="toolbar-year" className="text-meta font-semibold uppercase tracking-[0.25em] text-fg-quaternary">
               {year}
             </span>
-            <span data-testid="toolbar-month" className="mt-1 text-[18px] font-semibold text-fg tracking-tight">
+            <span data-testid="toolbar-month" className="mt-1 text-lg font-semibold text-fg tracking-tight">
               {monthLabel}
             </span>
           </div>
@@ -95,7 +95,7 @@ export default function TopToolbar({
         <button
           onClick={onGoToToday}
           aria-label={t('main.today', '오늘')}
-          className="rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-fg hover:bg-surface-elevated transition-colors"
+          className="rounded-full px-3 py-1.5 text-section-label font-semibold uppercase tracking-[0.15em] text-fg hover:bg-surface-elevated transition-colors"
         >
           {t('main.today', '오늘')}
         </button>
