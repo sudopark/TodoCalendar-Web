@@ -18,12 +18,6 @@ function datetimeLocalToTs(v: string): number | null {
   return isNaN(ts) ? null : Math.floor(ts / 1000)
 }
 
-function tsToDateInput(ts: number): string {
-  const d = new Date(ts * 1000)
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
-}
-
 function dateInputToTs(v: string): number | null {
   if (!v) return null
   const ts = new Date(v + 'T00:00:00').getTime()
