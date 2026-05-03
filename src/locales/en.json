@@ -296,6 +296,7 @@
   "main.fab_label": "Add new event",
   "main.toggle_sidebar": "Toggle sidebar",
   "main.today": "Today",
+  "main.events_loading": "Loading events",
   "main.quick_todo_placeholder": "Add a quick todo...",
   "main.event_types": "Event Types",
   "main.event_preview_edit": "Edit",
