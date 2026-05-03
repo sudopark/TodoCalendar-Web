@@ -17,6 +17,10 @@ interface ForemostEventCacheState {
   removeForemost: () => Promise<void>
 }
 
+// 동시 fetch 호출 (AuthGuard + 페이지 ViewModel + dev StrictMode 이중 effect 등) 시
+// 같은 promise 를 공유해 API 호출 1회로 묶는다 (#99).
+let inFlight: Promise<void> | null = null
+
 export const useForemostEventCache = create<ForemostEventCacheState>((set) => ({
   foremostEvent: null,
 
@@ -29,14 +33,20 @@ export const useForemostEventCache = create<ForemostEventCacheState>((set) => ({
   // ── legacy business operations ────────────────────────────────────
 
   fetch: async () => {
-    try {
-      const event = await foremostApi.getForemostEvent()
-      set({ foremostEvent: event })
-    } catch (e) {
-      console.warn('Foremost event 로드 실패:', e)
-      set({ foremostEvent: null })
-      throw e
-    }
+    if (inFlight) return inFlight
+    inFlight = (async () => {
+      try {
+        const event = await foremostApi.getForemostEvent()
+        set({ foremostEvent: event })
+      } catch (e) {
+        console.warn('Foremost event 로드 실패:', e)
+        set({ foremostEvent: null })
+        throw e
+      } finally {
+        inFlight = null
+      }
+    })()
+    return inFlight
   },
 
   setForemost: async (eventId: string, isTodo: boolean) => {

@@ -70,7 +70,7 @@ export interface MainViewModel {
 // MARK: - Hook
 
 export function useMainViewModel(): MainViewModel {
-  const { eventRepo, holidayRepo, tagRepo, foremostEventRepo } = useRepositories()
+  const { eventRepo, holidayRepo } = useRepositories()
 
   // ── UI 상태 ──────────────────────────────────────────────────────
   const currentMonth = useUiStore(s => s.currentMonth)
@@ -143,6 +143,9 @@ export function useMainViewModel(): MainViewModel {
     [year, month, weekStartDay],
   )
 
+  // 캘린더 그리드 year 변경 시 events + holidays fetch.
+  // currentTodos / uncompletedTodos / foremost / tags 는 AuthGuard 가 인증 통과 시 일괄 prefetch 하므로
+  // 여기서 중복 호출하지 않는다 (#99 — 같은 endpoint 가 2~3벌씩 나가던 문제).
   useEffect(() => {
     if (days.length === 0) return
     const fetchYears = new Set(days.map(d => d.date.getFullYear()))
@@ -150,23 +153,7 @@ export function useMainViewModel(): MainViewModel {
     fetchYears.forEach(y => holidayRepo.fetch(y))
   }, [days, holidayRepo])
 
-  useEffect(() => {
-    eventRepo.fetchCurrentTodos()
-  }, [eventRepo])
-
-  useEffect(() => {
-    eventRepo.fetchUncompletedTodos()
-  }, [eventRepo])
-
-  useEffect(() => {
-    foremostEventRepo.fetch()
-  }, [foremostEventRepo])
-
-  useEffect(() => {
-    tagRepo.fetchAll()
-  }, [tagRepo])
-
-  // LeftSidebar도 월 변경 시 공휴일 fetch — ViewModel이 통합 처리
+  // LeftSidebar 월 변경 시 공휴일 fetch — ViewModel 이 통합 처리
   useEffect(() => {
     const sbYear = sidebarMonth.getFullYear()
     const sbMonth = sidebarMonth.getMonth()

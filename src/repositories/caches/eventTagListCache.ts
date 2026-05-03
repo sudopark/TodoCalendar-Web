@@ -32,6 +32,10 @@ interface EventTagListCacheState {
   updateDefaultTagColor: (kind: 'default' | 'holiday', color_hex: string) => Promise<void>
 }
 
+// 동시 fetchAll 호출 (AuthGuard + 페이지 ViewModel + dev StrictMode 이중 effect 등) 시
+// 같은 promise 를 공유해 API 호출 1회로 묶는다 (#99).
+let fetchAllInFlight: Promise<void> | null = null
+
 export const useEventTagListCache = create<EventTagListCacheState>((set, get) => ({
   tags: new Map(),
   defaultTagColors: null,
@@ -65,18 +69,24 @@ export const useEventTagListCache = create<EventTagListCacheState>((set, get) =>
   // ── legacy business operations (to be removed after T14+ page migration) ──
 
   fetchAll: async () => {
-    try {
-      const [list, defaultColors] = await Promise.all([
-        eventTagApi.getAllTags(),
-        settingApi.getDefaultTagColors(),
-      ])
-      const map = new Map<string, EventTag>()
-      for (const tag of list) map.set(tag.uuid, tag)
-      set({ tags: map, defaultTagColors: defaultColors })
-    } catch (e) {
-      console.warn('태그 로드 실패:', e)
-      throw e
-    }
+    if (fetchAllInFlight) return fetchAllInFlight
+    fetchAllInFlight = (async () => {
+      try {
+        const [list, defaultColors] = await Promise.all([
+          eventTagApi.getAllTags(),
+          settingApi.getDefaultTagColors(),
+        ])
+        const map = new Map<string, EventTag>()
+        for (const tag of list) map.set(tag.uuid, tag)
+        set({ tags: map, defaultTagColors: defaultColors })
+      } catch (e) {
+        console.warn('태그 로드 실패:', e)
+        throw e
+      } finally {
+        fetchAllInFlight = null
+      }
+    })()
+    return fetchAllInFlight
   },
 
   createTag: async (name: string, color_hex?: string) => {
