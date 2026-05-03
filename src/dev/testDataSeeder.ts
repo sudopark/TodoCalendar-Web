@@ -95,12 +95,13 @@ interface SeederTag {
   color_hex: string
 }
 
+// iOS suggestColorHexes 27색 팔레트 기준 의미별 인덱스
 const TAGS: SeederTag[] = [
-  { key: 'work', name: `${TEST_PREFIX}Work`, color_hex: PRESET_COLORS[0] },     // red
-  { key: 'personal', name: `${TEST_PREFIX}Personal`, color_hex: PRESET_COLORS[4] }, // blue
-  { key: 'study', name: `${TEST_PREFIX}Study`, color_hex: PRESET_COLORS[5] },   // purple
-  { key: 'health', name: `${TEST_PREFIX}Health`, color_hex: PRESET_COLORS[3] }, // green
-  { key: 'travel', name: `${TEST_PREFIX}Travel`, color_hex: PRESET_COLORS[1] }, // orange
+  { key: 'work', name: `${TEST_PREFIX}Work`, color_hex: PRESET_COLORS[0] },      // #F42D2D red
+  { key: 'personal', name: `${TEST_PREFIX}Personal`, color_hex: PRESET_COLORS[11] }, // #1E90FF blue
+  { key: 'study', name: `${TEST_PREFIX}Study`, color_hex: PRESET_COLORS[7] },    // #6800f2 purple
+  { key: 'health', name: `${TEST_PREFIX}Health`, color_hex: PRESET_COLORS[20] }, // #3CB371 green
+  { key: 'travel', name: `${TEST_PREFIX}Travel`, color_hex: PRESET_COLORS[4] },  // #FFA02E orange
 ]
 
 interface SeedResult {
