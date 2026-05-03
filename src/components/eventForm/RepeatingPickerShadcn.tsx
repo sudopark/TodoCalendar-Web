@@ -114,6 +114,16 @@ export function RepeatingPickerShadcn({ eventTime, repeating, onRepeatingChange 
 
   const interval = option.optionType !== 'lunar_calendar_every_year' ? option.interval : null
 
+  // Base UI Select.Value 는 raw value 표시이므로 라벨로 변환하는 함수를 children 으로 넘긴다.
+  const REPEAT_TYPE_LABEL: Record<string, string> = {
+    every_day: t('repeating.daily'),
+    every_week: t('repeating.weekly'),
+    every_month: t('repeating.monthly'),
+    every_year: t('repeating.yearly'),
+    every_year_some_day: t('repeating.yearly_some_day'),
+    lunar_calendar_every_year: t('repeating.lunar'),
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
@@ -138,7 +148,7 @@ export function RepeatingPickerShadcn({ eventTime, repeating, onRepeatingChange 
               onValueChange={(value) => { if (value) handleTypeChange(value) }}
             >
               <SelectTrigger className="mt-1" aria-label={t('repeating.type')}>
-                <SelectValue />
+                <SelectValue>{(v: string) => REPEAT_TYPE_LABEL[v] ?? ''}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="every_day">{t('repeating.daily')}</SelectItem>
@@ -450,7 +460,7 @@ export function RepeatingPickerShadcn({ eventTime, repeating, onRepeatingChange 
             {endType === 'date' && (
               <input
                 type="date"
-                className="mt-2 rounded border border-input bg-transparent px-2 py-1 text-sm"
+                className="mt-2 rounded border border-input bg-transparent px-2 py-1 text-sm dark:[color-scheme:dark]"
                 value={endDate}
                 onChange={e => {
                   setEndDate(e.target.value)

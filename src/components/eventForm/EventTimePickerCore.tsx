@@ -84,7 +84,15 @@ export function EventTimePickerCore({ value, onChange, allowNone }: EventTimePic
     }
   }
 
-  const inputClass = 'rounded-md border border-input bg-transparent px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring'
+  // dark:[color-scheme:dark] — 다크모드에서 native datetime-local / date 의 calendar picker indicator 가 어두운 배경에 안 보이는 이슈 해결
+  const inputClass = 'rounded-md border border-input bg-transparent px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring dark:[color-scheme:dark]'
+
+  const TIME_TYPE_LABEL: Record<TimeType, string> = {
+    none: t('eventTime.none'),
+    at: t('eventTime.at'),
+    period: t('eventTime.period'),
+    allday: t('eventTime.allday'),
+  }
 
   return (
     <div className="space-y-3">
@@ -96,7 +104,7 @@ export function EventTimePickerCore({ value, onChange, allowNone }: EventTimePic
           onValueChange={(v) => { if (v) handleTypeChange(v as TimeType) }}
         >
           <SelectTrigger className="h-8 text-sm flex-1 min-w-0" aria-label={t('eventTime.time_label', '시각')}>
-            <SelectValue />
+            <SelectValue>{(v: TimeType) => TIME_TYPE_LABEL[v] ?? ''}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {allowNone && (
