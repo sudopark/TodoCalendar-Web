@@ -1,17 +1,25 @@
 import { PRESET_COLORS } from '../../../../components/ColorPalette'
 import type { EventDisplayLevel } from '../../../../repositories/caches/settingsCache'
 
+// 의미별 색 인덱스 — iOS suggestColorHexes 27색 팔레트 기준
+const C_BLUE = 11   // #1E90FF
+const C_ORANGE = 4  // #FFA02E
+const C_GREEN = 20  // #3CB371
+const C_PURPLE = 7  // #6800f2
+const C_YELLOW = 5  // #F6DC41
+const C_PINK = 3    // #FD838F
+
 const SAMPLE_EVENTS_BY_DAY: { day: number; name: string; color: string }[][] = [
-  [{ day: 1, name: '회의', color: PRESET_COLORS[4] }],          // blue
-  [{ day: 2, name: '커피챗', color: PRESET_COLORS[1] }, { day: 2, name: '리뷰 PR', color: PRESET_COLORS[3] }],  // orange, green
+  [{ day: 1, name: '회의', color: PRESET_COLORS[C_BLUE] }],
+  [{ day: 2, name: '커피챗', color: PRESET_COLORS[C_ORANGE] }, { day: 2, name: '리뷰 PR', color: PRESET_COLORS[C_GREEN] }],
   [
-    { day: 3, name: '디자인 리뷰', color: PRESET_COLORS[5] },   // purple
-    { day: 3, name: '점심 약속', color: PRESET_COLORS[2] },     // yellow
-    { day: 3, name: '운동', color: PRESET_COLORS[3] },           // green
+    { day: 3, name: '디자인 리뷰', color: PRESET_COLORS[C_PURPLE] },
+    { day: 3, name: '점심 약속', color: PRESET_COLORS[C_YELLOW] },
+    { day: 3, name: '운동', color: PRESET_COLORS[C_GREEN] },
   ],
-  [{ day: 4, name: '주간 리포트', color: PRESET_COLORS[4] }],   // blue
+  [{ day: 4, name: '주간 리포트', color: PRESET_COLORS[C_BLUE] }],
   [],
-  [{ day: 6, name: '생일 🎂', color: PRESET_COLORS[6] }],      // pink
+  [{ day: 6, name: '생일 🎂', color: PRESET_COLORS[C_PINK] }],
   [],
 ]
 

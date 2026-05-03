@@ -1,8 +1,12 @@
 import { useTranslation } from 'react-i18next'
 
+// iOS EventTagDetailViewModelImple.suggestColorHexes 와 동일한 27색 팔레트.
+// 사용자가 충분히 다양한 색을 고를 수 있어야 한다는 QA 피드백 반영.
 export const PRESET_COLORS = [
-  '#ef4444', '#f97316', '#eab308', '#22c55e',
-  '#3b82f6', '#8b5cf6', '#ec4899', '#6b7280',
+  '#F42D2D', '#F9316D', '#FF5722', '#FD838F', '#FFA02E', '#F6DC41', '#B75F17',
+  '#6800f2', '#9370DB', '#6A5ACD', '#4034AB', '#1E90FF', '#4682B4', '#5F9EA0',
+  '#4561DB', '#5e86d6', '#87CEEB', '#088CDA', '#AFEEEE', '#036A73', '#3CB371',
+  '#06A192', '#41E6EC', '#72E985', '#CCD0DC', '#828DA9', '#8DACF6',
 ]
 
 interface ColorPaletteProps {

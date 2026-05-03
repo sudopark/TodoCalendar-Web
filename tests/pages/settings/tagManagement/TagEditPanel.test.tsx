@@ -110,7 +110,7 @@ describe('TagEditPanel — create 모드', () => {
     const user = userEvent.setup()
     const onBack = vi.fn()
     const { eventTagApi } = await import('../../../../src/api/eventTagApi')
-    vi.mocked(eventTagApi.createTag).mockResolvedValue({ uuid: 'new-id', name: '신규', color_hex: '#22c55e' })
+    vi.mocked(eventTagApi.createTag).mockResolvedValue({ uuid: 'new-id', name: '신규', color_hex: '#3CB371' })
     renderPanel({ kind: 'create' }, onBack, repos)
 
     // when
@@ -174,7 +174,7 @@ describe('TagEditPanel — edit(custom) 모드', () => {
     const user = userEvent.setup()
     const onBack = vi.fn()
     const { eventTagApi } = await import('../../../../src/api/eventTagApi')
-    vi.mocked(eventTagApi.updateTag).mockResolvedValue({ uuid: 'tag-1', name: '새이름', color_hex: '#22c55e' })
+    vi.mocked(eventTagApi.updateTag).mockResolvedValue({ uuid: 'tag-1', name: '새이름', color_hex: '#3CB371' })
     renderPanel({ kind: 'edit', row: customRow }, onBack, repos)
 
     // when
@@ -280,16 +280,16 @@ describe('TagEditPanel — edit(default) 모드', () => {
     const user = userEvent.setup()
     const onBack = vi.fn()
     const { settingApi } = await import('../../../../src/api/settingApi')
-    vi.mocked(settingApi.updateDefaultTagColors).mockResolvedValue({ default: '#22c55e', holiday: '#ef4444' })
+    vi.mocked(settingApi.updateDefaultTagColors).mockResolvedValue({ default: '#3CB371', holiday: '#ef4444' })
     renderPanel({ kind: 'edit', row: defaultRow }, onBack, repos)
 
-    // when: 두 번째 색상 팔레트 버튼(#22c55e) 선택 후 저장
-    await user.click(screen.getByRole('button', { name: /(?:색상 선택|Select color):\s*#22c55e/ }))
+    // when: 새 팔레트의 green(#3CB371) 선택 후 저장
+    await user.click(screen.getByRole('button', { name: /(?:색상 선택|Select color):\s*#3CB371/ }))
     await user.click(screen.getByRole('button', { name: '저장' }))
 
     // then: 캐시의 default 색상이 갱신됨
     await waitFor(() =>
-      expect(useEventTagListCache.getState().defaultTagColors?.default).toBe('#22c55e'),
+      expect(useEventTagListCache.getState().defaultTagColors?.default).toBe('#3CB371'),
     )
     expect(onBack).toHaveBeenCalled()
   })
@@ -323,16 +323,16 @@ describe('TagEditPanel — edit(holiday) 모드', () => {
     const user = userEvent.setup()
     const onBack = vi.fn()
     const { settingApi } = await import('../../../../src/api/settingApi')
-    vi.mocked(settingApi.updateDefaultTagColors).mockResolvedValue({ default: '#4A90D9', holiday: '#22c55e' })
+    vi.mocked(settingApi.updateDefaultTagColors).mockResolvedValue({ default: '#4A90D9', holiday: '#3CB371' })
     renderPanel({ kind: 'edit', row: holidayRow }, onBack, repos)
 
     // when
-    await user.click(screen.getByRole('button', { name: /(?:색상 선택|Select color):\s*#22c55e/ }))
+    await user.click(screen.getByRole('button', { name: /(?:색상 선택|Select color):\s*#3CB371/ }))
     await user.click(screen.getByRole('button', { name: '저장' }))
 
     // then
     await waitFor(() =>
-      expect(useEventTagListCache.getState().defaultTagColors?.holiday).toBe('#22c55e'),
+      expect(useEventTagListCache.getState().defaultTagColors?.holiday).toBe('#3CB371'),
     )
     expect(onBack).toHaveBeenCalled()
   })
