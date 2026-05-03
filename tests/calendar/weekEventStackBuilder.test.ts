@@ -305,6 +305,49 @@ describe('buildWeekEventStack', () => {
     expect(result.rows[0][0].endCol).toBe(3)
   })
 
+  // #104: 같은 시작일/같은 길이의 두 이벤트 중 "종일(allday)" 이벤트가 시간 이벤트보다 위 row 에 와야 한다.
+  // iOS WeekEventStackBuilder.swift 정렬: length desc → eventRangesOnWeek.lowerBound asc.
+  // allday 의 lowerBound 는 그 날 00:00 이라 시간 이벤트(예: 10:00)보다 작아 자연스럽게 우선.
+  it('같은 날에 종일 이벤트와 시간 이벤트가 있으면 종일 이벤트가 위 row 에 배치된다 (#104)', () => {
+    // given: 화요일에 종일 이벤트 "피부과 예약"(이름이 알파벳순으로 뒤) + 시간 이벤트 "A standup"
+    const tueDateLocal = new Date(2026, 2, 3, 0, 0, 0, 0)
+    const offsetSec = -tueDateLocal.getTimezoneOffset() * 60
+    const tueStartTs = Math.floor(tueDateLocal.getTime() / 1000)
+    const allday: CalendarEvent = {
+      type: 'schedule',
+      event: {
+        uuid: 'allday',
+        name: '피부과 예약',
+        event_tag_id: null,
+        event_time: {
+          time_type: 'allday',
+          period_start: tueStartTs - offsetSec,
+          period_end: tueStartTs - offsetSec + 86400,
+          seconds_from_gmt: offsetSec,
+        },
+      } as Schedule,
+    }
+    const timed: CalendarEvent = {
+      type: 'schedule',
+      event: {
+        uuid: 'timed',
+        name: 'A standup',
+        event_tag_id: null,
+        event_time: { time_type: 'at', timestamp: tueStartTs + 10 * 3600 }, // 화요일 10시
+      } as Schedule,
+    }
+    const eventsByDate = new Map<string, CalendarEvent[]>([
+      ['2026-03-03', [allday, timed]],
+    ])
+
+    // when
+    const result = buildWeekEventStack(weekDays, eventsByDate)
+
+    // then: 첫 row 에 종일 이벤트가 들어가야 한다 (이름 정렬에 휘둘리지 않음)
+    expect(result.rows.length).toBe(2)
+    expect(result.rows[0].some(e => e.event.event.uuid === 'allday')).toBe(true)
+  })
+
   it('행 정렬: 커버하는 총 일수가 많은 행이 위에 온다', () => {
     // given:
     //   row1에 1일짜리 이벤트 2개 (총 2일 커버)
