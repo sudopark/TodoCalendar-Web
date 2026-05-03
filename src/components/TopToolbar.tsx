@@ -36,7 +36,19 @@ export default function TopToolbar({
   const navBtn = 'rounded-full p-2 text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors'
 
   return (
-    <div className="flex h-16 items-center bg-surface border-b border-line shrink-0">
+    <div className="relative flex h-16 items-center bg-surface border-b border-line shrink-0">
+      {/* #110 이벤트 조회 인디케이터 — toolbar 하단 경계선 위에 얇은 progress bar.
+          비차단 (pointer-events-none) 으로 다른 버튼/캘린더 인터랙션 보호. */}
+      {loading && (
+        <div
+          role="progressbar"
+          aria-busy="true"
+          aria-label={t('main.events_loading', '이벤트 조회중')}
+          className="pointer-events-none absolute left-0 right-0 bottom-0 h-0.5 overflow-hidden bg-brand/10"
+        >
+          <div className="h-full w-1/3 bg-brand animate-events-loading-bar" />
+        </div>
+      )}
       {/* 좌측: 햄버거 + 로고 (사이드바 너비와 동기화) */}
       <div
         className={cn(

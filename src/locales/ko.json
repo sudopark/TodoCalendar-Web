@@ -296,6 +296,7 @@
   "main.fab_label": "새 이벤트 추가",
   "main.toggle_sidebar": "사이드바 토글",
   "main.today": "오늘",
+  "main.events_loading": "이벤트 조회중",
   "main.quick_todo_placeholder": "할 일 추가...",
   "main.event_types": "이벤트 종류",
   "main.event_preview_edit": "수정",

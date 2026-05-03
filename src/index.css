@@ -46,6 +46,14 @@
   --text-section-label--line-height: 1.4;
   --text-info: 13px;            /* popover info row */
   --text-info--line-height: 1.5;
+
+  /* === 이벤트 조회 progress bar (#110) — toolbar 하단 indeterminate 인디케이터 === */
+  --animate-events-loading-bar: events-loading-bar 1.4s ease-in-out infinite;
+}
+
+@keyframes events-loading-bar {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
 }
 
 html {

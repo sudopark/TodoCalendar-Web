@@ -146,4 +146,40 @@ describe('TopToolbar', () => {
     // then
     expect(screen.getByLabelText(/새로고침|refresh/i)).toBeDisabled()
   })
+
+  // #110: 메인화면 진입 후 캘린더는 그려진 상태에서 이벤트 조회 완료까지 시간이 걸리는 동안
+  // 사용자에게 "조회중" 임을 시각적으로 표시한다. 인터랙션은 막지 않는다.
+  describe('#110 이벤트 조회 로딩 인디케이터', () => {
+    it('loading=true 이면 progressbar role 의 인디케이터가 표시된다', () => {
+      // given / when
+      renderToolbar({ loading: true })
+
+      // then: progressbar 가 렌더되어 보조 기술이 인지 가능
+      expect(screen.getByRole('progressbar', { name: /이벤트 조회|loading events/i })).toBeInTheDocument()
+    })
+
+    it('loading=false 이면 progressbar 인디케이터가 표시되지 않는다', () => {
+      // given / when
+      renderToolbar({ loading: false })
+
+      // then
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+    })
+
+    it('인디케이터는 사용자 인터랙션을 막지 않는다 (pointer-events-none 으로 click-through)', () => {
+      // given: loading 인 상태에서도 다른 버튼은 클릭 가능해야 함
+      const onGoToToday = vi.fn()
+      renderToolbar({ loading: true, onGoToToday })
+
+      // when: 다른 버튼 클릭
+      fireEvent.click(screen.getByRole('button', { name: /오늘/i }))
+
+      // then: 콜백이 정상 호출됨 (인디케이터 오버레이가 가로채지 않음)
+      expect(onGoToToday).toHaveBeenCalled()
+
+      // 인디케이터 자체에 pointer-events-none 클래스가 있어 click-through 보장
+      const indicator = screen.getByRole('progressbar', { name: /이벤트 조회|loading events/i })
+      expect(indicator.className).toContain('pointer-events-none')
+    })
+  })
 })
