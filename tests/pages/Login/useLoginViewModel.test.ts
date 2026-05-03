@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { createElement } from 'react'
 import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvider'
 import { useLoginViewModel } from '../../../src/pages/Login/useLoginViewModel'
 import { AuthError } from '../../../src/domain/errors/AuthError'
+import { useAuthStore } from '../../../src/stores/authStore'
 import type { Repositories } from '../../../src/composition/container'
 
 // ── Firebase / API 부수 초기화 차단 ─────────────────────────────────
@@ -52,6 +53,11 @@ function makeWrapper(repos: Repositories) {
 }
 
 describe('useLoginViewModel', () => {
+  // #109: authStore 의 signInError 신호를 viewmodel 이 관측하므로 각 테스트 전 초기화한다.
+  beforeEach(() => {
+    useAuthStore.setState({ account: null, loading: false, signInError: null })
+  })
+
   describe('초기 상태', () => {
     it('loading은 false, errorKey는 null이다', () => {
       const authRepo = createFakeAuthRepo()
@@ -225,6 +231,58 @@ describe('useLoginViewModel', () => {
       })
 
       expect(result.current.errorKey).toBeNull()
+    })
+  })
+
+  // #109: stuck-spinner 회귀 차단.
+  // Firebase 인증은 성공했으나 authStore 의 백엔드 account 등록이 실패한 경우 (signInError 신호),
+  // viewmodel 은 loading 을 해제하고 errorKey 를 설정해 사용자가 재시도할 수 있어야 한다.
+  describe('signInError 신호 (백엔드 account 등록 실패)', () => {
+    it('로그인 시도 중 signInError 신호가 set 되면 loading 이 해제되고 errorKey 가 설정된다', async () => {
+      const authRepo = createFakeAuthRepo()
+      const { result } = renderHook(
+        () => useLoginViewModel(),
+        { wrapper: makeWrapper(createFakeRepos(authRepo)) },
+      )
+
+      // when: signInWithGoogle 가 resolve 됐지만 LoginPage 는 unmount 되지 않은 상태
+      await act(async () => {
+        await result.current.signInWithGoogle()
+      })
+      expect(result.current.loading).toBe(true)
+
+      // 백엔드 account 등록 실패 신호 도착
+      act(() => {
+        useAuthStore.setState({ signInError: 'account_register_failed' })
+      })
+
+      // then: 사용자 재시도 가능 상태 — loading 풀리고 errorKey 노출
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+        expect(result.current.errorKey).toBe('error.unknown')
+      })
+    })
+
+    it('Apple 로그인 경로에서도 signInError 신호로 loading 이 해제된다', async () => {
+      const authRepo = createFakeAuthRepo()
+      const { result } = renderHook(
+        () => useLoginViewModel(),
+        { wrapper: makeWrapper(createFakeRepos(authRepo)) },
+      )
+
+      await act(async () => {
+        await result.current.signInWithApple()
+      })
+      expect(result.current.loading).toBe(true)
+
+      act(() => {
+        useAuthStore.setState({ signInError: 'account_register_failed' })
+      })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+        expect(result.current.errorKey).toBe('error.unknown')
+      })
     })
   })
 })
