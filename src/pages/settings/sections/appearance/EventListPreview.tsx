@@ -73,7 +73,7 @@ export function EventListPreview({ eventListFontSizeWeight, showHolidayInEventLi
             <span className="h-2 w-2 mt-1.5 rounded-full ring-2 ring-surface shrink-0" style={{ backgroundColor: e.color }} />
             <div className="min-w-0">
               <p className="font-semibold text-fg" style={{ fontSize: nameFontSize }}>{e.name}</p>
-              <p className="text-section-label text-fg-quaternary">{e.time}</p>
+              <p className="text-[11px] text-fg-quaternary">{e.time}</p>
             </div>
           </div>
         ))}
