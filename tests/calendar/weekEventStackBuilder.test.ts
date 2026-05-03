@@ -431,4 +431,224 @@ describe('buildWeekEventStack', () => {
     const firstRowUuids = result.rows[0].map(e => e.event.event.uuid)
     expect(firstRowUuids).toContain('l1')
   })
+
+  // 이슈 #104 회귀 — 사용자 화면 (5/3 시작 주):
+  //   같은 col(2-3) 을 차지하는 두 별개 이벤트(같은 이름의 AllDay 3d 인스턴스 A + Weekend trip)가
+  //   서로 다른 row 에 배치되어야 함. 둘이 같은 row 에 같은 col 로 들어가면 시각적으로 겹쳐 보임.
+  describe('이슈 #104 회귀 — 같은 col 을 점유하는 두 별개 이벤트', () => {
+    const may3 = new Date(2026, 4, 3) // 2026-05-03 Sunday
+    const may3Week = makeWeekDays(may3)
+
+    it('같은 col 을 점유하는 두 별개 multi-day 이벤트는 다른 row 에 배치되어야 한다', () => {
+      // given: 사용자 화면 데이터 재현
+      // - AllDay 3d B (yellow): 5/6-5/8 (cols 4-6, 3일)
+      // - AllDay 3d A (yellow): 5/4-5/5 (cols 2-3, 2일) — 다른 uuid
+      // - Weekend trip (orange): 5/4-5/5 (cols 2-3, 2일) — 다른 uuid
+      // - Daily 반복 turn 1..7: cols 1..7 각각 (single-day, 다른 turn)
+      const allDay3dB = makeScheduleEvent('allday-3d-B', '[TEST] AllDay 3d (yellow)')
+      const allDay3dA = makeScheduleEvent('allday-3d-A', '[TEST] AllDay 3d (yellow)')
+      const weekendTrip = makeScheduleEvent('weekend-trip', '[TEST] Weekend trip')
+      const dailyTurn = (turn: number): CalendarEvent => ({
+        type: 'schedule',
+        event: {
+          uuid: 'daily-meditation',
+          name: '[TEST] Daily meditation',
+          event_tag_id: null,
+          event_time: { time_type: 'at', timestamp: 0 },
+          show_turns: [turn],
+        } as Schedule,
+      })
+
+      const eventsByDate = new Map<string, CalendarEvent[]>([
+        ['2026-05-03', [dailyTurn(1)]],                        // col 1
+        ['2026-05-04', [allDay3dA, weekendTrip, dailyTurn(2)]], // col 2
+        ['2026-05-05', [allDay3dA, weekendTrip, dailyTurn(3)]], // col 3
+        ['2026-05-06', [allDay3dB, dailyTurn(4)]],             // col 4
+        ['2026-05-07', [allDay3dB, dailyTurn(5)]],             // col 5
+        ['2026-05-08', [allDay3dB, dailyTurn(6)]],             // col 6
+        ['2026-05-09', [dailyTurn(7)]],                        // col 7
+      ])
+
+      // when
+      const result = buildWeekEventStack(may3Week, eventsByDate)
+
+      // then: A 와 Weekend trip 이 서로 다른 row 에 배치되어야 함 (같은 col 2-3)
+      const rowOfA = result.rows.findIndex(row =>
+        row.some(e => e.event.event.uuid === 'allday-3d-A')
+      )
+      const rowOfWeekend = result.rows.findIndex(row =>
+        row.some(e => e.event.event.uuid === 'weekend-trip')
+      )
+      expect(rowOfA).toBeGreaterThanOrEqual(0)
+      expect(rowOfWeekend).toBeGreaterThanOrEqual(0)
+      expect(rowOfA).not.toBe(rowOfWeekend)
+    })
+
+    it('같은 row 안 chip 들의 col 은 disjoint 해야 한다 (invariant)', () => {
+      // given: 위와 동일 시나리오
+      const allDay3dB = makeScheduleEvent('allday-3d-B', '[TEST] AllDay 3d (yellow)')
+      const allDay3dA = makeScheduleEvent('allday-3d-A', '[TEST] AllDay 3d (yellow)')
+      const weekendTrip = makeScheduleEvent('weekend-trip', '[TEST] Weekend trip')
+      const dailyTurn = (turn: number): CalendarEvent => ({
+        type: 'schedule',
+        event: {
+          uuid: 'daily-meditation',
+          name: '[TEST] Daily meditation',
+          event_tag_id: null,
+          event_time: { time_type: 'at', timestamp: 0 },
+          show_turns: [turn],
+        } as Schedule,
+      })
+
+      const eventsByDate = new Map<string, CalendarEvent[]>([
+        ['2026-05-03', [dailyTurn(1)]],
+        ['2026-05-04', [allDay3dA, weekendTrip, dailyTurn(2)]],
+        ['2026-05-05', [allDay3dA, weekendTrip, dailyTurn(3)]],
+        ['2026-05-06', [allDay3dB, dailyTurn(4)]],
+        ['2026-05-07', [allDay3dB, dailyTurn(5)]],
+        ['2026-05-08', [allDay3dB, dailyTurn(6)]],
+        ['2026-05-09', [dailyTurn(7)]],
+      ])
+
+      // when
+      const result = buildWeekEventStack(may3Week, eventsByDate)
+
+      // then: 모든 row 에서 두 chip 의 [startCol, endCol] 이 서로 disjoint
+      for (const row of result.rows) {
+        for (let i = 0; i < row.length; i++) {
+          for (let j = i + 1; j < row.length; j++) {
+            const a = row[i]
+            const b = row[j]
+            const overlap = a.startCol <= b.endCol && b.startCol <= a.endCol
+            expect(
+              overlap,
+              `row 안 col 겹침 발견: ${a.event.event.name}[${a.startCol}-${a.endCol}] vs ${b.event.event.name}[${b.startCol}-${b.endCol}]`
+            ).toBe(false)
+          }
+        }
+      }
+    })
+
+    it('시즈너 풀 데이터 + 두 AllDay 3d 인스턴스 — invariant(같은 row col disjoint) 보장', () => {
+      // given: testDataSeeder 의 5/3 시작 주에 들어오는 모든 chip 재현
+      // schedules
+      const offSiteDay = makeScheduleEvent('off-site', '[TEST] Off-site day')           // 5/3
+      const designReview = makeScheduleEvent('design-review', '[TEST] Design review')    // 5/3
+      const weekendTrip = makeScheduleEvent('weekend-trip', '[TEST] Weekend trip')       // 5/4-5/5
+      const gymClass = makeScheduleEvent('gym-class', '[TEST] Gym class')                // 5/5
+      const bookClub = makeScheduleEvent('book-club', '[TEST] Book club')                // 5/6
+      const doctorVisit = makeScheduleEvent('doctor-visit', '[TEST] Doctor visit')       // 5/7
+      const weeklyStandup = makeScheduleEvent('weekly-standup', '[TEST] Weekly standup') // 5/4
+      // todos
+      const lunch = makeTodoEvent('lunch', '[TEST] Lunch with team')                     // 5/3
+      const dinner = makeTodoEvent('dinner', '[TEST] Dinner prep')                       // 5/3
+      // 매일 반복 — 매 turn 별 인스턴스 (schedule)
+      const dailyMed = (turn: number): CalendarEvent => ({
+        type: 'schedule',
+        event: {
+          uuid: 'daily-meditation',
+          name: '[TEST] Daily meditation',
+          event_tag_id: null,
+          event_time: { time_type: 'period', period_start: turn * 100, period_end: turn * 100 + 1800 },
+          show_turns: [turn],
+        } as Schedule,
+      })
+      // 매일 반복 — todo (Morning workout)
+      const morningWorkout = (turn: number): CalendarEvent => ({
+        type: 'todo',
+        event: {
+          uuid: 'morning-workout',
+          name: '[TEST] Morning workout',
+          is_current: false,
+          event_tag_id: null,
+          event_time: { time_type: 'at', timestamp: turn * 100 },
+          repeating_turn: turn,
+        } as Todo,
+      })
+      // 사용자 추가
+      const allDay3dA = makeScheduleEvent('allday-3d-A', '[TEST] AllDay 3d (yellow)')   // 5/4-5/5
+      const allDay3dB = makeScheduleEvent('allday-3d-B', '[TEST] AllDay 3d (yellow)')   // 5/6-5/8
+
+      const eventsByDate = new Map<string, CalendarEvent[]>([
+        ['2026-05-03', [offSiteDay, designReview, lunch, dinner, dailyMed(1), morningWorkout(1)]],
+        ['2026-05-04', [weekendTrip, weeklyStandup, allDay3dA, dailyMed(2), morningWorkout(2)]],
+        ['2026-05-05', [weekendTrip, gymClass, allDay3dA, dailyMed(3), morningWorkout(3)]],
+        ['2026-05-06', [bookClub, allDay3dB, dailyMed(4), morningWorkout(4)]],
+        ['2026-05-07', [doctorVisit, allDay3dB, dailyMed(5), morningWorkout(5)]],
+        ['2026-05-08', [allDay3dB, dailyMed(6), morningWorkout(6)]],
+        ['2026-05-09', [dailyMed(7), morningWorkout(7)]],
+      ])
+
+      // when
+      const result = buildWeekEventStack(may3Week, eventsByDate)
+
+      // then: 모든 row 안 chip 들의 col 은 disjoint
+      const violations: string[] = []
+      result.rows.forEach((row, ri) => {
+        for (let i = 0; i < row.length; i++) {
+          for (let j = i + 1; j < row.length; j++) {
+            const a = row[i]
+            const b = row[j]
+            const overlap = a.startCol <= b.endCol && b.startCol <= a.endCol
+            if (overlap) {
+              violations.push(
+                `row ${ri}: ${a.event.event.name}[${a.startCol}-${a.endCol}] ↔ ${b.event.event.name}[${b.startCol}-${b.endCol}]`
+              )
+            }
+          }
+        }
+      })
+      expect(violations, `invariant 위반:\n${violations.join('\n')}`).toEqual([])
+
+      // A 와 Weekend trip 은 같은 col 2-3 → 다른 row 에 배치되어야 함
+      const rowOfA = result.rows.findIndex(row =>
+        row.some(e => e.event.event.uuid === 'allday-3d-A')
+      )
+      const rowOfWeekend = result.rows.findIndex(row =>
+        row.some(e => e.event.event.uuid === 'weekend-trip')
+      )
+      expect(rowOfA).not.toBe(rowOfWeekend)
+    })
+
+    it('AllDay 3d B(4-6) 가 있는 row 에 좌측 빈 영역(cols 1-3) 의 chip 도 같이 묶여야 한다', () => {
+      // given: 위와 동일
+      const allDay3dB = makeScheduleEvent('allday-3d-B', '[TEST] AllDay 3d (yellow)')
+      const allDay3dA = makeScheduleEvent('allday-3d-A', '[TEST] AllDay 3d (yellow)')
+      const weekendTrip = makeScheduleEvent('weekend-trip', '[TEST] Weekend trip')
+      const dailyTurn = (turn: number): CalendarEvent => ({
+        type: 'schedule',
+        event: {
+          uuid: 'daily-meditation',
+          name: '[TEST] Daily meditation',
+          event_tag_id: null,
+          event_time: { time_type: 'at', timestamp: 0 },
+          show_turns: [turn],
+        } as Schedule,
+      })
+
+      const eventsByDate = new Map<string, CalendarEvent[]>([
+        ['2026-05-03', [dailyTurn(1)]],
+        ['2026-05-04', [allDay3dA, weekendTrip, dailyTurn(2)]],
+        ['2026-05-05', [allDay3dA, weekendTrip, dailyTurn(3)]],
+        ['2026-05-06', [allDay3dB, dailyTurn(4)]],
+        ['2026-05-07', [allDay3dB, dailyTurn(5)]],
+        ['2026-05-08', [allDay3dB, dailyTurn(6)]],
+        ['2026-05-09', [dailyTurn(7)]],
+      ])
+
+      // when
+      const result = buildWeekEventStack(may3Week, eventsByDate)
+
+      // then: B 가 있는 row 에 cols 2-3 chip(A 또는 Weekend)도 함께, B 만 단독으로 있으면 안 됨
+      const rowOfB = result.rows.find(row =>
+        row.some(e => e.event.event.uuid === 'allday-3d-B')
+      )
+      expect(rowOfB).toBeDefined()
+      const otherInBRow = rowOfB!.filter(e => e.event.event.uuid !== 'allday-3d-B')
+      expect(
+        otherInBRow.length,
+        `B(4-6) row 에 좌측(2-3) 또는 우측(7) chip 이 함께 들어가야 정상. 실제: ${rowOfB!.map(e => `${e.event.event.name}[${e.startCol}-${e.endCol}]`).join(', ')}`
+      ).toBeGreaterThan(0)
+    })
+  })
 })
