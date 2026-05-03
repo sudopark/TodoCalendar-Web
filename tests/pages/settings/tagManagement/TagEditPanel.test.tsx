@@ -284,7 +284,7 @@ describe('TagEditPanel — edit(default) 모드', () => {
     renderPanel({ kind: 'edit', row: defaultRow }, onBack, repos)
 
     // when: 두 번째 색상 팔레트 버튼(#22c55e) 선택 후 저장
-    await user.click(screen.getByTitle('#22c55e'))
+    await user.click(screen.getByRole('button', { name: /(?:색상 선택|Select color):\s*#22c55e/ }))
     await user.click(screen.getByRole('button', { name: '저장' }))
 
     // then: 캐시의 default 색상이 갱신됨
@@ -327,7 +327,7 @@ describe('TagEditPanel — edit(holiday) 모드', () => {
     renderPanel({ kind: 'edit', row: holidayRow }, onBack, repos)
 
     // when
-    await user.click(screen.getByTitle('#22c55e'))
+    await user.click(screen.getByRole('button', { name: /(?:색상 선택|Select color):\s*#22c55e/ }))
     await user.click(screen.getByRole('button', { name: '저장' }))
 
     // then

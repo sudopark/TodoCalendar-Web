@@ -42,7 +42,7 @@ React 19 + TypeScript + Vite + Tailwind + Zustand. 구조는 `ls src/`로 확인
 
 ### 라우트 분할
 
-`EventDetailPage`, `TodoFormPage`, `ScheduleFormPage`, `TagManagementPage`, `DoneTodosPage`, `SettingsPage`는 `React.lazy`로 동적 로딩. `LoginPage`와 `MainPage`는 초기 번들에 포함.
+`EventDetailPage`, `TodoFormPage`, `ScheduleFormPage`, `DoneTodosPage`, `SettingsPage`는 `React.lazy`로 동적 로딩. `LoginPage`와 `MainPage`는 초기 번들에 포함.
 
 ## Git Workflow
 
