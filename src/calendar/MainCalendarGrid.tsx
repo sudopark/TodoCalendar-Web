@@ -59,6 +59,10 @@ function EventBar({ ev, timeType, showEventNames, fontSizeWeight, onEventClick }
       data-testid="event-bar"
       style={{
         gridColumn: `${ev.startCol} / ${ev.endCol + 1}`,
+        // #104: CSS Grid auto-flow 가 DOM 순서로 cursor 진행하기 때문에 fillRow push 순서
+        // (best → left → right 재귀) 가 col 오름차순이 아니면 col disjoint chip 도 다른 grid row 로 자동 강등됨.
+        // 같은 row 컨테이너의 모든 chip 을 grid row 1 에 강제 배치 — 알고리즘이 col disjoint 보장하므로 안전.
+        gridRow: 1,
         // #106: 옛 alpha 22(12%) → 44(27%) 도 다크/라이트 모두 너무 옅어 chip 영역이 식별 안 됨.
         // 88(53%) 로 키워 텍스트 가독성을 유지하면서 chip span 이 명확히 보이도록.
         backgroundColor: isAtTime ? 'transparent' : `${color}88`,
