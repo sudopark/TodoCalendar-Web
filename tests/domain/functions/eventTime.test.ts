@@ -38,6 +38,15 @@ describe('eventTimeToEndDate', () => {
     const date = eventTimeToEndDate(et)
     expect(date.getTime()).toBe(1700100000 * 1000)
   })
+
+  // iOS EventTime.allDay(Range, secondsFromGMT) 는 half-open [lower, upper) 의미. upper 는 종료 다음 날 00:00.
+  // 캘린더 표시에서 endDay 비교에 직접 쓰이므로 1일(86400s) 차감해 "마지막 날의 시각" 으로 변환되어야
+  // assignInstance 의 while(cur <= endDay) 가 종료일까지만 포함하고 다음 날을 +1일 더 표시하지 않는다.
+  it('"allday" 타입이면 (period_end + offset - 86400) 의 Date 즉 마지막 종일 일자의 시각을 반환한다', () => {
+    const et: EventTime = { time_type: 'allday', period_start: 1700000000, period_end: 1700086400, seconds_from_gmt: 32400 }
+    const date = eventTimeToEndDate(et)
+    expect(date.getTime()).toBe((1700086400 + 32400 - 86400) * 1000)
+  })
 })
 
 describe('dateToTimestamp', () => {
@@ -257,6 +266,69 @@ describe('groupEventsByDate', () => {
     expect((e1.event as Schedule).show_turns).toEqual([1])
     expect((e2.event as Schedule).show_turns).toEqual([2])
     expect((e3.event as Schedule).show_turns).toEqual([3])
+  })
+
+  // #103: 종일 이벤트의 period_end 는 종료 다음 날 00:00 (half-open exclusive bound) 이라
+  // 가공 없이 그대로 day enumerate 하면 종료 다음 날에도 이벤트가 표시되어 +1일 버그가 났다.
+  it('1일짜리 종일(allday) 이벤트는 시작일 하루에만 그룹핑되고 다음 날에는 표시되지 않는다 (#103)', () => {
+    // given: 사용자 로컬 tz 기준 어느 하루에 해당하는 종일 이벤트
+    // local midnight 기준으로 정확히 24시간 = 1일
+    const dayStart = new Date(2024, 5, 15, 0, 0, 0, 0) // 로컬 06-15 00:00
+    const dayEnd = new Date(2024, 5, 16, 0, 0, 0, 0)   // 로컬 06-16 00:00 (exclusive)
+    const offset = -dayStart.getTimezoneOffset() * 60   // 환경 tz의 secondsFromGMT
+    const lower = dateToTimestamp(new Date(2024, 5, 1))
+    const upper = dateToTimestamp(new Date(2024, 5, 30, 23, 59, 59))
+
+    const schedules: Schedule[] = [
+      {
+        uuid: 's-allday-1d',
+        name: 'AllDay 1일',
+        event_time: {
+          time_type: 'allday',
+          period_start: dateToTimestamp(dayStart) - offset, // tz의 그 날 00:00 을 GMT seconds 로
+          period_end: dateToTimestamp(dayEnd) - offset,
+          seconds_from_gmt: offset,
+        },
+      },
+    ]
+
+    // when
+    const result = groupEventsByDate([], schedules, lower, upper)
+
+    // then: 06-15 만 들어가고 06-16 은 비어 있다
+    expect(result.get('2024-06-15')).toHaveLength(1)
+    expect(result.get('2024-06-16')).toBeUndefined()
+  })
+
+  it('3일짜리 종일(allday) 이벤트는 정확히 3일에만 그룹핑된다 (다음 날 +1일 누락)', () => {
+    // given: 06-15 ~ 06-17 종일 (3일)
+    const dayStart = new Date(2024, 5, 15, 0, 0, 0, 0)
+    const dayEndExclusive = new Date(2024, 5, 18, 0, 0, 0, 0) // 06-18 00:00 (exclusive)
+    const offset = -dayStart.getTimezoneOffset() * 60
+    const lower = dateToTimestamp(new Date(2024, 5, 1))
+    const upper = dateToTimestamp(new Date(2024, 5, 30, 23, 59, 59))
+
+    const schedules: Schedule[] = [
+      {
+        uuid: 's-allday-3d',
+        name: 'AllDay 3일',
+        event_time: {
+          time_type: 'allday',
+          period_start: dateToTimestamp(dayStart) - offset,
+          period_end: dateToTimestamp(dayEndExclusive) - offset,
+          seconds_from_gmt: offset,
+        },
+      },
+    ]
+
+    // when
+    const result = groupEventsByDate([], schedules, lower, upper)
+
+    // then
+    expect(result.get('2024-06-15')).toHaveLength(1)
+    expect(result.get('2024-06-16')).toHaveLength(1)
+    expect(result.get('2024-06-17')).toHaveLength(1)
+    expect(result.get('2024-06-18')).toBeUndefined()
   })
 
   it('exclude_repeatings에 있는 turn은 건너뛴다', () => {
