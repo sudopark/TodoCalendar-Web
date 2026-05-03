@@ -14,18 +14,28 @@ interface UncompletedTodosState {
   reset: () => void
 }
 
+// 동시 fetch 호출 (AuthGuard + 페이지 ViewModel + dev StrictMode 이중 effect 등) 시
+// 같은 promise 를 공유해 API 호출 1회로 묶는다 (#99).
+let inFlight: Promise<void> | null = null
+
 export const useUncompletedTodosCache = create<UncompletedTodosState>((set, get) => ({
   todos: [],
 
   fetch: async () => {
-    try {
-      const refTime = Math.floor(Date.now() / 1000)
-      const todos = await todoApi.getUncompletedTodos(refTime)
-      set({ todos })
-    } catch (e) {
-      console.warn('미완료 Todo 로드 실패:', e)
-      throw e  // let caller decide how to handle
-    }
+    if (inFlight) return inFlight
+    inFlight = (async () => {
+      try {
+        const refTime = Math.floor(Date.now() / 1000)
+        const todos = await todoApi.getUncompletedTodos(refTime)
+        set({ todos })
+      } catch (e) {
+        console.warn('미완료 Todo 로드 실패:', e)
+        throw e
+      } finally {
+        inFlight = null
+      }
+    })()
+    return inFlight
   },
 
   removeTodo: (id: string) => {

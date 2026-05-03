@@ -16,17 +16,27 @@ interface CurrentTodosState {
   reset: () => void
 }
 
+// 동시 fetch 호출 (AuthGuard + 페이지 ViewModel + dev StrictMode 이중 effect 등) 시
+// 같은 promise 를 공유해 API 호출 1회로 묶는다 (#99).
+let inFlight: Promise<void> | null = null
+
 export const useCurrentTodosCache = create<CurrentTodosState>((set) => ({
   todos: [],
 
   fetch: async () => {
-    try {
-      const todos = await todoApi.getCurrentTodos()
-      set({ todos })
-    } catch (e) {
-      console.warn('Current todo 로드 실패:', e)
-      throw e
-    }
+    if (inFlight) return inFlight
+    inFlight = (async () => {
+      try {
+        const todos = await todoApi.getCurrentTodos()
+        set({ todos })
+      } catch (e) {
+        console.warn('Current todo 로드 실패:', e)
+        throw e
+      } finally {
+        inFlight = null
+      }
+    })()
+    return inFlight
   },
 
   addTodo: (todo: Todo) => set(s => ({ todos: [...s.todos, todo] })),
