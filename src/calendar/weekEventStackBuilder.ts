@@ -131,6 +131,35 @@ export function buildWeekEventStack(
 }
 
 /**
+ * visibleRowCount 를 초과해 잘려난 hidden row 들의 이벤트를 day(col) 별로 집계한다.
+ * 캘린더 셀마다 그 날에 가려진 이벤트 수를 "+N" 라벨로 표시할 때 사용 (#102).
+ *
+ * @param stack buildWeekEventStack 결과
+ * @param visibleRowCount 이 행 수까지만 표시되고, 그 이상의 행은 hidden 으로 간주
+ * @param weekDayCount 주의 일수 (보통 7)
+ * @returns col 오름차순으로 hidden 카운트가 0보다 큰 항목들
+ */
+export function computeMoreEventCounts(
+  stack: WeekEventStack,
+  visibleRowCount: number,
+  weekDayCount: number,
+): { col: number; count: number }[] {
+  if (visibleRowCount >= stack.rows.length) return []
+  const hiddenRows = stack.rows.slice(visibleRowCount)
+  const counts = new Array(weekDayCount).fill(0) as number[]
+  for (const row of hiddenRows) {
+    for (const ev of row) {
+      for (let c = ev.startCol; c <= ev.endCol; c++) {
+        counts[c - 1] += 1
+      }
+    }
+  }
+  return counts
+    .map((cnt, i) => ({ col: i + 1, count: cnt }))
+    .filter(x => x.count > 0)
+}
+
+/**
  * 재귀적으로 행에 이벤트를 채운다.
  * rangeStart ~ rangeEnd 범위 내에서 가장 긴 이벤트를 배치하고,
  * 좌/우 빈 공간에 재귀적으로 더 채운다.

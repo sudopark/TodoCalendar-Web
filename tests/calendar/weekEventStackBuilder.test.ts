@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildWeekEventStack } from '../../src/calendar/weekEventStackBuilder'
+import { buildWeekEventStack, computeMoreEventCounts } from '../../src/calendar/weekEventStackBuilder'
 import type { CalendarDay } from '../../src/calendar/calendarUtils'
 import type { CalendarEvent } from '../../src/domain/functions/eventTime'
 import type { Todo } from '../../src/models/Todo'
@@ -346,6 +346,66 @@ describe('buildWeekEventStack', () => {
     // then: 첫 row 에 종일 이벤트가 들어가야 한다 (이름 정렬에 휘둘리지 않음)
     expect(result.rows.length).toBe(2)
     expect(result.rows[0].some(e => e.event.event.uuid === 'allday')).toBe(true)
+  })
+
+  // #102: visibleRowCount 를 초과한 hidden row 들의 이벤트를 day(col) 별로 집계해
+  // 각 day cell 위치에 "+N" 라벨을 표시하기 위한 헬퍼.
+  describe('computeMoreEventCounts (#102)', () => {
+    it('visible row count 가 stack.rows.length 이상이면 빈 배열을 반환한다', () => {
+      // given: 1행 짜리 stack
+      const ev = makeTodoEvent('t1', 'Solo')
+      const eventsByDate = new Map<string, CalendarEvent[]>([['2026-03-03', [ev]]])
+      const stack = buildWeekEventStack(weekDays, eventsByDate)
+
+      // when / then
+      expect(computeMoreEventCounts(stack, 5, 7)).toEqual([])
+    })
+
+    it('hidden row 안 이벤트가 차지하는 각 col 에 +1 씩 카운팅된다', () => {
+      // given: 4행이 만들어지는 stack (모두 같은 화요일 col=3 에 4개 이벤트 → 4행)
+      const ev1 = makeTodoEvent('t1', 'A')
+      const ev2 = makeTodoEvent('t2', 'B')
+      const ev3 = makeTodoEvent('t3', 'C')
+      const ev4 = makeTodoEvent('t4', 'D')
+      const eventsByDate = new Map<string, CalendarEvent[]>([
+        ['2026-03-03', [ev1, ev2, ev3, ev4]], // Tue = col 3
+      ])
+      const stack = buildWeekEventStack(weekDays, eventsByDate)
+      expect(stack.rows.length).toBe(4)
+
+      // when: visible 2행만 → 2행 hidden, 각각 col 3 의 단일 이벤트
+      const counts = computeMoreEventCounts(stack, 2, 7)
+
+      // then: col 3 에 count 2
+      expect(counts).toEqual([{ col: 3, count: 2 }])
+    })
+
+    it('multi-day 이벤트가 hidden 되면 걸친 모든 col 에 +1 씩 더해진다', () => {
+      // given: 한 행에 multi-day(s1: col 2~5) 1개 — 다른 짧은 이벤트들로 이 multi-day 가 뒤로 밀려 hidden
+      // 짧은 이벤트들이 stack 위에 오게 만들기 위해 단순히 day 별 다수 이벤트로 row 늘림
+      const longEv = makeScheduleEvent('long', 'Multi-day')
+      const shortA = makeTodoEvent('a', 'a')
+      const shortB = makeTodoEvent('b', 'b')
+      const shortC = makeTodoEvent('c', 'c')
+      const eventsByDate = new Map<string, CalendarEvent[]>([
+        ['2026-03-02', [longEv, shortA]],
+        ['2026-03-03', [longEv, shortB]],
+        ['2026-03-04', [longEv, shortC]],
+        ['2026-03-05', [longEv]],
+      ])
+      const stack = buildWeekEventStack(weekDays, eventsByDate)
+      // longEv 가 가장 긴 4-day span 이라 첫 row. 그러므로 visible=1 이면 short 들이 hidden.
+      // hidden row 안의 1-day short 이벤트들이 각 col 에 표시되어야 한다.
+
+      // when: 첫 row 만 visible
+      const counts = computeMoreEventCounts(stack, 1, 7)
+
+      // then: hidden row 들의 short 이벤트가 각 col 에 1씩 (단일 이벤트들은 startCol == endCol)
+      const byCol = Object.fromEntries(counts.map(c => [c.col, c.count]))
+      expect(byCol[2]).toBe(1) // shortA
+      expect(byCol[3]).toBe(1) // shortB
+      expect(byCol[4]).toBe(1) // shortC
+    })
   })
 
   it('행 정렬: 커버하는 총 일수가 많은 행이 위에 온다', () => {
