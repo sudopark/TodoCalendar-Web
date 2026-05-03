@@ -19,7 +19,9 @@ export function eventTimeToEndDate(eventTime: EventTime): Date {
     case 'period':
       return new Date(eventTime.period_end * 1000)
     case 'allday':
-      return new Date((eventTime.period_end + eventTime.seconds_from_gmt) * 1000)
+      // iOS EventTime.allDay 의 Range 는 half-open [lower, upper) — period_end 는 종료 다음 날 00:00 이다.
+      // 캘린더 day enumerate 가 종료 다음 날까지 포함하지 않도록 1일(86400s) 차감해 마지막 종일 일자의 시각으로 변환.
+      return new Date((eventTime.period_end + eventTime.seconds_from_gmt - 86400) * 1000)
   }
 }
 
