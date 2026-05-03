@@ -38,6 +38,11 @@
   --color-danger: #e11d48;
   --color-warning: #f59e0b;
   --color-success: #16a34a;
+
+  /* === 폰트 사이즈 (이슈 #92) === */
+  --font-size-meta: 10px;            /* badge / time label / overflow count */
+  --font-size-section-label: 11px;   /* uppercase tracking-widest 섹션 라벨 */
+  --font-size-info: 13px;            /* popover info row */
 }
 
 html {
