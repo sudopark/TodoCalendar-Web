@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TagManagementPanel } from '../../../../src/pages/settings/tagManagement/TagManagementPanel'
 import { useEventTagListCache } from '../../../../src/repositories/caches/eventTagListCache'
@@ -79,7 +79,9 @@ describe('TagManagementPanel', () => {
     await waitFor(() => expect(screen.getByText('Work')).toBeInTheDocument())
 
     const list = screen.getByTestId('tag-row-list')
-    const tagNames = Array.from(list.querySelectorAll('span')).map(el => el.textContent)
+    const tagNames = within(list)
+      .getAllByText(/^(기본|공휴일|Work|Personal)$/)
+      .map(el => el.textContent)
     expect(tagNames).toEqual(['기본', '공휴일', 'Work', 'Personal'])
   })
 
