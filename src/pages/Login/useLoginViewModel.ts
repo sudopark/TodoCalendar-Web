@@ -19,6 +19,8 @@ export function useLoginViewModel(): LoginViewModel {
   const [loading, setLoading] = useState(false)
   const [errorKey, setErrorKey] = useState<string | null>(null)
 
+  // #109: 성공 시 loading 을 풀지 않는다 — authStore.account 가 set 되고 LoginPage 가 Navigate 로
+  // unmount 될 때까지 전환 로딩 화면을 유지하기 위함. 실패/취소 시에만 loading 을 풀어 다시 시도 가능.
   const signInWithGoogle = useCallback(async () => {
     setLoading(true)
     setErrorKey(null)
@@ -26,21 +28,14 @@ export function useLoginViewModel(): LoginViewModel {
       await authRepo.signInWithGoogle()
     } catch (e) {
       if (e instanceof AuthError) {
-        if (e.reason.type === 'cancelled') {
-          // 사용자가 팝업을 닫은 경우 에러를 표시하지 않는다
-        } else {
+        if (e.reason.type !== 'cancelled') {
           setErrorKey(`error.auth.${e.reason.type}`)
         }
       } else if (
-        e instanceof Error &&
-        'code' in e &&
-        (e as { code: string }).code === 'auth/popup-closed-by-user'
+        !(e instanceof Error && 'code' in e && (e as { code: string }).code === 'auth/popup-closed-by-user')
       ) {
-        // Firebase 원시 에러 — 팝업 닫힘, 에러 표시 안 함
-      } else {
         setErrorKey('error.unknown')
       }
-    } finally {
       setLoading(false)
     }
   }, [authRepo])
@@ -52,21 +47,14 @@ export function useLoginViewModel(): LoginViewModel {
       await authRepo.signInWithApple()
     } catch (e) {
       if (e instanceof AuthError) {
-        if (e.reason.type === 'cancelled') {
-          // 사용자가 팝업을 닫은 경우 에러를 표시하지 않는다
-        } else {
+        if (e.reason.type !== 'cancelled') {
           setErrorKey(`error.auth.${e.reason.type}`)
         }
       } else if (
-        e instanceof Error &&
-        'code' in e &&
-        (e as { code: string }).code === 'auth/popup-closed-by-user'
+        !(e instanceof Error && 'code' in e && (e as { code: string }).code === 'auth/popup-closed-by-user')
       ) {
-        // Firebase 원시 에러 — 팝업 닫힘, 에러 표시 안 함
-      } else {
         setErrorKey('error.unknown')
       }
-    } finally {
       setLoading(false)
     }
   }, [authRepo])

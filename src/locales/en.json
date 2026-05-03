@@ -125,6 +125,7 @@
   "login.google": "Sign in with Google",
   "login.apple": "Sign in with Apple",
   "login.error": "Sign in failed. Please try again.",
+  "login.signing_in": "Signing in...",
   "common.menu": "Menu",
   "common.confirm": "OK",
   "event.no_events": "No events",
