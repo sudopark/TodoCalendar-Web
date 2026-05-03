@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { CalendarDay } from './calendarUtils'
 import type { CalendarEvent } from '../domain/functions/eventTime'
 import { formatDateKey } from '../domain/functions/eventTime'
-import { buildWeekEventStack, type EventOnWeekRow } from './weekEventStackBuilder'
+import { buildWeekEventStack, computeMoreEventCounts, type EventOnWeekRow } from './weekEventStackBuilder'
 import { useUiStore } from '../stores/uiStore'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useHolidayCache } from '../repositories/caches/holidayCache'
@@ -200,9 +200,10 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
           const stack = weekStacks[wi] ?? { rows: [] }
           const stackRowsLen = stack.rows.length
           const visibleRows = isFull ? stack.rows : stack.rows.slice(0, maxVisibleRows)
-          const hiddenCount = !isFull && stack.rows.length > maxVisibleRows
-            ? stack.rows.slice(maxVisibleRows).reduce((sum, row) => sum + row.length, 0)
-            : 0
+          // hidden 이벤트는 row 단위 합계가 아니라 day(col) 별로 집계해 각 셀 위치에 +N 표시 (#102)
+          const moreCounts = !isFull
+            ? computeMoreEventCounts(stack, maxVisibleRows, weekDays.length)
+            : []
           const isLastWeek = wi === totalWeeks - 1
 
           return (
@@ -304,11 +305,19 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                     </div>
                   ))}
 
-                  {hiddenCount > 0 && (
+                  {moreCounts.length > 0 && (
                     <div className="grid grid-cols-7">
-                      <div className="col-span-7 text-meta font-medium text-fg-tertiary px-2 pointer-events-auto">
-                        +{hiddenCount} more
-                      </div>
+                      {moreCounts.map(({ col, count }) => (
+                        <div
+                          key={col}
+                          className="text-meta font-medium text-fg-tertiary px-1.5 pointer-events-auto"
+                          style={{ gridColumn: `${col} / ${col + 1}` }}
+                          data-testid="more-events"
+                          data-day-col={col}
+                        >
+                          +{count}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
