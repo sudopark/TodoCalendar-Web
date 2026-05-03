@@ -37,10 +37,10 @@ export function LoginPage() {
             className="flex flex-col items-center justify-center gap-3 py-6"
           >
             <div
-              data-testid="login-loading-spinner"
+              aria-hidden="true"
               className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin"
             />
-            <span className="text-sm text-fg-tertiary">{t('login.signing_in', '로그인 중...')}</span>
+            <span className="text-sm text-fg-tertiary">{t('login.signing_in')}</span>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
