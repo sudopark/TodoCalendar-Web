@@ -178,5 +178,6 @@ describe('DoneTodoDetailPopover', () => {
 
     // then: BottomSheet 백드롭이 보이고, 데스크톱 floating 카드는 같이 뜨지 않는다
     expect(screen.getByTestId('bottom-sheet-backdrop')).toBeInTheDocument()
+    expect(screen.queryByTestId('done-todo-detail-popover')).not.toBeInTheDocument()
   })
 })
