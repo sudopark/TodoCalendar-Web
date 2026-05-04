@@ -11,6 +11,7 @@ import { DayEventList } from './DayEventList'
 import { QuickTodoInput } from './QuickTodoInput'
 import { CreateEventButton } from './CreateEventButton'
 import { ArchivePanel } from './ArchivePanel'
+import { useIsMobile } from '../hooks/useIsMobile'
 import type { RightPanelMode } from '../stores/uiStore'
 
 function formatLunarDate(date: Date, locale: string): string | null {
@@ -69,6 +70,7 @@ export function RightEventPanel({
   onDoneTodoClick,
 }: RightEventPanelProps) {
   const { t, i18n } = useTranslation()
+  const isMobile = useIsMobile()
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
 
   if (rightPanelMode === 'archive') {
@@ -95,15 +97,17 @@ export function RightEventPanel({
         >
           <CheckCircle2 className="h-4 w-4" />
         </button>
-        <button
-          onClick={onToggleRightPanel}
-          aria-label={t('common.close', '패널 닫기')}
-          className="p-1.5 rounded-full hover:bg-surface-sunken transition-colors text-fg-quaternary hover:text-fg-secondary"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
+        {!isMobile && (
+          <button
+            onClick={onToggleRightPanel}
+            aria-label={t('common.close', '패널 닫기')}
+            className="p-1.5 rounded-full hover:bg-surface-sunken transition-colors text-fg-quaternary hover:text-fg-secondary"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* 스크롤 영역 */}
@@ -163,7 +167,7 @@ export function RightEventPanel({
       </div>
 
       {/* 하단 고정 */}
-      <div className="shrink-0 border-t border-line p-4 flex flex-col gap-2">
+      <div className="shrink-0 border-t border-line p-4 pb-[max(theme(spacing.4),env(safe-area-inset-bottom))] flex flex-col gap-2">
         <QuickTodoInput />
         <CreateEventButton />
       </div>

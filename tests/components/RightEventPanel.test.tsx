@@ -21,6 +21,11 @@ vi.mock('../../src/firebase', () => ({
   getAuthInstance: vi.fn(() => ({})),
   db: {},
 }))
+vi.mock('../../src/hooks/useIsMobile', () => ({
+  useIsMobile: vi.fn(() => false),
+}))
+
+import { useIsMobile } from '../../src/hooks/useIsMobile'
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -60,6 +65,7 @@ function renderComponent(props: Partial<RightEventPanelProps> = {}) {
 describe('RightEventPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(useIsMobile).mockReturnValue(false)
   })
 
   it('QuickTodoInput과 CreateEventButton이 항상 표시된다', () => {
@@ -129,5 +135,17 @@ describe('RightEventPanel', () => {
     // then: 날짜 섹션 없이도 currentTodo가 보임
     expect(screen.getByText('현재 할 일')).toBeInTheDocument()
     expect(screen.queryByText('이벤트가 없습니다')).not.toBeInTheDocument()
+  })
+
+  it('데스크톱에서는 패널 닫기 버튼이 표시된다', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false)
+    renderComponent()
+    expect(screen.getByRole('button', { name: /닫기|패널 닫기/ })).toBeInTheDocument()
+  })
+
+  it('모바일에서는 패널 닫기 버튼이 표시되지 않는다', () => {
+    vi.mocked(useIsMobile).mockReturnValue(true)
+    renderComponent()
+    expect(screen.queryByRole('button', { name: /닫기|패널 닫기/ })).not.toBeInTheDocument()
   })
 })
