@@ -84,6 +84,7 @@ export default function LeftSidebar(props: LeftSidebarProps) {
   const content = <LeftSidebarContent {...props} />
 
   if (isMobile) {
+    // Drawer는 open=true 일 때만 렌더되므로 toggle = close로 동치 — onClose에 onToggleSidebar 그대로 위임
     return (
       <Drawer open={props.sidebarOpen} onClose={props.onToggleSidebar}>
         <div className="flex h-full flex-col bg-surface-elevated px-3 pt-4 pb-4 overflow-y-auto">

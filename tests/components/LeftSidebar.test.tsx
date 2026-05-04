@@ -44,6 +44,8 @@ function renderSidebar(props?: Partial<LeftSidebarProps>) {
 describe('LeftSidebar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // 모바일 케이스에서 mockReturnValue(true) 한 게 다음 테스트로 새지 않도록 매번 false로 초기화
+    vi.mocked(useIsMobile).mockReturnValue(false)
     useEventFormStore.getState().closeForm()
   })
 
