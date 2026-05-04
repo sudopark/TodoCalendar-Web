@@ -111,6 +111,7 @@ export function MainPage() {
             onSetSelectedDate={vm.setSelectedDate}
             onSetSidebarMonth={vm.setSidebarMonth}
             onOpenEventForm={vm.openEventForm}
+            onToggleSidebar={vm.toggleSidebar}
           />
           <MainCalendar
             currentMonth={vm.currentMonth}

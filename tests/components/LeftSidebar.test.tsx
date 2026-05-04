@@ -14,6 +14,11 @@ vi.mock('../../src/api/holidayApi', () => ({
   holidayApi: { getHolidays: async () => ({ items: [] }) },
 }))
 
+vi.mock('../../src/hooks/useIsMobile', () => ({
+  useIsMobile: vi.fn(() => false),
+}))
+import { useIsMobile } from '../../src/hooks/useIsMobile'
+
 function defaultProps(overrides: Partial<LeftSidebarProps> = {}): LeftSidebarProps {
   return {
     sidebarOpen: true,
@@ -23,6 +28,7 @@ function defaultProps(overrides: Partial<LeftSidebarProps> = {}): LeftSidebarPro
     onSetSelectedDate: vi.fn(),
     onSetSidebarMonth: vi.fn(),
     onOpenEventForm: vi.fn(),
+    onToggleSidebar: vi.fn(),
     ...overrides,
   }
 }
@@ -164,5 +170,40 @@ describe('LeftSidebar', () => {
     // then: eventFormStore가 열리고 eventType이 todo
     expect(useEventFormStore.getState().isOpen).toBe(true)
     expect(useEventFormStore.getState().eventType).toBe('todo')
+  })
+
+  it('모바일이고 sidebarOpen=false 이면 Drawer가 렌더되지 않는다', () => {
+    // given
+    vi.mocked(useIsMobile).mockReturnValue(true)
+
+    // when
+    renderSidebar({ sidebarOpen: false })
+
+    // then
+    expect(screen.queryByTestId('drawer-backdrop')).not.toBeInTheDocument()
+  })
+
+  it('모바일이고 sidebarOpen=true 이면 Drawer 백드롭이 렌더된다', () => {
+    // given
+    vi.mocked(useIsMobile).mockReturnValue(true)
+
+    // when
+    renderSidebar({ sidebarOpen: true })
+
+    // then
+    expect(screen.getByTestId('drawer-backdrop')).toBeInTheDocument()
+  })
+
+  it('모바일이고 Drawer 백드롭을 클릭하면 onToggleSidebar가 호출된다', async () => {
+    // given
+    vi.mocked(useIsMobile).mockReturnValue(true)
+    const onToggle = vi.fn()
+    renderSidebar({ sidebarOpen: true, onToggleSidebar: onToggle })
+
+    // when
+    await userEvent.click(screen.getByTestId('drawer-backdrop'))
+
+    // then
+    expect(onToggle).toHaveBeenCalled()
   })
 })
