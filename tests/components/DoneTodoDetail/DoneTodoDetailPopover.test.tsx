@@ -5,6 +5,11 @@ import { DoneTodoDetailPopover } from '../../../src/components/DoneTodoDetail/Do
 import { useDoneTodosCache } from '../../../src/repositories/caches/doneTodosCache'
 import { useCurrentTodosCache } from '../../../src/repositories/caches/currentTodosCache'
 import type { DoneTodo } from '../../../src/models'
+import { useIsMobile } from '../../../src/hooks/useIsMobile'
+
+vi.mock('../../../src/hooks/useIsMobile', () => ({
+  useIsMobile: vi.fn(() => false),
+}))
 
 const mockGetDoneTodoDetail = vi.fn()
 const mockRevertDoneTodo = vi.fn(async () => ({
@@ -41,6 +46,7 @@ const sample: DoneTodo = {
 }
 
 beforeEach(() => {
+  vi.mocked(useIsMobile).mockReturnValue(false)
   mockGetDoneTodoDetail.mockReset().mockResolvedValue(null)
   mockRevertDoneTodo.mockReset().mockResolvedValue({
     todo: { uuid: 'todo-1', name: '완료된 일', is_current: true },
@@ -150,5 +156,27 @@ describe('DoneTodoDetailPopover', () => {
       expect(useDoneTodosCache.getState().items.find(i => i.uuid === sample.uuid)).toBeUndefined()
     })
     expect(onDeleted).toHaveBeenCalled()
+  })
+
+  it('데스크톱이면 floating 카드로 렌더한다', () => {
+    // given: 데스크톱 환경
+    vi.mocked(useIsMobile).mockReturnValue(false)
+
+    // when: 팝오버 렌더
+    renderPopover()
+
+    // then: BottomSheet 백드롭은 없다
+    expect(screen.queryByTestId('bottom-sheet-backdrop')).not.toBeInTheDocument()
+  })
+
+  it('모바일이면 BottomSheet 백드롭이 렌더된다', () => {
+    // given: 모바일 환경
+    vi.mocked(useIsMobile).mockReturnValue(true)
+
+    // when: 팝오버 렌더
+    renderPopover()
+
+    // then: BottomSheet 백드롭이 보이고, 데스크톱 floating 카드는 같이 뜨지 않는다
+    expect(screen.getByTestId('bottom-sheet-backdrop')).toBeInTheDocument()
   })
 })
