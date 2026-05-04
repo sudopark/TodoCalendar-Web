@@ -16,6 +16,10 @@ export function BottomSheet({ open, onClose, children, className }: BottomSheetP
 
   useEffect(() => {
     if (!open) return
+    // open 시 sheet 내부 첫 focusable로 초점 이동 — focus trap이 의미 있으려면 초점이 sheet 안에 있어야 함
+    const initial = sheetRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE)
+    initial?.[0]?.focus()
+
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         onClose()

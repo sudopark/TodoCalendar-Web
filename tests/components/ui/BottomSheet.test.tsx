@@ -76,4 +76,17 @@ describe('BottomSheet', () => {
     // then
     expect(onClose).not.toHaveBeenCalled()
   })
+
+  it('open 시 sheet 내부 첫 focusable 요소로 초점이 이동한다', () => {
+    // given / when
+    render(
+      <BottomSheet open onClose={vi.fn()}>
+        <button>first</button>
+        <button>second</button>
+      </BottomSheet>
+    )
+
+    // then
+    expect(screen.getByRole('button', { name: 'first' })).toHaveFocus()
+  })
 })
