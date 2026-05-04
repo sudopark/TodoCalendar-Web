@@ -9,6 +9,11 @@ import type { EventTime, Repeating, NotificationOption } from '../../../src/mode
 import type { EventDetailRepository } from '../../../src/repositories/EventDetailRepository'
 import type { Repositories } from '../../../src/composition/container'
 import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvider'
+import { useIsMobile } from '../../../src/hooks/useIsMobile'
+
+vi.mock('../../../src/hooks/useIsMobile', () => ({
+  useIsMobile: vi.fn(() => false),
+}))
 
 vi.mock('../../../src/api/eventTagApi', () => ({
   eventTagApi: { getAllTags: vi.fn(async () => []) },
@@ -132,6 +137,7 @@ function renderPopover(
 describe('EventDetailPopover', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(useIsMobile).mockReturnValue(false)
     useEventTagListCache.setState({ tags: new Map() })
   })
 
@@ -306,5 +312,31 @@ describe('EventDetailPopover', () => {
     // then
     expect(screen.getByText('팀 미팅')).toBeInTheDocument()
     expect(screen.getByTestId('event-detail-popover')).toBeInTheDocument()
+  })
+
+  it('데스크톱이면 floating 카드(data-testid="event-detail-popover")로 렌더한다', () => {
+    // given: 데스크톱 환경
+    vi.mocked(useIsMobile).mockReturnValue(false)
+    const calEvent = makeTodoEvent()
+
+    // when: 팝오버 렌더
+    renderPopover(calEvent)
+
+    // then: floating 카드가 렌더되고, BottomSheet 백드롭은 없다
+    expect(screen.getByTestId('event-detail-popover')).toBeInTheDocument()
+    expect(screen.queryByTestId('bottom-sheet-backdrop')).not.toBeInTheDocument()
+  })
+
+  it('모바일이면 BottomSheet 백드롭과 함께 같은 본문이 렌더된다', () => {
+    // given: 모바일 환경
+    vi.mocked(useIsMobile).mockReturnValue(true)
+    const calEvent = makeTodoEvent({ name: '모바일 할 일' })
+
+    // when: 팝오버 렌더
+    renderPopover(calEvent)
+
+    // then: BottomSheet 백드롭이 렌더되고, 본문도 함께 보인다
+    expect(screen.getByTestId('bottom-sheet-backdrop')).toBeInTheDocument()
+    expect(screen.getByText('모바일 할 일')).toBeInTheDocument()
   })
 })
