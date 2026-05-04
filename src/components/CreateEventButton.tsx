@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useEventFormStore } from '../stores/eventFormStore'
+import { useOpenEventForm } from '../hooks/useOpenEventForm'
 import { cn } from '@/lib/utils'
 
 export function CreateEventButton() {
   const { t } = useTranslation()
   const buttonRef = useRef<HTMLButtonElement>(null)
-  const openForm = useEventFormStore(s => s.openForm)
+  const openForm = useOpenEventForm()
   const [showMenu, setShowMenu] = useState(false)
 
   function handleSelect(type: 'todo' | 'schedule') {
