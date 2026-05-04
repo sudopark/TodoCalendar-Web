@@ -167,7 +167,7 @@ export function RightEventPanel({
       </div>
 
       {/* 하단 고정 */}
-      <div className="shrink-0 border-t border-line p-4 pb-[max(theme(spacing.4),env(safe-area-inset-bottom))] flex flex-col gap-2">
+      <div className="shrink-0 border-t border-line p-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex flex-col gap-2">
         <QuickTodoInput />
         <CreateEventButton />
       </div>
