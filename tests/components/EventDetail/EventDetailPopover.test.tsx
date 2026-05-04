@@ -335,8 +335,9 @@ describe('EventDetailPopover', () => {
     // when: 팝오버 렌더
     renderPopover(calEvent)
 
-    // then: BottomSheet 백드롭이 렌더되고, 본문도 함께 보인다
+    // then: BottomSheet 백드롭이 렌더되고, 본문도 함께 보인다. 데스크톱 floating 카드는 같이 뜨지 않는다.
     expect(screen.getByTestId('bottom-sheet-backdrop')).toBeInTheDocument()
     expect(screen.getByText('모바일 할 일')).toBeInTheDocument()
+    expect(screen.queryByTestId('event-detail-popover')).not.toBeInTheDocument()
   })
 })
