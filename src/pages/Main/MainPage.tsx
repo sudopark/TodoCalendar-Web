@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { cn } from '@/lib/utils'
 import TopToolbar from '../../components/TopToolbar'
 import LeftSidebar from '../../components/LeftSidebar'
 import MainCalendar from '../../calendar/MainCalendar'
@@ -102,7 +103,7 @@ export function MainPage() {
           onGoToNextMonth={vm.goToNextMonth}
           onRefresh={vm.refresh}
         />
-        <div className="flex flex-1 min-h-0">
+        <div data-testid="main-flex" className="flex flex-1 min-h-0 flex-col md:flex-row">
           <LeftSidebar
             sidebarOpen={vm.sidebarOpen}
             sidebarMonth={vm.sidebarMonth}
@@ -113,21 +114,25 @@ export function MainPage() {
             onOpenEventForm={vm.openEventForm}
             onToggleSidebar={vm.toggleSidebar}
           />
-          <MainCalendar
-            currentMonth={vm.currentMonth}
-            weekStartDay={vm.weekStartDay}
-            eventDisplayLevel={vm.eventDisplayLevel}
-            onEventClick={handleEventClick}
-          />
+          <div data-testid="main-calendar-wrap" className="flex flex-col h-[50vh] md:h-auto md:flex-1 overflow-hidden">
+            <MainCalendar
+              currentMonth={vm.currentMonth}
+              weekStartDay={vm.weekStartDay}
+              eventDisplayLevel={vm.eventDisplayLevel}
+              onEventClick={handleEventClick}
+            />
+          </div>
 
-          {/* 인라인 패널: 열리면 중앙 캘린더가 줄어듦 */}
+          {/* 인라인 RightPanel: 모바일에선 항상 stack(아래), 데스크톱은 토글 width */}
           <div
-            className={`shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${
-              vm.rightPanelOpen ? 'w-[408px]' : 'w-0'
-            }`}
+            className={cn(
+              'shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out',
+              'w-full md:w-0',
+              vm.rightPanelOpen ? 'md:w-[408px]' : 'md:w-0',
+            )}
           >
-            <div className="w-[408px] h-full py-4 pr-4">
-              <div className="h-full rounded-lg border border-line bg-surface shadow-sm overflow-hidden">
+            <div className="w-full md:w-[408px] h-full md:py-4 md:pr-4">
+              <div className="h-full md:rounded-lg md:border md:border-line bg-surface md:shadow-sm overflow-hidden">
                 <RightEventPanel
                   selectedDate={vm.selectedDate}
                   rightPanelMode={vm.rightPanelMode}
