@@ -7,7 +7,7 @@ import { useHolidayCache } from '../../repositories/caches/holidayCache'
 import { useForemostEventCache } from '../../repositories/caches/foremostEventCache'
 import { useEventTagListCache } from '../../repositories/caches/eventTagListCache'
 import { useSettingsCache, type WeekStartDay, type EventDisplayLevel } from '../../repositories/caches/settingsCache'
-import { useEventFormStore } from '../../stores/eventFormStore'
+import { useOpenEventForm } from '../../hooks/useOpenEventForm'
 import { useCurrentTodos } from '../../repositories/hooks/useCurrentTodos'
 import { useUncompletedTodos } from '../../repositories/hooks/useUncompletedTodos'
 import { useMonthEvents } from '../../repositories/hooks/useMonthEvents'
@@ -92,7 +92,7 @@ export function useMainViewModel(): MainViewModel {
   const exitArchivePanel = useUiStore(s => s.exitArchivePanel)
 
   // ── 이벤트 폼 액션 ───────────────────────────────────────────────
-  const openEventForm = useEventFormStore(s => s.openForm)
+  const openEventForm = useOpenEventForm()
 
   // ── 설정 ──────────────────────────────────────────────────────────
   const weekStartDay = useSettingsCache(s => s.calendarAppearance.weekStartDay)
