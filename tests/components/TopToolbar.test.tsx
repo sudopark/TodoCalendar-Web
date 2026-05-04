@@ -3,6 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import TopToolbar, { type TopToolbarProps } from '../../src/components/TopToolbar'
 
+vi.mock('../../src/hooks/useIsMobile', () => ({
+  useIsMobile: vi.fn(() => false),
+}))
+import { useIsMobile } from '../../src/hooks/useIsMobile'
+
 const noop = vi.fn()
 
 function defaultProps(overrides: Partial<TopToolbarProps> = {}): TopToolbarProps {
@@ -30,6 +35,7 @@ function renderToolbar(props?: Partial<TopToolbarProps>) {
 describe('TopToolbar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(useIsMobile).mockReturnValue(false)
   })
 
   it('현재 월 제목을 표시한다', () => {
@@ -145,6 +151,28 @@ describe('TopToolbar', () => {
 
     // then
     expect(screen.getByLabelText(/새로고침|refresh/i)).toBeDisabled()
+  })
+
+  it('데스크톱에서 sidebarOpen=true 이면 로고/라벨이 표시된다', () => {
+    // given
+    vi.mocked(useIsMobile).mockReturnValue(false)
+
+    // when
+    renderToolbar({ sidebarOpen: true })
+
+    // then
+    expect(screen.getByText('To-do Calendar')).toBeInTheDocument()
+  })
+
+  it('모바일이면 sidebarOpen=true 이어도 로고/라벨이 표시되지 않는다', () => {
+    // given
+    vi.mocked(useIsMobile).mockReturnValue(true)
+
+    // when
+    renderToolbar({ sidebarOpen: true })
+
+    // then
+    expect(screen.queryByText('To-do Calendar')).not.toBeInTheDocument()
   })
 
   // #110: 메인화면 진입 후 캘린더는 그려진 상태에서 이벤트 조회 완료까지 시간이 걸리는 동안

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
+import { useIsMobile } from '../hooks/useIsMobile'
 import TestDataSeederButton from './dev/TestDataSeederButton'
 
 export interface TopToolbarProps {
@@ -27,6 +28,7 @@ export default function TopToolbar({
 }: TopToolbarProps) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
 
   const year = currentMonth.getFullYear()
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
@@ -49,11 +51,11 @@ export default function TopToolbar({
           <div className="h-full w-1/3 bg-brand animate-events-loading-bar" />
         </div>
       )}
-      {/* 좌측: 햄버거 + 로고 (사이드바 너비와 동기화) */}
+      {/* 좌측: 햄버거 + 로고 (사이드바 너비와 동기화) — 모바일은 항상 w-12 */}
       <div
         className={cn(
           'shrink-0 flex items-center overflow-hidden transition-all duration-200',
-          sidebarOpen ? SIDEBAR_WIDTH_CLASS : 'w-12'
+          isMobile ? 'w-12' : sidebarOpen ? SIDEBAR_WIDTH_CLASS : 'w-12'
         )}
       >
         <button
@@ -65,17 +67,19 @@ export default function TopToolbar({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <div
-          className={cn(
-            'flex items-center gap-2 transition-all duration-200',
-            sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-1 pointer-events-none'
-          )}
-        >
-          <img src="/logo-light.png" alt="To-do Calendar" className="h-7 shrink-0" />
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-fg whitespace-nowrap">
-            To-do Calendar
-          </span>
-        </div>
+        {!isMobile && (
+          <div
+            className={cn(
+              'flex items-center gap-2 transition-all duration-200',
+              sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-1 pointer-events-none'
+            )}
+          >
+            <img src="/logo-light.png" alt="To-do Calendar" className="h-7 shrink-0" />
+            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-fg whitespace-nowrap">
+              To-do Calendar
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 중앙: 월 네비 + 오늘 + 우측 액션 */}
