@@ -58,6 +58,7 @@ export function EventDetailPopover({
   const eventTime = event.event_time ?? null
   const repeating = event.repeating ?? null
   const notifications = event.notification_options ?? null
+  const placeText = displayPlace(vm.eventDetail?.place)
 
   useEffect(() => {
     if (isMobile) return  // BottomSheet가 처리
@@ -148,15 +149,12 @@ export function EventDetailPopover({
           </div>
         )}
 
-        {(() => {
-          const placeText = displayPlace(vm.eventDetail?.place)
-          return placeText ? (
-            <div className={INFO_ROW}>
-              <MapPin className={INFO_ICON} />
-              <span className="min-w-0 break-words">{placeText}</span>
-            </div>
-          ) : null
-        })()}
+        {placeText && (
+          <div className={INFO_ROW}>
+            <MapPin className={INFO_ICON} />
+            <span className="min-w-0 break-words">{placeText}</span>
+          </div>
+        )}
 
         {vm.eventDetail?.url && (
           <div className={INFO_ROW}>
