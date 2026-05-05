@@ -28,6 +28,7 @@ e2e/.auth/
 
 # Firebase
 .firebaserc
+.firebase/
 
 # Claude Code
 .claude/
