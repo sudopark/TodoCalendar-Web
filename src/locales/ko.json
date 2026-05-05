@@ -212,6 +212,7 @@
   "eventTime.start_time": "시작 시간",
   "eventTime.end_time": "종료 시간",
   "eventTime.to": "부터",
+  "eventTime.end_date_toggle": "종료일 지정",
   "repeating.enabled": "반복",
   "repeating.not_repeat": "반복 안 함",
   "repeating.custom": "사용자 정의",

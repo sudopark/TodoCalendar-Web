@@ -212,6 +212,7 @@
   "eventTime.start_time": "Start time",
   "eventTime.end_time": "End time",
   "eventTime.to": "to",
+  "eventTime.end_date_toggle": "Set end date",
   "repeating.enabled": "Repeat",
   "repeating.not_repeat": "Does not repeat",
   "repeating.custom": "Custom",
