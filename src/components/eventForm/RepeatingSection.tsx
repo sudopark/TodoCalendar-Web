@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Repeat } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { RepeatingPickerShadcn } from './RepeatingPickerShadcn'
+import { describeRepeating } from '../../domain/functions/repeatingDescription'
 import type { EventTime, Repeating } from '../../models'
 
 interface RepeatingSectionProps {
@@ -21,8 +22,10 @@ export function RepeatingSection({ eventTime, repeating, onRepeatingChange }: Re
   const summary = isOn
     ? t('repeating.summary_on', '반복 설정됨')
     : t('repeating.summary_off', '반복 안 함')
+  const description = repeating ? describeRepeating(repeating) : ''
 
   return (
+    <div className="flex flex-col">
     <div className="flex items-center gap-3">
       <Repeat className="w-4 h-4 text-muted-foreground shrink-0" />
       <Popover open={open} onOpenChange={setOpen}>
@@ -44,6 +47,14 @@ export function RepeatingSection({ eventTime, repeating, onRepeatingChange }: Re
           />
         </PopoverContent>
       </Popover>
+    </div>
+    {repeating && description && (
+      <div className="pl-7 mt-1">
+        <p className="text-xs text-muted-foreground leading-snug animate-in fade-in slide-in-from-top-1 duration-200">
+          {description}
+        </p>
+      </div>
+    )}
     </div>
   )
 }
