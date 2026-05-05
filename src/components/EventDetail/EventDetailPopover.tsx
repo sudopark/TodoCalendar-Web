@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { useEffect } from 'react'
+import { useEffect, useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { Pencil, Trash2, X, Clock, Repeat, Bell, MapPin, FileText, Link2 } from 'lucide-react'
@@ -47,6 +47,7 @@ export function EventDetailPopover({
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const vm = useEventDetailPopoverViewModel(calEvent)
+  const titleId = useId()
 
   const event = calEvent.event
   const resolved = useResolvedEventTag(event.event_tag_id)
@@ -75,7 +76,7 @@ export function EventDetailPopover({
             style={{ backgroundColor: tagColor }}
             data-testid="tag-color-dot"
           />
-          <h3 className="text-[15px] font-semibold text-fg leading-snug break-words min-w-0">
+          <h3 id={titleId} className="text-[15px] font-semibold text-fg leading-snug break-words min-w-0">
             {event.name}
           </h3>
         </div>
@@ -178,7 +179,7 @@ export function EventDetailPopover({
 
   if (isMobile) {
     return (
-      <BottomSheet open onClose={onClose}>
+      <BottomSheet open onClose={onClose} aria-labelledby={titleId}>
         {body}
       </BottomSheet>
     )
