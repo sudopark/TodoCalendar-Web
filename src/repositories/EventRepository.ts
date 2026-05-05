@@ -7,6 +7,7 @@ import { useCurrentTodosCache } from './caches/currentTodosCache'
 import { useUncompletedTodosCache } from './caches/uncompletedTodosCache'
 import { monthRange } from '../domain/functions/eventTime'
 import type { CalendarEvent } from '../domain/functions/eventTime'
+import { nextRepeatingTime, getStartTimestamp } from '../domain/functions/repeating'
 
 // ── API 인터페이스 명시적 정의 ────────────────────────────────────────
 // todoApi/scheduleApi 모듈의 실제 시그니처와 동기를 유지해야 한다.
@@ -191,6 +192,50 @@ export class EventRepository {
     const updated = await this.deps.scheduleApi.excludeRepeating(id, { exclude_repeatings: excludeTurns })
     useCalendarEventsCache.getState().replaceEvent(id, { type: 'schedule', event: updated })
     return updated
+  }
+
+  async completeTodo(todo: Todo, scope?: 'this' | 'future'): Promise<DoneTodo> {
+    const isRepeating = !!todo.repeating && !!todo.event_time
+
+    if (scope === 'this' && isRepeating) {
+      const next = nextRepeatingTime(todo.event_time!, todo.repeating_turn ?? 1, todo.repeating!, todo.exclude_repeatings)
+      const done = await this.deps.todoApi.completeTodo(todo.uuid, {
+        origin: todo,
+        next_event_time: next?.time,
+        next_repeating_turn: next?.turn,
+      })
+      if (next?.time) {
+        const nextTurn = next.turn ?? (todo.repeating_turn ?? 1) + 1
+        const advanced: Todo = { ...todo, event_time: next.time, repeating_turn: nextTurn }
+        useCalendarEventsCache.getState().replaceEvent(todo.uuid, { type: 'todo', event: advanced })
+        const inCurrent = useCurrentTodosCache.getState().todos.some(t => t.uuid === todo.uuid)
+        if (inCurrent) {
+          useCurrentTodosCache.getState().replaceTodo(advanced)
+        }
+        useUncompletedTodosCache.getState().removeTodo(todo.uuid)
+      } else {
+        useCalendarEventsCache.getState().removeEvent(todo.uuid)
+        useCurrentTodosCache.getState().removeTodo(todo.uuid)
+        useUncompletedTodosCache.getState().removeTodo(todo.uuid)
+      }
+      return done
+    }
+
+    if (scope === 'future' && isRepeating) {
+      const startTs = getStartTimestamp(todo.event_time!)
+      await this.deps.todoApi.patchTodo(todo.uuid, { repeating: { ...todo.repeating, end: startTs - 1 } })
+      const done = await this.deps.todoApi.completeTodo(todo.uuid, { origin: todo })
+      useCalendarEventsCache.getState().removeEvent(todo.uuid)
+      useCurrentTodosCache.getState().removeTodo(todo.uuid)
+      useUncompletedTodosCache.getState().removeTodo(todo.uuid)
+      return done
+    }
+
+    const done = await this.deps.todoApi.completeTodo(todo.uuid, { origin: todo })
+    useCalendarEventsCache.getState().removeEvent(todo.uuid)
+    useCurrentTodosCache.getState().removeTodo(todo.uuid)
+    useUncompletedTodosCache.getState().removeTodo(todo.uuid)
+    return done
   }
 
 }
