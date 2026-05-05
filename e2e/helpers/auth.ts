@@ -1,7 +1,25 @@
 import type { BrowserContext } from '@playwright/test'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 const AUTH_EMULATOR_URL = 'http://localhost:9099'
-const FIREBASE_API_KEY = 'fake-api-key-for-emulator'
+
+// indexedDB에 inject 하는 키는 `firebase:authUser:${apiKey}:[DEFAULT]` 형식이고,
+// 클라이언트 앱은 `VITE_FIREBASE_API_KEY` 로 같은 키를 찾는다. 따라서 inject 시에도
+// 동일한 apiKey 를 써야 Firebase Auth SDK 가 user 를 복원한다.
+// .env.local 을 직접 파싱해 가져옴 — Vite 와 달리 Playwright 는 자체 dotenv 로드가 없다.
+function loadFirebaseApiKey(): string {
+  try {
+    const envFile = readFileSync(resolve(process.cwd(), '.env.local'), 'utf-8')
+    const match = envFile.match(/^VITE_FIREBASE_API_KEY=(.+)$/m)
+    if (match) return match[1].trim()
+  } catch {
+    // .env.local 부재 — emulator 전용 fallback
+  }
+  return 'fake-api-key-for-emulator'
+}
+
+const FIREBASE_API_KEY = loadFirebaseApiKey()
 
 interface SignUpResponse {
   localId: string
