@@ -4,8 +4,15 @@ interface EventTimeDisplayProps {
   eventTime: EventTime
 }
 
+// toLocaleTimeString('ko-KR', ...) 는 ICU 데이터에 의존해 jsdom/일부 Node 환경에서
+// 영어 fallback ("PM 2:30") 으로 떨어진다. 한국어 형식을 deterministic 하게 합성.
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit', hour12: true })
+  const hours = date.getHours()
+  const minutes = date.getMinutes()
+  const isPm = hours >= 12
+  const h12 = hours % 12 === 0 ? 12 : hours % 12
+  const mm = String(minutes).padStart(2, '0')
+  return `${isPm ? '오후' : '오전'} ${h12}:${mm}`
 }
 
 function formatDateUTC(date: Date): string {
