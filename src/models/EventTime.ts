@@ -12,7 +12,7 @@ export interface EventTimePeriod {
 export interface EventTimeAllDay {
   time_type: 'allday'
   period_start: number
-  period_end: number
+  period_end?: number
   seconds_from_gmt: number
 }
 

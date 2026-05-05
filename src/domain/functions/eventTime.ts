@@ -19,7 +19,7 @@ export function eventTimeToEndDate(eventTime: EventTime): Date {
     case 'period':
       return new Date(eventTime.period_end * 1000)
     case 'allday':
-      return alldayLocalDate(eventTime.period_end, eventTime.seconds_from_gmt)
+      return alldayLocalDate(eventTime.period_end ?? eventTime.period_start, eventTime.seconds_from_gmt)
   }
 }
 
@@ -90,7 +90,10 @@ export function eventTimeOverlapsRange(eventTime: EventTime, lower: number, uppe
       return eventTime.period_start <= upper && eventTime.period_end >= lower
     case 'allday': {
       const adjStart = eventTime.period_start + eventTime.seconds_from_gmt
-      const adjEnd = eventTime.period_end + eventTime.seconds_from_gmt
+      // period_end가 없으면 시작일 자정 + 하루치 (86400-1) 를 종료로 간주
+      const adjEnd = eventTime.period_end !== undefined
+        ? eventTime.period_end + eventTime.seconds_from_gmt
+        : eventTime.period_start + eventTime.seconds_from_gmt + 86400 - 1
       return adjStart <= upper && adjEnd >= lower
     }
   }
