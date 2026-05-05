@@ -7,11 +7,13 @@ export interface BottomSheetProps {
   onClose: () => void
   children: ReactNode
   className?: string
+  /** caller 헤더의 id — 스크린리더가 dialog 의미를 announce 할 때 사용 */
+  'aria-labelledby'?: string
 }
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
-export function BottomSheet({ open, onClose, children, className }: BottomSheetProps) {
+export function BottomSheet({ open, onClose, children, className, 'aria-labelledby': ariaLabelledBy }: BottomSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -19,6 +21,11 @@ export function BottomSheet({ open, onClose, children, className }: BottomSheetP
     // open 시 sheet 내부 첫 focusable로 초점 이동 — focus trap이 의미 있으려면 초점이 sheet 안에 있어야 함
     const initial = sheetRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE)
     initial?.[0]?.focus()
+
+    // body scroll lock — 시트 뒤 본문 스크롤이 모달 인지를 깨뜨리는 걸 막음.
+    // 기존 inline overflow 값을 보존했다 close 시 복원해서 다른 컴포넌트가 설정한 값을 덮지 않음.
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
 
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
@@ -35,7 +42,10 @@ export function BottomSheet({ open, onClose, children, className }: BottomSheetP
       else if (!e.shiftKey && active === last) { first.focus(); e.preventDefault() }
     }
     document.addEventListener('keydown', handleKey)
-    return () => document.removeEventListener('keydown', handleKey)
+    return () => {
+      document.removeEventListener('keydown', handleKey)
+      document.body.style.overflow = previousOverflow
+    }
   }, [open, onClose])
 
   if (!open) return null
@@ -51,6 +61,7 @@ export function BottomSheet({ open, onClose, children, className }: BottomSheetP
         ref={sheetRef}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={ariaLabelledBy}
         className={cn(
           'fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-surface-elevated shadow-2xl pb-[env(safe-area-inset-bottom)] animate-in slide-in-from-bottom duration-200',
           className,

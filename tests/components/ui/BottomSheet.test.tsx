@@ -89,4 +89,54 @@ describe('BottomSheet', () => {
     // then
     expect(screen.getByRole('button', { name: 'first' })).toHaveFocus()
   })
+
+  it('open 동안 body overflow가 hidden으로 잠긴다', () => {
+    // given: 평소엔 overflow가 비어 있음
+    document.body.style.overflow = ''
+
+    // when
+    render(
+      <BottomSheet open onClose={vi.fn()}>
+        <p>body</p>
+      </BottomSheet>
+    )
+
+    // then
+    expect(document.body.style.overflow).toBe('hidden')
+  })
+
+  it('open=true → unmount 시 body overflow가 이전 값으로 복원된다', () => {
+    // given: 호출자가 overflow에 'auto'를 미리 세팅
+    document.body.style.overflow = 'auto'
+    const { unmount } = render(
+      <BottomSheet open onClose={vi.fn()}>
+        <p>body</p>
+      </BottomSheet>
+    )
+    expect(document.body.style.overflow).toBe('hidden')
+
+    // when
+    unmount()
+
+    // then
+    expect(document.body.style.overflow).toBe('auto')
+
+    // cleanup
+    document.body.style.overflow = ''
+  })
+
+  it('aria-labelledby prop을 dialog 컨테이너에 전달한다', () => {
+    // given / when
+    render(
+      <>
+        <h3 id="my-sheet-title">시트 제목</h3>
+        <BottomSheet open onClose={vi.fn()} aria-labelledby="my-sheet-title">
+          <p>body</p>
+        </BottomSheet>
+      </>
+    )
+
+    // then: dialog 가 헤더 id로 라벨링된다
+    expect(screen.getByRole('dialog')).toHaveAttribute('aria-labelledby', 'my-sheet-title')
+  })
 })
