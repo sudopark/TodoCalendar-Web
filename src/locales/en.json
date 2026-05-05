@@ -322,6 +322,8 @@
   "error.eventSave.network": "A network error occurred. Please try again",
   "error.eventSave.forbidden": "You do not have permission to save",
   "error.eventSave.unknown": "Failed to save. Please try again",
+  "event.delete_confirm_title": "Delete Event",
+  "event.delete_confirm_message": "Delete this event?",
   "error.eventDelete.not_found": "Event not found",
   "error.eventDelete.invalid_scope": "Invalid delete scope",
   "error.eventDelete.network": "A network error occurred. Please try again",

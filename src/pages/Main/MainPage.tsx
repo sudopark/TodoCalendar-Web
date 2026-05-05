@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import TopToolbar from '../../components/TopToolbar'
 import LeftSidebar from '../../components/LeftSidebar'
@@ -9,6 +10,7 @@ import { EventFormPopover } from '../../components/eventForm/EventFormPopover'
 import { EventDetailPopover } from '../../components/EventDetail/EventDetailPopover'
 import { DoneTodoDetailPopover } from '../../components/DoneTodoDetail/DoneTodoDetailPopover'
 import { RepeatingScopeDialog } from '../../components/RepeatingScopeDialog'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
 import { useMainViewModel } from './useMainViewModel'
 import { useRepositories } from '../../composition/RepositoriesProvider'
@@ -32,6 +34,7 @@ export function MainPage() {
   useKeyboardShortcuts()
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation()
   const vm = useMainViewModel()
   const { eventRepo } = useRepositories()
   const deletionService = useMemo(() => new EventDeletionService({ eventRepo }), [eventRepo])
@@ -39,6 +42,7 @@ export function MainPage() {
   const [popover, setPopover] = useState<PopoverState | null>(null)
   const [doneTodoPopover, setDoneTodoPopover] = useState<DoneTodoPopoverState | null>(null)
   const [showDeleteScope, setShowDeleteScope] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   function handleEventClick(calEvent: CalendarEvent, anchorRect: DOMRect) {
     setPopover({ calEvent, anchorRect })
@@ -71,13 +75,14 @@ export function MainPage() {
     if (popover.calEvent.event.repeating) {
       setShowDeleteScope(true)
     } else {
-      applyDelete()
+      setShowDeleteConfirm(true)
     }
   }
 
   async function applyDelete(scope?: RepeatScope) {
     if (!popover) return
     setShowDeleteScope(false)
+    setShowDeleteConfirm(false)
     try {
       if (popover.calEvent.type === 'todo') {
         await deletionService.deleteTodo(popover.calEvent.event, scope)
@@ -184,6 +189,17 @@ export function MainPage() {
           eventType={popover.calEvent.type}
           onSelect={(scope) => applyDelete(scope)}
           onCancel={() => setShowDeleteScope(false)}
+        />
+      )}
+
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          title={t('event.delete_confirm_title')}
+          message={t('event.delete_confirm_message')}
+          confirmLabel={t('common.delete')}
+          danger={true}
+          onConfirm={() => applyDelete()}
+          onCancel={() => setShowDeleteConfirm(false)}
         />
       )}
     </div>
