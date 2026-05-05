@@ -12,6 +12,9 @@ vi.mock('../../src/api/todoApi', () => ({
     getTodos: vi.fn().mockResolvedValue([]),
   },
 }))
+vi.mock('../../src/api/scheduleApi', () => ({
+  scheduleApi: { getSchedules: vi.fn().mockResolvedValue([]) },
+}))
 vi.mock('../../src/repositories/caches/eventTagListCache', () => ({
   useEventTagListCache: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null })),
   DEFAULT_TAG_ID: 'default',
@@ -32,6 +35,21 @@ vi.mock('../../src/repositories/caches/settingsCache', () => ({
     setNotificationPermission: vi.fn(), setFcmToken: vi.fn(),
     requestNotificationPermission: vi.fn(), reset: vi.fn(),
   })),
+}))
+vi.mock('../../src/repositories/caches/uncompletedTodosCache', () => ({
+  useUncompletedTodosCache: {
+    getState: vi.fn(() => ({ removeTodo: vi.fn(), fetch: vi.fn().mockResolvedValue(undefined) })),
+  },
+}))
+vi.mock('../../src/repositories/caches/currentTodosCache', () => ({
+  useCurrentTodosCache: {
+    getState: vi.fn(() => ({ fetch: vi.fn().mockResolvedValue(undefined) })),
+  },
+}))
+vi.mock('../../src/repositories/caches/calendarEventsCache', () => ({
+  useCalendarEventsCache: {
+    getState: vi.fn(() => ({ removeEvent: vi.fn(), eventsByDate: new Map() })),
+  },
 }))
 vi.mock('../../src/firebase', () => ({
   getAuthInstance: vi.fn(() => ({})),
@@ -123,5 +141,65 @@ describe('UncompletedTodoList', () => {
       expect(button).toHaveAttribute('aria-busy', 'false')
       expect(button).not.toBeDisabled()
     })
+  })
+})
+
+describe('UncompletedTodoList — 시간 표시', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('event_time이 있는 미완료 todo는 시간 정보가 함께 표시된다', () => {
+    // given: event_time이 있는 todo (KST 오후 2:30 = UTC timestamp 1710480600)
+    const todo: Todo = {
+      uuid: 'ut1',
+      name: '시간 있는 할 일',
+      is_current: false,
+      event_time: { time_type: 'at', timestamp: 1710480600 },
+    }
+
+    // when: 렌더링
+    renderComponent({ todos: [todo] })
+
+    // then: 할 일 이름과 시간 텍스트가 모두 표시된다
+    expect(screen.getByText('시간 있는 할 일')).toBeInTheDocument()
+    expect(screen.getByText(/오후 2:30/)).toBeInTheDocument()
+  })
+
+  it('event_time이 null인 미완료 todo는 시간 정보가 표시되지 않는다', () => {
+    // given: event_time이 null인 todo
+    const todo: Todo = {
+      uuid: 'ut2',
+      name: '시간 없는 할 일',
+      is_current: false,
+      event_time: null,
+    }
+
+    // when: 렌더링
+    renderComponent({ todos: [todo] })
+
+    // then: 할 일 이름은 표시되지만, 시간 관련 텍스트(오전/오후)는 없다
+    expect(screen.getByText('시간 없는 할 일')).toBeInTheDocument()
+    expect(screen.queryByText(/오전|오후/)).not.toBeInTheDocument()
+  })
+
+  it('event_time이 period 타입이면 시작~종료 시간 범위가 표시된다', () => {
+    // given: period 타입 event_time (KST 오후 2:30 ~ 오후 4:30)
+    const todo: Todo = {
+      uuid: 'ut3',
+      name: '구간 시간 할 일',
+      is_current: false,
+      event_time: {
+        time_type: 'period',
+        period_start: 1710480600,
+        period_end: 1710487800,
+      },
+    }
+
+    // when: 렌더링
+    renderComponent({ todos: [todo] })
+
+    // then: 시간 범위가 표시된다
+    expect(screen.getByText(/오후 2:30 – 오후 4:30/)).toBeInTheDocument()
   })
 })
