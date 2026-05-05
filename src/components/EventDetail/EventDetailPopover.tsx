@@ -31,7 +31,8 @@ const INFO_ICON = 'h-4 w-4 text-fg-quaternary mt-0.5 shrink-0'
 
 export interface EventDetailPopoverProps {
   calEvent: CalendarEvent
-  anchorRect: DOMRect
+  /** 데스크톱 floating 카드 anchor — 없으면 viewport center로 fallback. 모바일은 무시. */
+  anchorRect?: DOMRect
   onClose: () => void
   onEdit: () => void
   onDelete: () => void
@@ -185,13 +186,15 @@ export function EventDetailPopover({
     )
   }
 
-  // 데스크톱: 기존 좌표 anchored 카드
+  // 데스크톱: 좌표 anchored 카드. anchorRect 부재 시 viewport center fallback.
   const THRESHOLD = 300
-  const showBelow = window.innerHeight - anchorRect.bottom > THRESHOLD
-  const top = showBelow ? anchorRect.bottom + 4 : anchorRect.top - 4
-  const translateY = showBelow ? '0' : '-100%'
   const POPOVER_WIDTH = 320
-  const leftRaw = anchorRect.left
+  const showBelow = anchorRect ? window.innerHeight - anchorRect.bottom > THRESHOLD : true
+  const top = anchorRect
+    ? (showBelow ? anchorRect.bottom + 4 : anchorRect.top - 4)
+    : window.innerHeight / 2
+  const translateY = anchorRect ? (showBelow ? '0' : '-100%') : '-50%'
+  const leftRaw = anchorRect ? anchorRect.left : (window.innerWidth - POPOVER_WIDTH) / 2
   const left = Math.min(leftRaw, window.innerWidth - POPOVER_WIDTH - 8)
 
   const popover = (

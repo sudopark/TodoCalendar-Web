@@ -110,21 +110,34 @@ function createFakeRepos(detailRepo?: EventDetailRepository): Repositories {
   }
 }
 
+interface RenderOpts {
+  handlers?: { onClose?: () => void; onEdit?: () => void; onDelete?: () => void }
+  detailData?: { place?: string | null; url?: string | null; memo?: string | null }
+  /** anchorRect 부재 (모바일 또는 fallback 검증용)를 표현하려면 noAnchor: true */
+  noAnchor?: boolean
+}
+
 function renderPopover(
   calEvent: CalendarEvent,
-  handlers: { onClose?: () => void; onEdit?: () => void; onDelete?: () => void } = {},
-  detailData: { place?: string | null; url?: string | null; memo?: string | null } = {},
+  arg2?: RenderOpts['handlers'] | RenderOpts,
+  detailData: NonNullable<RenderOpts['detailData']> = {},
 ) {
+  // 기존 호출(handlers 위치 인자) 호환 + 새 옵션 객체 둘 다 지원
+  const opts: RenderOpts = arg2 && (
+    'handlers' in arg2 || 'detailData' in arg2 || 'noAnchor' in arg2
+  ) ? (arg2 as RenderOpts) : { handlers: arg2 as RenderOpts['handlers'], detailData }
+  const handlers = opts.handlers ?? {}
+  const data = opts.detailData ?? detailData
   const onClose = handlers.onClose ?? vi.fn()
   const onEdit = handlers.onEdit ?? vi.fn()
   const onDelete = handlers.onDelete ?? vi.fn()
-  const repos = createFakeRepos(createFakeDetailRepo(detailData))
+  const repos = createFakeRepos(createFakeDetailRepo(data))
   return render(
     <MemoryRouter>
       <RepositoriesProvider value={repos}>
         <EventDetailPopover
           calEvent={calEvent}
-          anchorRect={mockAnchorRect}
+          anchorRect={opts.noAnchor ? undefined : mockAnchorRect}
           onClose={onClose}
           onEdit={onEdit}
           onDelete={onDelete}
@@ -339,5 +352,19 @@ describe('EventDetailPopover', () => {
     expect(screen.getByTestId('bottom-sheet-backdrop')).toBeInTheDocument()
     expect(screen.getByText('모바일 할 일')).toBeInTheDocument()
     expect(screen.queryByTestId('event-detail-popover')).not.toBeInTheDocument()
+  })
+
+  it('데스크톱에서 anchorRect가 없으면 floating 카드가 viewport 중앙으로 위치한다', () => {
+    // given: 데스크톱이고 anchor 미제공
+    vi.mocked(useIsMobile).mockReturnValue(false)
+    const calEvent = makeTodoEvent()
+
+    // when: anchorRect 없이 렌더
+    renderPopover(calEvent, { noAnchor: true })
+
+    // then: 카드가 렌더되며, transform translateY(-50%)가 부착됨 (center fallback의 신호)
+    const card = screen.getByTestId('event-detail-popover')
+    expect(card).toBeInTheDocument()
+    expect(card.getAttribute('style')).toMatch(/translateY\(-50%\)/)
   })
 })
