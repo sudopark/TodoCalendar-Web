@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useToastStore } from '../../../stores/toastStore'
 import { accountApi } from '../../../api/accountApi'
@@ -13,9 +14,17 @@ interface Props {
 
 export function AccountSection({ account, signOut }: Props) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  const handleLogout = async () => {
+    setShowLogoutConfirm(false)
+    navigate('/', { replace: true })
+    await signOut()
+  }
 
   const handleDeleteAccount = async () => {
     setDeleting(true)
@@ -38,7 +47,7 @@ export function AccountSection({ account, signOut }: Props) {
           <p className="text-sm text-fg-secondary">{account.email ?? account.uid}</p>
         )}
         <div>
-          <button className={settingsBtnSecondary} onClick={() => signOut()}>
+          <button className={settingsBtnSecondary} onClick={() => setShowLogoutConfirm(true)}>
             {t('settings.logout')}
           </button>
         </div>
@@ -55,6 +64,17 @@ export function AccountSection({ account, signOut }: Props) {
           </button>
         </div>
       </SettingsSection>
+
+      {showLogoutConfirm && (
+        <ConfirmDialog
+          title={t('settings.logout_confirm_title')}
+          message={t('settings.logout_confirm_message')}
+          confirmLabel={t('settings.logout')}
+          danger
+          onConfirm={handleLogout}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
+      )}
 
       {showDeleteConfirm && (
         <ConfirmDialog

@@ -96,6 +96,8 @@
   "settings.colors_load_failed": "Failed to load colors",
   "settings.colors_saved": "Colors saved",
   "settings.colors_save_failed": "Failed to save colors",
+  "settings.logout_confirm_title": "Log Out",
+  "settings.logout_confirm_message": "Are you sure you want to log out?",
   "settings.account_deleted": "Account deleted",
   "settings.account_delete_failed": "Failed to delete account",
   "settings.delete_account_confirm": "Deleting your account will erase all data. Continue?",
