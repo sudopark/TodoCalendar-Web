@@ -9,6 +9,7 @@ import { useEventFormDirty, type EventFormSnapshot } from '../../hooks/useEventF
 import { defaultNotificationsForEventTime } from '../../stores/eventFormStore'
 import { useSettingsCache } from '../../repositories/caches/settingsCache'
 import type { Todo, EventTime, Repeating, NotificationOption, EventDetail } from '../../models'
+import { displayPlace } from '../../models/EventDetail'
 import type { RepeatScope } from '../../components/RepeatingScopeDialog'
 
 // MARK: - Interface
@@ -134,7 +135,7 @@ export function useTodoFormViewModel(
       const loadedEventTime = todo.event_time ?? null
       const loadedRepeating = todo.repeating ?? null
       const loadedNotifications = todo.notification_options ?? []
-      const loadedPlace = detail?.place ?? ''
+      const loadedPlace = displayPlace(detail?.place)
       const loadedUrl = detail?.url ?? ''
       const loadedMemo = detail?.memo ?? ''
       setOriginal(todo)

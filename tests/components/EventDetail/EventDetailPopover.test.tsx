@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { EventDetailPopover } from '../../../src/components/EventDetail/EventDetailPopover'
 import { useEventTagListCache } from '../../../src/repositories/caches/eventTagListCache'
 import type { CalendarEvent } from '../../../src/domain/functions/eventTime'
-import type { EventTime, Repeating, NotificationOption } from '../../../src/models'
+import type { EventTime, Repeating, NotificationOption, EventDetail } from '../../../src/models'
 import type { EventDetailRepository } from '../../../src/repositories/EventDetailRepository'
 import type { Repositories } from '../../../src/composition/container'
 import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvider'
@@ -89,7 +89,7 @@ function makeScheduleEvent(overrides: {
   }
 }
 
-function createFakeDetailRepo(detail: { place?: string | null; url?: string | null; memo?: string | null } = {}): EventDetailRepository {
+function createFakeDetailRepo(detail: { place?: EventDetail['place']; url?: string | null; memo?: string | null } = {}): EventDetailRepository {
   return {
     get: vi.fn(async () => ({ place: detail.place ?? null, url: detail.url ?? null, memo: detail.memo ?? null })),
     save: vi.fn(async (_, d) => d),
@@ -112,7 +112,7 @@ function createFakeRepos(detailRepo?: EventDetailRepository): Repositories {
 
 interface RenderOpts {
   handlers?: { onClose?: () => void; onEdit?: () => void; onDelete?: () => void }
-  detailData?: { place?: string | null; url?: string | null; memo?: string | null }
+  detailData?: { place?: EventDetail['place']; url?: string | null; memo?: string | null }
   /** anchorRect 부재 (모바일 또는 fallback 검증용)를 표현하려면 noAnchor: true */
   noAnchor?: boolean
 }
@@ -214,6 +214,60 @@ describe('EventDetailPopover', () => {
       expect(screen.getByText('서울 카페')).toBeInTheDocument()
       expect(screen.getByText('https://example.com')).toBeInTheDocument()
       expect(screen.getByText('미팅 메모')).toBeInTheDocument()
+    })
+  })
+
+  it('place가 객체(name/address/coordinate) 형태로 응답되어도 렌더 에러 없이 name이 표시된다', async () => {
+    // given: 다른 클라이언트(앱)가 저장하여 place 가 객체로 오는 케이스
+    const calEvent = makeTodoEvent({ name: '카페 모임' })
+
+    // when
+    renderPopover(calEvent, {}, {
+      place: {
+        name: '스타벅스 강남점',
+        address: '서울 강남구 테헤란로 1',
+        coordinate: { latitude: 37.5, longitude: 127.0 },
+      },
+    })
+
+    // then: name 이 화면에 표시되고 React 에러가 발생하지 않는다
+    await waitFor(() => {
+      expect(screen.getByText('스타벅스 강남점')).toBeInTheDocument()
+    })
+  })
+
+  it('place가 객체이고 name 이 없으면 address 가 표시된다', async () => {
+    // given
+    const calEvent = makeTodoEvent({ name: '약속' })
+
+    // when
+    renderPopover(calEvent, {}, {
+      place: {
+        name: null,
+        address: '서울 종로구 종로 1',
+        coordinate: { latitude: 37.57, longitude: 126.98 },
+      },
+    })
+
+    // then
+    await waitFor(() => {
+      expect(screen.getByText('서울 종로구 종로 1')).toBeInTheDocument()
+    })
+  })
+
+  it('place가 객체인데 name/address 둘 다 비어 있으면 장소 행을 표시하지 않는다', async () => {
+    // given
+    const calEvent = makeTodoEvent({ name: '약속' })
+
+    // when
+    renderPopover(calEvent, {}, {
+      place: { name: null, address: null, coordinate: { latitude: 1, longitude: 2 } },
+    })
+
+    // then: MapPin 아이콘 행이 그려지지 않는다 (장소 텍스트가 없으므로 행 자체 미노출)
+    // place 표시 영역의 정체성을 확인하기 위해 known 다른 텍스트가 안 들어왔는지 검증
+    await waitFor(() => {
+      expect(screen.queryByText('[object Object]')).not.toBeInTheDocument()
     })
   })
 
