@@ -1,12 +1,11 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { todoApi } from '../api/todoApi'
 import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
-import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
-import { nextRepeatingTime, getStartTimestamp } from '../domain/functions/repeating'
+import type { RepeatScope } from './RepeatingScopeDialog'
+import { nextRepeatingTime } from '../domain/functions/repeating'
 import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
 import type { Todo } from '../models'
@@ -79,14 +78,10 @@ export interface CurrentTodoListProps {
 }
 
 export function CurrentTodoList({ todos, isTagHidden, onEventClick }: CurrentTodoListProps) {
-  const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)
-
   async function handleComplete(todo: Todo) {
-    if (todo.repeating && todo.event_time) {
-      setScopeTarget(todo)
-      return
-    }
-    await doComplete(todo)
+    // 반복 할일은 차수 선택 팝업을 띄우지 않고 항상 현재 차수만 완료 + 다음 차수로 이동 (앱과 동일한 정책)
+    const scope: RepeatScope | undefined = (todo.repeating && todo.event_time) ? 'this' : undefined
+    await doComplete(todo, scope)
   }
 
   async function doComplete(todo: Todo, scope?: RepeatScope) {
@@ -96,10 +91,6 @@ export function CurrentTodoList({ todos, isTagHidden, onEventClick }: CurrentTod
       if (scope === 'this' && todo.repeating && todo.event_time) {
         const next = nextRepeatingTime(todo.event_time, todo.repeating_turn ?? 1, todo.repeating, todo.exclude_repeatings)
         await todoApi.completeTodo(todo.uuid, { origin: todo, next_event_time: next?.time, next_repeating_turn: next?.turn })
-      } else if (scope === 'future') {
-        const startTs = getStartTimestamp(todo.event_time!)
-        await todoApi.patchTodo(todo.uuid, { repeating: { ...todo.repeating, end: startTs - 1 } })
-        await todoApi.completeTodo(todo.uuid, { origin: todo })
       } else {
         await todoApi.completeTodo(todo.uuid, { origin: todo })
       }
@@ -116,13 +107,6 @@ export function CurrentTodoList({ todos, isTagHidden, onEventClick }: CurrentTod
     } catch (e) {
       console.warn('완료 처리 실패:', e)
     }
-  }
-
-  async function handleCompleteWithScope(scope: RepeatScope) {
-    if (!scopeTarget) return
-    const todo = scopeTarget
-    setScopeTarget(null)
-    await doComplete(todo, scope)
   }
 
   const visibleTodos = todos.filter(t => !isTagHidden(t.event_tag_id))
@@ -146,14 +130,6 @@ export function CurrentTodoList({ todos, isTagHidden, onEventClick }: CurrentTod
           />
         ))}
       </div>
-      {scopeTarget && (
-        <RepeatingScopeDialog
-          mode="complete"
-          eventType="todo"
-          onSelect={handleCompleteWithScope}
-          onCancel={() => setScopeTarget(null)}
-        />
-      )}
     </section>
   )
 }

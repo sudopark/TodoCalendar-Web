@@ -156,4 +156,30 @@ describe('CurrentTodoList — 완료', () => {
       expect(screen.queryByRole('alert')).toBeNull()
     })
   })
+
+  it('반복 Todo 체크박스 클릭 시 RepeatingScopeDialog가 표시되지 않는다', async () => {
+    // given: 반복 todo (사용자에게 차수 선택을 묻지 않아야 함)
+    const { todoApi } = await import('../../src/api/todoApi')
+    vi.mocked(todoApi.completeTodo).mockResolvedValue({ uuid: 'done-1', done_at: 1000 } as any)
+    const repeatingTodo = {
+      uuid: 't3',
+      name: '매일 반복',
+      is_current: true,
+      event_time: { time_type: 'at' as const, timestamp: 1743375600 },
+      repeating: { start: 1743375600, option: { optionType: 'every_day' as const, interval: 1 } },
+    } as unknown as Todo
+    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: { lower: 0, upper: 9999999999 } })
+
+    render(
+      <MemoryRouter>
+        <CurrentTodoList todos={[repeatingTodo]} isTagHidden={() => false} />
+      </MemoryRouter>
+    )
+    await userEvent.click(screen.getByRole('button', { name: '매일 반복' }))
+
+    // then: 반복 차수 선택 다이얼로그(RepeatingScopeDialog)가 화면에 뜨지 않아야 한다
+    await waitFor(() => {
+      expect(screen.queryByTestId('repeating-scope-dialog')).toBeNull()
+    })
+  })
 })
