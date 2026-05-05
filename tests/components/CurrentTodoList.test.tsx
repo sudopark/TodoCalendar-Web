@@ -90,6 +90,60 @@ describe('CurrentTodoList', () => {
     expect(screen.getByText('시간 없는 할 일 B')).toBeInTheDocument()
   })
 
+  it('event_time이 있는 current todo는 시간 정보가 함께 표시된다', () => {
+    // given: event_time(at)이 있는 todo (KST 오후 2:30 = UTC timestamp 1710480600)
+    const todo: Todo = {
+      uuid: 'ct-at',
+      name: '시간 있는 현재 할 일',
+      is_current: true,
+      event_time: { time_type: 'at', timestamp: 1710480600 },
+    } as unknown as Todo
+
+    // when: 렌더링
+    renderComponent({ todos: [todo] })
+
+    // then: 할 일 이름과 시간 텍스트가 모두 표시된다
+    expect(screen.getByText('시간 있는 현재 할 일')).toBeInTheDocument()
+    expect(screen.getByText(/오후 2:30/)).toBeInTheDocument()
+  })
+
+  it('event_time이 null인 current todo는 시간 정보가 표시되지 않는다', () => {
+    // given: event_time이 null인 todo
+    const todo: Todo = {
+      uuid: 'ct-notime',
+      name: '시간 없는 현재 할 일',
+      is_current: true,
+      event_time: null,
+    } as Todo
+
+    // when: 렌더링
+    renderComponent({ todos: [todo] })
+
+    // then: 할 일 이름은 표시되지만, 시간 관련 텍스트(오전/오후)는 없다
+    expect(screen.getByText('시간 없는 현재 할 일')).toBeInTheDocument()
+    expect(screen.queryByText(/오전|오후/)).not.toBeInTheDocument()
+  })
+
+  it('event_time이 period 타입이면 시작~종료 시간 범위가 표시된다', () => {
+    // given: period 타입 event_time (KST 오후 2:30 ~ 오후 4:30)
+    const todo: Todo = {
+      uuid: 'ct-period',
+      name: '구간 시간 현재 할 일',
+      is_current: true,
+      event_time: {
+        time_type: 'period',
+        period_start: 1710480600,
+        period_end: 1710487800,
+      },
+    } as unknown as Todo
+
+    // when: 렌더링
+    renderComponent({ todos: [todo] })
+
+    // then: 시간 범위가 표시된다
+    expect(screen.getByText(/오후 2:30 – 오후 4:30/)).toBeInTheDocument()
+  })
+
   it('항목을 클릭하면 onEventClick 콜백을 calEvent와 anchorRect와 함께 호출한다', async () => {
     // given: todo 1개, onEventClick mock
     const todos = [{ uuid: 'ct-nav', name: '이동 테스트', is_current: true, event_time: null }] as Todo[]
