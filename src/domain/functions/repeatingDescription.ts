@@ -1,4 +1,3 @@
-import type { TFunction } from 'i18next'
 import type { Repeating } from '../../models'
 
 const KO_DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
@@ -19,7 +18,7 @@ function formatEndSuffix(repeating: Repeating): string {
   return ''
 }
 
-export function describeRepeating(repeating: Repeating, _t?: TFunction): string {
+export function describeRepeating(repeating: Repeating): string {
   const { option } = repeating
   const suffix = formatEndSuffix(repeating)
 
@@ -48,6 +47,7 @@ export function describeRepeating(repeating: Repeating, _t?: TFunction): string 
         baseDesc = base
       } else {
         // week ordinal mode
+        // 앱 UX 상 ordinal/요일은 단일 선택만 지원하므로 첫 번째 요소만 사용
         const ordinal = sel.weekOrdinals[0]
         const ordLabel = ordinal.isLast ? '마지막' : (ordinal.seq != null ? KO_ORD_LABELS[ordinal.seq - 1] ?? `${ordinal.seq}번째` : '첫째')
         const weekDaysLabel = sel.weekDays.map(d => KO_DAY_LABELS[d]).join('·')
@@ -60,6 +60,7 @@ export function describeRepeating(repeating: Repeating, _t?: TFunction): string 
     }
 
     case 'every_year': {
+      // 앱 UX 상 ordinal/요일은 단일 선택만 지원하므로 첫 번째 요소만 사용
       const month = option.months[0]
       const ordinal = option.weekOrdinals[0]
       const ordLabel = ordinal.isLast ? '마지막' : (ordinal.seq != null ? KO_ORD_LABELS[ordinal.seq - 1] ?? `${ordinal.seq}번째` : '첫째')
