@@ -18,6 +18,7 @@ export const firebaseAuthApi: AuthFirebaseApi = {
 
   async signInWithApple(): Promise<void> {
     const provider = new OAuthProvider('apple.com')
+    provider.addScope('email')
     await signInWithPopup(getAuthInstance(), provider)
   },
 
