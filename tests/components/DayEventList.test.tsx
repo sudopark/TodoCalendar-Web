@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DayEventList, type DayEventListProps } from '../../src/components/DayEventList'
+import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
+import type { Repositories } from '../../src/composition/container'
+import type { EventRepository } from '../../src/repositories/EventRepository'
 import type { CalendarEvent } from '../../src/domain/functions/eventTime'
 
-vi.mock('../../src/repositories/caches/calendarEventsCache', () => ({
-  useCalendarEventsCache: { getState: vi.fn(() => ({ removeEvent: vi.fn() })) },
-}))
 vi.mock('../../src/repositories/caches/eventTagListCache', () => ({
   useEventTagListCache: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null })),
   DEFAULT_TAG_ID: 'default',
@@ -29,9 +29,41 @@ vi.mock('../../src/repositories/caches/settingsCache', () => ({
   })),
 }))
 vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})), db: {} }))
-vi.mock('../../src/api/todoApi', () => ({
-  todoApi: { completeTodo: vi.fn(), patchTodo: vi.fn() },
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: vi.fn(() => () => {}),
+  signInWithPopup: vi.fn(),
+  signOut: vi.fn(),
+  GoogleAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+  OAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
 }))
+vi.mock('../../src/api/todoApi', () => ({ todoApi: {} }))
+vi.mock('../../src/api/scheduleApi', () => ({ scheduleApi: {} }))
+vi.mock('../../src/api/firebaseAuthApi', () => ({ firebaseAuthApi: {} }))
+vi.mock('../../src/api/eventTagApi', () => ({ eventTagApi: { getAllTags: vi.fn(async () => []) } }))
+vi.mock('../../src/api/settingApi', () => ({ settingApi: {} }))
+vi.mock('../../src/api/doneTodoApi', () => ({ doneTodoApi: {} }))
+vi.mock('../../src/api/foremostApi', () => ({ foremostApi: {} }))
+vi.mock('../../src/api/holidayApi', () => ({ holidayApi: {} }))
+vi.mock('../../src/api/eventDetailApi', () => ({ eventDetailApi: {} }))
+
+function makeFakeEventRepo(): EventRepository {
+  return {
+    completeTodo: vi.fn(async () => ({ uuid: 'done', done_at: 0 })),
+  } as unknown as EventRepository
+}
+
+function makeFakeRepos(eventRepo: EventRepository): Repositories {
+  return {
+    eventRepo,
+    eventDetailRepo: {} as any,
+    tagRepo: {} as any,
+    holidayRepo: {} as any,
+    doneTodoRepo: {} as any,
+    foremostEventRepo: {} as any,
+    authRepo: {} as any,
+    settingsRepo: {} as any,
+  }
+}
 
 const mockOnEventClick = vi.fn()
 
@@ -46,7 +78,11 @@ function defaultProps(overrides: Partial<DayEventListProps> = {}): DayEventListP
 }
 
 function renderComponent(props: Partial<DayEventListProps> = {}) {
-  return render(<DayEventList {...defaultProps(props)} />)
+  return render(
+    <RepositoriesProvider value={makeFakeRepos(makeFakeEventRepo())}>
+      <DayEventList {...defaultProps(props)} />
+    </RepositoriesProvider>
+  )
 }
 
 describe('DayEventList', () => {

@@ -3,6 +3,9 @@ import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { UncompletedTodoList, type UncompletedTodoListProps } from '../../src/components/UncompletedTodoList'
+import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
+import type { Repositories } from '../../src/composition/container'
+import type { EventRepository } from '../../src/repositories/EventRepository'
 import type { Todo } from '../../src/models'
 
 vi.mock('../../src/api/todoApi', () => ({
@@ -15,6 +18,20 @@ vi.mock('../../src/api/todoApi', () => ({
 vi.mock('../../src/api/scheduleApi', () => ({
   scheduleApi: { getSchedules: vi.fn().mockResolvedValue([]) },
 }))
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: vi.fn(() => () => {}),
+  signInWithPopup: vi.fn(),
+  signOut: vi.fn(),
+  GoogleAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+  OAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+}))
+vi.mock('../../src/api/firebaseAuthApi', () => ({ firebaseAuthApi: {} }))
+vi.mock('../../src/api/eventTagApi', () => ({ eventTagApi: { getAllTags: vi.fn(async () => []) } }))
+vi.mock('../../src/api/settingApi', () => ({ settingApi: {} }))
+vi.mock('../../src/api/doneTodoApi', () => ({ doneTodoApi: {} }))
+vi.mock('../../src/api/foremostApi', () => ({ foremostApi: {} }))
+vi.mock('../../src/api/holidayApi', () => ({ holidayApi: {} }))
+vi.mock('../../src/api/eventDetailApi', () => ({ eventDetailApi: {} }))
 vi.mock('../../src/repositories/caches/eventTagListCache', () => ({
   useEventTagListCache: vi.fn((selector: any) => selector({ tags: new Map(), defaultTagColors: null })),
   DEFAULT_TAG_ID: 'default',
@@ -59,6 +76,19 @@ vi.mock('../../src/firebase', () => ({
 const mockOnReload = vi.fn()
 const mockOnEventClick = vi.fn()
 
+function makeFakeRepos(): Repositories {
+  return {
+    eventRepo: { completeTodo: vi.fn(async () => ({ uuid: 'done', done_at: 0 })) } as unknown as EventRepository,
+    eventDetailRepo: {} as any,
+    tagRepo: {} as any,
+    holidayRepo: {} as any,
+    doneTodoRepo: {} as any,
+    foremostEventRepo: {} as any,
+    authRepo: {} as any,
+    settingsRepo: {} as any,
+  }
+}
+
 function defaultProps(overrides: Partial<UncompletedTodoListProps> = {}): UncompletedTodoListProps {
   return {
     todos: [],
@@ -71,9 +101,11 @@ function defaultProps(overrides: Partial<UncompletedTodoListProps> = {}): Uncomp
 
 function renderComponent(props: Partial<UncompletedTodoListProps> = {}) {
   return render(
-    <MemoryRouter>
-      <UncompletedTodoList {...defaultProps(props)} />
-    </MemoryRouter>
+    <RepositoriesProvider value={makeFakeRepos()}>
+      <MemoryRouter>
+        <UncompletedTodoList {...defaultProps(props)} />
+      </MemoryRouter>
+    </RepositoriesProvider>
   )
 }
 

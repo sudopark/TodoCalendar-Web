@@ -1,14 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { todoApi } from '../api/todoApi'
-import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'
-import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
 import type { RepeatScope } from './RepeatingScopeDialog'
-import { nextRepeatingTime } from '../domain/functions/repeating'
-import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
+import { useRepositories } from '../composition/RepositoriesProvider'
 import type { Todo } from '../models'
 import type { CalendarEvent } from '../domain/functions/eventTime'
 import { EventTimeDisplay } from './EventTimeDisplay'
@@ -87,6 +83,7 @@ export interface UncompletedTodoListProps {
 
 export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick }: UncompletedTodoListProps) {
   const { t } = useTranslation()
+  const { eventRepo } = useRepositories()
   const [isReloading, setIsReloading] = useState(false)
 
   async function handleComplete(todo: Todo) {
@@ -96,25 +93,8 @@ export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick
   }
 
   async function doComplete(todo: Todo, scope?: RepeatScope) {
-    const { removeTodo } = useUncompletedTodosCache.getState()
-    const { removeEvent } = useCalendarEventsCache.getState()
     try {
-      if (scope === 'this' && todo.repeating && todo.event_time) {
-        const next = nextRepeatingTime(todo.event_time, todo.repeating_turn ?? 1, todo.repeating, todo.exclude_repeatings)
-        await todoApi.completeTodo(todo.uuid, { origin: todo, next_event_time: next?.time, next_repeating_turn: next?.turn })
-      } else {
-        await todoApi.completeTodo(todo.uuid, { origin: todo })
-      }
-
-      if (todo.repeating) {
-        await Promise.all([
-          useUncompletedTodosCache.getState().fetch(),
-          useCurrentTodosCache.getState().fetch(),
-        ]).catch(e => console.warn('Todo stores refresh failed:', e))
-      } else {
-        removeEvent(todo.uuid)
-        removeTodo(todo.uuid)
-      }
+      await eventRepo.completeTodo(todo, scope)
     } catch (e) {
       console.warn('완료 처리 실패:', e)
     }

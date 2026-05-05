@@ -5,7 +5,10 @@ import { MemoryRouter } from 'react-router-dom'
 import { CurrentTodoList, type CurrentTodoListProps } from '../../src/components/CurrentTodoList'
 import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
+import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
+import type { Repositories } from '../../src/composition/container'
 import type { Todo } from '../../src/models'
+import type { EventRepository } from '../../src/repositories/EventRepository'
 
 vi.mock('../../src/api/todoApi', () => ({
   todoApi: {
@@ -44,8 +47,41 @@ vi.mock('../../src/firebase', () => ({
   getAuthInstance: vi.fn(() => ({})),
   db: {},
 }))
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: vi.fn(() => () => {}),
+  signInWithPopup: vi.fn(),
+  signOut: vi.fn(),
+  GoogleAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+  OAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+}))
+vi.mock('../../src/api/firebaseAuthApi', () => ({ firebaseAuthApi: {} }))
+vi.mock('../../src/api/eventTagApi', () => ({ eventTagApi: { getAllTags: vi.fn(async () => []) } }))
+vi.mock('../../src/api/settingApi', () => ({ settingApi: {} }))
+vi.mock('../../src/api/doneTodoApi', () => ({ doneTodoApi: {} }))
+vi.mock('../../src/api/foremostApi', () => ({ foremostApi: {} }))
+vi.mock('../../src/api/holidayApi', () => ({ holidayApi: {} }))
+vi.mock('../../src/api/eventDetailApi', () => ({ eventDetailApi: {} }))
 
 const mockOnEventClick = vi.fn()
+
+function makeFakeEventRepo(completeTodoImpl?: (todo: Todo) => Promise<any>): EventRepository {
+  return {
+    completeTodo: completeTodoImpl ?? vi.fn(async () => ({ uuid: 'done', done_at: 0 })),
+  } as unknown as EventRepository
+}
+
+function makeFakeRepos(eventRepo: EventRepository): Repositories {
+  return {
+    eventRepo,
+    eventDetailRepo: {} as any,
+    tagRepo: {} as any,
+    holidayRepo: {} as any,
+    doneTodoRepo: {} as any,
+    foremostEventRepo: {} as any,
+    authRepo: {} as any,
+    settingsRepo: {} as any,
+  }
+}
 
 function defaultProps(overrides: Partial<CurrentTodoListProps> = {}): CurrentTodoListProps {
   return {
@@ -56,11 +92,14 @@ function defaultProps(overrides: Partial<CurrentTodoListProps> = {}): CurrentTod
   }
 }
 
-function renderComponent(props: Partial<CurrentTodoListProps> = {}) {
+function renderComponent(props: Partial<CurrentTodoListProps> = {}, eventRepo?: EventRepository) {
+  const repo = eventRepo ?? makeFakeEventRepo()
   return render(
-    <MemoryRouter>
-      <CurrentTodoList {...defaultProps(props)} />
-    </MemoryRouter>
+    <RepositoriesProvider value={makeFakeRepos(repo)}>
+      <MemoryRouter>
+        <CurrentTodoList {...defaultProps(props)} />
+      </MemoryRouter>
+    </RepositoriesProvider>
   )
 }
 
@@ -162,21 +201,25 @@ describe('CurrentTodoList — 완료', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useCurrentTodosCache.setState({ todos: [] })
-    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: null })
+    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, loadedYears: new Set() })
   })
 
-  it('비반복 Todo 체크박스 클릭 시 해당 Todo가 목록에서 사라진다', async () => {
-    // given: todo가 currentTodosCache에 있는 상태
-    const { todoApi } = await import('../../src/api/todoApi')
-    vi.mocked(todoApi.completeTodo).mockResolvedValue({ uuid: 'done-1', done_at: 1000 } as any)
+  it('비반복 Todo 체크박스 클릭 시 eventRepo.completeTodo 완료 후 해당 Todo가 목록에서 사라진다', async () => {
+    // given: todo가 currentTodosCache에 있는 상태, fake eventRepo가 removeTodo를 실행
     const todo = { uuid: 't1', name: '완료 할 일', is_current: true, event_time: null } as Todo
     useCurrentTodosCache.setState({ todos: [todo] })
-    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: null })
+
+    const fakeEventRepo = makeFakeEventRepo(async (t) => {
+      useCurrentTodosCache.getState().removeTodo(t.uuid)
+      return { uuid: 'done-1', done_at: 1000 }
+    })
 
     render(
-      <MemoryRouter>
-        <CurrentTodoList todos={[todo]} isTagHidden={() => false} />
-      </MemoryRouter>
+      <RepositoriesProvider value={makeFakeRepos(fakeEventRepo)}>
+        <MemoryRouter>
+          <CurrentTodoList todos={[todo]} isTagHidden={() => false} />
+        </MemoryRouter>
+      </RepositoriesProvider>
     )
     await userEvent.click(screen.getByRole('button', { name: '완료 할 일' }))
 
@@ -187,8 +230,6 @@ describe('CurrentTodoList — 완료', () => {
 
   it('반복 Todo 체크박스 클릭 시 에러 없이 처리된다', async () => {
     // given: 반복 todo
-    const { todoApi } = await import('../../src/api/todoApi')
-    vi.mocked(todoApi.completeTodo).mockResolvedValue({ uuid: 'done-1', done_at: 1000 } as any)
     const repeatingTodo = {
       uuid: 't2',
       name: '반복 할 일',
@@ -196,12 +237,13 @@ describe('CurrentTodoList — 완료', () => {
       event_time: { time_type: 'at' as const, timestamp: 1743375600 },
       repeating: { start: 1743375600, option: { optionType: 'every_day' as const, interval: 1 } },
     } as unknown as Todo
-    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: { lower: 0, upper: 9999999999 } })
 
     render(
-      <MemoryRouter>
-        <CurrentTodoList todos={[repeatingTodo]} isTagHidden={() => false} />
-      </MemoryRouter>
+      <RepositoriesProvider value={makeFakeRepos(makeFakeEventRepo())}>
+        <MemoryRouter>
+          <CurrentTodoList todos={[repeatingTodo]} isTagHidden={() => false} />
+        </MemoryRouter>
+      </RepositoriesProvider>
     )
     await userEvent.click(screen.getByRole('button', { name: '반복 할 일' }))
 
