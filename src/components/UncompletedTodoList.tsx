@@ -11,6 +11,7 @@ import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
 import type { Todo } from '../models'
 import type { CalendarEvent } from '../domain/functions/eventTime'
+import { EventTimeDisplay } from './EventTimeDisplay'
 
 interface UncompletedTodoRowProps {
   todo: Todo
@@ -50,6 +51,11 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: Uncomple
             className="truncate font-semibold text-danger leading-snug"
             style={{ fontSize: nameFontSize }}
           >{todo.name}</p>
+          {todo.event_time && (
+            <p className="text-xs text-fg-tertiary leading-snug mt-0.5">
+              <EventTimeDisplay eventTime={todo.event_time} />
+            </p>
+          )}
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             <span className="text-xs text-fg-quaternary leading-none">Todo</span>
             {tagName && (
