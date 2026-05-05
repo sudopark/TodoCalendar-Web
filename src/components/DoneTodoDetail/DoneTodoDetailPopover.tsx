@@ -3,6 +3,7 @@ import { useEffect, useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RotateCcw, Trash2, X, Clock, Bell, MapPin, FileText, Link2 } from 'lucide-react'
 import type { DoneTodo } from '../../models'
+import { displayPlace } from '../../models/EventDetail'
 import { useDoneTodoDetailPopoverViewModel } from './useDoneTodoDetailPopoverViewModel'
 import { useResolvedEventTag } from '../../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../../domain/functions/tagDisplay'
@@ -160,12 +161,15 @@ export function DoneTodoDetailPopover({
             <p className="whitespace-pre-wrap">{vm.detail.memo}</p>
           </div>
         )}
-        {vm.detail?.place && (
-          <div className={INFO_ROW}>
-            <MapPin className={INFO_ICON} />
-            <p>{vm.detail.place}</p>
-          </div>
-        )}
+        {(() => {
+          const placeText = displayPlace(vm.detail?.place)
+          return placeText ? (
+            <div className={INFO_ROW}>
+              <MapPin className={INFO_ICON} />
+              <p>{placeText}</p>
+            </div>
+          ) : null
+        })()}
       </div>
     </>
   )

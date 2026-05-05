@@ -5,6 +5,7 @@ import type { TFunction } from 'i18next'
 import { Pencil, Trash2, X, Clock, Repeat, Bell, MapPin, FileText, Link2 } from 'lucide-react'
 import type { CalendarEvent } from '../../domain/functions/eventTime'
 import type { Repeating } from '../../models'
+import { displayPlace } from '../../models/EventDetail'
 import { useResolvedEventTag } from '../../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../../domain/functions/tagDisplay'
 import { EventTimeDisplay } from '../EventTimeDisplay'
@@ -147,12 +148,15 @@ export function EventDetailPopover({
           </div>
         )}
 
-        {vm.eventDetail?.place && (
-          <div className={INFO_ROW}>
-            <MapPin className={INFO_ICON} />
-            <span className="min-w-0 break-words">{vm.eventDetail.place}</span>
-          </div>
-        )}
+        {(() => {
+          const placeText = displayPlace(vm.eventDetail?.place)
+          return placeText ? (
+            <div className={INFO_ROW}>
+              <MapPin className={INFO_ICON} />
+              <span className="min-w-0 break-words">{placeText}</span>
+            </div>
+          ) : null
+        })()}
 
         {vm.eventDetail?.url && (
           <div className={INFO_ROW}>

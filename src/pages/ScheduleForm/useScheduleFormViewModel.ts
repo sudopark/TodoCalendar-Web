@@ -9,6 +9,7 @@ import { useEventFormDirty, type EventFormSnapshot } from '../../hooks/useEventF
 import { defaultNotificationsForEventTime } from '../../stores/eventFormStore'
 import { useSettingsCache } from '../../repositories/caches/settingsCache'
 import type { Schedule, EventTime, Repeating, NotificationOption, EventDetail } from '../../models'
+import { displayPlace } from '../../models/EventDetail'
 import type { RepeatScope } from '../../components/RepeatingScopeDialog'
 
 // MARK: - Interface
@@ -133,7 +134,7 @@ export function useScheduleFormViewModel(
       const loadedEventTime = schedule.event_time
       const loadedRepeating = schedule.repeating ?? null
       const loadedNotifications = schedule.notification_options ?? []
-      const loadedPlace = detail?.place ?? ''
+      const loadedPlace = displayPlace(detail?.place)
       const loadedUrl = detail?.url ?? ''
       const loadedMemo = detail?.memo ?? ''
       setOriginal(schedule)
