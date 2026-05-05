@@ -72,6 +72,7 @@ export function DoneTodoDetailPopover({
 
   const tagColor = resolved.color
   const tagName = tagDisplayName(resolved, t)
+  const placeText = displayPlace(vm.detail?.place)
 
   const body = (
     <>
@@ -161,15 +162,12 @@ export function DoneTodoDetailPopover({
             <p className="whitespace-pre-wrap">{vm.detail.memo}</p>
           </div>
         )}
-        {(() => {
-          const placeText = displayPlace(vm.detail?.place)
-          return placeText ? (
-            <div className={INFO_ROW}>
-              <MapPin className={INFO_ICON} />
-              <p>{placeText}</p>
-            </div>
-          ) : null
-        })()}
+        {placeText && (
+          <div className={INFO_ROW}>
+            <MapPin className={INFO_ICON} />
+            <p>{placeText}</p>
+          </div>
+        )}
       </div>
     </>
   )
