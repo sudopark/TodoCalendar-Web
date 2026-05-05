@@ -39,9 +39,11 @@ export function EventTimeDisplay({ eventTime }: EventTimeDisplayProps) {
 
   // allday: offset을 더해 "원본 타임존의 자정"으로 맞춘 뒤 UTC 메서드로 날짜를 읽음
   // (브라우저 타임존과 무관하게 이벤트 생성 타임존 기준 날짜를 표시)
+  // period_end 없는 단일 일자 종일은 시작일 == 종료일로 처리
   const offset = eventTime.seconds_from_gmt
+  const periodEnd = eventTime.period_end ?? eventTime.period_start
   const start = new Date((eventTime.period_start + offset) * 1000)
-  const end = new Date((eventTime.period_end + offset) * 1000)
+  const end = new Date((periodEnd + offset) * 1000)
 
   if (isSameDayUTC(start, end)) {
     return <span>종일</span>

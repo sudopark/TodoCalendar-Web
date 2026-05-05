@@ -57,9 +57,8 @@ function isValidEventTime(t: EventTime): boolean {
     case 'allday':
       return (
         Number.isFinite(t.period_start) &&
-        Number.isFinite(t.period_end) &&
         t.period_start > 0 &&
-        t.period_end >= t.period_start
+        (t.period_end === undefined || t.period_end >= t.period_start)
       )
   }
 }

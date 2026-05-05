@@ -78,7 +78,12 @@ export function shiftEventTime(time: EventTime, intervalSeconds: number): EventT
     case 'period':
       return { time_type: 'period', period_start: time.period_start + intervalSeconds, period_end: time.period_end + intervalSeconds }
     case 'allday':
-      return { time_type: 'allday', period_start: time.period_start + intervalSeconds, period_end: time.period_end + intervalSeconds, seconds_from_gmt: time.seconds_from_gmt }
+      return {
+        time_type: 'allday',
+        period_start: time.period_start + intervalSeconds,
+        period_end: time.period_end != null ? time.period_end + intervalSeconds : undefined,
+        seconds_from_gmt: time.seconds_from_gmt,
+      }
   }
 }
 

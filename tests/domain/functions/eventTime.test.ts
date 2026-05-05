@@ -397,4 +397,48 @@ describe('eventTimeOverlapsRange', () => {
     const et: EventTime = { time_type: 'at', timestamp: 500 }
     expect(eventTimeOverlapsRange(et, 900, 1100)).toBe(false)
   })
+
+  it('period_end 없는 allday(단일 일자 종일)는 시작 월 범위와 겹치면 true를 반환한다 (#127)', () => {
+    // given: 2026-05-15 KST 종일, period_end 없음
+    const offset = 9 * 3600
+    const periodStart = Math.floor(Date.UTC(2026, 4, 14, 15, 0, 0) / 1000) // KST 5/15 00:00
+    const et: EventTime = { time_type: 'allday', period_start: periodStart, seconds_from_gmt: offset } as any
+
+    // when: 2026-05 월 범위 안에서 조회
+    const lower = Math.floor(Date.UTC(2026, 4, 0, 15, 0, 0) / 1000)   // KST 5/1 00:00
+    const upper = Math.floor(Date.UTC(2026, 4, 30, 14, 59, 59) / 1000) // KST 5/31 23:59:59
+
+    // then: 겹쳐야 한다
+    expect(eventTimeOverlapsRange(et, lower, upper)).toBe(true)
+  })
+
+  it('period_end 없는 allday는 전혀 다른 월 범위에서는 false를 반환한다 (#127)', () => {
+    // given: 2026-05-15 KST 종일, period_end 없음
+    const offset = 9 * 3600
+    const periodStart = Math.floor(Date.UTC(2026, 4, 14, 15, 0, 0) / 1000) // KST 5/15 00:00
+    const et: EventTime = { time_type: 'allday', period_start: periodStart, seconds_from_gmt: offset } as any
+
+    // when: 2026-06 월 범위 조회
+    const lower = Math.floor(Date.UTC(2026, 4, 31, 15, 0, 0) / 1000)  // KST 6/1 00:00
+    const upper = Math.floor(Date.UTC(2026, 5, 29, 14, 59, 59) / 1000) // KST 6/30 23:59:59
+
+    // then: 겹치지 않아야 한다
+    expect(eventTimeOverlapsRange(et, lower, upper)).toBe(false)
+  })
+})
+
+describe('eventTimeToEndDate — allday no period_end (#127)', () => {
+  it('period_end 없는 allday는 period_start 기준 종료일을 반환한다', () => {
+    // given: KST 2026-05-15 단일 종일, period_end 없음
+    const offset = 9 * 3600
+    const periodStart = Math.floor(Date.UTC(2026, 4, 14, 15, 0, 0) / 1000) // KST 5/15 00:00
+    const et: EventTime = { time_type: 'allday', period_start: periodStart, seconds_from_gmt: offset } as any
+
+    // when
+    const date = eventTimeToEndDate(et)
+
+    // then: 종료일 == 시작일 (5/15)
+    expect([date.getFullYear(), date.getMonth(), date.getDate()]).toEqual([2026, 4, 15])
+    expect([date.getHours(), date.getMinutes(), date.getSeconds()]).toEqual([0, 0, 0])
+  })
 })
