@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RotateCcw, Trash2, X, Clock, Bell, MapPin, FileText, Link2 } from 'lucide-react'
 import type { DoneTodo } from '../../models'
@@ -39,6 +39,7 @@ export function DoneTodoDetailPopover({
   const vm = useDoneTodoDetailPopoverViewModel(doneTodo)
   const resolved = useResolvedEventTag(doneTodo.event_tag_id)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const titleId = useId()
 
   // ESC 닫기 — ConfirmDialog 가 떠 있는 동안에는 dialog 자체의 ESC 핸들러가 onCancel 을 처리하도록
   // popover 측 ESC 는 showDeleteConfirm guard 로 일시 비활성. dialog 가 닫히면 다시 활성.
@@ -107,7 +108,7 @@ export function DoneTodoDetailPopover({
       </div>
 
       {/* 이름 + 태그 */}
-      <p className="pr-24 text-lg font-semibold text-fg">{doneTodo.name}</p>
+      <p id={titleId} className="pr-24 text-lg font-semibold text-fg">{doneTodo.name}</p>
       <div className="mt-1 flex items-center gap-2">
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: tagColor }} />
         <span className="text-xs text-fg-secondary">{tagName}</span>
@@ -171,7 +172,7 @@ export function DoneTodoDetailPopover({
   if (isMobile) {
     return (
       <>
-        <BottomSheet open onClose={onClose}>{body}</BottomSheet>
+        <BottomSheet open onClose={onClose} aria-labelledby={titleId}>{body}</BottomSheet>
         {showDeleteConfirm && (
           <ConfirmDialog
             message={t('todo.done_delete_confirm')}
