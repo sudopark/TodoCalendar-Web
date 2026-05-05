@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { EventTime } from '../models'
+import { alldayWithStart, nextEventTimeForType } from './eventForm/EventTimePickerCore'
 
 type TimeType = 'none' | 'at' | 'period' | 'allday'
 
@@ -104,10 +105,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
     if (nextType === 'at') next = { time_type: 'at', timestamp: now }
     else if (nextType === 'period') next = { time_type: 'period', period_start: now, period_end: now + 3600 }
     else {
-      const d = new Date(now * 1000)
-      d.setHours(0, 0, 0, 0)
-      const start = Math.floor(d.getTime() / 1000)
-      next = { time_type: 'allday', period_start: start, seconds_from_gmt: localSecondsFromGmt() }
+      next = nextEventTimeForType(internal, 'allday', now, localSecondsFromGmt())
     }
     setInternal(next)
     onChange(next)
@@ -249,10 +247,7 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
               const ts = dateInputToTs(e.target.value)
               if (ts === null) return
               const newStart = ts - internal.seconds_from_gmt
-              const period_end = internal.period_end !== undefined && internal.period_end < newStart
-                ? newStart + 86400 - 1
-                : internal.period_end
-              handleValueChange({ ...internal, period_start: newStart, period_end })
+              handleValueChange(alldayWithStart(internal, newStart))
             }}
           />
           <label className="flex items-center gap-1 text-sm">
