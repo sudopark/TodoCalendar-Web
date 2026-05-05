@@ -103,7 +103,12 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
     let next: EventTime
     if (nextType === 'at') next = { time_type: 'at', timestamp: now }
     else if (nextType === 'period') next = { time_type: 'period', period_start: now, period_end: now + 3600 }
-    else next = { time_type: 'allday', period_start: now, period_end: now, seconds_from_gmt: localSecondsFromGmt() }
+    else {
+      const d = new Date(now * 1000)
+      d.setHours(0, 0, 0, 0)
+      const start = Math.floor(d.getTime() / 1000)
+      next = { time_type: 'allday', period_start: start, seconds_from_gmt: localSecondsFromGmt() }
+    }
     setInternal(next)
     onChange(next)
   }
@@ -243,23 +248,46 @@ export function EventTimePicker({ value, onChange, required = false }: EventTime
             onChange={e => {
               const ts = dateInputToTs(e.target.value)
               if (ts === null) return
-              handleValueChange({ ...internal, period_start: ts - internal.seconds_from_gmt })
+              const newStart = ts - internal.seconds_from_gmt
+              const period_end = internal.period_end !== undefined && internal.period_end < newStart
+                ? newStart + 86400 - 1
+                : internal.period_end
+              handleValueChange({ ...internal, period_start: newStart, period_end })
             }}
           />
-          <span className="px-3 text-sm font-medium text-fg-tertiary">{t('eventTime.to')}</span>
-          <input
-            aria-label={t('eventTime.end_date')}
-            type="date"
-            className={pillInput}
-            value={tsToDateInput(internal.period_end + internal.seconds_from_gmt)}
-            onChange={e => {
-              const ts = dateInputToTs(e.target.value)
-              if (ts === null) return
-              const newEnd = ts - internal.seconds_from_gmt
-              if (newEnd < internal.period_start) return
-              handleValueChange({ ...internal, period_end: newEnd })
-            }}
-          />
+          <label className="flex items-center gap-1 text-sm">
+            <input
+              type="checkbox"
+              checked={internal.period_end !== undefined}
+              onChange={e => {
+                if (e.target.checked) {
+                  handleValueChange({ ...internal, period_end: internal.period_start + 86400 - 1 })
+                } else {
+                  const { period_end: _removed, ...rest } = internal
+                  handleValueChange(rest as typeof internal)
+                }
+              }}
+            />
+            {t('eventTime.end_date_toggle', '종료일 지정')}
+          </label>
+          {internal.period_end !== undefined && (
+            <>
+              <span className="px-3 text-sm font-medium text-fg-tertiary">{t('eventTime.to')}</span>
+              <input
+                aria-label={t('eventTime.end_date')}
+                type="date"
+                className={pillInput}
+                value={tsToDateInput(internal.period_end + internal.seconds_from_gmt)}
+                onChange={e => {
+                  const ts = dateInputToTs(e.target.value)
+                  if (ts === null) return
+                  const newEnd = ts - internal.seconds_from_gmt
+                  if (newEnd < internal.period_start) return
+                  handleValueChange({ ...internal, period_end: newEnd })
+                }}
+              />
+            </>
+          )}
         </div>
       )}
 

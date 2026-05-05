@@ -30,8 +30,10 @@ function localSecondsFromGmt(): number {
 
 export function alldayWithStart(prev: EventTime, newStartTs: number): EventTime {
   if (prev.time_type !== 'allday') return prev
-  // 시작이 종료보다 뒤로 가면 종료를 시작 + 86400 - 1 (1일 종일) 로 정정
-  const period_end = prev.period_end < newStartTs ? newStartTs + 86400 - 1 : prev.period_end
+  // period_end 있고 시작보다 앞이면 시작 + 86400 - 1 (1일 종일) 로 정정. 없으면 그대로 유지.
+  const period_end = prev.period_end !== undefined && prev.period_end < newStartTs
+    ? newStartTs + 86400 - 1
+    : prev.period_end
   return { ...prev, period_start: newStartTs, period_end }
 }
 
@@ -71,11 +73,11 @@ export function nextEventTimeForType(
   if (type === 'period') {
     return { time_type: 'period', period_start: baseTs, period_end: baseTs + 3600 }
   }
-  // allday: baseTs 의 일자의 local 자정으로 정규화
+  // allday: baseTs 의 일자의 local 자정으로 정규화. 기본 OFF 정책 — period_end 생략.
   const d = new Date(baseTs * 1000)
   d.setHours(0, 0, 0, 0)
   const start = Math.floor(d.getTime() / 1000)
-  return { time_type: 'allday', period_start: start, period_end: start + 86400 - 1, seconds_from_gmt: secondsFromGMT }
+  return { time_type: 'allday', period_start: start, seconds_from_gmt: secondsFromGMT }
 }
 
 // --- Component ---
@@ -233,23 +235,43 @@ export function EventTimePickerCore({ value, onChange, allowNone }: EventTimePic
               }}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground w-8 shrink-0">{t('eventTime.end')}</span>
-            <input
-              id="allday-end"
-              aria-label={t('eventTime.end_date')}
-              type="date"
-              className={inputClass}
-              value={alldayDateInputValue(value.period_end, value.seconds_from_gmt)}
-              onChange={e => {
-                const ts = dateInputToTs(e.target.value)
-                if (ts === null || value.time_type !== 'allday') return
-                const next = alldayWithEnd(value, ts)
-                if (next === null) return
-                onChange(next)
+          <div className="flex items-center gap-1.5">
+            <Checkbox
+              id="allday-end-toggle"
+              checked={value.period_end !== undefined}
+              onCheckedChange={(checked) => {
+                if (value.time_type !== 'allday') return
+                if (checked) {
+                  onChange({ ...value, period_end: value.period_start + 86400 - 1 })
+                } else {
+                  const { period_end: _removed, ...rest } = value
+                  onChange(rest)
+                }
               }}
             />
+            <Label htmlFor="allday-end-toggle" className="text-sm font-normal cursor-pointer">
+              {t('eventTime.end_date_toggle', '종료일 지정')}
+            </Label>
           </div>
+          {value.period_end !== undefined && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground w-8 shrink-0">{t('eventTime.end')}</span>
+              <input
+                id="allday-end"
+                aria-label={t('eventTime.end_date')}
+                type="date"
+                className={inputClass}
+                value={alldayDateInputValue(value.period_end, value.seconds_from_gmt)}
+                onChange={e => {
+                  const ts = dateInputToTs(e.target.value)
+                  if (ts === null || value.time_type !== 'allday') return
+                  const next = alldayWithEnd(value, ts)
+                  if (next === null) return
+                  onChange(next)
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

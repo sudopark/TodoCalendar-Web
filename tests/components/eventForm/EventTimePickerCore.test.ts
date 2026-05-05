@@ -47,6 +47,20 @@ describe('EventTimePickerCore — allday 데이터 생성 헬퍼 (#106)', () => 
       expect(v.period_start).toBe(newStart)
       expect(v.period_end).toBe(newStart + 86400 - 1)
     })
+
+    it('period_end 없는 allday(단일 일자 종일)는 시작 변경 후에도 period_end 가 undefined 를 유지한다 (#127)', () => {
+      // given: period_end 없는 단일 일자 종일
+      const prev = { time_type: 'allday' as const, period_start: 1000000, seconds_from_gmt: 9 * 3600 }
+
+      // when: 시작을 임의 일자로 변경
+      const newStart = prev.period_start + 5 * 86400
+      const v = alldayWithStart(prev as EventTime, newStart)
+
+      // then: period_end 는 여전히 undefined
+      if (v.time_type !== 'allday') throw new Error('expected allday')
+      expect(v.period_start).toBe(newStart)
+      expect(v.period_end).toBeUndefined()
+    })
   })
 
   describe('alldayWithEnd', () => {
@@ -110,15 +124,15 @@ describe('nextEventTimeForType (#108) — 타입 변경 시 기존 날짜 보존
       expect(v.period_end).toBe(NOW + 3600)
     })
 
-    it('null → allday 이면 오늘(now 의 일자) 자정 ~ 23:59:59 종일 이벤트로 시작한다', () => {
+    it('null → allday 이면 오늘(now 의 일자) 자정을 period_start 로, period_end 는 undefined(기본 OFF)로 시작한다 (#127)', () => {
       const v = nextEventTimeForType(null, 'allday', NOW, GMT)
       expect(v.time_type).toBe('allday')
       if (v.time_type !== 'allday') return
-      expect(v.period_end - v.period_start).toBe(86400 - 1)
       const d = new Date(v.period_start * 1000)
       expect(d.getHours()).toBe(0)
       expect(d.getMinutes()).toBe(0)
       expect(d.getSeconds()).toBe(0)
+      expect(v.period_end).toBeUndefined()
       expect(v.seconds_from_gmt).toBe(GMT)
     })
   })
@@ -142,7 +156,7 @@ describe('nextEventTimeForType (#108) — 타입 변경 시 기존 날짜 보존
       expect(v.period_end).toBe(selectedTs + 3600)
     })
 
-    it('at → allday 시 기존 timestamp 의 local 일자(자정) 이 period_start 가 된다', () => {
+    it('at → allday 시 기존 timestamp 의 local 일자(자정) 이 period_start 가 되고 period_end 는 undefined(기본 OFF) (#127)', () => {
       const v = nextEventTimeForType(prevAt, 'allday', NOW, GMT)
       expect(v.time_type).toBe('allday')
       if (v.time_type !== 'allday') return
@@ -152,7 +166,7 @@ describe('nextEventTimeForType (#108) — 타입 변경 시 기존 날짜 보존
         return Math.floor(d.getTime() / 1000)
       })()
       expect(v.period_start).toBe(expectedStart)
-      expect(v.period_end).toBe(expectedStart + 86400 - 1)
+      expect(v.period_end).toBeUndefined()
       expect(v.seconds_from_gmt).toBe(GMT)
     })
 
@@ -175,7 +189,7 @@ describe('nextEventTimeForType (#108) — 타입 변경 시 기존 날짜 보존
       expect(v.timestamp).toBe(periodStart)
     })
 
-    it('period → allday 시 period_start 의 일자 자정이 새 period_start', () => {
+    it('period → allday 시 period_start 의 일자 자정이 새 period_start, period_end 는 undefined(기본 OFF) (#127)', () => {
       const v = nextEventTimeForType(prevPeriod, 'allday', NOW, GMT)
       expect(v.time_type).toBe('allday')
       if (v.time_type !== 'allday') return
@@ -185,7 +199,7 @@ describe('nextEventTimeForType (#108) — 타입 변경 시 기존 날짜 보존
         return Math.floor(d.getTime() / 1000)
       })()
       expect(v.period_start).toBe(expectedStart)
-      expect(v.period_end).toBe(expectedStart + 86400 - 1)
+      expect(v.period_end).toBeUndefined()
     })
   })
 
