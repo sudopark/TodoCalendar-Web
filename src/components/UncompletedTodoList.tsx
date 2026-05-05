@@ -127,6 +127,15 @@ export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick
     await doComplete(todo, scope)
   }
 
+  const [isReloading, setIsReloading] = useState(false)
+
+  async function handleReload() {
+    if (isReloading) return
+    setIsReloading(true)
+    try { await onReload() }
+    finally { setIsReloading(false) }
+  }
+
   const visibleTodos = todos.filter(t => !isTagHidden(t.event_tag_id))
 
   if (visibleTodos.length === 0) return null
@@ -139,11 +148,13 @@ export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick
         </span>
         <div className="flex-1 h-px bg-line" />
         <button
-          onClick={onReload}
-          className="shrink-0 text-fg-quaternary hover:text-fg-tertiary transition-colors"
+          onClick={handleReload}
+          disabled={isReloading}
+          aria-busy={isReloading}
+          className="shrink-0 text-fg-quaternary hover:text-fg-tertiary transition-colors disabled:hover:text-fg-quaternary disabled:cursor-default"
           aria-label="refresh"
         >
-          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`h-3.5 w-3.5${isReloading ? ' animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
         </button>
