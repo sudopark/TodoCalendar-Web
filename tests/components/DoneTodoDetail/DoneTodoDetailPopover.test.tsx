@@ -62,11 +62,13 @@ function renderPopover(overrides: Partial<{
   onClose: () => void
   onReverted: () => void
   onDeleted: () => void
+  anchorRect: DOMRect | undefined
 }> = {}) {
+  const anchor = 'anchorRect' in overrides ? overrides.anchorRect : anchorRect
   return render(
     <DoneTodoDetailPopover
       doneTodo={overrides.doneTodo ?? sample}
-      anchorRect={anchorRect}
+      anchorRect={anchor}
       onClose={overrides.onClose ?? vi.fn()}
       onReverted={overrides.onReverted ?? vi.fn()}
       onDeleted={overrides.onDeleted ?? vi.fn()}
@@ -179,5 +181,18 @@ describe('DoneTodoDetailPopover', () => {
     // then: BottomSheet 백드롭이 보이고, 데스크톱 floating 카드는 같이 뜨지 않는다
     expect(screen.getByTestId('bottom-sheet-backdrop')).toBeInTheDocument()
     expect(screen.queryByTestId('done-todo-detail-popover')).not.toBeInTheDocument()
+  })
+
+  it('데스크톱에서 anchorRect가 없으면 floating 카드가 viewport 중앙으로 위치한다', () => {
+    // given: 데스크톱이고 anchor 미제공
+    vi.mocked(useIsMobile).mockReturnValue(false)
+
+    // when: anchorRect 없이 렌더
+    renderPopover({ anchorRect: undefined })
+
+    // then: 카드가 렌더되며, transform translateY(-50%)가 부착됨 (center fallback 의 신호)
+    const card = screen.getByTestId('done-todo-detail-popover')
+    expect(card).toBeInTheDocument()
+    expect(card.getAttribute('style')).toMatch(/translateY\(-50%\)/)
   })
 })
