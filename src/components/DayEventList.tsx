@@ -100,7 +100,7 @@ export function DayEventList({ selectedDate, eventsByDate, isTagHidden, onEventC
 
   async function doComplete(todo: Todo, scope?: RepeatScope) {
     try {
-      await eventRepo.completeTodo(todo, scope as 'this' | 'future' | undefined)
+      await eventRepo.completeTodo(todo, scope)
     } catch (e) {
       console.warn('완료 처리 실패:', e)
     }

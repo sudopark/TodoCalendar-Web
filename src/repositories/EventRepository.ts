@@ -194,7 +194,7 @@ export class EventRepository {
     return updated
   }
 
-  async completeTodo(todo: Todo, scope?: 'this' | 'future'): Promise<DoneTodo> {
+  async completeTodo(todo: Todo, scope?: 'this' | 'future' | 'all'): Promise<DoneTodo> {
     const isRepeating = !!todo.repeating && !!todo.event_time
 
     if (scope === 'this' && isRepeating) {
@@ -208,10 +208,7 @@ export class EventRepository {
         const nextTurn = next.turn ?? (todo.repeating_turn ?? 1) + 1
         const advanced: Todo = { ...todo, event_time: next.time, repeating_turn: nextTurn }
         useCalendarEventsCache.getState().replaceEvent(todo.uuid, { type: 'todo', event: advanced })
-        const inCurrent = useCurrentTodosCache.getState().todos.some(t => t.uuid === todo.uuid)
-        if (inCurrent) {
-          useCurrentTodosCache.getState().replaceTodo(advanced)
-        }
+        useCurrentTodosCache.getState().replaceTodo(advanced)
         useUncompletedTodosCache.getState().removeTodo(todo.uuid)
       } else {
         useCalendarEventsCache.getState().removeEvent(todo.uuid)
