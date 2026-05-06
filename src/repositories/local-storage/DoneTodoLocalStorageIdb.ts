@@ -5,7 +5,8 @@ import type { DoneTodoLocalStorage } from './DoneTodoLocalStorage'
 const STORE = 'done_todos' as const
 
 export class DoneTodoLocalStorageIdb implements DoneTodoLocalStorage {
-  constructor(private readonly db: IDBPDatabase) {}
+  private readonly db: IDBPDatabase
+  constructor(db: IDBPDatabase) { this.db = db }
 
   async loadRecent(limit: number): Promise<DoneTodo[]> {
     const tx = this.db.transaction(STORE, 'readonly')

@@ -5,7 +5,8 @@ import type { ScheduleLocalStorage } from './ScheduleLocalStorage'
 const STORE = 'schedules' as const
 
 export class ScheduleLocalStorageIdb implements ScheduleLocalStorage {
-  constructor(private readonly db: IDBPDatabase) {}
+  private readonly db: IDBPDatabase
+  constructor(db: IDBPDatabase) { this.db = db }
 
   async loadSchedules(range: { lower: number; upper: number }): Promise<Schedule[]> {
     const tx = this.db.transaction(STORE, 'readonly')

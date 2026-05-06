@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { UncompletedTodoList, type UncompletedTodoListProps } from '../../src/components/UncompletedTodoList'
 import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
 import type { Repositories } from '../../src/composition/container'
+import { LocalStorageContainer } from '../../src/repositories/local-storage/LocalStorageContainer'
 import type { EventRepository } from '../../src/repositories/EventRepository'
 import type { Todo } from '../../src/models'
 
@@ -86,6 +87,7 @@ function makeFakeRepos(): Repositories {
     foremostEventRepo: {} as any,
     authRepo: {} as any,
     settingsRepo: {} as any,
+    localStorageContainer: new LocalStorageContainer(),
   }
 }
 

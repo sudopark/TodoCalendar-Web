@@ -16,6 +16,7 @@ import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvi
 import { EventRepository } from '../../../src/repositories/EventRepository'
 import { useCalendarEventsCache } from '../../../src/repositories/caches/calendarEventsCache'
 import type { Repositories } from '../../../src/composition/container'
+import { LocalStorageContainer } from '../../../src/repositories/local-storage/LocalStorageContainer'
 import type { CalendarEvent } from '../../../src/domain/functions/eventTime'
 
 // ── Firebase / Auth 초기화 차단 ────────────────────────────────────────
@@ -156,6 +157,7 @@ async function makeFakeRepos(): Promise<Repositories> {
     foremostEventRepo: {} as unknown as Repositories['foremostEventRepo'],
     authRepo: {} as unknown as Repositories['authRepo'],
     settingsRepo: {} as unknown as Repositories['settingsRepo'],
+    localStorageContainer: new LocalStorageContainer(),
   }
 }
 

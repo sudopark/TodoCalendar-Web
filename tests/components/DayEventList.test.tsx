@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { DayEventList, type DayEventListProps } from '../../src/components/DayEventList'
 import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
 import type { Repositories } from '../../src/composition/container'
+import { LocalStorageContainer } from '../../src/repositories/local-storage/LocalStorageContainer'
 import type { EventRepository } from '../../src/repositories/EventRepository'
 import type { CalendarEvent } from '../../src/domain/functions/eventTime'
 
@@ -62,6 +63,7 @@ function makeFakeRepos(eventRepo: EventRepository): Repositories {
     foremostEventRepo: {} as any,
     authRepo: {} as any,
     settingsRepo: {} as any,
+    localStorageContainer: new LocalStorageContainer(),
   }
 }
 

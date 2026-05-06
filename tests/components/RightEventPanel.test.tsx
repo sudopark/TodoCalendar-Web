@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { RightEventPanel, type RightEventPanelProps } from '../../src/components/RightEventPanel'
 import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
 import type { Repositories } from '../../src/composition/container'
+import { LocalStorageContainer } from '../../src/repositories/local-storage/LocalStorageContainer'
 import type { EventRepository } from '../../src/repositories/EventRepository'
 
 vi.mock('../../src/repositories/caches/eventTagListCache', () => ({
@@ -77,6 +78,7 @@ function makeFakeRepos(): Repositories {
     foremostEventRepo: {} as any,
     authRepo: {} as any,
     settingsRepo: {} as any,
+    localStorageContainer: new LocalStorageContainer(),
   }
 }
 

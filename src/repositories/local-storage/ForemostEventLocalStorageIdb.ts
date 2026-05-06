@@ -6,7 +6,8 @@ const STORE = 'foremost_event' as const
 const KEY = 'foremost' as const
 
 export class ForemostEventLocalStorageIdb implements ForemostEventLocalStorage {
-  constructor(private readonly db: IDBPDatabase) {}
+  private readonly db: IDBPDatabase
+  constructor(db: IDBPDatabase) { this.db = db }
 
   async load(): Promise<ForemostEvent | null> {
     const r = await this.db.get(STORE, KEY)
