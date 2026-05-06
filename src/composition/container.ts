@@ -17,6 +17,7 @@ import { DoneTodoRepository } from '../repositories/DoneTodoRepository'
 import { ForemostEventRepository } from '../repositories/ForemostEventRepository'
 import { AuthRepository } from '../repositories/AuthRepository'
 import { SettingsRepository } from '../repositories/SettingsRepository'
+import { LocalStorageContainer } from '../repositories/local-storage/LocalStorageContainer'
 
 const holidayRepo = new HolidayRepository({
   api: holidayApi,
@@ -30,6 +31,8 @@ const authRepo = new AuthRepository({ api: firebaseAuthApi })
 // 401 응답 시 AuthRepository를 통해 로그아웃 처리 — apiClient가 store를 직접 참조하지 않는다
 setUnauthorizedHandler(() => { authRepo.signOut() })
 
+const localStorageContainer = new LocalStorageContainer()
+
 export interface Repositories {
   eventRepo: EventRepository
   eventDetailRepo: EventDetailRepository
@@ -39,6 +42,7 @@ export interface Repositories {
   foremostEventRepo: ForemostEventRepository
   authRepo: AuthRepository
   settingsRepo: SettingsRepository
+  localStorageContainer: LocalStorageContainer
 }
 
 export const repositories: Repositories = {
@@ -50,4 +54,5 @@ export const repositories: Repositories = {
   foremostEventRepo: new ForemostEventRepository({ api: foremostApi }),
   authRepo,
   settingsRepo: new SettingsRepository(),
+  localStorageContainer,
 }

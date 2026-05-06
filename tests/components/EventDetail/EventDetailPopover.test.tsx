@@ -8,6 +8,7 @@ import type { CalendarEvent } from '../../../src/domain/functions/eventTime'
 import type { EventTime, Repeating, NotificationOption, EventDetail } from '../../../src/models'
 import type { EventDetailRepository } from '../../../src/repositories/EventDetailRepository'
 import type { Repositories } from '../../../src/composition/container'
+import { LocalStorageContainer } from '../../../src/repositories/local-storage/LocalStorageContainer'
 import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvider'
 import { useIsMobile } from '../../../src/hooks/useIsMobile'
 
@@ -107,6 +108,7 @@ function createFakeRepos(detailRepo?: EventDetailRepository): Repositories {
     foremostEventRepo: {} as unknown as Repositories['foremostEventRepo'],
     authRepo: {} as unknown as Repositories['authRepo'],
     settingsRepo: {} as unknown as Repositories['settingsRepo'],
+    localStorageContainer: new LocalStorageContainer(),
   }
 }
 

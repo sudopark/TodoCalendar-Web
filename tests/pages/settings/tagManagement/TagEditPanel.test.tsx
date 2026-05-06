@@ -7,6 +7,7 @@ import { useToastStore } from '../../../../src/stores/toastStore'
 import { RepositoriesProvider } from '../../../../src/composition/RepositoriesProvider'
 import { TagRepository } from '../../../../src/repositories/TagRepository'
 import type { Repositories } from '../../../../src/composition/container'
+import { LocalStorageContainer } from '../../../../src/repositories/local-storage/LocalStorageContainer'
 import type { TagRowModel } from '../../../../src/domain/tag/buildTagRows'
 
 vi.mock('../../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
@@ -47,6 +48,7 @@ async function makeFakeRepos(): Promise<Repositories> {
     foremostEventRepo: {} as unknown as Repositories['foremostEventRepo'],
     authRepo: {} as unknown as Repositories['authRepo'],
     settingsRepo: {} as unknown as Repositories['settingsRepo'],
+    localStorageContainer: new LocalStorageContainer(),
   }
 }
 

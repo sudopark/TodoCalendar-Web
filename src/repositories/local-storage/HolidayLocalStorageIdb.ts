@@ -10,7 +10,8 @@ interface HolidayRecord {
 }
 
 export class HolidayLocalStorageIdb implements HolidayLocalStorage {
-  constructor(private readonly db: IDBPDatabase) {}
+  private readonly db: IDBPDatabase
+  constructor(db: IDBPDatabase) { this.db = db }
 
   async loadYear(year: number): Promise<HolidayItem[] | null> {
     const r = (await this.db.get(STORE, year)) as HolidayRecord | undefined

@@ -7,6 +7,7 @@ import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodos
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
 import type { Repositories } from '../../src/composition/container'
+import { LocalStorageContainer } from '../../src/repositories/local-storage/LocalStorageContainer'
 import type { Todo } from '../../src/models'
 import type { EventRepository } from '../../src/repositories/EventRepository'
 
@@ -80,6 +81,7 @@ function makeFakeRepos(eventRepo: EventRepository): Repositories {
     foremostEventRepo: {} as any,
     authRepo: {} as any,
     settingsRepo: {} as any,
+    localStorageContainer: new LocalStorageContainer(),
   }
 }
 

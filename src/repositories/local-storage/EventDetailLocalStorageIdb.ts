@@ -9,7 +9,8 @@ interface EventDetailRecord extends EventDetail {
 }
 
 export class EventDetailLocalStorageIdb implements EventDetailLocalStorage {
-  constructor(private readonly db: IDBPDatabase) {}
+  private readonly db: IDBPDatabase
+  constructor(db: IDBPDatabase) { this.db = db }
 
   async loadDetail(eventId: string): Promise<EventDetail | null> {
     const r = (await this.db.get(STORE, eventId)) as EventDetailRecord | undefined

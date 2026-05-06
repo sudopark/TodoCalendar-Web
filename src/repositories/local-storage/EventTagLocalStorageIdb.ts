@@ -5,7 +5,8 @@ import type { EventTagLocalStorage } from './EventTagLocalStorage'
 const STORE = 'event_tags' as const
 
 export class EventTagLocalStorageIdb implements EventTagLocalStorage {
-  constructor(private readonly db: IDBPDatabase) {}
+  private readonly db: IDBPDatabase
+  constructor(db: IDBPDatabase) { this.db = db }
 
   async loadAll(): Promise<EventTag[]> {
     return (await this.db.getAll(STORE)) as EventTag[]
