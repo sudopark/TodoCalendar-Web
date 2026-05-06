@@ -1,5 +1,7 @@
 import '@testing-library/jest-dom'
 import '../src/i18n'
+// IndexedDB polyfill — Vitest 의 jsdom/happy-dom 환경엔 IDB 가 없음
+import 'fake-indexeddb/auto'
 
 // @base-ui/react Checkbox가 jsdom에 없는 PointerEvent를 참조하는 문제 방지
 if (typeof globalThis.PointerEvent === 'undefined') {
