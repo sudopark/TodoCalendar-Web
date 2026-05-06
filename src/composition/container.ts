@@ -26,12 +26,12 @@ const holidayRepo = new HolidayRepository({
 // composition root 에서만 i18n 이벤트 처리 — Repository 자체는 i18n 무지
 i18n.on('languageChanged', (lng: string) => holidayRepo.setLocale(lng))
 
-const authRepo = new AuthRepository({ api: firebaseAuthApi })
+const localStorageContainer = new LocalStorageContainer()
+
+const authRepo = new AuthRepository({ api: firebaseAuthApi, localStorageContainer })
 
 // 401 응답 시 AuthRepository를 통해 로그아웃 처리 — apiClient가 store를 직접 참조하지 않는다
 setUnauthorizedHandler(() => { authRepo.signOut() })
-
-const localStorageContainer = new LocalStorageContainer()
 
 export interface Repositories {
   eventRepo: EventRepository
