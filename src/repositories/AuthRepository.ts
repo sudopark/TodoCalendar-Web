@@ -1,4 +1,5 @@
 import { useAuthStore } from '../stores/authStore'
+import type { LocalStorageContainer } from './local-storage/LocalStorageContainer'
 
 // ── Firebase 인증 동작 인터페이스 ────────────────────────────────────
 // Firebase 모듈에 직접 의존하지 않도록 인터페이스로 추상화한다.
@@ -12,6 +13,7 @@ export interface AuthFirebaseApi {
 
 interface Deps {
   api: AuthFirebaseApi
+  localStorageContainer?: LocalStorageContainer
 }
 
 export class AuthRepository {
@@ -60,5 +62,14 @@ export class AuthRepository {
     const { useSettingsCache } = await import('./caches/settingsCache')
     useDoneTodosCache.getState().reset()
     useSettingsCache.getState().reset()
+
+    // LocalStorage(IDB) wipe — 신규
+    if (this.deps.localStorageContainer?.isInitialized()) {
+      try {
+        await this.deps.localStorageContainer.clearUserStores()
+      } catch (e) {
+        console.warn('LocalStorage clearUserStores 실패:', e)
+      }
+    }
   }
 }
