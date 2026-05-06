@@ -4,10 +4,10 @@ export interface TodoLocalStorage {
   /** 현재 영역(`is_current === true`) Todo 만 반환 */
   loadCurrentTodos(): Promise<Todo[]>
 
-  /** event_time.timestamp 가 [lower, upper] 범위에 들어가는 Todo 반환 */
+  /** event_time 이 [lower, upper] 와 겹치는 Todo 반환 (at/period/allday 3 variant 모두) */
   loadTodos(range: { lower: number; upper: number }): Promise<Todo[]>
 
-  /** 미완료 Todo (event_time.timestamp <= now 이고 is_current=false) — 반복 todo 등 carry-over 표시용 */
+  /** 미완료 Todo (event_time 이 [0, now] 와 겹치고 is_current=false) — 반복 todo 등 carry-over 표시용 */
   loadUncompletedTodos(now: number): Promise<Todo[]>
 
   /** 단건 조회. 없으면 null */
