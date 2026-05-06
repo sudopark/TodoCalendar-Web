@@ -57,6 +57,37 @@ describe('ScheduleLocalStorageIdb', () => {
     expect(result.map((s) => s.uuid)).toEqual(['b'])
   })
 
+  it('period 타입 schedule 의 [period_start, period_end] 가 범위와 겹치면 반환한다', async () => {
+    // given: period_start=100, period_end=300 → [150, 250] 와 겹침
+    await storage.saveSchedules([
+      scheduleFixture({ uuid: 'overlap', event_time: { time_type: 'period', period_start: 100, period_end: 300 } }),
+      scheduleFixture({ uuid: 'no-overlap', event_time: { time_type: 'period', period_start: 400, period_end: 600 } }),
+    ])
+    // when
+    const result = await storage.loadSchedules({ lower: 150, upper: 250 })
+    // then
+    expect(result.map((s) => s.uuid)).toEqual(['overlap'])
+  })
+
+  it('allday 타입 schedule 이 범위와 겹치면 반환한다', async () => {
+    // given: period_start=86400 (UTC 1970-01-02 00:00), seconds_from_gmt=0
+    // adjStart=86400, adjEnd=86400+86399=172799 → [0, 200000] 와 겹침
+    await storage.saveSchedules([
+      scheduleFixture({
+        uuid: 'allday-overlap',
+        event_time: { time_type: 'allday', period_start: 86400, seconds_from_gmt: 0 },
+      }),
+      scheduleFixture({
+        uuid: 'allday-no-overlap',
+        event_time: { time_type: 'allday', period_start: 500000, seconds_from_gmt: 0 },
+      }),
+    ])
+    // when
+    const result = await storage.loadSchedules({ lower: 0, upper: 200000 })
+    // then
+    expect(result.map((s) => s.uuid)).toEqual(['allday-overlap'])
+  })
+
   it('updateSchedule 은 동일 uuid 를 덮어쓴다', async () => {
     await storage.saveSchedules([scheduleFixture({ uuid: 'a', name: 'old' })])
     await storage.updateSchedule(scheduleFixture({ uuid: 'a', name: 'new' }))

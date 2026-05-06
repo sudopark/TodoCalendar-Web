@@ -1,6 +1,7 @@
 import type { IDBPDatabase } from 'idb'
 import type { Schedule } from '../../models/Schedule'
 import type { ScheduleLocalStorage } from './ScheduleLocalStorage'
+import { eventTimeOverlapsRange } from '../../domain/functions/eventTime'
 
 const STORE = 'schedules' as const
 
@@ -9,10 +10,8 @@ export class ScheduleLocalStorageIdb implements ScheduleLocalStorage {
   constructor(db: IDBPDatabase) { this.db = db }
 
   async loadSchedules(range: { lower: number; upper: number }): Promise<Schedule[]> {
-    const tx = this.db.transaction(STORE, 'readonly')
-    const idx = tx.store.index('time.timestamp')
-    const keyRange = IDBKeyRange.bound(range.lower, range.upper)
-    return (await idx.getAll(keyRange)) as Schedule[]
+    const all = (await this.db.getAll(STORE)) as Schedule[]
+    return all.filter((s) => eventTimeOverlapsRange(s.event_time, range.lower, range.upper))
   }
 
   async loadSchedule(uuid: string): Promise<Schedule | null> {

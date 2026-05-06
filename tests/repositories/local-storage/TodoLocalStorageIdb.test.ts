@@ -80,6 +80,37 @@ describe('TodoLocalStorageIdb', () => {
       // then
       expect(result).toEqual([])
     })
+
+    it('period 타입 todo 의 [period_start, period_end] 가 범위와 겹치면 반환한다', async () => {
+      // given: period_start=100, period_end=300 → [150, 250] 와 겹침
+      await storage.saveTodos([
+        todoFixture({ uuid: 'overlap', event_time: { time_type: 'period', period_start: 100, period_end: 300 } }),
+        todoFixture({ uuid: 'no-overlap', event_time: { time_type: 'period', period_start: 400, period_end: 600 } }),
+      ])
+      // when
+      const result = await storage.loadTodos({ lower: 150, upper: 250 })
+      // then
+      expect(result.map((t) => t.uuid)).toEqual(['overlap'])
+    })
+
+    it('allday 타입 todo 가 범위와 겹치면 반환한다', async () => {
+      // given: period_start=86400 (UTC 1970-01-02 00:00), seconds_from_gmt=0
+      // adjStart=86400, adjEnd=86400+86399=172799 → [0, 200000] 와 겹침
+      await storage.saveTodos([
+        todoFixture({
+          uuid: 'allday-overlap',
+          event_time: { time_type: 'allday', period_start: 86400, seconds_from_gmt: 0 },
+        }),
+        todoFixture({
+          uuid: 'allday-no-overlap',
+          event_time: { time_type: 'allday', period_start: 500000, seconds_from_gmt: 0 },
+        }),
+      ])
+      // when
+      const result = await storage.loadTodos({ lower: 0, upper: 200000 })
+      // then
+      expect(result.map((t) => t.uuid)).toEqual(['allday-overlap'])
+    })
   })
 
   describe('loadCurrentTodos', () => {

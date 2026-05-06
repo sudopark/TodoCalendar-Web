@@ -45,12 +45,9 @@ export async function openLocalCacheDb(uid: string): Promise<IDBPDatabase> {
       }
 
       const todos = db.createObjectStore('todos', { keyPath: 'uuid' })
-      todos.createIndex('time.timestamp', 'event_time.timestamp')
-      todos.createIndex('is_current', 'is_current')
       todos.createIndex('event_tag_id', 'event_tag_id')
 
       const schedules = db.createObjectStore('schedules', { keyPath: 'uuid' })
-      schedules.createIndex('time.timestamp', 'event_time.timestamp')
       schedules.createIndex('event_tag_id', 'event_tag_id')
 
       const doneTodos = db.createObjectStore('done_todos', { keyPath: 'uuid' })

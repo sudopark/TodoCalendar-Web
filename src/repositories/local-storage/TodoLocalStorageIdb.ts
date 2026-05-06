@@ -1,6 +1,7 @@
 import type { IDBPDatabase } from 'idb'
 import type { Todo } from '../../models/Todo'
 import type { TodoLocalStorage } from './TodoLocalStorage'
+import { eventTimeOverlapsRange } from '../../domain/functions/eventTime'
 
 const STORE = 'todos' as const
 
@@ -15,18 +16,17 @@ export class TodoLocalStorageIdb implements TodoLocalStorage {
   }
 
   async loadTodos(range: { lower: number; upper: number }): Promise<Todo[]> {
-    const tx = this.db.transaction(STORE, 'readonly')
-    const idx = tx.store.index('time.timestamp')
-    const keyRange = IDBKeyRange.bound(range.lower, range.upper)
-    return (await idx.getAll(keyRange)) as Todo[]
+    const all = (await this.db.getAll(STORE)) as Todo[]
+    return all.filter((t) => t.event_time && eventTimeOverlapsRange(t.event_time, range.lower, range.upper))
   }
 
   async loadUncompletedTodos(now: number): Promise<Todo[]> {
-    const tx = this.db.transaction(STORE, 'readonly')
-    const idx = tx.store.index('time.timestamp')
-    const keyRange = IDBKeyRange.upperBound(now)
-    const all = (await idx.getAll(keyRange)) as Todo[]
-    return all.filter((t) => t.is_current === false)
+    const all = (await this.db.getAll(STORE)) as Todo[]
+    return all.filter((t) =>
+      t.is_current === false &&
+      t.event_time &&
+      eventTimeOverlapsRange(t.event_time, 0, now)
+    )
   }
 
   async loadTodo(uuid: string): Promise<Todo | null> {
