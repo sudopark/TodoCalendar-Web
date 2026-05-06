@@ -40,13 +40,25 @@ export class AuthRepository {
   // Firebase 서버 호출 실패 시에도 로컬 정리는 반드시 진행한다.
 
   async signOut(): Promise<void> {
+    // LocalStorage(IDB) wipe FIRST — AuthGuard unmount → dispose 로 session 이
+    // null 이 되기 전에 반드시 wipe 를 완료해야 한다.
+    if (this.deps.localStorageContainer?.isInitialized()) {
+      try {
+        await this.deps.localStorageContainer.clearUserStores()
+      } catch (e) {
+        console.warn('LocalStorage clearUserStores 실패:', e)
+      }
+    }
+
     try {
       await this.deps.api.signOut()
     } catch {
       // 서버 호출 실패해도 로컬 정리는 진행한다
     }
+
     // authStore 인증 상태 초기화
     useAuthStore.getState().reset()
+
     // 데이터 캐시 초기화 — 기존 authStore.signOut의 cascading reset과 동일
     const { useEventTagListCache } = await import('./caches/eventTagListCache')
     const { useCurrentTodosCache } = await import('./caches/currentTodosCache')
@@ -62,14 +74,5 @@ export class AuthRepository {
     const { useSettingsCache } = await import('./caches/settingsCache')
     useDoneTodosCache.getState().reset()
     useSettingsCache.getState().reset()
-
-    // LocalStorage(IDB) wipe — 신규
-    if (this.deps.localStorageContainer?.isInitialized()) {
-      try {
-        await this.deps.localStorageContainer.clearUserStores()
-      } catch (e) {
-        console.warn('LocalStorage clearUserStores 실패:', e)
-      }
-    }
   }
 }

@@ -21,12 +21,15 @@ describe('local-storage/database', () => {
     db.close()
   })
 
-  it('todos store 는 time.timestamp 인덱스를 가진다', async () => {
+  it('todos store 는 event_tag_id 인덱스를 가지며 time.timestamp / is_current 인덱스는 없다', async () => {
     const db = await openLocalCacheDb('test-uid')
     const tx = db.transaction('todos', 'readonly')
     const indexNames = Array.from(tx.store.indexNames)
-    expect(indexNames).toContain('time.timestamp')
     expect(indexNames).toContain('event_tag_id')
+    // EventTime 의 period/allday variant 를 커버하지 못하므로 제거됨
+    expect(indexNames).not.toContain('time.timestamp')
+    // boolean key 는 IDB 에서 indexable 하지 않으므로 제거됨
+    expect(indexNames).not.toContain('is_current')
     db.close()
   })
 

@@ -20,7 +20,7 @@ export class EventDetailLocalStorageIdb implements EventDetailLocalStorage {
   }
 
   async saveDetail(eventId: string, detail: EventDetail): Promise<void> {
-    const record: EventDetailRecord = { ...(detail as object), event_id: eventId } as EventDetailRecord
+    const record: EventDetailRecord = { ...detail, event_id: eventId }
     await this.db.put(STORE, record)
   }
 

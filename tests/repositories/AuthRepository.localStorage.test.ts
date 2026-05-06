@@ -77,4 +77,39 @@ describe('AuthRepository.signOut + LocalStorage wipe', () => {
     const repo = new AuthRepository({ api: fakeApi })
     await expect(repo.signOut()).resolves.toBeUndefined()
   })
+
+  it('signOut 중 dispose() 가 호출되어 session 이 null 이 되어도 wipe 는 이미 완료된다', async () => {
+    // given: container 를 init 하고 todo 저장
+    const container = new LocalStorageContainer()
+    await container.init(TEST_UID + '-race')
+    await container.todo().saveTodos([sampleTodo])
+
+    // signOut API 에서 dispose 를 시뮬레이션 — wipe 가 FIRST 면 이미 끝난 상태
+    const disposeRacingApi: AuthFirebaseApi = {
+      signInWithGoogle: async () => {},
+      signInWithApple: async () => {},
+      signOut: async () => {
+        // AuthGuard unmount 가 dispose 를 부르는 상황 시뮬레이션
+        await container.dispose()
+      },
+    }
+    const repo = new AuthRepository({ api: disposeRacingApi, localStorageContainer: container })
+
+    // when
+    await repo.signOut()
+
+    // then: wipe 는 signOut API 보다 먼저 실행되므로 이미 비워진 상태
+    // container 가 dispose 되었으므로 재확인을 위해 새 연결로 검증
+    const verifyContainer = new LocalStorageContainer()
+    await verifyContainer.init(TEST_UID + '-race')
+    try {
+      expect(await verifyContainer.todo().loadCurrentTodos()).toEqual([])
+    } finally {
+      await verifyContainer.dispose()
+      await new Promise<void>((resolve) => {
+        const req = indexedDB.deleteDatabase(`todocal-cache:${TEST_UID}-race`)
+        req.onsuccess = req.onerror = req.onblocked = () => resolve()
+      })
+    }
+  })
 })
