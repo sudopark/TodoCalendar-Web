@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import { useRepositories } from '../composition/RepositoriesProvider'
 import { useEventTagListCache } from '../repositories/caches/eventTagListCache'
 import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
 import { useForemostEventCache } from '../repositories/caches/foremostEventCache'
@@ -13,6 +14,20 @@ interface AuthGuardProps {
 export function AuthGuard({ children }: AuthGuardProps) {
   const { account, loading } = useAuthStore()
   const location = useLocation()
+  const { localStorageContainer } = useRepositories()
+
+  // LocalStorageContainer lifecycle: account.uid 변경 시 init, unmount 시 dispose
+  useEffect(() => {
+    if (!account?.uid) return
+    let cancelled = false
+    localStorageContainer.init(account.uid).catch((e) => {
+      if (!cancelled) console.warn('LocalStorageContainer init 실패:', e)
+    })
+    return () => {
+      cancelled = true
+      localStorageContainer.dispose().catch(() => {})
+    }
+  }, [account?.uid, localStorageContainer])
 
   useEffect(() => {
     if (account) {

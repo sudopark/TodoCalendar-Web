@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { AuthGuard } from '../../src/components/AuthGuard'
+import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
 import { useAuthStore } from '../../src/stores/authStore'
 import { useToastStore } from '../../src/stores/toastStore'
 
@@ -23,13 +24,22 @@ vi.mock('../../src/api/foremostApi', () => ({
   foremostApi: { getForemostEvent: vi.fn() },
 }))
 
+const fakeLocalStorageContainer = {
+  init: vi.fn().mockResolvedValue(undefined),
+  dispose: vi.fn().mockResolvedValue(undefined),
+} as any
+
+const fakeRepos = { localStorageContainer: fakeLocalStorageContainer } as any
+
 function renderWithRouter(ui: React.ReactNode) {
   return render(
     <MemoryRouter initialEntries={['/']}>
-      <Routes>
-        <Route path="/" element={ui} />
-        <Route path="/login" element={<div>로그인 페이지</div>} />
-      </Routes>
+      <RepositoriesProvider value={fakeRepos}>
+        <Routes>
+          <Route path="/" element={ui} />
+          <Route path="/login" element={<div>로그인 페이지</div>} />
+        </Routes>
+      </RepositoriesProvider>
     </MemoryRouter>
   )
 }
