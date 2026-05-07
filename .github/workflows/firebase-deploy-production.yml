@@ -13,7 +13,7 @@ jobs:
   build_and_deploy:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Copy local .env.local
         run: cp ~/.config/todocalendar/.env.local .env.local
@@ -21,6 +21,8 @@ jobs:
       - run: npm ci
 
       - run: npm run build
+        env:
+          VITE_DEPLOY_ENV: production
 
       - name: Deploy to Firebase Hosting (live channel)
         run: firebase deploy --only hosting --project todocalendar-1707723626269 --non-interactive
