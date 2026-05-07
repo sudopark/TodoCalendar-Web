@@ -2,10 +2,6 @@ import { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useRepositories } from '../composition/RepositoriesProvider'
-import { useEventTagListCache } from '../repositories/caches/eventTagListCache'
-import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
-import { useForemostEventCache } from '../repositories/caches/foremostEventCache'
-import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -14,9 +10,9 @@ interface AuthGuardProps {
 export function AuthGuard({ children }: AuthGuardProps) {
   const { account, loading } = useAuthStore()
   const location = useLocation()
-  const { localStorageContainer } = useRepositories()
+  const { localStorageContainer, eventRepo, tagRepo, foremostEventRepo } = useRepositories()
 
-  // LocalStorageContainer lifecycle: account.uid 변경 시 init, unmount 시 dispose
+  // LocalStorageContainer lifecycle (PR1 와이어링 — 그대로 유지)
   useEffect(() => {
     if (!account?.uid) return
     let cancelled = false
@@ -29,24 +25,24 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
   }, [account?.uid, localStorageContainer])
 
+  // Prefetch — Repository 기반 (cache-first 효과 자동 적용)
   useEffect(() => {
     if (account) {
       Promise.allSettled([
-        useEventTagListCache.getState().fetchAll(),
-        useCurrentTodosCache.getState().fetch(),
-        useForemostEventCache.getState().fetch(),
-        useUncompletedTodosCache.getState().fetch(),
+        tagRepo.fetchAll(),
+        eventRepo.fetchCurrentTodos(),
+        foremostEventRepo.fetch(),
+        eventRepo.fetchUncompletedTodos(),
       ]).then(results => {
         const failed = results
           .map((r, i) => r.status === 'rejected' ? ['tags', 'todos', 'foremost', 'uncompleted'][i] : null)
           .filter(Boolean)
         if (failed.length > 0) {
           console.warn('Failed to load:', failed.join(', '))
-          // Still show the app — partial data is better than blocking
         }
       })
     }
-  }, [account])
+  }, [account, eventRepo, tagRepo, foremostEventRepo])
 
   if (loading) {
     return (

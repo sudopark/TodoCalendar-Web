@@ -15,22 +15,6 @@ vi.mock('../../src/stores/authStore', () => ({
   },
 }))
 
-// AuthGuard 가 prefetch 하는 cache 들 모킹 — 에러 없이 흘려보내기
-vi.mock('../../src/api/eventTagApi', () => ({
-  eventTagApi: { getAllTags: vi.fn().mockResolvedValue([]) },
-}))
-
-vi.mock('../../src/api/todoApi', () => ({
-  todoApi: {
-    getCurrentTodos: vi.fn().mockResolvedValue([]),
-    getUncompletedTodos: vi.fn().mockResolvedValue([]),
-  },
-}))
-
-vi.mock('../../src/api/foremostApi', () => ({
-  foremostApi: { getForemostEvent: vi.fn().mockResolvedValue(null) },
-}))
-
 vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 
 describe('AuthGuard — LocalStorageContainer lifecycle', () => {
@@ -46,6 +30,9 @@ describe('AuthGuard — LocalStorageContainer lifecycle', () => {
 
     const fakeRepos = {
       localStorageContainer: container,
+      eventRepo: { fetchCurrentTodos: vi.fn().mockResolvedValue(undefined), fetchUncompletedTodos: vi.fn().mockResolvedValue(undefined) },
+      tagRepo: { fetchAll: vi.fn().mockResolvedValue(undefined) },
+      foremostEventRepo: { fetch: vi.fn().mockResolvedValue(undefined) },
     } as any
 
     // when
@@ -69,7 +56,12 @@ describe('AuthGuard — LocalStorageContainer lifecycle', () => {
     const disposeSpy = vi.spyOn(container, 'dispose')
     accountSubject.account = { uid: 'user-1' }
 
-    const fakeRepos = { localStorageContainer: container } as any
+    const fakeRepos = {
+      localStorageContainer: container,
+      eventRepo: { fetchCurrentTodos: vi.fn().mockResolvedValue(undefined), fetchUncompletedTodos: vi.fn().mockResolvedValue(undefined) },
+      tagRepo: { fetchAll: vi.fn().mockResolvedValue(undefined) },
+      foremostEventRepo: { fetch: vi.fn().mockResolvedValue(undefined) },
+    } as any
 
     // when
     const { unmount } = render(

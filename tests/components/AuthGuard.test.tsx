@@ -12,24 +12,30 @@ vi.mock('../../src/stores/authStore', () => ({
   useAuthStore: vi.fn(),
 }))
 
-vi.mock('../../src/api/eventTagApi', () => ({
-  eventTagApi: { getAllTags: vi.fn() },
-}))
-
-vi.mock('../../src/api/todoApi', () => ({
-  todoApi: { getCurrentTodos: vi.fn() },
-}))
-
-vi.mock('../../src/api/foremostApi', () => ({
-  foremostApi: { getForemostEvent: vi.fn() },
-}))
-
 const fakeLocalStorageContainer = {
   init: vi.fn().mockResolvedValue(undefined),
   dispose: vi.fn().mockResolvedValue(undefined),
 } as any
 
-const fakeRepos = { localStorageContainer: fakeLocalStorageContainer } as any
+const fakeEventRepo = {
+  fetchCurrentTodos: vi.fn().mockResolvedValue(undefined),
+  fetchUncompletedTodos: vi.fn().mockResolvedValue(undefined),
+} as any
+
+const fakeTagRepo = {
+  fetchAll: vi.fn().mockResolvedValue(undefined),
+} as any
+
+const fakeForemostEventRepo = {
+  fetch: vi.fn().mockResolvedValue(undefined),
+} as any
+
+const fakeRepos = {
+  localStorageContainer: fakeLocalStorageContainer,
+  eventRepo: fakeEventRepo,
+  tagRepo: fakeTagRepo,
+  foremostEventRepo: fakeForemostEventRepo,
+} as any
 
 function renderWithRouter(ui: React.ReactNode) {
   return render(
@@ -45,14 +51,13 @@ function renderWithRouter(ui: React.ReactNode) {
 }
 
 describe('AuthGuard', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks()
-    const { eventTagApi } = await import('../../src/api/eventTagApi')
-    const { todoApi } = await import('../../src/api/todoApi')
-    const { foremostApi } = await import('../../src/api/foremostApi')
-    vi.mocked(eventTagApi.getAllTags).mockResolvedValue([])
-    vi.mocked(todoApi.getCurrentTodos).mockResolvedValue([])
-    vi.mocked(foremostApi.getForemostEvent).mockResolvedValue(null)
+    // clearAllMocks 이후 fakeRepo 기본 구현 복원
+    fakeEventRepo.fetchCurrentTodos.mockResolvedValue(undefined)
+    fakeEventRepo.fetchUncompletedTodos.mockResolvedValue(undefined)
+    fakeTagRepo.fetchAll.mockResolvedValue(undefined)
+    fakeForemostEventRepo.fetch.mockResolvedValue(undefined)
     useToastStore.setState({ toasts: [] })
   })
 
@@ -84,9 +89,8 @@ describe('AuthGuard', () => {
   })
 
   it('로그인 후 일부 데이터 로드에 실패해도 앱은 계속 표시된다', async () => {
-    // given: 태그 API가 실패하도록 설정 (부분 실패)
-    const { eventTagApi } = await import('../../src/api/eventTagApi')
-    vi.mocked(eventTagApi.getAllTags).mockRejectedValue(new Error('network'))
+    // given: 태그 Repository fetch 가 실패하도록 설정 (부분 실패)
+    fakeTagRepo.fetchAll.mockRejectedValue(new Error('network'))
 
     // when: 로그인 상태로 렌더링
     vi.mocked(useAuthStore).mockReturnValue({
