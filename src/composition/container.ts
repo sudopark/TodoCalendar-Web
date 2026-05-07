@@ -19,14 +19,15 @@ import { AuthRepository } from '../repositories/AuthRepository'
 import { SettingsRepository } from '../repositories/SettingsRepository'
 import { LocalStorageContainer } from '../repositories/local-storage/LocalStorageContainer'
 
+const localStorageContainer = new LocalStorageContainer()
+
 const holidayRepo = new HolidayRepository({
   api: holidayApi,
   initialLocale: i18n.language || 'en',
+  localStorageContainer,
 })
 // composition root 에서만 i18n 이벤트 처리 — Repository 자체는 i18n 무지
 i18n.on('languageChanged', (lng: string) => holidayRepo.setLocale(lng))
-
-const localStorageContainer = new LocalStorageContainer()
 
 const authRepo = new AuthRepository({ api: firebaseAuthApi, localStorageContainer })
 
@@ -46,12 +47,12 @@ export interface Repositories {
 }
 
 export const repositories: Repositories = {
-  eventRepo: new EventRepository({ todoApi, scheduleApi }),
+  eventRepo: new EventRepository({ todoApi, scheduleApi, localStorageContainer }),
   eventDetailRepo: new EventDetailRepository({ api: eventDetailApi }),
-  tagRepo: new TagRepository({ eventTagApi, settingApi }),
+  tagRepo: new TagRepository({ eventTagApi, settingApi, localStorageContainer }),
   holidayRepo,
-  doneTodoRepo: new DoneTodoRepository({ api: doneTodoApi }),
-  foremostEventRepo: new ForemostEventRepository({ api: foremostApi }),
+  doneTodoRepo: new DoneTodoRepository({ api: doneTodoApi, localStorageContainer }),
+  foremostEventRepo: new ForemostEventRepository({ api: foremostApi, localStorageContainer }),
   authRepo,
   settingsRepo: new SettingsRepository(),
   localStorageContainer,
