@@ -3,6 +3,8 @@ import type { Todo } from '../models/Todo'
 import type { RevertDoneTodoResponse } from '../api/doneTodoApi'
 import type { LocalStorageContainer } from './local-storage/LocalStorageContainer'
 import { useDoneTodosCache } from './caches/doneTodosCache'
+import { useCalendarEventsCache } from './caches/calendarEventsCache'
+import { useCurrentTodosCache } from './caches/currentTodosCache'
 
 const PAGE_SIZE = 20
 
@@ -81,9 +83,20 @@ export class DoneTodoRepository {
     const response = await this.deps.api.revertDoneTodo(id)
     const local = this.deps.localStorageContainer
     if (local?.isInitialized()) {
-      try { await local.doneTodo().removeDoneTodos([id]) } catch (e) { console.warn('LocalStorage doneTodo revert 실패:', e) }
+      try {
+        await local.doneTodo().removeDoneTodos([id])
+        // 복원된 todo 도 LocalStorage 에 저장
+        await local.todo().saveTodos([response.todo])
+      } catch (e) { console.warn('LocalStorage doneTodo revert 실패:', e) }
     }
+    // 메모리: doneTodos 에서 제거 + 관련 todo 캐시들에 추가
     useDoneTodosCache.getState().removeItem(id)
+    if (response.todo.event_time) {
+      useCalendarEventsCache.getState().addEvent({ type: 'todo', event: response.todo })
+    }
+    if (response.todo.is_current) {
+      useCurrentTodosCache.getState().addTodo(response.todo)
+    }
     return response.todo
   }
 

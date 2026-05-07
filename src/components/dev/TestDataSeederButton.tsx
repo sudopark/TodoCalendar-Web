@@ -7,7 +7,7 @@ import { useToastStore } from '../../stores/toastStore'
 
 export default function TestDataSeederButton() {
   const [running, setRunning] = useState(false)
-  const { tagRepo, eventRepo, foremostEventRepo } = useRepositories()
+  const { tagRepo, eventRepo, foremostEventRepo, doneTodoRepo } = useRepositories()
 
   async function handleClick() {
     if (running) return
@@ -35,8 +35,8 @@ export default function TestDataSeederButton() {
       ])
 
       // Done todos는 페이지네이션 상태 초기화 후 첫 페이지 재로딩
-      useDoneTodosCache.setState({ items: [], cursor: null, hasMore: true, isLoading: false })
-      await useDoneTodosCache.getState().fetchNext().catch(() => {})
+      useDoneTodosCache.getState().reset()
+      await doneTodoRepo.fetchNextPage().catch(() => {})
 
       const totalErrors = cleanupErrors.length + result.errors.length
       const summary =

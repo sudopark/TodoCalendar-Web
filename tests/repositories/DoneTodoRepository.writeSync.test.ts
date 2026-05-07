@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { DoneTodoRepository } from '../../src/repositories/DoneTodoRepository'
 import { LocalStorageContainer } from '../../src/repositories/local-storage/LocalStorageContainer'
+import { useDoneTodosCache } from '../../src/repositories/caches/doneTodosCache'
+import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
+import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 import type { DoneTodo } from '../../src/models/DoneTodo'
 import type { Todo } from '../../src/models/Todo'
 
@@ -41,6 +44,60 @@ describe('DoneTodoRepository — mutation LocalStorage write sync', () => {
     await repo.revert('d-1')
 
     expect(await container.doneTodo().loadDoneTodo('d-1')).toBeNull()
+  })
+
+  it('revert 후 복원된 todo 가 LocalStorage todo 에 저장된다 (I2)', async () => {
+    // given
+    await container.doneTodo().saveDoneTodos([doneOf('d-1')])
+    const restored = todoOf('o-d-1')
+    doneApi.revertDoneTodo.mockResolvedValue({ todo: restored })
+
+    const repo = new DoneTodoRepository({ api: doneApi as any, localStorageContainer: container })
+
+    // when
+    await repo.revert('d-1')
+
+    // then: 복원된 todo 가 LocalStorage todo store 에 저장됐는지 확인
+    expect(await container.todo().loadTodo(restored.uuid)).not.toBeNull()
+  })
+
+  it('revert 된 todo 가 event_time 을 가지면 calendarEventsCache 에 추가된다 (I2)', async () => {
+    // given: event_time 을 보유한 todo
+    const todoWithTime: Todo = {
+      ...todoOf('o-d-2'),
+      event_time: { time_type: 'at', timestamp: 1000 },
+      is_current: false,
+    }
+    await container.doneTodo().saveDoneTodos([doneOf('d-2')])
+    doneApi.revertDoneTodo.mockResolvedValue({ todo: todoWithTime })
+
+    useCalendarEventsCache.getState().reset()
+    const repo = new DoneTodoRepository({ api: doneApi as any, localStorageContainer: container })
+
+    // when
+    await repo.revert('d-2')
+
+    // then: calendarEventsCache 에 해당 todo 가 포함됨
+    const events = useCalendarEventsCache.getState().eventsByDate
+    const found = Array.from(events.values()).flat().find(e => e.type === 'todo' && e.event.uuid === todoWithTime.uuid)
+    expect(found).toBeDefined()
+  })
+
+  it('revert 된 todo 가 is_current 이면 currentTodosCache 에 추가된다 (I2)', async () => {
+    // given: is_current 인 todo
+    const currentTodo: Todo = { ...todoOf('o-d-3'), is_current: true, event_time: null }
+    await container.doneTodo().saveDoneTodos([doneOf('d-3')])
+    doneApi.revertDoneTodo.mockResolvedValue({ todo: currentTodo })
+
+    useCurrentTodosCache.getState().reset()
+    const repo = new DoneTodoRepository({ api: doneApi as any, localStorageContainer: container })
+
+    // when
+    await repo.revert('d-3')
+
+    // then: currentTodosCache 에 해당 todo 가 포함됨
+    const todos = useCurrentTodosCache.getState().todos
+    expect(todos.find(t => t.uuid === currentTodo.uuid)).toBeDefined()
   })
 
   it('remove 후 LocalStorage 의 doneTodo 가 제거된다', async () => {

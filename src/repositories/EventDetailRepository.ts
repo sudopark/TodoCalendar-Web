@@ -16,9 +16,20 @@ interface Deps {
 export class EventDetailRepository {
   private readonly deps: Deps
   private readonly cache: Map<string, EventDetail | null> = new Map()
+  private readonly generations: Map<string, number> = new Map()
 
   constructor(deps: Deps) {
     this.deps = deps
+  }
+
+  private currentGeneration(id: string): number {
+    return this.generations.get(id) ?? 0
+  }
+
+  private bumpGeneration(id: string): number {
+    const next = (this.generations.get(id) ?? 0) + 1
+    this.generations.set(id, next)
+    return next
   }
 
   async get(eventId: string): Promise<EventDetail | null> {
@@ -34,11 +45,13 @@ export class EventDetailRepository {
         const cached = await local.eventDetail().loadDetail(eventId)
         if (cached) {
           this.cache.set(eventId, cached)
+          // generation 캡처: bg refresh 가 save/invalidate 이후 완료되면 무시한다
+          const refreshGen = this.currentGeneration(eventId)
           // 백그라운드 refresh — Remote 응답이 다르면 in-memory + LocalStorage 갱신
           ;(async () => {
             try {
               const remote = await this.deps.api.getEventDetail(eventId)
-              if (remote) {
+              if (remote && this.currentGeneration(eventId) === refreshGen) {
                 this.cache.set(eventId, remote)
                 if (local.isInitialized()) {
                   try { await local.eventDetail().saveDetail(eventId, remote) } catch {}
@@ -71,6 +84,8 @@ export class EventDetailRepository {
 
   async save(eventId: string, detail: EventDetail): Promise<EventDetail> {
     const saved = await this.deps.api.updateEventDetail(eventId, detail)
+    // bg refresh 가 save 보다 나중에 완료되어도 stale Remote 로 덮어쓰지 않도록 generation bump
+    this.bumpGeneration(eventId)
     const local = this.deps.localStorageContainer
     if (local?.isInitialized()) {
       try { await local.eventDetail().saveDetail(eventId, saved) } catch (e) { console.warn('LocalStorage event detail save 실패:', e) }
@@ -79,7 +94,12 @@ export class EventDetailRepository {
     return saved
   }
 
-  invalidate(eventId: string): void {
+  async invalidate(eventId: string): Promise<void> {
+    this.bumpGeneration(eventId)
     this.cache.delete(eventId)
+    const local = this.deps.localStorageContainer
+    if (local?.isInitialized()) {
+      try { await local.eventDetail().removeDetail(eventId) } catch (e) { console.warn('LocalStorage invalidate 실패:', e) }
+    }
   }
 }

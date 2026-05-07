@@ -4,6 +4,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DoneTodoDetailPopover } from '../../../src/components/DoneTodoDetail/DoneTodoDetailPopover'
 import { useDoneTodosCache } from '../../../src/repositories/caches/doneTodosCache'
 import { useCurrentTodosCache } from '../../../src/repositories/caches/currentTodosCache'
+import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvider'
+import type { Repositories } from '../../../src/composition/container'
+import type { DoneTodoRepository } from '../../../src/repositories/DoneTodoRepository'
 import type { DoneTodo } from '../../../src/models'
 import { useIsMobile } from '../../../src/hooks/useIsMobile'
 
@@ -57,6 +60,34 @@ beforeEach(() => {
   useCurrentTodosCache.getState().reset()
 })
 
+function makeFakeDoneTodoRepo(): DoneTodoRepository {
+  return {
+    fetchNextPage: vi.fn(async () => {}),
+    revert: vi.fn(async (id: string) => {
+      useDoneTodosCache.getState().removeItem(id)
+      return { uuid: 'todo-1', name: '완료된 일', is_current: true } as any
+    }),
+    remove: vi.fn(async (id: string) => {
+      useDoneTodosCache.getState().removeItem(id)
+    }),
+    getSnapshot: vi.fn(() => []),
+  } as unknown as DoneTodoRepository
+}
+
+function makeFakeRepos(doneTodoRepo: DoneTodoRepository): Repositories {
+  return {
+    eventRepo: {} as any,
+    eventDetailRepo: {} as any,
+    tagRepo: {} as any,
+    holidayRepo: {} as any,
+    doneTodoRepo,
+    foremostEventRepo: {} as any,
+    authRepo: {} as any,
+    settingsRepo: {} as any,
+    localStorageContainer: {} as any,
+  }
+}
+
 function renderPopover(overrides: Partial<{
   doneTodo: DoneTodo
   onClose: () => void
@@ -66,13 +97,15 @@ function renderPopover(overrides: Partial<{
 }> = {}) {
   const anchor = 'anchorRect' in overrides ? overrides.anchorRect : anchorRect
   return render(
-    <DoneTodoDetailPopover
-      doneTodo={overrides.doneTodo ?? sample}
-      anchorRect={anchor}
-      onClose={overrides.onClose ?? vi.fn()}
-      onReverted={overrides.onReverted ?? vi.fn()}
-      onDeleted={overrides.onDeleted ?? vi.fn()}
-    />,
+    <RepositoriesProvider value={makeFakeRepos(makeFakeDoneTodoRepo())}>
+      <DoneTodoDetailPopover
+        doneTodo={overrides.doneTodo ?? sample}
+        anchorRect={anchor}
+        onClose={overrides.onClose ?? vi.fn()}
+        onReverted={overrides.onReverted ?? vi.fn()}
+        onDeleted={overrides.onDeleted ?? vi.fn()}
+      />
+    </RepositoriesProvider>,
   )
 }
 

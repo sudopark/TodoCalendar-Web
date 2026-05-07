@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { doneTodoApi } from '../../api/doneTodoApi'
-import { useDoneTodosCache } from '../../repositories/caches/doneTodosCache'
+import { useRepositories } from '../../composition/RepositoriesProvider'
 import { useToastStore } from '../../stores/toastStore'
 import type { DoneTodo, EventDetail } from '../../models'
 
@@ -20,8 +20,7 @@ export function useDoneTodoDetailPopoverViewModel(
   const [isReverting, setIsReverting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  const cacheRevert = useDoneTodosCache(s => s.revert)
-  const cacheRemove = useDoneTodosCache(s => s.remove)
+  const { doneTodoRepo } = useRepositories()
 
   // useCallback deps 의 isReverting/isDeleting 으로 매 렌더마다 reference 가 깨지지 않도록
   // useRef 로 in-flight 플래그를 관리한다.
@@ -48,8 +47,7 @@ export function useDoneTodoDetailPopoverViewModel(
     revertingRef.current = true
     setIsReverting(true)
     try {
-      // cache.revert 가 응답 todo 를 currentTodosCache 에 직접 addTodo 한다 — 빈 todo 회귀 차단.
-      await cacheRevert(doneTodo.uuid)
+      await doneTodoRepo.revert(doneTodo.uuid)
       return true
     } catch (e) {
       console.warn('Done todo 되돌리기 실패:', e)
@@ -59,14 +57,14 @@ export function useDoneTodoDetailPopoverViewModel(
       revertingRef.current = false
       setIsReverting(false)
     }
-  }, [cacheRevert, doneTodo.uuid])
+  }, [doneTodoRepo, doneTodo.uuid])
 
   const remove = useCallback(async (): Promise<boolean> => {
     if (deletingRef.current) return false
     deletingRef.current = true
     setIsDeleting(true)
     try {
-      await cacheRemove(doneTodo.uuid)
+      await doneTodoRepo.remove(doneTodo.uuid)
       return true
     } catch (e) {
       console.warn('Done todo 삭제 실패:', e)
@@ -76,7 +74,7 @@ export function useDoneTodoDetailPopoverViewModel(
       deletingRef.current = false
       setIsDeleting(false)
     }
-  }, [cacheRemove, doneTodo.uuid])
+  }, [doneTodoRepo, doneTodo.uuid])
 
   return { detail, revert, remove, isReverting, isDeleting }
 }
