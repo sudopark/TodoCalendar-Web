@@ -82,8 +82,22 @@ export class TagRepository {
 
   // ── mutate: api 호출 + 캐시 갱신 ──────────────────────────────────
 
+  // LocalStorage write 를 silent fail 로 감싸는 헬퍼
+  private async writeLocal(label: string, fn: () => Promise<unknown>): Promise<void> {
+    const local = this.deps.localStorageContainer
+    if (!local?.isInitialized()) return
+    try {
+      await fn()
+    } catch (e) {
+      console.warn(`LocalStorage ${label} 실패:`, e)
+    }
+  }
+
   async createTag(name: string, color_hex?: string): Promise<EventTag> {
     const created = await this.deps.eventTagApi.createTag({ name, color_hex })
+    await this.writeLocal('createTag', () =>
+      this.deps.localStorageContainer!.eventTag().saveTags([created]),
+    )
     useEventTagListCache.getState().add(created)
     return created
   }
@@ -95,6 +109,9 @@ export class TagRepository {
       name: patch.name ?? existing.name,
       color_hex: patch.color_hex ?? existing.color_hex ?? undefined,
     })
+    await this.writeLocal('updateTag', () =>
+      this.deps.localStorageContainer!.eventTag().updateTag(updated),
+    )
     useEventTagListCache.getState().replace(updated)
     return updated
   }
@@ -106,6 +123,9 @@ export class TagRepository {
 
   async deleteTag(id: string): Promise<void> {
     await this.deps.eventTagApi.deleteTag(id)
+    await this.writeLocal('deleteTag', () =>
+      this.deps.localStorageContainer!.eventTag().removeTag(id),
+    )
     useEventTagListCache.getState().remove(id)
   }
 
