@@ -257,8 +257,22 @@ export class EventRepository {
 
   // ── mutate: api 호출 + 캐시 갱신 ──────────────────────────────────
 
+  // LocalStorage 작업을 silent fail 로 감싸는 헬퍼 — IDB 실패가 mutation 흐름을 깨지 않게
+  private async writeLocal(label: string, fn: () => Promise<unknown>): Promise<void> {
+    const local = this.deps.localStorageContainer
+    if (!local?.isInitialized()) return
+    try {
+      await fn()
+    } catch (e) {
+      console.warn(`LocalStorage ${label} 실패:`, e)
+    }
+  }
+
   async createTodo(input: TodoCreateInput): Promise<Todo> {
     const created = await this.deps.todoApi.createTodo(input)
+    await this.writeLocal('createTodo', () =>
+      this.deps.localStorageContainer!.todo().saveTodos([created]),
+    )
     if (created.event_time) {
       useCalendarEventsCache.getState().addEvent({ type: 'todo', event: created })
     }
@@ -270,6 +284,9 @@ export class EventRepository {
 
   async updateTodo(id: string, patch: TodoPatch): Promise<Todo> {
     const updated = await this.deps.todoApi.patchTodo(id, patch)
+    await this.writeLocal('updateTodo', () =>
+      this.deps.localStorageContainer!.todo().updateTodo(updated),
+    )
     useCalendarEventsCache.getState().replaceEvent(id, { type: 'todo', event: updated })
     if (updated.is_current) {
       // 이미 목록에 있으면 교체, 없으면 추가 (is_current가 새로 true가 된 경우)
@@ -287,6 +304,9 @@ export class EventRepository {
 
   async deleteTodo(id: string): Promise<void> {
     await this.deps.todoApi.deleteTodo(id)
+    await this.writeLocal('deleteTodo', () =>
+      this.deps.localStorageContainer!.todo().removeTodos([id]),
+    )
     useCalendarEventsCache.getState().removeEvent(id)
     useCurrentTodosCache.getState().removeTodo(id)
   }
@@ -296,6 +316,9 @@ export class EventRepository {
       event_time: nextEventTime,
       repeating_turn: nextTurn,
     })
+    await this.writeLocal('patchTodoNextOccurrence', () =>
+      this.deps.localStorageContainer!.todo().updateTodo(updated),
+    )
     useCalendarEventsCache.getState().replaceEvent(id, { type: 'todo', event: updated })
     return updated
   }
@@ -306,6 +329,13 @@ export class EventRepository {
     body: Parameters<TodoApi['replaceTodo']>[1],
   ): Promise<{ new_todo: Todo; next_repeating: Todo | undefined }> {
     const result = await this.deps.todoApi.replaceTodo(id, body)
+    await this.writeLocal('replaceTodoThisScope', async () => {
+      const local = this.deps.localStorageContainer!
+      await local.todo().removeTodos([id])
+      const toSave: Todo[] = [result.new_todo]
+      if (result.next_repeating) toSave.push(result.next_repeating)
+      await local.todo().saveTodos(toSave)
+    })
     useCalendarEventsCache.getState().removeEvent(id)
     if (result.new_todo.event_time) {
       useCalendarEventsCache.getState().addEvent({ type: 'todo', event: result.new_todo })
@@ -320,23 +350,35 @@ export class EventRepository {
 
   async createSchedule(input: ScheduleCreateInput): Promise<Schedule> {
     const created = await this.deps.scheduleApi.createSchedule(input)
+    await this.writeLocal('createSchedule', () =>
+      this.deps.localStorageContainer!.schedule().saveSchedules([created]),
+    )
     useCalendarEventsCache.getState().addEvent({ type: 'schedule', event: created })
     return created
   }
 
   async updateSchedule(id: string, patch: SchedulePatch): Promise<Schedule> {
     const updated = await this.deps.scheduleApi.updateSchedule(id, patch)
+    await this.writeLocal('updateSchedule', () =>
+      this.deps.localStorageContainer!.schedule().updateSchedule(updated),
+    )
     useCalendarEventsCache.getState().replaceEvent(id, { type: 'schedule', event: updated })
     return updated
   }
 
   async deleteSchedule(id: string): Promise<void> {
     await this.deps.scheduleApi.deleteSchedule(id)
+    await this.writeLocal('deleteSchedule', () =>
+      this.deps.localStorageContainer!.schedule().removeSchedules([id]),
+    )
     useCalendarEventsCache.getState().removeEvent(id)
   }
 
   async excludeScheduleRepeating(id: string, excludeTurns: number[]): Promise<Schedule> {
     const updated = await this.deps.scheduleApi.excludeRepeating(id, { exclude_repeatings: excludeTurns })
+    await this.writeLocal('excludeScheduleRepeating', () =>
+      this.deps.localStorageContainer!.schedule().updateSchedule(updated),
+    )
     useCalendarEventsCache.getState().replaceEvent(id, { type: 'schedule', event: updated })
     return updated
   }
@@ -354,10 +396,20 @@ export class EventRepository {
       if (next?.time) {
         const nextTurn = next.turn ?? (todo.repeating_turn ?? 1) + 1
         const advanced: Todo = { ...todo, event_time: next.time, repeating_turn: nextTurn }
+        await this.writeLocal('completeTodo (this+next)', async () => {
+          const local = this.deps.localStorageContainer!
+          await local.todo().updateTodo(advanced)
+          await local.doneTodo().saveDoneTodos([done])
+        })
         useCalendarEventsCache.getState().replaceEvent(todo.uuid, { type: 'todo', event: advanced })
         useCurrentTodosCache.getState().replaceTodo(advanced)
         useUncompletedTodosCache.getState().removeTodo(todo.uuid)
       } else {
+        await this.writeLocal('completeTodo (this+end)', async () => {
+          const local = this.deps.localStorageContainer!
+          await local.todo().removeTodos([todo.uuid])
+          await local.doneTodo().saveDoneTodos([done])
+        })
         useCalendarEventsCache.getState().removeEvent(todo.uuid)
         useCurrentTodosCache.getState().removeTodo(todo.uuid)
         useUncompletedTodosCache.getState().removeTodo(todo.uuid)
@@ -369,6 +421,11 @@ export class EventRepository {
       const startTs = getStartTimestamp(todo.event_time!)
       await this.deps.todoApi.patchTodo(todo.uuid, { repeating: { ...todo.repeating, end: startTs - 1 } })
       const done = await this.deps.todoApi.completeTodo(todo.uuid, { origin: todo })
+      await this.writeLocal('completeTodo (future)', async () => {
+        const local = this.deps.localStorageContainer!
+        await local.todo().removeTodos([todo.uuid])
+        await local.doneTodo().saveDoneTodos([done])
+      })
       useCalendarEventsCache.getState().removeEvent(todo.uuid)
       useCurrentTodosCache.getState().removeTodo(todo.uuid)
       useUncompletedTodosCache.getState().removeTodo(todo.uuid)
@@ -376,6 +433,11 @@ export class EventRepository {
     }
 
     const done = await this.deps.todoApi.completeTodo(todo.uuid, { origin: todo })
+    await this.writeLocal('completeTodo (all)', async () => {
+      const local = this.deps.localStorageContainer!
+      await local.todo().removeTodos([todo.uuid])
+      await local.doneTodo().saveDoneTodos([done])
+    })
     useCalendarEventsCache.getState().removeEvent(todo.uuid)
     useCurrentTodosCache.getState().removeTodo(todo.uuid)
     useUncompletedTodosCache.getState().removeTodo(todo.uuid)
