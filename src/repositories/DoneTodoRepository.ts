@@ -32,10 +32,38 @@ export class DoneTodoRepository {
   async fetchNextPage(): Promise<void> {
     const { hasMore, cursor } = useDoneTodosCache.getState()
     if (!hasMore) return
+    const local = this.deps.localStorageContainer
+    const isFirstPage = cursor === null || cursor === undefined
+
+    // 1. 첫 페이지 진입 시에만 cache-first: LocalStorage recent 로 메모리 즉시 set
+    if (isFirstPage && local?.isInitialized()) {
+      try {
+        const cached = await local.doneTodo().loadRecent(PAGE_SIZE)
+        if (cached.length > 0) {
+          const last = cached[cached.length - 1]
+          const nextCursor = last?.done_at ?? null
+          useDoneTodosCache.getState().appendPage(cached, nextCursor, cached.length === PAGE_SIZE && nextCursor !== null)
+        }
+      } catch (e) {
+        console.warn('LocalStorage doneTodos cache read 실패:', e)
+      }
+    }
+
+    // 2. Remote 호출 — cursor は첫 페이지라면 undefined, 이후엔 캐시가 보유한 cursor 사용
     const fetched = await this.deps.api.getDoneTodos(PAGE_SIZE, cursor ?? undefined)
     const last = fetched[fetched.length - 1]
     const nextCursor = last?.done_at ?? null
     const newHasMore = fetched.length === PAGE_SIZE && nextCursor !== null
+
+    // 3. LocalStorage save (uuid 덮어쓰기로 누적)
+    if (local?.isInitialized()) {
+      try { await local.doneTodo().saveDoneTodos(fetched) } catch {}
+    }
+
+    // 4. 첫 페이지면 cache-first 로 임시 채운 메모리를 reset 후 Remote 데이터로 교체
+    if (isFirstPage) {
+      useDoneTodosCache.getState().reset()
+    }
     useDoneTodosCache.getState().appendPage(fetched, nextCursor, newHasMore)
   }
 
