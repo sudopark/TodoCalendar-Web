@@ -46,10 +46,13 @@ export interface Repositories {
   localStorageContainer: LocalStorageContainer
 }
 
+const eventRepo = new EventRepository({ todoApi, scheduleApi, localStorageContainer })
+const tagRepo = new TagRepository({ eventTagApi, settingApi, localStorageContainer, eventRepo })
+
 export const repositories: Repositories = {
-  eventRepo: new EventRepository({ todoApi, scheduleApi, localStorageContainer }),
+  eventRepo,
   eventDetailRepo: new EventDetailRepository({ api: eventDetailApi }),
-  tagRepo: new TagRepository({ eventTagApi, settingApi, localStorageContainer }),
+  tagRepo,
   holidayRepo,
   doneTodoRepo: new DoneTodoRepository({ api: doneTodoApi, localStorageContainer }),
   foremostEventRepo: new ForemostEventRepository({ api: foremostApi, localStorageContainer }),
