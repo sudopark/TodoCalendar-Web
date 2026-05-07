@@ -1,10 +1,8 @@
 import { createPortal } from 'react-dom'
 import { useEffect, useId } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { TFunction } from 'i18next'
 import { Pencil, Trash2, X, Clock, Repeat, Bell, MapPin, FileText, Link2 } from 'lucide-react'
 import type { CalendarEvent } from '../../domain/functions/eventTime'
-import type { Repeating } from '../../models'
 import { displayPlace } from '../../models/EventDetail'
 import { useResolvedEventTag } from '../../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../../domain/functions/tagDisplay'
@@ -13,18 +11,7 @@ import { useEventDetailPopoverViewModel } from './useEventDetailPopoverViewModel
 import { formatNotification } from '../../utils/formatNotification'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { BottomSheet } from '../ui/BottomSheet'
-
-function repeatingLabel(repeating: Repeating, t: TFunction): string {
-  const { option } = repeating
-  switch (option.optionType) {
-    case 'every_day': return t('repeat.every_day', { n: option.interval })
-    case 'every_week': return t('repeat.every_week', { n: option.interval })
-    case 'every_month': return t('repeat.every_month', { n: option.interval })
-    case 'every_year': return t('repeat.every_year', { n: option.interval })
-    case 'every_year_some_day': return t('repeat.every_year_some_day')
-    case 'lunar_calendar_every_year': return `${t('repeat.every_year', { n: 1 })} (${t('repeat.lunar')})`
-  }
-}
+import { describeRepeating } from '../../domain/functions/repeatingDescription'
 
 const ACTION_BTN = 'p-1.5 rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors'
 const INFO_ROW = 'flex items-start gap-2 text-info text-fg-secondary leading-snug'
@@ -136,7 +123,7 @@ export function EventDetailPopover({
         {repeating && (
           <div className={INFO_ROW} data-testid="repeating-info">
             <Repeat className={INFO_ICON} />
-            <span className="min-w-0">{repeatingLabel(repeating, t)}</span>
+            <span className="min-w-0">{describeRepeating(repeating)}</span>
           </div>
         )}
 
