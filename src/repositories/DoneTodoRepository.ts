@@ -79,12 +79,20 @@ export class DoneTodoRepository {
 
   async revert(id: string): Promise<Todo> {
     const response = await this.deps.api.revertDoneTodo(id)
+    const local = this.deps.localStorageContainer
+    if (local?.isInitialized()) {
+      try { await local.doneTodo().removeDoneTodos([id]) } catch (e) { console.warn('LocalStorage doneTodo revert 실패:', e) }
+    }
     useDoneTodosCache.getState().removeItem(id)
     return response.todo
   }
 
   async remove(id: string): Promise<void> {
     await this.deps.api.deleteDoneTodo(id)
+    const local = this.deps.localStorageContainer
+    if (local?.isInitialized()) {
+      try { await local.doneTodo().removeDoneTodos([id]) } catch (e) { console.warn('LocalStorage doneTodo remove 실패:', e) }
+    }
     useDoneTodosCache.getState().removeItem(id)
   }
 }
