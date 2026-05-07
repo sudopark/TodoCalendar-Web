@@ -2,6 +2,8 @@ import type { EventTag } from '../models/EventTag'
 import type { DefaultTagColors } from '../models/DefaultTagColors'
 import type { LocalStorageContainer } from './local-storage/LocalStorageContainer'
 import { useEventTagListCache } from './caches/eventTagListCache'
+import { useCalendarEventsCache } from './caches/calendarEventsCache'
+import type { EventRepository } from './EventRepository'
 
 // ── API 인터페이스 명시적 정의 ────────────────────────────────────────
 // eventTagApi/settingApi 모듈의 실제 시그니처와 동기를 유지해야 한다.
@@ -23,6 +25,7 @@ interface Deps {
   eventTagApi: EventTagApi
   settingApi: SettingApi
   localStorageContainer?: LocalStorageContainer
+  eventRepo?: EventRepository  // cascade 용 (optional — 미주입 시 cascade 생략)
 }
 
 export class TagRepository {
@@ -109,6 +112,22 @@ export class TagRepository {
   async deleteTagAndEvents(id: string): Promise<void> {
     await this.deps.eventTagApi.deleteTagAndEvents(id)
     useEventTagListCache.getState().remove(id)
-    // 이벤트 캐시 cascading 정리는 다음 task 에서 EventRepository 와 협업 필요 — 본 task 범위 외
+
+    // Cascade: 서버측에서 그 태그가 붙은 이벤트도 모두 삭제하므로
+    // 클라이언트의 calendar events / current todos / uncompleted todos 를 모두 재fetch.
+    // eventRepo 미주입이면 cascade 생략 (호환성 — 테스트 등에서 의존성 안 넣어도 동작).
+    const eventRepo = this.deps.eventRepo
+    if (!eventRepo) return
+
+    // loadedYears 를 invalidate 해야 fetchEventsForYear 의 short-circuit 을 피할 수 있다.
+    const loadedYears = Array.from(useCalendarEventsCache.getState().loadedYears)
+    if (loadedYears.length > 0) {
+      useCalendarEventsCache.getState().invalidateYears(loadedYears)
+      await Promise.allSettled(loadedYears.map((y) => eventRepo.fetchEventsForYear(y)))
+    }
+    await Promise.allSettled([
+      eventRepo.fetchCurrentTodos(),
+      eventRepo.fetchUncompletedTodos(),
+    ])
   }
 }
