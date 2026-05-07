@@ -32,13 +32,36 @@ export class TagRepository {
     this.deps = deps
   }
 
-  // ── fetch: 서버 → 캐시 ────────────────────────────────────────────
+  // ── fetch: cache-first → 서버 → 캐시 ────────────────────────────────
 
   async fetchAll(): Promise<void> {
+    const local = this.deps.localStorageContainer
+
+    // 1. Cache-first: LocalStorage → 메모리 즉시 set
+    if (local?.isInitialized()) {
+      try {
+        const cached = await local.eventTag().loadAll()
+        if (cached.length > 0) {
+          useEventTagListCache.getState().replaceAll(cached, useEventTagListCache.getState().defaultTagColors)
+        }
+      } catch (e) {
+        console.warn('LocalStorage tags cache read 실패:', e)
+      }
+    }
+
+    // 2. Remote → LocalStorage replace + 메모리 갱신
     const [tags, defaultColors] = await Promise.all([
       this.deps.eventTagApi.getAllTags(),
       this.deps.settingApi.getDefaultTagColors().catch(() => null),
     ])
+    if (local?.isInitialized()) {
+      try {
+        await local.eventTag().reset()
+        await local.eventTag().saveTags(tags)
+      } catch (e) {
+        console.warn('LocalStorage tags replace 실패:', e)
+      }
+    }
     useEventTagListCache.getState().replaceAll(tags, defaultColors)
   }
 
