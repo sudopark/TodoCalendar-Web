@@ -25,6 +25,7 @@ interface DoneTodosCacheState {
   // ── cache primitive operations (used by DoneTodoRepository) ───────
   replaceAll: (items: DoneTodo[]) => void
   appendPage: (items: DoneTodo[], nextCursor: number | null, hasMore: boolean) => void
+  prependItem: (doneTodo: DoneTodo) => void
   removeItem: (id: string) => void
   reset: () => void
 }
@@ -51,6 +52,10 @@ export const useDoneTodosCache = create<DoneTodosCacheState>((set, _get) => ({
 
   appendPage: (items: DoneTodo[], nextCursor: number | null, hasMore: boolean) => {
     set(s => ({ items: [...s.items, ...items], cursor: nextCursor, hasMore }))
+  },
+
+  prependItem: (doneTodo: DoneTodo) => {
+    set(s => ({ items: [doneTodo, ...s.items] }))
   },
 
   removeItem: (id: string) => {

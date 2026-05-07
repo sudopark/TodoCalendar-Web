@@ -87,4 +87,32 @@ describe('useDoneTodosCache — primitive operations', () => {
     const state = useDoneTodosCache.getState()
     expect(state.items.map(i => i.uuid)).toEqual(['n1', 'n2'])
   })
+
+  it('prependItem 호출 시 새 항목이 목록 최상단(인덱스 0)에 추가된다', () => {
+    // given: 기존 items
+    useDoneTodosCache.setState({ items: [makeDone('old1', 2000), makeDone('old2', 1000)] })
+    const newDone = makeDone('new-done', 3000)
+
+    // when
+    useDoneTodosCache.getState().prependItem(newDone as any)
+
+    // then: 새 항목이 최상단에 위치해야 한다
+    const state = useDoneTodosCache.getState()
+    expect(state.items[0].uuid).toBe('new-done')
+    expect(state.items.map(i => i.uuid)).toEqual(['new-done', 'old1', 'old2'])
+  })
+
+  it('prependItem 호출 시 기존 목록이 비어있어도 단일 항목으로 채워진다', () => {
+    // given: 빈 목록
+    useDoneTodosCache.getState().reset()
+    const newDone = makeDone('first-done', 5000)
+
+    // when
+    useDoneTodosCache.getState().prependItem(newDone as any)
+
+    // then
+    const state = useDoneTodosCache.getState()
+    expect(state.items).toHaveLength(1)
+    expect(state.items[0].uuid).toBe('first-done')
+  })
 })
