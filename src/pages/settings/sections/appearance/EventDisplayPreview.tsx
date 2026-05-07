@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { PRESET_COLORS } from '../../../../components/ColorPalette'
 import type { EventDisplayLevel } from '../../../../repositories/caches/settingsCache'
 
@@ -9,20 +10,6 @@ const C_PURPLE = 7  // #6800f2
 const C_YELLOW = 5  // #F6DC41
 const C_PINK = 3    // #FD838F
 
-const SAMPLE_EVENTS_BY_DAY: { day: number; name: string; color: string }[][] = [
-  [{ day: 1, name: '회의', color: PRESET_COLORS[C_BLUE] }],
-  [{ day: 2, name: '커피챗', color: PRESET_COLORS[C_ORANGE] }, { day: 2, name: '리뷰 PR', color: PRESET_COLORS[C_GREEN] }],
-  [
-    { day: 3, name: '디자인 리뷰', color: PRESET_COLORS[C_PURPLE] },
-    { day: 3, name: '점심 약속', color: PRESET_COLORS[C_YELLOW] },
-    { day: 3, name: '운동', color: PRESET_COLORS[C_GREEN] },
-  ],
-  [{ day: 4, name: '주간 리포트', color: PRESET_COLORS[C_BLUE] }],
-  [],
-  [{ day: 6, name: '생일 🎂', color: PRESET_COLORS[C_PINK] }],
-  [],
-]
-
 interface Props {
   eventDisplayLevel: EventDisplayLevel
   eventFontSizeWeight: number
@@ -33,9 +20,24 @@ interface Props {
  * 이벤트 표시 레벨 미리보기 — minimal/medium/full 차이를 한 행으로 시연
  */
 export function EventDisplayPreview({ eventDisplayLevel, eventFontSizeWeight, showEventNames }: Props) {
+  const { t } = useTranslation()
   const fontSize = `${10 + eventFontSizeWeight}px`
 
-  const renderCell = (idx: number, events: typeof SAMPLE_EVENTS_BY_DAY[number]) => {
+  const sampleEventsByDay: { day: number; name: string; color: string }[][] = [
+    [{ day: 1, name: t('settings.preview_event.meeting'), color: PRESET_COLORS[C_BLUE] }],
+    [{ day: 2, name: t('settings.preview_event.coffee_chat'), color: PRESET_COLORS[C_ORANGE] }, { day: 2, name: t('settings.preview_event.review_pr'), color: PRESET_COLORS[C_GREEN] }],
+    [
+      { day: 3, name: t('settings.preview_event.design_review'), color: PRESET_COLORS[C_PURPLE] },
+      { day: 3, name: t('settings.preview_event.lunch'), color: PRESET_COLORS[C_YELLOW] },
+      { day: 3, name: t('settings.preview_event.exercise'), color: PRESET_COLORS[C_GREEN] },
+    ],
+    [{ day: 4, name: t('settings.preview_event.weekly_report'), color: PRESET_COLORS[C_BLUE] }],
+    [],
+    [{ day: 6, name: t('settings.preview_event.birthday'), color: PRESET_COLORS[C_PINK] }],
+    [],
+  ]
+
+  const renderCell = (idx: number, events: typeof sampleEventsByDay[number]) => {
     if (eventDisplayLevel === 'minimal') {
       return (
         <div className="flex flex-col items-stretch">
@@ -75,7 +77,7 @@ export function EventDisplayPreview({ eventDisplayLevel, eventFontSizeWeight, sh
   return (
     <div className="rounded-lg border border-line bg-surface p-4">
       <div className="grid grid-cols-7 gap-1">
-        {SAMPLE_EVENTS_BY_DAY.map((events, i) => (
+        {sampleEventsByDay.map((events, i) => (
           <div key={i} className="min-h-[60px] p-1 border-r border-line last:border-r-0">
             {renderCell(i, events)}
           </div>
