@@ -57,10 +57,40 @@ export class EventRepository {
   // year: 연도(4자리), month: 0-indexed 월 (JS Date 규약)
   async fetchMonth(year: number, month: number): Promise<void> {
     const range = monthRange(year, month)
+    const local = this.deps.localStorageContainer
+
+    // 1. Cache-first
+    if (local?.isInitialized()) {
+      try {
+        const [cTodos, cSchedules] = await Promise.all([
+          local.todo().loadTodos(range),
+          local.schedule().loadSchedules(range),
+        ])
+        if (cTodos.length > 0 || cSchedules.length > 0) {
+          useCalendarEventsCache.getState().replaceMonth(year, month, cTodos, cSchedules)
+        }
+      } catch (e) {
+        console.warn('LocalStorage cache read 실패:', e)
+      }
+    }
+
+    // 2. Remote
     const [todos, schedules] = await Promise.all([
       this.deps.todoApi.getTodos(range.lower, range.upper),
       this.deps.scheduleApi.getSchedules(range.lower, range.upper),
     ])
+    if (local?.isInitialized()) {
+      try {
+        const existingTodos = await local.todo().loadTodos(range)
+        await local.todo().removeTodos(existingTodos.map(t => t.uuid))
+        await local.todo().saveTodos(todos)
+        const existingSchedules = await local.schedule().loadSchedules(range)
+        await local.schedule().removeSchedules(existingSchedules.map(s => s.uuid))
+        await local.schedule().saveSchedules(schedules)
+      } catch (e) {
+        console.warn('LocalStorage replaceCache 실패:', e)
+      }
+    }
     useCalendarEventsCache.getState().replaceMonth(year, month, todos, schedules)
   }
 
@@ -128,13 +158,61 @@ export class EventRepository {
   }
 
   async fetchCurrentTodos(): Promise<void> {
+    const local = this.deps.localStorageContainer
+
+    // 1. Cache-first
+    if (local?.isInitialized()) {
+      try {
+        const cached = await local.todo().loadCurrentTodos()
+        if (cached.length > 0) {
+          useCurrentTodosCache.getState().replaceAll(cached)
+        }
+      } catch (e) {
+        console.warn('LocalStorage current cache read 실패:', e)
+      }
+    }
+
+    // 2. Remote
     const todos = await this.deps.todoApi.getCurrentTodos()
+    if (local?.isInitialized()) {
+      try {
+        const existing = await local.todo().loadCurrentTodos()
+        await local.todo().removeTodos(existing.map(t => t.uuid))
+        await local.todo().saveTodos(todos)
+      } catch (e) {
+        console.warn('LocalStorage current replace 실패:', e)
+      }
+    }
     useCurrentTodosCache.getState().replaceAll(todos)
   }
 
   async fetchUncompletedTodos(): Promise<void> {
     const refTime = Math.floor(Date.now() / 1000)
+    const local = this.deps.localStorageContainer
+
+    // 1. Cache-first
+    if (local?.isInitialized()) {
+      try {
+        const cached = await local.todo().loadUncompletedTodos(refTime)
+        if (cached.length > 0) {
+          useUncompletedTodosCache.getState().replaceAll(cached)
+        }
+      } catch (e) {
+        console.warn('LocalStorage uncompleted cache read 실패:', e)
+      }
+    }
+
+    // 2. Remote
     const todos = await this.deps.todoApi.getUncompletedTodos(refTime)
+    if (local?.isInitialized()) {
+      try {
+        const existing = await local.todo().loadUncompletedTodos(refTime)
+        await local.todo().removeTodos(existing.map(t => t.uuid))
+        await local.todo().saveTodos(todos)
+      } catch (e) {
+        console.warn('LocalStorage uncompleted replace 실패:', e)
+      }
+    }
     useUncompletedTodosCache.getState().replaceAll(todos)
   }
 
