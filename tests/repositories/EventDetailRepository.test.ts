@@ -106,7 +106,7 @@ describe('EventDetailRepository', () => {
 
     // when: 1차 get → invalidate → 2차 get
     await repo.get('e5')
-    repo.invalidate('e5')
+    await repo.invalidate('e5')
     const result = await repo.get('e5')
 
     // then: invalidate 이후 서버에서 새 응답을 받아 반환

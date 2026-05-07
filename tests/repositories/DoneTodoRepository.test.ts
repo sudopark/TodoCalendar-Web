@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Firebase 연쇄 초기화 차단
 vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
-// doneTodoApi는 doneTodosCache 내부에서도 임포트되므로 차단
 vi.mock('../../src/api/doneTodoApi', () => ({ doneTodoApi: {} }))
 
 import { DoneTodoRepository } from '../../src/repositories/DoneTodoRepository'
 import { useDoneTodosCache } from '../../src/repositories/caches/doneTodosCache'
+import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 import type { DoneTodoApi } from '../../src/repositories/DoneTodoRepository'
 import type { DoneTodo } from '../../src/models'
 import type { Todo } from '../../src/models'
@@ -31,6 +31,7 @@ function makeFakeApi(overrides: Partial<DoneTodoApi> = {}): DoneTodoApi {
 
 function resetCache() {
   useDoneTodosCache.getState().reset()
+  useCurrentTodosCache.getState().reset()
 }
 
 // ──────────────────────── fetchNextPage ────────────────────────
@@ -101,6 +102,21 @@ describe('DoneTodoRepository — revert', () => {
     expect(result.uuid).toBe('d1')
     expect(repo.getSnapshot().find(i => i.uuid === 'd1')).toBeUndefined()
     expect(repo.getSnapshot().find(i => i.uuid === 'd2')).toBeDefined()
+  })
+
+  it('revert 된 todo 가 is_current 이면 currentTodosCache 에 추가된다', async () => {
+    // given
+    useDoneTodosCache.setState({ items: [makeDone('d3')] })
+    const restored: Todo = { ...makeTodo('d3'), is_current: true }
+    const repo = new DoneTodoRepository({
+      api: makeFakeApi({ revertDoneTodo: vi.fn(async () => ({ todo: restored, detail: null })) }),
+    })
+
+    // when
+    await repo.revert('d3')
+
+    // then: currentTodosCache 에 추가됨
+    expect(useCurrentTodosCache.getState().todos.find(t => t.uuid === restored.uuid)).toBeDefined()
   })
 })
 

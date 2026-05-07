@@ -4,6 +4,7 @@ import { ChevronLeft, RotateCcw, Trash2 } from 'lucide-react'
 import { useDoneTodosCache } from '../repositories/caches/doneTodosCache'
 import { useToastStore } from '../stores/toastStore'
 import { useUiStore } from '../stores/uiStore'
+import { useRepositories } from '../composition/RepositoriesProvider'
 import { ConfirmDialog } from './ConfirmDialog'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import type { DoneTodo } from '../models'
@@ -72,7 +73,8 @@ export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
   const { t, i18n } = useTranslation()
   const exitArchivePanel = useUiStore(s => s.exitArchivePanel)
   const toggleRightPanel = useUiStore(s => s.toggleRightPanel)
-  const { items, hasMore, fetchNext, revert, remove, reset } = useDoneTodosCache()
+  const { doneTodoRepo } = useRepositories()
+  const { items, hasMore, reset } = useDoneTodosCache()
   const sentinelRef = useRef<HTMLDivElement>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
 
@@ -91,7 +93,7 @@ export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
 
   useEffect(() => {
     reset()
-    fetchNext()
+    doneTodoRepo.fetchNextPage()
     return () => { reset() }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -99,17 +101,15 @@ export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
     const el = sentinelRef.current
     if (!el) return
     const observer = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) fetchNext()
+      if (entries[0].isIntersecting) doneTodoRepo.fetchNextPage()
     })
     observer.observe(el)
     return () => observer.disconnect()
-  }, [fetchNext])
+  }, [doneTodoRepo])
 
   const handleRevert = async (id: string) => {
     try {
-      // cache.revert 가 응답 todo 를 currentTodosCache 에 직접 addTodo — fetchCurrentTodos 의존 제거.
-      // BFF 일관성 의존으로 빈 todo 가 노출되던 회귀 차단.
-      await revert(id)
+      await doneTodoRepo.revert(id)
     } catch (e) {
       console.warn('되돌리기 실패:', e)
       useToastStore.getState().show('todo.revert_failed', 'error')
@@ -178,7 +178,7 @@ export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
           danger
           onConfirm={async () => {
             try {
-              await remove(confirmId)
+              await doneTodoRepo.remove(confirmId)
             } catch (e) {
               console.warn('삭제 실패:', e)
               useToastStore.getState().show('todo.delete_failed', 'error')
