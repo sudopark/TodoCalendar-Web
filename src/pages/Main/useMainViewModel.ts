@@ -151,7 +151,7 @@ export function useMainViewModel(): MainViewModel {
     const fetchYears = new Set(days.map(d => d.date.getFullYear()))
     fetchYears.forEach(y => eventRepo.fetchEventsForYear(y))
     fetchYears.forEach(y => holidayRepo.fetch(y))
-  }, [days, holidayRepo])
+  }, [days, holidayRepo, eventRepo])
 
   // LeftSidebar 월 변경 시 공휴일 fetch — ViewModel 이 통합 처리
   useEffect(() => {

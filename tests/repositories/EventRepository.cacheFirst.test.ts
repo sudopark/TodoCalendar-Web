@@ -141,6 +141,42 @@ describe('EventRepository.fetchEventsForYear — cache-first', () => {
     expect(afterMap).toBe(beforeMap)
   })
 
+  it('cache-first 가 같은 year 에 두 번 호출돼도 중복 entry 가 누적되지 않는다 (replace 의미)', async () => {
+    // given: LocalStorage 에 2025년 todo 1개
+    const range = yearRange(2025)
+    const cachedTodo = todo('cached-1', range.lower + 100)
+    await container.todo().saveTodos([cachedTodo])
+
+    // Remote 가 첫 호출에서 throw 해서 loadedYears 가 set 되지 않은 상태 시뮬레이트
+    const { todoApi, scheduleApi } = makeFakeApis()
+    todoApi.getTodos.mockRejectedValueOnce(new Error('network'))
+    scheduleApi.getSchedules.mockRejectedValueOnce(new Error('network'))
+    todoApi.getTodos.mockResolvedValueOnce([cachedTodo])
+    scheduleApi.getSchedules.mockResolvedValueOnce([])
+
+    const repo = new EventRepository({
+      todoApi: todoApi as any,
+      scheduleApi: scheduleApi as any,
+      localStorageContainer: container,
+    })
+
+    // First call — Remote fails, cache-first sets memory store
+    await repo.fetchEventsForYear(2025)
+    // Second call — Remote succeeds; cache-first 가 다시 한 번 set 하는 시점에 누적되면 안 됨
+    await repo.fetchEventsForYear(2025)
+
+    // then: 메모리 store 의 해당 cached-1 키에 todo 가 1번만 등록 (중복 0)
+    let totalForYear = 0
+    for (const [key, events] of useCalendarEventsCache.getState().eventsByDate) {
+      if (key.startsWith('2025')) {
+        // cached-1 의 uuid 가 한 entry 안에서도 1번만 나타나야 함
+        const cachedOnes = events.filter(e => e.event.uuid === 'cached-1').length
+        totalForYear += cachedOnes
+      }
+    }
+    expect(totalForYear).toBe(1)
+  })
+
   it('localStorageContainer 가 없어도 Remote 만으로 동작한다 (호환성)', async () => {
     const range = yearRange(2025)
     const { todoApi, scheduleApi } = makeFakeApis()

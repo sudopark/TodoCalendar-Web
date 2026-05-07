@@ -109,8 +109,12 @@ export class EventRepository {
         if (cachedTodos.length > 0 || cachedSchedules.length > 0) {
           const grouped = groupEventsByDate(cachedTodos, cachedSchedules, range.lower, range.upper)
           const merged = new Map(useCalendarEventsCache.getState().eventsByDate)
+          // 해당 year 의 기존 entries 제거 후 신규 set (cache-first 도 replace 의미)
+          for (const key of merged.keys()) {
+            if (key.startsWith(String(year))) merged.delete(key)
+          }
           for (const [k, evs] of grouped) {
-            merged.set(k, [...(merged.get(k) ?? []), ...evs])
+            merged.set(k, evs)
           }
           useCalendarEventsCache.setState({ eventsByDate: merged })
         }

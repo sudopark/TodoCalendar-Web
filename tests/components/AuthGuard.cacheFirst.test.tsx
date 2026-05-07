@@ -55,21 +55,25 @@ describe('AuthGuard — Repository 기반 prefetch', () => {
 })
 
 describe('AuthGuard — Repository cache-first 통합', () => {
-  it('account 인증 후 LocalStorage 의 데이터가 메모리 store 에 즉시 들어와 children 이 그것을 본다', async () => {
-    // given: LocalStorage 에 currentTodo 미리 저장 (이전 세션의 잔여 데이터 simulation)
-    accountSubject.account = { uid: 'integration-uid' }
-    const container = new LocalStorageContainer()
-    await container.init('integration-uid')
-    await container.todo().saveTodos([
+  it('account 인증 후 AuthGuard 가 init 후 cache-first 로 LocalStorage 데이터를 children 에 노출한다', async () => {
+    // given: 별도 컨테이너에 데이터 미리 저장 (이전 세션 잔여 시뮬레이트)
+    // — 현재 테스트 컨테이너 init 대신 같은 uid 의 DB 에 직접 데이터 시드
+    const seedContainer = new LocalStorageContainer()
+    await seedContainer.init('integration-uid')
+    await seedContainer.todo().saveTodos([
       { uuid: 'preloaded', name: 'P', is_current: true, event_tag_id: null,
         event_time: { time_type: 'at', timestamp: 100 }, repeating: null, notification_options: null } as any,
     ])
+    await seedContainer.dispose()  // close — AuthGuard 가 다시 init 함
 
-    // 실제 Repository 들 + Remote 가 응답하지 않는 fake API (신선한 데이터가 늦게 와야 cache-first 효과 검증 가능)
+    // 이제 AuthGuard 의 production flow: account set → AuthGuard 가 init → prefetch
+    accountSubject.account = { uid: 'integration-uid' }
+    const container = new LocalStorageContainer()  // un-init 상태로 주입
+
     const eventRepo = new EventRepository({
       todoApi: {
         getTodos: vi.fn().mockResolvedValue([]),
-        getCurrentTodos: () => new Promise(() => {}),    // never resolves
+        getCurrentTodos: () => new Promise(() => {}),
         getUncompletedTodos: vi.fn().mockResolvedValue([]),
       } as any,
       scheduleApi: { getSchedules: vi.fn().mockResolvedValue([]) } as any,
@@ -90,13 +94,11 @@ describe('AuthGuard — Repository cache-first 통합', () => {
       localStorageContainer: container,
     } as any
 
-    // children 이 currentTodosCache 를 구독하는 probe 컴포넌트
     function Probe() {
       const todos = useCurrentTodosCache((s) => s.todos)
       return <div data-testid="probe">{todos.map(t => t.uuid).join(',')}</div>
     }
 
-    // when: AuthGuard 렌더 — children 도 함께 렌더되며 cache 구독
     const { getByTestId } = render(
       <MemoryRouter>
         <RepositoriesProvider value={fakeRepos}>
@@ -105,9 +107,11 @@ describe('AuthGuard — Repository cache-first 통합', () => {
       </MemoryRouter>
     )
 
-    // then: Remote 가 끝나지 않아도 (getCurrentTodos 가 never resolve) LocalStorage 의 'preloaded' 가 곧 화면에 보인다
+    // then: AuthGuard 의 init 이 끝나고 prefetch 가 trigger 되면, fetchCurrentTodos 의 cache-first 단계가
+    // LocalStorage 의 'preloaded' 를 메모리 store 에 set → Probe 에 노출
     await waitFor(() => expect(getByTestId('probe').textContent).toContain('preloaded'))
 
+    // 정리
     await container.dispose()
     accountSubject.account = null
   })

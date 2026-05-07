@@ -12,22 +12,23 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const location = useLocation()
   const { localStorageContainer, eventRepo, tagRepo, foremostEventRepo } = useRepositories()
 
-  // LocalStorageContainer lifecycle (PR1 와이어링 — 그대로 유지)
+  // LocalStorageContainer init 완료 후 prefetch — init 먼저 await 해야 Repository cache-first 단계에서
+  // isInitialized() 가 true 를 반환한다 (두 effect 를 분리하면 race 발생)
   useEffect(() => {
     if (!account?.uid) return
     let cancelled = false
-    localStorageContainer.init(account.uid).catch((e) => {
-      if (!cancelled) console.warn('LocalStorageContainer init 실패:', e)
-    })
-    return () => {
-      cancelled = true
-      localStorageContainer.dispose().catch(() => {})
-    }
-  }, [account?.uid, localStorageContainer])
 
-  // Prefetch — Repository 기반 (cache-first 효과 자동 적용)
-  useEffect(() => {
-    if (account) {
+    ;(async () => {
+      // 1. LocalStorage init 먼저
+      try {
+        await localStorageContainer.init(account.uid)
+      } catch (e) {
+        if (!cancelled) console.warn('LocalStorageContainer init 실패:', e)
+        // init 실패해도 Remote prefetch 는 진행 (degraded — cache-first 만 skip)
+      }
+      if (cancelled) return
+
+      // 2. Prefetch — Repository 가 이제 isInitialized() 체크 시 true 받음
       Promise.allSettled([
         tagRepo.fetchAll(),
         eventRepo.fetchCurrentTodos(),
@@ -41,8 +42,13 @@ export function AuthGuard({ children }: AuthGuardProps) {
           console.warn('Failed to load:', failed.join(', '))
         }
       })
+    })()
+
+    return () => {
+      cancelled = true
+      localStorageContainer.dispose().catch(() => {})
     }
-  }, [account, eventRepo, tagRepo, foremostEventRepo])
+  }, [account?.uid, localStorageContainer, eventRepo, tagRepo, foremostEventRepo])
 
   if (loading) {
     return (
