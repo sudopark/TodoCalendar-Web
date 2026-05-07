@@ -51,7 +51,7 @@ const tagRepo = new TagRepository({ eventTagApi, settingApi, localStorageContain
 
 export const repositories: Repositories = {
   eventRepo,
-  eventDetailRepo: new EventDetailRepository({ api: eventDetailApi }),
+  eventDetailRepo: new EventDetailRepository({ api: eventDetailApi, localStorageContainer }),
   tagRepo,
   holidayRepo,
   doneTodoRepo: new DoneTodoRepository({ api: doneTodoApi, localStorageContainer }),
