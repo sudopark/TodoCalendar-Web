@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import TopToolbar, { type TopToolbarProps } from '../../src/components/TopToolbar'
+import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
 
 vi.mock('../../src/hooks/useIsMobile', () => ({
   useIsMobile: vi.fn(() => false),
@@ -24,10 +25,16 @@ function defaultProps(overrides: Partial<TopToolbarProps> = {}): TopToolbarProps
   }
 }
 
+// dev 모드에서 TopToolbar 가 TestDataSeederButton 을 렌더 → useRepositories 호출
+// → Provider 누락 시 throw. 테스트에 최소 Provider 주입.
+const fakeRepos = { tagRepo: { fetchAll: vi.fn() } } as never
+
 function renderToolbar(props?: Partial<TopToolbarProps>) {
   return render(
     <MemoryRouter>
-      <TopToolbar {...defaultProps(props)} />
+      <RepositoriesProvider value={fakeRepos}>
+        <TopToolbar {...defaultProps(props)} />
+      </RepositoriesProvider>
     </MemoryRouter>
   )
 }
