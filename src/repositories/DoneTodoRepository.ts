@@ -5,6 +5,7 @@ import type { LocalStorageContainer } from './local-storage/LocalStorageContaine
 import { useDoneTodosCache } from './caches/doneTodosCache'
 import { useCalendarEventsCache } from './caches/calendarEventsCache'
 import { useCurrentTodosCache } from './caches/currentTodosCache'
+import { useUncompletedTodosCache } from './caches/uncompletedTodosCache'
 
 const PAGE_SIZE = 20
 
@@ -104,7 +105,19 @@ export class DoneTodoRepository {
     if (response.todo.is_current) {
       useCurrentTodosCache.getState().addTodo(response.todo)
     }
+    if (!response.todo.is_current && this.isUncompletedTodo(response.todo)) {
+      useUncompletedTodosCache.getState().addTodo(response.todo)
+    }
     return response.todo
+  }
+
+  // todo 의 event_time 시작 시점이 현재 이전인지 판별 (미완료 영역 여부)
+  private isUncompletedTodo(todo: import('../models').Todo): boolean {
+    const et = todo.event_time
+    if (!et) return false
+    const nowSec = Math.floor(Date.now() / 1000)
+    const startTs = et.time_type === 'at' ? et.timestamp : et.period_start
+    return startTs <= nowSec
   }
 
   async remove(id: string): Promise<void> {
