@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { EventRepository } from '../../src/repositories/EventRepository'
 import { LocalStorageContainer } from '../../src/repositories/local-storage/LocalStorageContainer'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
+import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
+import { useUncompletedTodosCache } from '../../src/repositories/caches/uncompletedTodosCache'
 import { yearRange } from '../../src/domain/functions/eventTime'
 import type { Todo } from '../../src/models/Todo'
 import type { Schedule } from '../../src/models/Schedule'
@@ -153,5 +155,83 @@ describe('EventRepository.fetchEventsForYear — cache-first', () => {
     await repo.fetchEventsForYear(2025)
 
     expect(useCalendarEventsCache.getState().loadedYears.has(2025)).toBe(true)
+  })
+})
+
+describe('EventRepository.fetchCurrentTodos — cache-first', () => {
+  let container: LocalStorageContainer
+
+  beforeEach(async () => {
+    container = new LocalStorageContainer()
+    await container.init(TEST_UID)
+    useCurrentTodosCache.getState().reset()
+  })
+
+  afterEach(async () => {
+    await container.dispose()
+    await deleteDb(TEST_UID)
+    useCurrentTodosCache.getState().reset()
+  })
+
+  it('LocalStorage 캐시가 있으면 메모리 store 에 즉시 채우고, Remote 응답이 오면 그 값으로 교체한다', async () => {
+    const cached: Todo = todo('cached-cur', 100, { is_current: true })
+    await container.todo().saveTodos([cached])
+    const { todoApi, scheduleApi } = makeFakeApis()
+    todoApi.getCurrentTodos.mockResolvedValue([todo('remote-cur', 200, { is_current: true })])
+
+    const repo = new EventRepository({
+      todoApi: todoApi as any,
+      scheduleApi: scheduleApi as any,
+      localStorageContainer: container,
+    })
+
+    await repo.fetchCurrentTodos()
+
+    expect(useCurrentTodosCache.getState().todos.map(t => t.uuid)).toEqual(['remote-cur'])
+    expect((await container.todo().loadCurrentTodos()).map(t => t.uuid)).toContain('remote-cur')
+  })
+
+  it('LocalStorage 가 비어있어도 Remote 응답으로 정상 동작한다', async () => {
+    const { todoApi, scheduleApi } = makeFakeApis()
+    todoApi.getCurrentTodos.mockResolvedValue([todo('only-remote', 100, { is_current: true })])
+    const repo = new EventRepository({
+      todoApi: todoApi as any,
+      scheduleApi: scheduleApi as any,
+      localStorageContainer: container,
+    })
+    await repo.fetchCurrentTodos()
+    expect(useCurrentTodosCache.getState().todos.map(t => t.uuid)).toEqual(['only-remote'])
+  })
+})
+
+describe('EventRepository.fetchUncompletedTodos — cache-first', () => {
+  let container: LocalStorageContainer
+
+  beforeEach(async () => {
+    container = new LocalStorageContainer()
+    await container.init(TEST_UID)
+    useUncompletedTodosCache.getState().reset()
+  })
+
+  afterEach(async () => {
+    await container.dispose()
+    await deleteDb(TEST_UID)
+    useUncompletedTodosCache.getState().reset()
+  })
+
+  it('LocalStorage 의 미완료 todo (is_current=false, time<=now) 로 즉시 set 후 Remote 로 교체', async () => {
+    const past = 100
+    await container.todo().saveTodos([todo('past-uncomp', past, { is_current: false })])
+    const { todoApi, scheduleApi } = makeFakeApis()
+    todoApi.getUncompletedTodos.mockResolvedValue([todo('remote-uncomp', past + 1, { is_current: false })])
+
+    const repo = new EventRepository({
+      todoApi: todoApi as any,
+      scheduleApi: scheduleApi as any,
+      localStorageContainer: container,
+    })
+    await repo.fetchUncompletedTodos()
+
+    expect(useUncompletedTodosCache.getState().todos.map(t => t.uuid)).toEqual(['remote-uncomp'])
   })
 })
