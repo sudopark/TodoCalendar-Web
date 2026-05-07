@@ -149,7 +149,7 @@ export function useMainViewModel(): MainViewModel {
   useEffect(() => {
     if (days.length === 0) return
     const fetchYears = new Set(days.map(d => d.date.getFullYear()))
-    fetchYears.forEach(y => useCalendarEventsCache.getState().fetchEventsForYear(y))
+    fetchYears.forEach(y => eventRepo.fetchEventsForYear(y))
     fetchYears.forEach(y => holidayRepo.fetch(y))
   }, [days, holidayRepo])
 
