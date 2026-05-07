@@ -7,10 +7,13 @@ vi.mock('../../src/api/settingApi', () => ({ settingApi: {} }))
 
 import { TagRepository } from '../../src/repositories/TagRepository'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
+import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
+import { useUncompletedTodosCache } from '../../src/repositories/caches/uncompletedTodosCache'
 import type { EventTag } from '../../src/models/EventTag'
 import type { DefaultTagColors } from '../../src/models/DefaultTagColors'
 import type { EventTagApi } from '../../src/repositories/TagRepository'
 import type { SettingApi } from '../../src/repositories/TagRepository'
+import type { Todo } from '../../src/models/Todo'
 
 // ──────────────────────── helpers ────────────────────────
 
@@ -40,8 +43,14 @@ function makeFakeSettingApi(overrides: Partial<SettingApi> = {}): SettingApi {
   }
 }
 
+function makeTodo(uuid: string, event_tag_id?: string | null): Todo {
+  return { uuid, name: `todo-${uuid}`, is_current: true, event_time: null, event_tag_id: event_tag_id ?? null }
+}
+
 function resetCache() {
   useEventTagListCache.getState().reset()
+  useCurrentTodosCache.getState().reset()
+  useUncompletedTodosCache.getState().reset()
 }
 
 // ──────────────────────── fetchAll ────────────────────────
@@ -210,5 +219,88 @@ describe('TagRepository — deleteTagAndEvents', () => {
 
     // then
     expect(repo.getTagsSnapshot().find(t => t.uuid === 'tag-x')).toBeUndefined()
+  })
+
+  it('삭제된 태그를 가진 todo가 currentTodosCache에서 즉시 제거된다', async () => {
+    // given
+    useCurrentTodosCache.setState({
+      todos: [
+        makeTodo('todo-1', 'tag-x'),
+        makeTodo('todo-2', 'tag-y'),  // 다른 태그 — 유지돼야 함
+        makeTodo('todo-3', null),     // 태그 없음 — 유지돼야 함
+      ],
+    })
+    useEventTagListCache.getState().add(makeTag({ uuid: 'tag-x' }))
+    const repo = new TagRepository({
+      eventTagApi: makeFakeEventTagApi({ deleteTagAndEvents: vi.fn(async () => ({ status: 'ok' })) }),
+      settingApi: makeFakeSettingApi(),
+    })
+
+    // when
+    await repo.deleteTagAndEvents('tag-x')
+
+    // then: tag-x를 가진 todo-1 만 제거됨
+    const todos = useCurrentTodosCache.getState().todos
+    expect(todos.some(t => t.uuid === 'todo-1')).toBe(false)
+    expect(todos.some(t => t.uuid === 'todo-2')).toBe(true)
+    expect(todos.some(t => t.uuid === 'todo-3')).toBe(true)
+  })
+
+  it('삭제된 태그를 가진 todo가 uncompletedTodosCache에서 즉시 제거된다', async () => {
+    // given
+    useUncompletedTodosCache.setState({
+      todos: [
+        makeTodo('todo-a', 'tag-x'),
+        makeTodo('todo-b', 'tag-z'),  // 다른 태그 — 유지
+      ],
+    })
+    useEventTagListCache.getState().add(makeTag({ uuid: 'tag-x' }))
+    const repo = new TagRepository({
+      eventTagApi: makeFakeEventTagApi({ deleteTagAndEvents: vi.fn(async () => ({ status: 'ok' })) }),
+      settingApi: makeFakeSettingApi(),
+    })
+
+    // when
+    await repo.deleteTagAndEvents('tag-x')
+
+    // then: tag-x를 가진 todo-a 만 제거됨
+    const todos = useUncompletedTodosCache.getState().todos
+    expect(todos.some(t => t.uuid === 'todo-a')).toBe(false)
+    expect(todos.some(t => t.uuid === 'todo-b')).toBe(true)
+  })
+
+  it('todo 캐시에 태그 id와 일치하는 항목이 없으면 캐시가 그대로 유지된다', async () => {
+    // given
+    useCurrentTodosCache.setState({ todos: [makeTodo('todo-1', 'other-tag')] })
+    useUncompletedTodosCache.setState({ todos: [makeTodo('todo-2', 'other-tag')] })
+    useEventTagListCache.getState().add(makeTag({ uuid: 'tag-x' }))
+    const repo = new TagRepository({
+      eventTagApi: makeFakeEventTagApi({ deleteTagAndEvents: vi.fn(async () => ({ status: 'ok' })) }),
+      settingApi: makeFakeSettingApi(),
+    })
+
+    // when
+    await repo.deleteTagAndEvents('tag-x')
+
+    // then: 다른 태그 todo는 그대로 남아 있어야 함
+    expect(useCurrentTodosCache.getState().todos.some(t => t.uuid === 'todo-1')).toBe(true)
+    expect(useUncompletedTodosCache.getState().todos.some(t => t.uuid === 'todo-2')).toBe(true)
+  })
+
+  it('eventRepo 없이도 todo 캐시 in-memory transform이 동작한다', async () => {
+    // given: eventRepo 미주입
+    useCurrentTodosCache.setState({ todos: [makeTodo('todo-1', 'tag-x')] })
+    useEventTagListCache.getState().add(makeTag({ uuid: 'tag-x' }))
+    const repo = new TagRepository({
+      eventTagApi: makeFakeEventTagApi({ deleteTagAndEvents: vi.fn(async () => ({ status: 'ok' })) }),
+      settingApi: makeFakeSettingApi(),
+      // eventRepo 미주입
+    })
+
+    // when
+    await repo.deleteTagAndEvents('tag-x')
+
+    // then: eventRepo 없어도 currentTodos에서 제거됨
+    expect(useCurrentTodosCache.getState().todos.some(t => t.uuid === 'todo-1')).toBe(false)
   })
 })

@@ -3,6 +3,8 @@ import type { DefaultTagColors } from '../models/DefaultTagColors'
 import type { LocalStorageContainer } from './local-storage/LocalStorageContainer'
 import { useEventTagListCache } from './caches/eventTagListCache'
 import { useCalendarEventsCache } from './caches/calendarEventsCache'
+import { useCurrentTodosCache } from './caches/currentTodosCache'
+import { useUncompletedTodosCache } from './caches/uncompletedTodosCache'
 import type { EventRepository } from './EventRepository'
 
 // ── API 인터페이스 명시적 정의 ────────────────────────────────────────
@@ -133,8 +135,14 @@ export class TagRepository {
     await this.deps.eventTagApi.deleteTagAndEvents(id)
     useEventTagListCache.getState().remove(id)
 
-    // Cascade: 서버측에서 그 태그가 붙은 이벤트도 모두 삭제하므로
-    // 클라이언트의 calendar events / current todos / uncompleted todos 를 모두 재fetch.
+    // 서버 응답에 영향받은 UUID 목록 없음 — 보유 캐시를 event_tag_id 기준으로 in-memory 필터
+    const filteredCurrent = useCurrentTodosCache.getState().todos.filter(t => t.event_tag_id !== id)
+    useCurrentTodosCache.getState().replaceAll(filteredCurrent)
+
+    const filteredUncompleted = useUncompletedTodosCache.getState().todos.filter(t => t.event_tag_id !== id)
+    useUncompletedTodosCache.getState().replaceAll(filteredUncompleted)
+
+    // Cascade: 캘린더 이벤트(schedule 등)는 태그+관련 이벤트 삭제 의도에 맞게 재fetch.
     // eventRepo 미주입이면 cascade 생략 (호환성 — 테스트 등에서 의존성 안 넣어도 동작).
     const eventRepo = this.deps.eventRepo
     if (!eventRepo) return
@@ -145,9 +153,5 @@ export class TagRepository {
       useCalendarEventsCache.getState().invalidateYears(loadedYears)
       await Promise.allSettled(loadedYears.map((y) => eventRepo.fetchEventsForYear(y)))
     }
-    await Promise.allSettled([
-      eventRepo.fetchCurrentTodos(),
-      eventRepo.fetchUncompletedTodos(),
-    ])
   }
 }
