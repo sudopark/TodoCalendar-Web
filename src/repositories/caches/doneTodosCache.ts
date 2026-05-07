@@ -55,7 +55,10 @@ export const useDoneTodosCache = create<DoneTodosCacheState>((set, _get) => ({
   },
 
   prependItem: (doneTodo: DoneTodo) => {
-    set(s => ({ items: [doneTodo, ...s.items] }))
+    set(s => ({
+      items: [doneTodo, ...s.items.filter(i => i.uuid !== doneTodo.uuid)],
+      generation: s.generation + 1,
+    }))
   },
 
   removeItem: (id: string) => {
