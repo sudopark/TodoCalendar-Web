@@ -114,6 +114,22 @@ describe('EventRepository — Todo mutation LocalStorage write sync', () => {
     expect(await container.todo().loadTodo('a')).toBeNull()
   })
 
+  it('deleteTodo 후 event_details 의 동일 uuid 레코드도 제거된다', async () => {
+    await container.todo().saveTodos([todoOf('a')])
+    await container.eventDetail().saveDetail('a', { memo: 'some detail' })
+    const { todoApi, scheduleApi } = makeFakeApis()
+    todoApi.deleteTodo.mockResolvedValue({ status: 'ok' })
+
+    const repo = new EventRepository({
+      todoApi: todoApi as any, scheduleApi: scheduleApi as any,
+      localStorageContainer: container,
+    })
+
+    await repo.deleteTodo('a')
+
+    expect(await container.eventDetail().loadDetail('a')).toBeNull()
+  })
+
   it('localStorageContainer 미주입이면 LocalStorage 작업 없이 Remote + 메모리만 동작 (호환성)', async () => {
     const created = todoOf('only-remote', { is_current: true })
     const { todoApi, scheduleApi } = makeFakeApis()
@@ -196,6 +212,21 @@ describe('EventRepository — Schedule mutation LocalStorage write sync', () => 
     await repo.deleteSchedule('a')
 
     expect(await container.schedule().loadSchedule('a')).toBeNull()
+  })
+
+  it('deleteSchedule 후 event_details 의 동일 uuid 레코드도 제거된다', async () => {
+    await container.schedule().saveSchedules([scheduleOf('a')])
+    await container.eventDetail().saveDetail('a', { memo: 'schedule detail' })
+    const { todoApi, scheduleApi } = makeFakeApis()
+    scheduleApi.deleteSchedule.mockResolvedValue({ status: 'ok' })
+
+    const repo = new EventRepository({
+      todoApi: todoApi as any, scheduleApi: scheduleApi as any,
+      localStorageContainer: container,
+    })
+    await repo.deleteSchedule('a')
+
+    expect(await container.eventDetail().loadDetail('a')).toBeNull()
   })
 
   it('excludeScheduleRepeating 응답값이 LocalStorage 의 동일 uuid 를 덮어쓴다', async () => {
@@ -297,6 +328,104 @@ describe('EventRepository.completeTodo — LocalStorage write sync', () => {
 
     expect(await container.todo().loadTodo('a')).toBeNull()
     expect(await container.doneTodo().loadDoneTodo('done-a')).toEqual(doneEvent)
+  })
+
+  it("단일(비반복) todo 완료 시 event_details 도 제거된다", async () => {
+    const todo = todoOf('a', { is_current: true })
+    await container.todo().saveTodos([todo])
+    await container.eventDetail().saveDetail('a', { memo: 'detail' })
+
+    const doneEvent = { uuid: 'done-a', origin_event_id: 'a', name: 't-a', done_at: 5000 }
+    const { todoApi, scheduleApi } = makeFakeApis()
+    todoApi.completeTodo.mockResolvedValue(doneEvent)
+
+    const repo = new EventRepository({
+      todoApi: todoApi as any, scheduleApi: scheduleApi as any,
+      localStorageContainer: container,
+    })
+
+    await repo.completeTodo(todo)
+
+    expect(await container.eventDetail().loadDetail('a')).toBeNull()
+  })
+
+  it("반복 todo 'this' 스코프 + 시리즈 종료 시 event_details 도 제거된다", async () => {
+    // end 가 start 와 같아서 다음 회차가 없는 반복 todo
+    const repeating = { start: 1000, end: 1000, option: { optionType: 'every_day' as const, interval: 1 } } as any
+    const todo = todoOf('a', {
+      is_current: true,
+      repeating,
+      repeating_turn: 1,
+      event_time: { time_type: 'at', timestamp: 1000 },
+    })
+    await container.todo().saveTodos([todo])
+    await container.eventDetail().saveDetail('a', { memo: 'detail' })
+
+    const doneEvent = { uuid: 'done-a', origin_event_id: 'a', name: 't-a', done_at: 1000 }
+    const { todoApi, scheduleApi } = makeFakeApis()
+    todoApi.completeTodo.mockResolvedValue(doneEvent)
+
+    const repo = new EventRepository({
+      todoApi: todoApi as any, scheduleApi: scheduleApi as any,
+      localStorageContainer: container,
+    })
+
+    await repo.completeTodo(todo, 'this')
+
+    expect(await container.eventDetail().loadDetail('a')).toBeNull()
+  })
+
+  it("반복 todo 'this' 스코프 + 다음 회차 있음: event_details 는 유지된다", async () => {
+    // 다음 회차가 있으면 todo 자체가 살아남으므로 detail 은 유지돼야 한다
+    const repeating = { start: 1000, option: { optionType: 'every_day' as const, interval: 1 } } as any
+    const todo = todoOf('a', {
+      is_current: true,
+      repeating,
+      repeating_turn: 1,
+      event_time: { time_type: 'at', timestamp: 1000 },
+    })
+    await container.todo().saveTodos([todo])
+    await container.eventDetail().saveDetail('a', { memo: 'detail' })
+
+    const doneEvent = { uuid: 'done-a', origin_event_id: 'a', name: 't-a', done_at: 1000 }
+    const { todoApi, scheduleApi } = makeFakeApis()
+    todoApi.completeTodo.mockResolvedValue(doneEvent)
+
+    const repo = new EventRepository({
+      todoApi: todoApi as any, scheduleApi: scheduleApi as any,
+      localStorageContainer: container,
+    })
+
+    await repo.completeTodo(todo, 'this')
+
+    // todo 가 다음 회차로 advance 되었으므로 detail 은 그대로여야 한다
+    expect(await container.eventDetail().loadDetail('a')).not.toBeNull()
+  })
+
+  it("반복 todo 'future' 완료 시 event_details 도 제거된다", async () => {
+    const repeating = { option: { optionType: 'every_day' as const, interval: 1 } } as any
+    const todo = todoOf('a', {
+      is_current: true,
+      repeating,
+      repeating_turn: 1,
+      event_time: { time_type: 'at', timestamp: 1000 },
+    })
+    await container.todo().saveTodos([todo])
+    await container.eventDetail().saveDetail('a', { memo: 'detail' })
+
+    const doneEvent = { uuid: 'done-a', origin_event_id: 'a', name: 't-a', done_at: 1000 }
+    const { todoApi, scheduleApi } = makeFakeApis()
+    todoApi.completeTodo.mockResolvedValue(doneEvent)
+    todoApi.patchTodo.mockResolvedValue(todo)
+
+    const repo = new EventRepository({
+      todoApi: todoApi as any, scheduleApi: scheduleApi as any,
+      localStorageContainer: container,
+    })
+
+    await repo.completeTodo(todo, 'future')
+
+    expect(await container.eventDetail().loadDetail('a')).toBeNull()
   })
 })
 

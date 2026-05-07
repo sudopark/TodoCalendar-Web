@@ -304,9 +304,11 @@ export class EventRepository {
 
   async deleteTodo(id: string): Promise<void> {
     await this.deps.todoApi.deleteTodo(id)
-    await this.writeLocal('deleteTodo', () =>
-      this.deps.localStorageContainer!.todo().removeTodos([id]),
-    )
+    await this.writeLocal('deleteTodo', async () => {
+      const local = this.deps.localStorageContainer!
+      await local.todo().removeTodos([id])
+      await local.eventDetail().removeDetail(id)
+    })
     useCalendarEventsCache.getState().removeEvent(id)
     useCurrentTodosCache.getState().removeTodo(id)
   }
@@ -368,9 +370,11 @@ export class EventRepository {
 
   async deleteSchedule(id: string): Promise<void> {
     await this.deps.scheduleApi.deleteSchedule(id)
-    await this.writeLocal('deleteSchedule', () =>
-      this.deps.localStorageContainer!.schedule().removeSchedules([id]),
-    )
+    await this.writeLocal('deleteSchedule', async () => {
+      const local = this.deps.localStorageContainer!
+      await local.schedule().removeSchedules([id])
+      await local.eventDetail().removeDetail(id)
+    })
     useCalendarEventsCache.getState().removeEvent(id)
   }
 
@@ -408,6 +412,7 @@ export class EventRepository {
         await this.writeLocal('completeTodo (this+end)', async () => {
           const local = this.deps.localStorageContainer!
           await local.todo().removeTodos([todo.uuid])
+          await local.eventDetail().removeDetail(todo.uuid)
           await local.doneTodo().saveDoneTodos([done])
         })
         useCalendarEventsCache.getState().removeEvent(todo.uuid)
@@ -424,6 +429,7 @@ export class EventRepository {
       await this.writeLocal('completeTodo (future)', async () => {
         const local = this.deps.localStorageContainer!
         await local.todo().removeTodos([todo.uuid])
+        await local.eventDetail().removeDetail(todo.uuid)
         await local.doneTodo().saveDoneTodos([done])
       })
       useCalendarEventsCache.getState().removeEvent(todo.uuid)
@@ -436,6 +442,7 @@ export class EventRepository {
     await this.writeLocal('completeTodo (all)', async () => {
       const local = this.deps.localStorageContainer!
       await local.todo().removeTodos([todo.uuid])
+      await local.eventDetail().removeDetail(todo.uuid)
       await local.doneTodo().saveDoneTodos([done])
     })
     useCalendarEventsCache.getState().removeEvent(todo.uuid)
