@@ -2,6 +2,7 @@ import type { Todo } from '../models/Todo'
 import type { Schedule } from '../models/Schedule'
 import type { EventTime, Repeating, NotificationOption } from '../models'
 import type { DoneTodo } from '../models/DoneTodo'
+import type { LocalStorageContainer } from './local-storage/LocalStorageContainer'
 import { useCalendarEventsCache } from './caches/calendarEventsCache'
 import { useCurrentTodosCache } from './caches/currentTodosCache'
 import { useUncompletedTodosCache } from './caches/uncompletedTodosCache'
@@ -41,6 +42,7 @@ export type SchedulePatch = Parameters<ScheduleApi['updateSchedule']>[1]
 interface Deps {
   todoApi: TodoApi
   scheduleApi: ScheduleApi
+  localStorageContainer?: LocalStorageContainer
 }
 
 export class EventRepository {

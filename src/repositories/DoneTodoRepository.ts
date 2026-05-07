@@ -1,6 +1,7 @@
 import type { DoneTodo } from '../models/DoneTodo'
 import type { Todo } from '../models/Todo'
 import type { RevertDoneTodoResponse } from '../api/doneTodoApi'
+import type { LocalStorageContainer } from './local-storage/LocalStorageContainer'
 import { useDoneTodosCache } from './caches/doneTodosCache'
 
 const PAGE_SIZE = 20
@@ -16,6 +17,7 @@ export interface DoneTodoApi {
 
 interface Deps {
   api: DoneTodoApi
+  localStorageContainer?: LocalStorageContainer
 }
 
 export class DoneTodoRepository {

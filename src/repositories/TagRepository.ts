@@ -1,5 +1,6 @@
 import type { EventTag } from '../models/EventTag'
 import type { DefaultTagColors } from '../models/DefaultTagColors'
+import type { LocalStorageContainer } from './local-storage/LocalStorageContainer'
 import { useEventTagListCache } from './caches/eventTagListCache'
 
 // ── API 인터페이스 명시적 정의 ────────────────────────────────────────
@@ -21,6 +22,7 @@ export interface SettingApi {
 interface Deps {
   eventTagApi: EventTagApi
   settingApi: SettingApi
+  localStorageContainer?: LocalStorageContainer
 }
 
 export class TagRepository {

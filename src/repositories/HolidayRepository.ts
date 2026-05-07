@@ -1,4 +1,5 @@
 import type { HolidayResponse } from '../models'
+import type { LocalStorageContainer } from './local-storage/LocalStorageContainer'
 import { useHolidayCache } from './caches/holidayCache'
 
 // ── API 인터페이스 명시적 정의 ────────────────────────────────────────
@@ -16,6 +17,7 @@ export interface HolidayItem {
 interface Deps {
   api: HolidayApi
   initialLocale: string
+  localStorageContainer?: LocalStorageContainer
 }
 
 export class HolidayRepository {

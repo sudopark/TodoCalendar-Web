@@ -1,4 +1,5 @@
 import type { ForemostEvent } from '../models'
+import type { LocalStorageContainer } from './local-storage/LocalStorageContainer'
 import { useForemostEventCache } from './caches/foremostEventCache'
 
 // ── API 인터페이스 명시적 정의 ────────────────────────────────────────
@@ -12,6 +13,7 @@ export interface ForemostEventApi {
 
 interface Deps {
   api: ForemostEventApi
+  localStorageContainer?: LocalStorageContainer
 }
 
 export class ForemostEventRepository {
