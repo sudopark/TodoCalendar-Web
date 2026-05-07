@@ -115,4 +115,32 @@ describe('useDoneTodosCache — primitive operations', () => {
     expect(state.items).toHaveLength(1)
     expect(state.items[0].uuid).toBe('first-done')
   })
+
+  it('prependItem 호출 시 generation 이 증가한다 (stale in-flight fetchNextPage 차단 메커니즘)', () => {
+    // given
+    useDoneTodosCache.setState({ items: [], generation: 3 })
+    const newDone = makeDone('gen-test', 9000)
+
+    // when
+    useDoneTodosCache.getState().prependItem(newDone as any)
+
+    // then
+    expect(useDoneTodosCache.getState().generation).toBeGreaterThan(3)
+  })
+
+  it('같은 uuid 의 항목을 두 번 prependItem 하면 1개만 남고 최신 데이터로 교체된다', () => {
+    // given: 기존 목록에 'd1' 이 이미 있는 상황 (이전 fetchNextPage 응답이 먼저 도착한 경우)
+    useDoneTodosCache.setState({ items: [makeDone('d1', 1000), makeDone('d2', 500)] })
+    const updatedDone = { ...makeDone('d1', 1000), name: 'done-d1-updated' }
+
+    // when: 같은 uuid 로 prependItem (completeTodo 응답이 뒤늦게 도착)
+    useDoneTodosCache.getState().prependItem(updatedDone as any)
+
+    // then: uuid 'd1' 은 최상단 1개만 존재, 최신 데이터로 교체
+    const state = useDoneTodosCache.getState()
+    expect(state.items.filter(i => i.uuid === 'd1')).toHaveLength(1)
+    expect(state.items[0].uuid).toBe('d1')
+    expect(state.items[0].name).toBe('done-d1-updated')
+    expect(state.items.map(i => i.uuid)).toEqual(['d1', 'd2'])
+  })
 })
