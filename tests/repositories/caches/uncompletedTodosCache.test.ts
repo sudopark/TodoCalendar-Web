@@ -59,4 +59,17 @@ describe('useUncompletedTodosCache', () => {
     // then: 빈 목록
     expect(useUncompletedTodosCache.getState().todos).toEqual([])
   })
+
+  it('addTodo를 호출하면 todos 목록에서 해당 todo를 찾을 수 있다', () => {
+    // given: 기존 todo가 하나 있는 상태
+    useUncompletedTodosCache.setState({ todos: [makeTodo('u1', '미완료1')] })
+
+    // when: 새 todo 추가
+    useUncompletedTodosCache.getState().addTodo(makeTodo('u2', '미완료2'))
+
+    // then: 기존 항목과 새 항목 모두 목록에 있어야 한다
+    const todos = useUncompletedTodosCache.getState().todos
+    expect(todos.some(t => t.uuid === 'u1')).toBe(true)
+    expect(todos.some(t => t.uuid === 'u2')).toBe(true)
+  })
 })
