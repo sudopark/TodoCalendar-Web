@@ -492,4 +492,42 @@ describe('EventRepository — patch/replaceThisScope LocalStorage write sync', (
     expect(await container.todo().loadTodo('a')).toBeNull()
     expect(await container.todo().loadTodo('new-todo')).not.toBeNull()
   })
+
+  it('replaceTodoThisScope: 원본 id 의 event_details 가 제거된다', async () => {
+    // given: 원본 todo + detail 준비
+    await container.todo().saveTodos([todoOf('a')])
+    await container.eventDetail().saveDetail('a', { memo: 'original detail' })
+    const newTodo = todoOf('new-uuid', { event_time: { time_type: 'at', timestamp: 2000 } })
+    const { todoApi, scheduleApi } = makeFakeApis()
+    todoApi.replaceTodo.mockResolvedValue({ new_todo: newTodo, next_repeating: undefined })
+
+    const repo = new EventRepository({
+      todoApi: todoApi as any, scheduleApi: scheduleApi as any,
+      localStorageContainer: container,
+    })
+
+    // when
+    await repo.replaceTodoThisScope('a', { new: { name: 'replaced' } } as any)
+
+    // then: 원본 id 의 detail 은 제거되어야 한다
+    expect(await container.eventDetail().loadDetail('a')).toBeNull()
+  })
+
+  it('replaceTodoThisScope: detail 제거 실패가 todo 교체 흐름을 깨지 않는다 (silent fail 격리)', async () => {
+    // given: container 가 disposed 되어 LocalStorage 작업이 실패하는 상황
+    await container.dispose()
+    const newTodo = todoOf('new-uuid', { event_time: { time_type: 'at', timestamp: 2000 } })
+    const { todoApi, scheduleApi } = makeFakeApis()
+    todoApi.replaceTodo.mockResolvedValue({ new_todo: newTodo, next_repeating: undefined })
+
+    const repo = new EventRepository({
+      todoApi: todoApi as any, scheduleApi: scheduleApi as any,
+      localStorageContainer: container,
+    })
+
+    // when / then: LocalStorage 실패에도 불구하고 Promise 가 정상 resolve
+    await expect(
+      repo.replaceTodoThisScope('a', { new: { name: 'replaced' } } as any),
+    ).resolves.toMatchObject({ new_todo: newTodo })
+  })
 })

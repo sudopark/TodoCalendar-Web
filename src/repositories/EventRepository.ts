@@ -338,6 +338,9 @@ export class EventRepository {
       if (result.next_repeating) toSave.push(result.next_repeating)
       await local.todo().saveTodos(toSave)
     })
+    await this.writeLocal('replaceTodoThisScope (detail)', () =>
+      this.deps.localStorageContainer!.eventDetail().removeDetail(id),
+    )
     useCalendarEventsCache.getState().removeEvent(id)
     if (result.new_todo.event_time) {
       useCalendarEventsCache.getState().addEvent({ type: 'todo', event: result.new_todo })
