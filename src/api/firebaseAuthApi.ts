@@ -13,6 +13,7 @@ import type { AuthFirebaseApi } from '../repositories/AuthRepository'
 export const firebaseAuthApi: AuthFirebaseApi = {
   async signInWithGoogle(): Promise<void> {
     const provider = new GoogleAuthProvider()
+    provider.setCustomParameters({ prompt: 'select_account' })
     await signInWithPopup(getAuthInstance(), provider)
   },
 
