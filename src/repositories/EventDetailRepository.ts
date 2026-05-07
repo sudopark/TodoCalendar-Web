@@ -83,9 +83,9 @@ export class EventDetailRepository {
   }
 
   async save(eventId: string, detail: EventDetail): Promise<EventDetail> {
-    const saved = await this.deps.api.updateEventDetail(eventId, detail)
-    // bg refresh 가 save 보다 나중에 완료되어도 stale Remote 로 덮어쓰지 않도록 generation bump
+    // bg refresh 가 save 의 await 동안 시작/완료되어도 stale Remote 로 덮어쓰지 않도록 먼저 bump
     this.bumpGeneration(eventId)
+    const saved = await this.deps.api.updateEventDetail(eventId, detail)
     const local = this.deps.localStorageContainer
     if (local?.isInitialized()) {
       try { await local.eventDetail().saveDetail(eventId, saved) } catch (e) { console.warn('LocalStorage event detail save 실패:', e) }
