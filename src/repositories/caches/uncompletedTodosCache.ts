@@ -7,6 +7,7 @@ import type { Todo } from '../../models'
 
 interface UncompletedTodosState {
   todos: Todo[]
+  addTodo: (todo: Todo) => void
   removeTodo: (id: string) => void
   replaceAll: (todos: Todo[]) => void
   reset: () => void
@@ -14,6 +15,8 @@ interface UncompletedTodosState {
 
 export const useUncompletedTodosCache = create<UncompletedTodosState>((set, get) => ({
   todos: [],
+
+  addTodo: (todo: Todo) => set({ todos: [...get().todos, todo] }),
 
   removeTodo: (id: string) => {
     set({ todos: get().todos.filter(t => t.uuid !== id) })
