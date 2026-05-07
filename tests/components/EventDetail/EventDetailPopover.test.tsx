@@ -172,7 +172,7 @@ describe('EventDetailPopover', () => {
     expect(screen.getByTestId('event-detail-popover')).toBeInTheDocument()
   })
 
-  it('반복 정보를 표시한다', async () => {
+  it('반복 정보를 표시한다 — describeRepeating 결과와 동일한 텍스트', async () => {
     // given: 매일 반복 설정이 있는 일정
     const calEvent = makeTodoEvent({
       name: '매일 운동',
@@ -182,10 +182,25 @@ describe('EventDetailPopover', () => {
     // when: 팝오버 렌더
     renderPopover(calEvent)
 
-    // then: 반복 정보가 표시된다
+    // then: 반복 정보가 describeRepeating 결과("매일 반복")로 표시된다
     const repeatingInfo = screen.getByTestId('repeating-info')
     expect(repeatingInfo).toBeInTheDocument()
-    expect(repeatingInfo).toHaveTextContent('매 1일')
+    expect(repeatingInfo).toHaveTextContent('매일 반복')
+  })
+
+  it('매주 반복 설정이 있으면 describeRepeating 결과가 표시된다', async () => {
+    // given: 매주 월·수 반복 설정
+    const calEvent = makeTodoEvent({
+      name: '주간 운동',
+      repeating: { start: 1710480600, option: { optionType: 'every_week', interval: 1, dayOfWeek: [1, 3] } },
+    })
+
+    // when: 팝오버 렌더
+    renderPopover(calEvent)
+
+    // then: 폼에서 사용하는 describeRepeating 결과와 동일한 텍스트가 표시된다
+    const repeatingInfo = screen.getByTestId('repeating-info')
+    expect(repeatingInfo).toHaveTextContent('매주 월·수 반복')
   })
 
   it('알림 설정을 표시한다', async () => {
