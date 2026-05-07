@@ -1,0 +1,26 @@
+name: Deploy to Firebase Hosting (staging preview)
+
+on:
+  push:
+    branches:
+      - develop
+
+concurrency:
+  group: firebase-staging
+  cancel-in-progress: true
+
+jobs:
+  build_and_deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy local .env.local
+        run: cp ~/.config/todocalendar/.env.local .env.local
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Deploy to Firebase Hosting (staging channel)
+        run: firebase hosting:channel:deploy staging --expires 30d --project todocalendar-1707723626269 --non-interactive
