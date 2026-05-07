@@ -16,7 +16,7 @@ interface UncompletedTodosState {
 export const useUncompletedTodosCache = create<UncompletedTodosState>((set, get) => ({
   todos: [],
 
-  addTodo: (todo: Todo) => set({ todos: [...get().todos, todo] }),
+  addTodo: (todo: Todo) => set(s => ({ todos: [...s.todos, todo] })),
 
   removeTodo: (id: string) => {
     set({ todos: get().todos.filter(t => t.uuid !== id) })
