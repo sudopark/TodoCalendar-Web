@@ -176,6 +176,80 @@ describe('DoneTodoRepository — revert', () => {
     // then: uncompletedTodosCache 에 없음
     expect(useUncompletedTodosCache.getState().todos.find(t => t.uuid === 'd6')).toBeUndefined()
   })
+
+  it('revert 된 todo 가 period 타입이고 period_start <= now 이면 uncompletedTodosCache 에 추가된다', async () => {
+    // given: period, period_start 가 과거
+    useDoneTodosCache.setState({ items: [makeDone('d7')] })
+    const restored: Todo = {
+      uuid: 'd7', name: 'period-past-todo', is_current: false,
+      event_time: { time_type: 'period', period_start: 1, period_end: 2 },
+    }
+    const repo = new DoneTodoRepository({
+      api: makeFakeApi({ revertDoneTodo: vi.fn(async () => ({ todo: restored, detail: null })) }),
+    })
+
+    // when
+    await repo.revert('d7')
+
+    // then: uncompletedTodosCache 에 추가됨
+    expect(useUncompletedTodosCache.getState().todos.find(t => t.uuid === 'd7')).toBeDefined()
+  })
+
+  it('revert 된 todo 가 period 타입이고 period_start > now 이면 uncompletedTodosCache 에 추가되지 않는다', async () => {
+    // given: period, period_start 가 미래
+    const futureTs = Math.floor(Date.now() / 1000) + 86400 * 365
+    useDoneTodosCache.setState({ items: [makeDone('d8')] })
+    const restored: Todo = {
+      uuid: 'd8', name: 'period-future-todo', is_current: false,
+      event_time: { time_type: 'period', period_start: futureTs, period_end: futureTs + 3600 },
+    }
+    const repo = new DoneTodoRepository({
+      api: makeFakeApi({ revertDoneTodo: vi.fn(async () => ({ todo: restored, detail: null })) }),
+    })
+
+    // when
+    await repo.revert('d8')
+
+    // then: uncompletedTodosCache 에 없음
+    expect(useUncompletedTodosCache.getState().todos.find(t => t.uuid === 'd8')).toBeUndefined()
+  })
+
+  it('revert 된 todo 가 allday 타입이고 period_start <= now 이면 uncompletedTodosCache 에 추가된다', async () => {
+    // given: allday, period_start 가 과거
+    useDoneTodosCache.setState({ items: [makeDone('d9')] })
+    const restored: Todo = {
+      uuid: 'd9', name: 'allday-past-todo', is_current: false,
+      event_time: { time_type: 'allday', period_start: 1, seconds_from_gmt: 0 },
+    }
+    const repo = new DoneTodoRepository({
+      api: makeFakeApi({ revertDoneTodo: vi.fn(async () => ({ todo: restored, detail: null })) }),
+    })
+
+    // when
+    await repo.revert('d9')
+
+    // then: uncompletedTodosCache 에 추가됨
+    expect(useUncompletedTodosCache.getState().todos.find(t => t.uuid === 'd9')).toBeDefined()
+  })
+
+  it('revert 된 todo 가 allday 타입이고 period_start > now 이면 uncompletedTodosCache 에 추가되지 않는다', async () => {
+    // given: allday, period_start 가 미래
+    const futureTs = Math.floor(Date.now() / 1000) + 86400 * 365
+    useDoneTodosCache.setState({ items: [makeDone('d10')] })
+    const restored: Todo = {
+      uuid: 'd10', name: 'allday-future-todo', is_current: false,
+      event_time: { time_type: 'allday', period_start: futureTs, seconds_from_gmt: 0 },
+    }
+    const repo = new DoneTodoRepository({
+      api: makeFakeApi({ revertDoneTodo: vi.fn(async () => ({ todo: restored, detail: null })) }),
+    })
+
+    // when
+    await repo.revert('d10')
+
+    // then: uncompletedTodosCache 에 없음
+    expect(useUncompletedTodosCache.getState().todos.find(t => t.uuid === 'd10')).toBeUndefined()
+  })
 })
 
 // ──────────────────────── remove ────────────────────────
