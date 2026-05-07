@@ -57,11 +57,19 @@ export class ForemostEventRepository {
 
   async set(eventId: string, isTodo: boolean): Promise<void> {
     const event = await this.deps.api.setForemostEvent({ event_id: eventId, is_todo: isTodo })
+    const local = this.deps.localStorageContainer
+    if (local?.isInitialized()) {
+      try { await local.foremost().save(event) } catch (e) { console.warn('LocalStorage foremost set 실패:', e) }
+    }
     useForemostEventCache.getState().setEvent(event)
   }
 
   async clear(): Promise<void> {
     await this.deps.api.removeForemostEvent()
+    const local = this.deps.localStorageContainer
+    if (local?.isInitialized()) {
+      try { await local.foremost().remove() } catch (e) { console.warn('LocalStorage foremost clear 실패:', e) }
+    }
     useForemostEventCache.getState().setEvent(null)
   }
 
