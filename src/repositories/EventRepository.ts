@@ -6,7 +6,7 @@ import type { LocalStorageContainer } from './local-storage/LocalStorageContaine
 import { useCalendarEventsCache } from './caches/calendarEventsCache'
 import { useCurrentTodosCache } from './caches/currentTodosCache'
 import { useUncompletedTodosCache } from './caches/uncompletedTodosCache'
-import { monthRange } from '../domain/functions/eventTime'
+import { monthRange, yearRange, groupEventsByDate } from '../domain/functions/eventTime'
 import type { CalendarEvent } from '../domain/functions/eventTime'
 import { nextRepeatingTime, getStartTimestamp } from '../domain/functions/repeating'
 
@@ -62,6 +62,69 @@ export class EventRepository {
       this.deps.scheduleApi.getSchedules(range.lower, range.upper),
     ])
     useCalendarEventsCache.getState().replaceMonth(year, month, todos, schedules)
+  }
+
+  async fetchEventsForYear(year: number): Promise<void> {
+    if (useCalendarEventsCache.getState().loadedYears.has(year)) return
+    const range = yearRange(year)
+    const local = this.deps.localStorageContainer
+
+    // 1. Cache-first: LocalStorage 에 캐시가 있으면 메모리 store 에 즉시 set
+    if (local?.isInitialized()) {
+      try {
+        const [cachedTodos, cachedSchedules] = await Promise.all([
+          local.todo().loadTodos(range),
+          local.schedule().loadSchedules(range),
+        ])
+        if (cachedTodos.length > 0 || cachedSchedules.length > 0) {
+          const grouped = groupEventsByDate(cachedTodos, cachedSchedules, range.lower, range.upper)
+          const merged = new Map(useCalendarEventsCache.getState().eventsByDate)
+          for (const [k, evs] of grouped) {
+            merged.set(k, [...(merged.get(k) ?? []), ...evs])
+          }
+          useCalendarEventsCache.setState({ eventsByDate: merged })
+        }
+      } catch (e) {
+        console.warn('LocalStorage cache read 실패:', e)
+      }
+    }
+
+    // 2. Remote: 서버 응답으로 LocalStorage 와 메모리 store 교체
+    try {
+      useCalendarEventsCache.setState({ loading: true })
+      const [todos, schedules] = await Promise.all([
+        this.deps.todoApi.getTodos(range.lower, range.upper),
+        this.deps.scheduleApi.getSchedules(range.lower, range.upper),
+      ])
+      if (local?.isInitialized()) {
+        try {
+          const existingTodos = await local.todo().loadTodos(range)
+          await local.todo().removeTodos(existingTodos.map(t => t.uuid))
+          await local.todo().saveTodos(todos)
+          const existingSchedules = await local.schedule().loadSchedules(range)
+          await local.schedule().removeSchedules(existingSchedules.map(s => s.uuid))
+          await local.schedule().saveSchedules(schedules)
+        } catch (e) {
+          console.warn('LocalStorage replaceCache 실패:', e)
+        }
+      }
+      // 메모리: 해당 year 의 기존 entries 제거 후 신규 merge
+      const yearEvents = groupEventsByDate(todos, schedules, range.lower, range.upper)
+      const current = useCalendarEventsCache.getState()
+      const merged = new Map(current.eventsByDate)
+      for (const key of merged.keys()) {
+        if (key.startsWith(String(year))) merged.delete(key)
+      }
+      for (const [key, events] of yearEvents) {
+        merged.set(key, [...(merged.get(key) ?? []), ...events])
+      }
+      const newLoadedYears = new Set(current.loadedYears)
+      newLoadedYears.add(year)
+      useCalendarEventsCache.setState({ eventsByDate: merged, loading: false, loadedYears: newLoadedYears })
+    } catch (e) {
+      console.warn('이벤트 로드 실패:', e)
+      useCalendarEventsCache.setState({ loading: false })
+    }
   }
 
   async fetchCurrentTodos(): Promise<void> {
