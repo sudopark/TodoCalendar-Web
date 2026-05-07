@@ -8,10 +8,10 @@ import tailwindcss from '@tailwindcss/vite'
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'))
 const commitSha =
-  process.env.GITHUB_SHA?.substring(0, 7) ??
+  process.env.GITHUB_SHA?.substring(0, 7) ||
   (() => {
     try {
-      return execSync('git rev-parse --short HEAD').toString().trim()
+      return execSync('git rev-parse --short=7 HEAD').toString().trim()
     } catch {
       return 'dev'
     }
