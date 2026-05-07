@@ -6,6 +6,7 @@ import type { LocalStorageContainer } from './local-storage/LocalStorageContaine
 import { useCalendarEventsCache } from './caches/calendarEventsCache'
 import { useCurrentTodosCache } from './caches/currentTodosCache'
 import { useUncompletedTodosCache } from './caches/uncompletedTodosCache'
+import { useDoneTodosCache } from './caches/doneTodosCache'
 import { monthRange, yearRange, groupEventsByDate } from '../domain/functions/eventTime'
 import type { CalendarEvent } from '../domain/functions/eventTime'
 import { nextRepeatingTime, getStartTimestamp } from '../domain/functions/repeating'
@@ -416,6 +417,7 @@ export class EventRepository {
         useCurrentTodosCache.getState().removeTodo(todo.uuid)
         useUncompletedTodosCache.getState().removeTodo(todo.uuid)
       }
+      useDoneTodosCache.getState().prependItem(done)
       return done
     }
 
@@ -432,6 +434,7 @@ export class EventRepository {
       useCalendarEventsCache.getState().removeEvent(todo.uuid)
       useCurrentTodosCache.getState().removeTodo(todo.uuid)
       useUncompletedTodosCache.getState().removeTodo(todo.uuid)
+      useDoneTodosCache.getState().prependItem(done)
       return done
     }
 
@@ -445,6 +448,7 @@ export class EventRepository {
     useCalendarEventsCache.getState().removeEvent(todo.uuid)
     useCurrentTodosCache.getState().removeTodo(todo.uuid)
     useUncompletedTodosCache.getState().removeTodo(todo.uuid)
+    useDoneTodosCache.getState().prependItem(done)
     return done
   }
 

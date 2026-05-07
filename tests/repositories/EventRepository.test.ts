@@ -10,6 +10,7 @@ import { EventRepository } from '../../src/repositories/EventRepository'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 import { useUncompletedTodosCache } from '../../src/repositories/caches/uncompletedTodosCache'
+import { useDoneTodosCache } from '../../src/repositories/caches/doneTodosCache'
 import type { Todo } from '../../src/models/Todo'
 import type { Schedule } from '../../src/models/Schedule'
 
@@ -71,6 +72,7 @@ function resetCaches() {
   useCalendarEventsCache.getState().reset()
   useCurrentTodosCache.getState().reset()
   useUncompletedTodosCache.getState().reset()
+  useDoneTodosCache.getState().reset()
 }
 
 // ───────────────────────────── 테스트 ──────────────────────────────
@@ -541,5 +543,106 @@ describe('EventRepository — completeTodo', () => {
     expect(calSnapshot.some(e => e.event.uuid === 'rep-todo-future')).toBe(false)
     expect(useCurrentTodosCache.getState().todos.some(t => t.uuid === 'rep-todo-future')).toBe(false)
     expect(useUncompletedTodosCache.getState().todos.some(t => t.uuid === 'rep-todo-future')).toBe(false)
+  })
+
+  it('비반복 todo 완료(default 분기) 시 doneTodosCache 최상단에 완료 항목이 추가된다', async () => {
+    // given: 기존 done 항목이 있는 상태
+    const existingDone = { uuid: 'existing-done', name: '기존완료', done_at: MAR_01_TS } as any
+    useDoneTodosCache.setState({ items: [existingDone] })
+    const todo = makeTodo({ uuid: 'simple-todo2', event_time: { time_type: 'at', timestamp: MAR_15_TS } })
+    const doneTodo = { uuid: 'done-simple2', name: '완료됨', done_at: MAR_15_TS } as any
+    const repo = new EventRepository({
+      todoApi: makeFakeTodoApi({ completeTodo: async () => doneTodo }),
+      scheduleApi: makeFakeScheduleApi(),
+    })
+
+    // when
+    await repo.completeTodo(todo)
+
+    // then: doneTodosCache 최상단에 새 완료 항목이 추가된다
+    const items = useDoneTodosCache.getState().items
+    expect(items[0].uuid).toBe('done-simple2')
+    expect(items[1].uuid).toBe('existing-done')
+  })
+
+  it("반복 todo 'this' 스코프 + 다음 차수 있음: doneTodosCache 최상단에 완료 항목이 추가된다", async () => {
+    // given
+    const repeating = { start: MAR_01_TS, option: { optionType: 'every_day' as const, interval: 1 } }
+    const todo = makeTodo({
+      uuid: 'rep-done-this',
+      event_time: { time_type: 'at', timestamp: MAR_01_TS },
+      repeating,
+      repeating_turn: 1,
+    })
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: todo })
+    const existingDone = { uuid: 'older-done', name: '이전완료', done_at: MAR_01_TS - 1000 } as any
+    useDoneTodosCache.setState({ items: [existingDone] })
+    const doneTodo = { uuid: 'done-rep-this', name: '완료됨', done_at: MAR_01_TS } as any
+    const repo = new EventRepository({
+      todoApi: makeFakeTodoApi({ completeTodo: async () => doneTodo }),
+      scheduleApi: makeFakeScheduleApi(),
+    })
+
+    // when
+    await repo.completeTodo(todo, 'this')
+
+    // then: doneTodosCache 최상단에 새 완료 항목이 추가된다
+    const items = useDoneTodosCache.getState().items
+    expect(items[0].uuid).toBe('done-rep-this')
+  })
+
+  it("반복 todo 'this' 스코프 + 다음 차수 없음(반복 종료): doneTodosCache 최상단에 완료 항목이 추가된다", async () => {
+    // given
+    const repeating = { start: MAR_01_TS, end: MAR_01_TS, option: { optionType: 'every_day' as const, interval: 1 } }
+    const todo = makeTodo({
+      uuid: 'rep-done-end',
+      event_time: { time_type: 'at', timestamp: MAR_01_TS },
+      repeating,
+      repeating_turn: 1,
+    })
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: todo })
+    const existingDone = { uuid: 'older-done2', name: '이전완료', done_at: MAR_01_TS - 1000 } as any
+    useDoneTodosCache.setState({ items: [existingDone] })
+    const doneTodo = { uuid: 'done-rep-end', name: '완료됨', done_at: MAR_01_TS } as any
+    const repo = new EventRepository({
+      todoApi: makeFakeTodoApi({ completeTodo: async () => doneTodo }),
+      scheduleApi: makeFakeScheduleApi(),
+    })
+
+    // when
+    await repo.completeTodo(todo, 'this')
+
+    // then: doneTodosCache 최상단에 새 완료 항목이 추가된다
+    const items = useDoneTodosCache.getState().items
+    expect(items[0].uuid).toBe('done-rep-end')
+  })
+
+  it("반복 todo 'future' 스코프: doneTodosCache 최상단에 완료 항목이 추가된다", async () => {
+    // given
+    const repeating = { start: MAR_01_TS, option: { optionType: 'every_day' as const, interval: 1 } }
+    const todo = makeTodo({
+      uuid: 'rep-done-future',
+      event_time: { time_type: 'at', timestamp: MAR_15_TS },
+      repeating,
+      repeating_turn: 15,
+    })
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: todo })
+    const existingDone = { uuid: 'older-done3', name: '이전완료', done_at: MAR_01_TS } as any
+    useDoneTodosCache.setState({ items: [existingDone] })
+    const doneTodo = { uuid: 'done-rep-future', name: '완료됨', done_at: MAR_15_TS } as any
+    const repo = new EventRepository({
+      todoApi: makeFakeTodoApi({
+        patchTodo: async () => todo,
+        completeTodo: async () => doneTodo,
+      }),
+      scheduleApi: makeFakeScheduleApi(),
+    })
+
+    // when
+    await repo.completeTodo(todo, 'future')
+
+    // then: doneTodosCache 최상단에 새 완료 항목이 추가된다
+    const items = useDoneTodosCache.getState().items
+    expect(items[0].uuid).toBe('done-rep-future')
   })
 })
