@@ -2,15 +2,12 @@ import { useState } from 'react'
 import { cleanupTestData, seedTestData } from '../../dev/testDataSeeder'
 import { useRepositories } from '../../composition/RepositoriesProvider'
 import { useCalendarEventsCache } from '../../repositories/caches/calendarEventsCache'
-import { useCurrentTodosCache } from '../../repositories/caches/currentTodosCache'
-import { useUncompletedTodosCache } from '../../repositories/caches/uncompletedTodosCache'
-import { useForemostEventCache } from '../../repositories/caches/foremostEventCache'
 import { useDoneTodosCache } from '../../repositories/caches/doneTodosCache'
 import { useToastStore } from '../../stores/toastStore'
 
 export default function TestDataSeederButton() {
   const [running, setRunning] = useState(false)
-  const { tagRepo } = useRepositories()
+  const { tagRepo, eventRepo, foremostEventRepo } = useRepositories()
 
   async function handleClick() {
     if (running) return
@@ -27,13 +24,14 @@ export default function TestDataSeederButton() {
 
       const loadedYears = Array.from(useCalendarEventsCache.getState().loadedYears)
       if (loadedYears.length > 0) {
-        await useCalendarEventsCache.getState().refreshYears(loadedYears).catch(() => {})
+        useCalendarEventsCache.getState().invalidateYears(loadedYears)
+        await Promise.allSettled(loadedYears.map(y => eventRepo.fetchEventsForYear(y)))
       }
 
       await Promise.allSettled([
-        useCurrentTodosCache.getState().fetch(),
-        useUncompletedTodosCache.getState().fetch(),
-        useForemostEventCache.getState().fetch(),
+        eventRepo.fetchCurrentTodos(),
+        eventRepo.fetchUncompletedTodos(),
+        foremostEventRepo.fetch(),
       ])
 
       // Done todos는 페이지네이션 상태 초기화 후 첫 페이지 재로딩

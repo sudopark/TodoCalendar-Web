@@ -1,10 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { useUncompletedTodosCache } from '../../../src/repositories/caches/uncompletedTodosCache'
 import type { Todo } from '../../../src/models/Todo'
-
-vi.mock('../../../src/api/todoApi', () => ({
-  todoApi: { getUncompletedTodos: vi.fn() },
-}))
 
 const makeTodo = (uuid: string, name: string): Todo => ({
   uuid, name, is_current: false, event_time: null,
@@ -13,7 +9,6 @@ const makeTodo = (uuid: string, name: string): Todo => ({
 describe('useUncompletedTodosCache', () => {
   beforeEach(() => {
     useUncompletedTodosCache.setState({ todos: [] })
-    vi.clearAllMocks()
   })
 
   it('replaceAll 로 전체 교체하면 새 목록으로 대체된다', () => {
@@ -63,25 +58,5 @@ describe('useUncompletedTodosCache', () => {
 
     // then: 빈 목록
     expect(useUncompletedTodosCache.getState().todos).toEqual([])
-  })
-
-  // #99: 동일 cache 에 동시 fetch 호출 시 (AuthGuard + useMainViewModel + StrictMode 이중 effect 등) API 1회만.
-  it('동시에 여러 번 fetch 호출 시 API 는 한 번만 호출된다 (in-flight dedup)', async () => {
-    // given: 응답이 즉시 resolve 되지 않게 deferred
-    const { todoApi } = await import('../../../src/api/todoApi')
-    let resolveFn!: (v: Todo[]) => void
-    const pending = new Promise<Todo[]>(r => { resolveFn = r })
-    vi.mocked(todoApi.getUncompletedTodos).mockReturnValue(pending)
-
-    // when: 동시에 3번 호출
-    const p1 = useUncompletedTodosCache.getState().fetch()
-    const p2 = useUncompletedTodosCache.getState().fetch()
-    const p3 = useUncompletedTodosCache.getState().fetch()
-    resolveFn([makeTodo('u1', '미완료')])
-    await Promise.all([p1, p2, p3])
-
-    // then: API 는 1회만 호출 — 사용자 관찰 가능 행위 (네트워크 트래픽 절감)
-    expect(todoApi.getUncompletedTodos).toHaveBeenCalledTimes(1)
-    expect(useUncompletedTodosCache.getState().todos).toHaveLength(1)
   })
 })

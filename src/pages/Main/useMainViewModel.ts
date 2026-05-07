@@ -169,9 +169,10 @@ export function useMainViewModel(): MainViewModel {
     const today = new Date()
     const gridDays = buildCalendarGrid(year, month, today)
     const years = [...new Set(gridDays.map(d => d.date.getFullYear()))]
-    useCalendarEventsCache.getState().refreshYears(years)
+    useCalendarEventsCache.getState().invalidateYears(years)
+    years.forEach(y => eventRepo.fetchEventsForYear(y))
     useHolidayCache.getState().refreshHolidays(years)
-  }, [year, month])
+  }, [year, month, eventRepo])
 
   const reloadUncompletedTodos = useCallback(async () => {
     await eventRepo.fetchUncompletedTodos()
