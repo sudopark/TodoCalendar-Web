@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, ChevronLeft } from 'lucide-react'
 import { useEventTagListCache } from '../../../repositories/caches/eventTagListCache'
+import { useRepositories } from '../../../composition/RepositoriesProvider'
 import { useToastStore } from '../../../stores/toastStore'
 import { buildTagRows } from '../../../domain/tag/buildTagRows'
 import type { TagRowModel } from '../../../domain/tag/buildTagRows'
@@ -19,18 +20,18 @@ interface Props {
 
 export function TagManagementPanel({ onClose }: Props) {
   const { t } = useTranslation()
+  const { tagRepo } = useRepositories()
   const tags = useEventTagListCache(s => s.tags)
   const defaultTagColors = useEventTagListCache(s => s.defaultTagColors)
-  const fetchAll = useEventTagListCache(s => s.fetchAll)
 
   const [panel, setPanel] = useState<PanelMode>({ kind: 'list' })
 
   useEffect(() => {
-    fetchAll().catch(e => {
+    tagRepo.fetchAll().catch(e => {
       console.warn('태그 로드 실패:', e)
       useToastStore.getState().show('error.data_load_failed', 'error')
     })
-  }, [fetchAll, t])
+  }, [tagRepo, t])
 
   const rows = useMemo(
     () => buildTagRows(tags, defaultTagColors, (key: string, fallback?: string) => t(key, fallback ?? key)),
