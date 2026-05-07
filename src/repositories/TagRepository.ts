@@ -136,10 +136,10 @@ export class TagRepository {
     useEventTagListCache.getState().remove(id)
 
     // 서버 응답에 영향받은 UUID 목록 없음 — 보유 캐시를 event_tag_id 기준으로 in-memory 필터
-    const filteredCurrent = useCurrentTodosCache.getState().todos.filter(t => t.event_tag_id !== id)
+    const filteredCurrent = useCurrentTodosCache.getState().todos.filter(t => !t.event_tag_id || t.event_tag_id !== id)
     useCurrentTodosCache.getState().replaceAll(filteredCurrent)
 
-    const filteredUncompleted = useUncompletedTodosCache.getState().todos.filter(t => t.event_tag_id !== id)
+    const filteredUncompleted = useUncompletedTodosCache.getState().todos.filter(t => !t.event_tag_id || t.event_tag_id !== id)
     useUncompletedTodosCache.getState().replaceAll(filteredUncompleted)
 
     // Cascade: 캘린더 이벤트(schedule 등)는 태그+관련 이벤트 삭제 의도에 맞게 재fetch.
