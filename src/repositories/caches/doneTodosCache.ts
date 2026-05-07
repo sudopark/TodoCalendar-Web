@@ -13,11 +13,12 @@ interface DoneTodosCacheState {
   hasMore: boolean
   isLoading: boolean
   /**
-   * reset / revert / remove 가 발생할 때마다 +1. fetchNext 가 시작 시점의 generation 을 캡처해
-   * 응답 도착 시 generation 이 바뀌었다면 stale 응답으로 간주하고 무시한다.
+   * reset / revert / remove 가 발생할 때마다 +1. DoneTodoRepository.fetchNextPage 가
+   * fetch 시작 시점의 generation 을 캡처해 응답 도착 시 generation 이 바뀌었다면 stale 응답으로
+   * 간주하고 무시한다.
    *
-   * 필요한 이유: 컴포넌트(ArchivePanel) 의 dev StrictMode 더블 useEffect 로 fetchNext 가 두 번
-   * 발사되거나, fetchNext 진행 중에 revert/remove 가 일어나면, in-flight 응답이 cache 를 다시
+   * 필요한 이유: 컴포넌트(ArchivePanel) 의 dev StrictMode 더블 useEffect 로 fetchNextPage 가 두 번
+   * 발사되거나, fetchNextPage 진행 중에 revert/remove 가 일어나면, in-flight 응답이 cache 를 다시
    * 채워 (1) 항목이 중복 표시되거나 (2) 사용자가 막 지운 항목이 되살아나는 회귀가 발생한다.
    */
   generation: number
