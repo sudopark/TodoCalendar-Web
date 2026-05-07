@@ -88,8 +88,9 @@ describe('EventRepository.fetchEventsForYear — cache-first', () => {
     })
 
     const fetchPromise = repo.fetchEventsForYear(2025)
-    // macro-task 로 cache 읽기 완료 대기 (fake-indexeddb 는 내부적으로 macro-task 로 IDB 이벤트 처리)
-    await new Promise(r => setTimeout(r, 0))
+    // cache-first read 가 비동기적 IDB 호출들 끝낼 때까지 polling — single setTimeout 은 CI 에서 flaky.
+    // 사용자 관점: Remote 응답 전에 캐시 데이터가 메모리 store 에 보여야 한다.
+    await vi.waitUntil(() => useCalendarEventsCache.getState().eventsByDate.size > 0, { timeout: 1000 })
 
     const state = useCalendarEventsCache.getState()
     expect(state.eventsByDate.size).toBeGreaterThan(0)
@@ -147,12 +148,12 @@ describe('EventRepository.fetchEventsForYear — cache-first', () => {
     const cachedTodo = todo('cached-1', range.lower + 100)
     await container.todo().saveTodos([cachedTodo])
 
-    // Remote 가 첫 호출에서 throw 해서 loadedYears 가 set 되지 않은 상태 시뮬레이트
+    // Remote 가 두 호출 모두에서 throw — cache-first 만이 메모리 store 의 유일한 writer 가 되도록
+    // (Remote 성공 path 가 year keys 를 어차피 replace 하면 cache-first replace 버그가 가려지므로,
+    //  Remote 가 항상 실패해야 cache-first 자체의 replace 의미가 검증됨)
     const { todoApi, scheduleApi } = makeFakeApis()
-    todoApi.getTodos.mockRejectedValueOnce(new Error('network'))
-    scheduleApi.getSchedules.mockRejectedValueOnce(new Error('network'))
-    todoApi.getTodos.mockResolvedValueOnce([cachedTodo])
-    scheduleApi.getSchedules.mockResolvedValueOnce([])
+    todoApi.getTodos.mockRejectedValue(new Error('network'))
+    scheduleApi.getSchedules.mockRejectedValue(new Error('network'))
 
     const repo = new EventRepository({
       todoApi: todoApi as any,
@@ -160,16 +161,15 @@ describe('EventRepository.fetchEventsForYear — cache-first', () => {
       localStorageContainer: container,
     })
 
-    // First call — Remote fails, cache-first sets memory store
+    // First call — Remote fails after cache-first sets memory store. loadedYears 미설정 → 두번째 호출 가능
     await repo.fetchEventsForYear(2025)
-    // Second call — Remote succeeds; cache-first 가 다시 한 번 set 하는 시점에 누적되면 안 됨
+    // Second call — cache-first 가 다시 한 번 set. replace 가 아니라 merge 였다면 여기서 중복 누적
     await repo.fetchEventsForYear(2025)
 
-    // then: 메모리 store 의 해당 cached-1 키에 todo 가 1번만 등록 (중복 0)
+    // then: 메모리 store 의 해당 cached-1 uuid 가 1번만 등록 (중복 0)
     let totalForYear = 0
     for (const [key, events] of useCalendarEventsCache.getState().eventsByDate) {
       if (key.startsWith('2025')) {
-        // cached-1 의 uuid 가 한 entry 안에서도 1번만 나타나야 함
         const cachedOnes = events.filter(e => e.event.uuid === 'cached-1').length
         totalForYear += cachedOnes
       }
