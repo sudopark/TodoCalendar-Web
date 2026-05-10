@@ -25,7 +25,7 @@ test('이름을 입력하고 저장하면 팝오버가 닫힌다', async ({ page
   await page.goto('/')
   await page.waitForLoadState('networkidle')
 
-  await page.route('**/v1/schedules/schedule', async route => {
+  await page.route('**/v2/schedules/schedule', async route => {
     if (route.request().method() === 'POST') {
       await route.fulfill({
         status: 200,

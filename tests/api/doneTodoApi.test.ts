@@ -19,7 +19,7 @@ describe('doneTodoApi', () => {
     await doneTodoApi.getDoneTodos(20)
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos/dones')
+    expect(String(url)).toContain('/v2/todos/dones')
     expect(String(url)).toContain('size=20')
     expect(String(url)).not.toContain('cursor')
     expect((options as RequestInit).method).toBe('GET')
@@ -30,7 +30,7 @@ describe('doneTodoApi', () => {
     await doneTodoApi.getDoneTodos(20, 1714000000)
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos/dones')
+    expect(String(url)).toContain('/v2/todos/dones')
     expect(String(url)).toContain('size=20')
     expect(String(url)).toContain('cursor=1714000000')
     expect((options as RequestInit).method).toBe('GET')
@@ -62,7 +62,7 @@ describe('doneTodoApi', () => {
     expect((options as RequestInit).method).toBe('POST')
   })
 
-  it('getDoneTodoDetail(id)가 /v1/event_details/done/:id로 GET 호출하고 응답을 그대로 반환한다', async () => {
+  it('getDoneTodoDetail(id)가 /v2/event_details/done/:id로 GET 호출하고 응답을 그대로 반환한다', async () => {
     const detailMock = { place: '집', url: 'https://x', memo: '메모' }
     fetchSpy.mockResolvedValue(
       new Response(JSON.stringify(detailMock), { status: 200, headers: { 'content-type': 'application/json' } })
@@ -72,7 +72,7 @@ describe('doneTodoApi', () => {
     const result = await doneTodoApi.getDoneTodoDetail('done-1')
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/event_details/done/done-1')
+    expect(String(url)).toContain('/v2/event_details/done/done-1')
     expect((options as RequestInit).method).toBe('GET')
     expect(result).toEqual(detailMock)
   })

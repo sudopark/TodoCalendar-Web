@@ -16,7 +16,7 @@ test.use({
 // backend 통합은 unit/integration 영역이다. /v1·/v2 API 는 page.route 로 mock 해 격리.
 async function mockApi(page: Parameters<typeof test>[1] extends never ? never : Parameters<NonNullable<Parameters<typeof test>[1]>>[0]['page']) {
   // accounts/info 만 의미 있는 응답을 줘야 AuthGuard 통과
-  await page.route('**/v1/accounts/info', (route: Route) =>
+  await page.route('**/v2/accounts/info', (route: Route) =>
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -24,7 +24,7 @@ async function mockApi(page: Parameters<typeof test>[1] extends never ? never : 
     }),
   )
   // 나머지 prefetch 들은 빈 컬렉션으로 충분
-  await page.route('**/v1/**', (route: Route) =>
+  await page.route('**/v2/**', (route: Route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
   )
   await page.route('**/v2/**', (route: Route) =>

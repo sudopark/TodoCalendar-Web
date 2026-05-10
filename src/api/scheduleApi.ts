@@ -3,26 +3,26 @@ import type { Schedule, EventTime, Repeating, NotificationOption } from '../mode
 
 export const scheduleApi = {
   getSchedules(lower: number, upper: number): Promise<Schedule[]> {
-    return apiClient.get(`/v1/schedules?lower=${lower}&upper=${upper}`)
+    return apiClient.get(`/v2/schedules?lower=${lower}&upper=${upper}`)
   },
 
   getSchedule(id: string): Promise<Schedule> {
-    return apiClient.get(`/v1/schedules/schedule/${id}`)
+    return apiClient.get(`/v2/schedules/schedule/${id}`)
   },
 
   createSchedule(body: { name: string; event_tag_id?: string; event_time: EventTime; repeating?: Repeating; notification_options?: NotificationOption[] }): Promise<Schedule> {
-    return apiClient.post('/v1/schedules/schedule', body)
+    return apiClient.post('/v2/schedules/schedule', body)
   },
 
   updateSchedule(id: string, body: Partial<Pick<Schedule, 'name' | 'event_tag_id' | 'event_time' | 'repeating' | 'notification_options'>>): Promise<Schedule> {
-    return apiClient.put(`/v1/schedules/schedule/${id}`, body)
+    return apiClient.put(`/v2/schedules/schedule/${id}`, body)
   },
 
   excludeRepeating(id: string, body: { exclude_repeatings: number[] }): Promise<Schedule> {
-    return apiClient.patch(`/v1/schedules/schedule/${id}/exclude`, body)
+    return apiClient.patch(`/v2/schedules/schedule/${id}/exclude`, body)
   },
 
   deleteSchedule(id: string): Promise<{ status: string }> {
-    return apiClient.delete(`/v1/schedules/schedule/${id}`)
+    return apiClient.delete(`/v2/schedules/schedule/${id}`)
   },
 }

@@ -19,7 +19,7 @@ describe('holidayApi', () => {
     await holidayApi.getHolidays(2026, 'ko', 'KR')
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/holiday')
+    expect(String(url)).toContain('/v2/holiday')
     expect(String(url)).toContain('year=2026')
     expect(String(url)).toContain('locale=ko')
     expect(String(url)).toContain('code=KR')
