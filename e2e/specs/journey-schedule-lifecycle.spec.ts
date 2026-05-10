@@ -22,16 +22,16 @@ test.beforeEach(async ({ context }) => {
 
 function setupCommonMocks(page: Parameters<Parameters<typeof test>[1]>[0]) {
   return Promise.all([
-    page.route('**/v1/tags/**', async route => {
+    page.route('**/v2/tags/**', async route => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     }),
-    page.route('**/v1/foremost**', async route => {
+    page.route('**/v2/foremost**', async route => {
       await route.fulfill({ status: 404, body: '{}' })
     }),
-    page.route('**/v1/holidays**', async route => {
+    page.route('**/v2/holidays**', async route => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     }),
-    page.route('**/v1/todos**', async route => {
+    page.route('**/v2/todos**', async route => {
       const method = route.request().method()
       if (method === 'GET') {
         await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
@@ -48,7 +48,7 @@ function setupCommonMocks(page: Parameters<Parameters<typeof test>[1]>[0]) {
 test('FAB 클릭 후 Schedule 선택 시 폼 오버레이가 이름 입력과 저장 버튼과 함께 표시된다', async ({ page }) => {
   // given
   await setupCommonMocks(page)
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     const method = route.request().method()
     if (method === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
@@ -86,7 +86,7 @@ test('일정 이름과 시간을 입력하고 저장하면 해당 날짜를 클�
 
   // given
   await setupCommonMocks(page)
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     const url = route.request().url()
     const method = route.request().method()
 
@@ -138,7 +138,7 @@ test.skip('DayEventList에서 일정을 클릭하면 이벤트 상세 오버레�
 
   // given
   await setupCommonMocks(page)
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     const url = route.request().url()
     const method = route.request().method()
     if (method !== 'GET') { await route.continue(); return }
@@ -148,7 +148,7 @@ test.skip('DayEventList에서 일정을 클릭하면 이벤트 상세 오버레�
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([schedule]) })
     }
   })
-  await page.route('**/v1/event_details/**', async route => {
+  await page.route('**/v2/event_details/**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
 
@@ -189,7 +189,7 @@ test.skip('이벤트 상세에서 편집 버튼을 클릭하면 편집 폼으로
 
   // given
   await setupCommonMocks(page)
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     const url = route.request().url()
     const method = route.request().method()
 
@@ -204,7 +204,7 @@ test.skip('이벤트 상세에서 편집 버튼을 클릭하면 편집 폼으로
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     }
   })
-  await page.route('**/v1/event_details/**', async route => {
+  await page.route('**/v2/event_details/**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
 

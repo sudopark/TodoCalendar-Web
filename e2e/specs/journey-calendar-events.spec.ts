@@ -30,16 +30,16 @@ async function setupCommonMocks(
   schedulesList: object[] = [],
   todosList: object[] = [],
 ) {
-  await page.route('**/v1/tags/**', async route => {
+  await page.route('**/v2/tags/**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/foremost**', async route => {
+  await page.route('**/v2/foremost**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
-  await page.route('**/v1/holidays**', async route => {
+  await page.route('**/v2/holidays**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     const method = route.request().method()
     if (method === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(todosList) })
@@ -47,7 +47,7 @@ async function setupCommonMocks(
       await route.continue()
     }
   })
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     const url = route.request().url()
     const method = route.request().method()
     if (method === 'GET' && url.includes('lower=') && url.includes('upper=')) {
@@ -163,16 +163,16 @@ test.skip('다음 달로 이동하면 해당 월 범위로 이벤트 fetch 요�
   }
 
   // given — 현재 달은 빈 목록, 다음 달은 일정 포함
-  await page.route('**/v1/tags/**', async route => {
+  await page.route('**/v2/tags/**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/foremost**', async route => {
+  await page.route('**/v2/foremost**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
-  await page.route('**/v1/holidays**', async route => {
+  await page.route('**/v2/holidays**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     const method = route.request().method()
     if (method === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
@@ -182,7 +182,7 @@ test.skip('다음 달로 이동하면 해당 월 범위로 이벤트 fetch 요�
   })
 
   let fetchedNextMonth = false
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     const url = route.request().url()
     const method = route.request().method()
     if (method !== 'GET') { await route.continue(); return }

@@ -20,7 +20,7 @@ describe('apiClient', () => {
     )
 
     const { apiClient } = await import('../../src/api/apiClient')
-    await apiClient.get('/v1/test')
+    await apiClient.get('/v2/test')
 
     const [, options] = fetchSpy.mock.calls[0]
     expect((options as RequestInit).headers).toMatchObject({
@@ -35,7 +35,7 @@ describe('apiClient', () => {
     )
 
     const { apiClient } = await import('../../src/api/apiClient')
-    const result = await apiClient.get<typeof payload>('/v1/test')
+    const result = await apiClient.get<typeof payload>('/v2/test')
 
     expect(result).toEqual(payload)
   })
@@ -46,7 +46,7 @@ describe('apiClient', () => {
     )
 
     const { apiClient } = await import('../../src/api/apiClient')
-    const result = await apiClient.delete('/v1/test/1')
+    const result = await apiClient.delete('/v2/test/1')
 
     expect(result).toBeUndefined()
   })
@@ -59,7 +59,7 @@ describe('apiClient', () => {
 
     // when / then: AuthExpiredError가 throw됨
     const { apiClient, AuthExpiredError } = await import('../../src/api/apiClient')
-    await expect(apiClient.get('/v1/test')).rejects.toThrow(AuthExpiredError)
+    await expect(apiClient.get('/v2/test')).rejects.toThrow(AuthExpiredError)
   })
 
   it('401 응답 시 등록된 onUnauthorized 핸들러가 실행된다', async () => {
@@ -72,7 +72,7 @@ describe('apiClient', () => {
     setUnauthorizedHandler(() => { handlerExecuted = true })
 
     // when
-    await expect(apiClient.get('/v1/test')).rejects.toThrow(AuthExpiredError)
+    await expect(apiClient.get('/v2/test')).rejects.toThrow(AuthExpiredError)
 
     // then: 핸들러가 실행됐음을 결과 상태로 확인
     expect(handlerExecuted).toBe(true)
@@ -84,7 +84,7 @@ describe('apiClient', () => {
     )
 
     const { apiClient } = await import('../../src/api/apiClient')
-    await expect(apiClient.get('/v1/test')).rejects.toThrow()
+    await expect(apiClient.get('/v2/test')).rejects.toThrow()
   })
 
   it('토큰을 가져올 수 없으면 요청이 거부된다', async () => {
@@ -92,7 +92,7 @@ describe('apiClient', () => {
     vi.mocked(tokenProvider.getToken).mockRejectedValue(new Error('Not authenticated'))
 
     const { apiClient } = await import('../../src/api/apiClient')
-    await expect(apiClient.get('/v1/test')).rejects.toThrow('Not authenticated')
+    await expect(apiClient.get('/v2/test')).rejects.toThrow('Not authenticated')
   })
 
   it('POST 요청 시 body가 JSON으로 직렬화되어 전송된다', async () => {
@@ -102,7 +102,7 @@ describe('apiClient', () => {
 
     const { apiClient } = await import('../../src/api/apiClient')
     const payload = { name: 'test', value: 42 }
-    await apiClient.post('/v1/test', payload)
+    await apiClient.post('/v2/test', payload)
 
     const [, options] = fetchSpy.mock.calls[0]
     expect((options as RequestInit).method).toBe('POST')
@@ -116,7 +116,7 @@ describe('apiClient', () => {
 
     const { apiClient } = await import('../../src/api/apiClient')
     const payload = { id: '1', name: 'updated' }
-    await apiClient.put('/v1/test/1', payload)
+    await apiClient.put('/v2/test/1', payload)
 
     const [, options] = fetchSpy.mock.calls[0]
     expect((options as RequestInit).method).toBe('PUT')
@@ -130,7 +130,7 @@ describe('apiClient', () => {
 
     const { apiClient } = await import('../../src/api/apiClient')
     const payload = { name: 'patched' }
-    await apiClient.patch('/v1/test/1', payload)
+    await apiClient.patch('/v2/test/1', payload)
 
     const [, options] = fetchSpy.mock.calls[0]
     expect((options as RequestInit).method).toBe('PATCH')
@@ -143,10 +143,10 @@ describe('apiClient', () => {
     )
 
     const { apiClient } = await import('../../src/api/apiClient')
-    await apiClient.delete('/v1/test/1')
+    await apiClient.delete('/v2/test/1')
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/test/1')
+    expect(String(url)).toContain('/v2/test/1')
     expect((options as RequestInit).method).toBe('DELETE')
   })
 
@@ -156,7 +156,7 @@ describe('apiClient', () => {
     )
 
     const { apiClient } = await import('../../src/api/apiClient')
-    await apiClient.get('/v1/test')
+    await apiClient.get('/v2/test')
 
     const [, options] = fetchSpy.mock.calls[0]
     expect((options as RequestInit).headers).toMatchObject({
@@ -168,6 +168,6 @@ describe('apiClient', () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Network failure'))
 
     const { apiClient } = await import('../../src/api/apiClient')
-    await expect(apiClient.get('/v1/test')).rejects.toThrow('Network failure')
+    await expect(apiClient.get('/v2/test')).rejects.toThrow('Network failure')
   })
 })

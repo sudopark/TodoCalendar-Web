@@ -12,13 +12,13 @@ test.beforeEach(async ({ context }) => {
 
 function setupBaseMocks(page: Parameters<Parameters<typeof test>[1]>[0], extraTags: object[] = []) {
   return Promise.all([
-    page.route('**/v1/foremost**', async route => {
+    page.route('**/v2/foremost**', async route => {
       await route.fulfill({ status: 404, body: '{}' })
     }),
-    page.route('**/v1/holidays**', async route => {
+    page.route('**/v2/holidays**', async route => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     }),
-    page.route('**/v1/schedules**', async route => {
+    page.route('**/v2/schedules**', async route => {
       const method = route.request().method()
       if (method === 'GET') {
         await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
@@ -38,7 +38,7 @@ test('/tags 페이지에서 새 태그를 생성하면 목록에 나타난다', 
 
   // given
   await setupBaseMocks(page)
-  await page.route('**/v1/tags/**', async route => {
+  await page.route('**/v2/tags/**', async route => {
     const url = route.request().url()
     const method = route.request().method()
 
@@ -53,7 +53,7 @@ test('/tags 페이지에서 새 태그를 생성하면 목록에 나타난다', 
     }
     await route.continue()
   })
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     if (route.request().method() === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     } else {
@@ -93,7 +93,7 @@ test('Todo 폼에서 "업무" 태그를 선택하고 저장하면 Current 목록
 
   // given
   await setupBaseMocks(page)
-  await page.route('**/v1/tags/**', async route => {
+  await page.route('**/v2/tags/**', async route => {
     const url = route.request().url()
     if (url.includes('/tags/all')) {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([tag]) })
@@ -101,7 +101,7 @@ test('Todo 폼에서 "업무" 태그를 선택하고 저장하면 Current 목록
       await route.continue()
     }
   })
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     const url = route.request().url()
     const method = route.request().method()
 
@@ -118,7 +118,7 @@ test('Todo 폼에서 "업무" 태그를 선택하고 저장하면 Current 목록
       // 캘린더 범위 쿼리: 빈 배열
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     } else {
-      // getCurrentTodos (/v1/todos): newTodo 포함
+      // getCurrentTodos (/v2/todos): newTodo 포함
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([newTodo]) })
     }
   })
@@ -165,7 +165,7 @@ test('TagFilter에서 태그를 클릭하면 해당 태그의 Todo가 Current �
 
   // given
   await setupBaseMocks(page)
-  await page.route('**/v1/tags/**', async route => {
+  await page.route('**/v2/tags/**', async route => {
     const url = route.request().url()
     if (url.includes('/tags/all')) {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([tag]) })
@@ -173,7 +173,7 @@ test('TagFilter에서 태그를 클릭하면 해당 태그의 Todo가 Current �
       await route.continue()
     }
   })
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     const url = route.request().url()
     const method = route.request().method()
     if (method !== 'GET') { await route.continue(); return }
@@ -231,14 +231,14 @@ test('/tags에서 "태그 + 연관 이벤트 모두 삭제"를 선택하면 연�
 
   // given
   await setupBaseMocks(page)
-  await page.route('**/v1/setting/event/tag/default/color', async route => {
+  await page.route('**/v2/setting/event/tag/default/color', async route => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({ default: '#4A90D9', holiday: '#ef4444' }),
     })
   })
-  await page.route('**/v1/tags/**', async route => {
+  await page.route('**/v2/tags/**', async route => {
     const url = route.request().url()
     const method = route.request().method()
 
@@ -254,7 +254,7 @@ test('/tags에서 "태그 + 연관 이벤트 모두 삭제"를 선택하면 연�
     }
     await route.continue()
   })
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     const url = route.request().url()
     const method = route.request().method()
     if (method !== 'GET') { await route.continue(); return }

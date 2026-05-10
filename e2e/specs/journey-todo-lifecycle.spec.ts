@@ -18,27 +18,27 @@ test.beforeEach(async ({ context }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 test('FAB 클릭 후 Todo 선택 시 Todo 팝오버가 화면에 보여야 한다', async ({ page }) => {
   // given
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     if (route.request().method() === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     } else {
       await route.continue()
     }
   })
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     if (route.request().method() === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     } else {
       await route.continue()
     }
   })
-  await page.route('**/v1/tags**', async route => {
+  await page.route('**/v2/tags**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/foremost**', async route => {
+  await page.route('**/v2/foremost**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
-  await page.route('**/v1/holidays**', async route => {
+  await page.route('**/v2/holidays**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
 
@@ -61,27 +61,27 @@ test('FAB 클릭 후 Todo 선택 시 Todo 팝오버가 화면에 보여야 한�
 // ─────────────────────────────────────────────────────────────────────────────
 test('FAB 클릭 후 Schedule 선택 시 Schedule 팝오버가 화면에 보여야 한다', async ({ page }) => {
   // given
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     if (route.request().method() === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     } else {
       await route.continue()
     }
   })
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     if (route.request().method() === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     } else {
       await route.continue()
     }
   })
-  await page.route('**/v1/tags**', async route => {
+  await page.route('**/v2/tags**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/foremost**', async route => {
+  await page.route('**/v2/foremost**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
-  await page.route('**/v1/holidays**', async route => {
+  await page.route('**/v2/holidays**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
 
@@ -112,7 +112,7 @@ test('Todo 팝오버에서 이름 입력 후 저장하면 메인 페이지 현�
   }
 
   // given — Todo POST API 모킹 (생성 API) + save 후 addTodo로 목록에 추가되므로 초기 목록은 비움
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     const url = route.request().url()
     const method = route.request().method()
     if (url.includes('/todo') && method === 'POST') {
@@ -131,20 +131,20 @@ test('Todo 팝오버에서 이름 입력 후 저장하면 메인 페이지 현�
     } else if (url.includes('/todo/')) {
       await route.fulfill({ status: 404, body: '{}' })
     } else {
-      // GET /v1/todos (현재 todo 목록) — 초기에는 비어있고, save 시 store.addTodo로 추가됨
+      // GET /v2/todos (현재 todo 목록) — 초기에는 비어있고, save 시 store.addTodo로 추가됨
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     }
   })
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/tags**', async route => {
+  await page.route('**/v2/tags**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/foremost**', async route => {
+  await page.route('**/v2/foremost**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
-  await page.route('**/v1/holidays**', async route => {
+  await page.route('**/v2/holidays**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
 
@@ -179,7 +179,7 @@ test.skip('현재 Todo를 클릭하면 이벤트 상세 페이지가 열리고 �
   }
 
   // given — 목록에 Todo 하나 표시, 상세 API 모킹
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     const url = route.request().url()
     const method = route.request().method()
     if (method !== 'GET') { await route.continue(); return }
@@ -195,23 +195,23 @@ test.skip('현재 Todo를 클릭하면 이벤트 상세 페이지가 열리고 �
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([todo]) })
     }
   })
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     if (route.request().method() === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     } else {
       await route.continue()
     }
   })
-  await page.route('**/v1/tags**', async route => {
+  await page.route('**/v2/tags**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/foremost**', async route => {
+  await page.route('**/v2/foremost**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
-  await page.route('**/v1/holidays**', async route => {
+  await page.route('**/v2/holidays**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/events/detail**', async route => {
+  await page.route('**/v2/events/detail**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
 
@@ -256,7 +256,7 @@ test('현재 Todo의 체크박스를 클릭하면 목록에서 사라지고 완�
   let completed = false
 
   // given — todos 전체 경로 모킹 (complete API 포함)
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     const url = route.request().url()
     const method = route.request().method()
 
@@ -282,16 +282,16 @@ test('현재 Todo의 체크박스를 클릭하면 목록에서 사라지고 완�
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(items) })
     }
   })
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/tags**', async route => {
+  await page.route('**/v2/tags**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/foremost**', async route => {
+  await page.route('**/v2/foremost**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
-  await page.route('**/v1/holidays**', async route => {
+  await page.route('**/v2/holidays**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
 
@@ -336,7 +336,7 @@ test('완료 목록에서 되돌리기를 클릭하면 항목이 완료 목록�
   let reverted = false
 
   // given — todos 전체 경로 모킹 (revert API 포함)
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     const url = route.request().url()
     const method = route.request().method()
 
@@ -361,16 +361,16 @@ test('완료 목록에서 되돌리기를 클릭하면 항목이 완료 목록�
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(items) })
     }
   })
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/tags**', async route => {
+  await page.route('**/v2/tags**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/foremost**', async route => {
+  await page.route('**/v2/foremost**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
-  await page.route('**/v1/holidays**', async route => {
+  await page.route('**/v2/holidays**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
 
@@ -396,23 +396,23 @@ test('완료 목록에서 되돌리기를 클릭하면 항목이 완료 목록�
 // ─────────────────────────────────────────────────────────────────────────────
 test('설정 페이지에서 로그아웃하면 로그인 페이지로 리다이렉트된다', async ({ page }) => {
   // given
-  await page.route('**/v1/tags**', async route => {
+  await page.route('**/v2/tags**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     if (route.request().method() === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     } else {
       await route.continue()
     }
   })
-  await page.route('**/v1/foremost**', async route => {
+  await page.route('**/v2/foremost**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/holidays**', async route => {
+  await page.route('**/v2/holidays**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
 
