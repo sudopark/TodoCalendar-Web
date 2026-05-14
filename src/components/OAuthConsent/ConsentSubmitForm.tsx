@@ -4,25 +4,24 @@ import { useTranslation } from 'react-i18next'
 interface Props {
   asBaseUrl: string
   challenge: string
-  onBeforeSubmit: () => Promise<string> // returns fresh id_token
+  onBeforeSubmit: () => Promise<string>
 }
 
 export function ConsentSubmitForm({ asBaseUrl, challenge, onBeforeSubmit }: Props) {
   const { t } = useTranslation()
   const formRef = useRef<HTMLFormElement>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [allowValue, setAllowValue] = useState('')
-  const [idToken, setIdToken] = useState('')
 
   async function handleAllow() {
     if (submitting) return
     setSubmitting(true)
     try {
-      const token = await onBeforeSubmit()
-      setAllowValue('true')
-      setIdToken(token)
-      // Let React flush the state update, then submit
-      queueMicrotask(() => formRef.current?.submit())
+      const idToken = await onBeforeSubmit()
+      const form = formRef.current
+      if (!form) return
+      ;(form.elements.namedItem('allow') as HTMLInputElement).value = 'true'
+      ;(form.elements.namedItem('id_token') as HTMLInputElement).value = idToken
+      form.submit()
     } catch {
       setSubmitting(false)
     }
@@ -31,8 +30,10 @@ export function ConsentSubmitForm({ asBaseUrl, challenge, onBeforeSubmit }: Prop
   function handleDeny() {
     if (submitting) return
     setSubmitting(true)
-    setAllowValue('false')
-    queueMicrotask(() => formRef.current?.submit())
+    const form = formRef.current
+    if (!form) return
+    ;(form.elements.namedItem('allow') as HTMLInputElement).value = 'false'
+    form.submit()
   }
 
   return (
@@ -45,9 +46,9 @@ export function ConsentSubmitForm({ asBaseUrl, challenge, onBeforeSubmit }: Prop
       onSubmit={e => e.preventDefault()}
       className="contents"
     >
-      <input type="hidden" name="challenge" value={challenge} onChange={() => {}} />
-      <input type="hidden" name="allow" value={allowValue} onChange={() => {}} />
-      <input type="hidden" name="id_token" value={idToken} onChange={() => {}} />
+      <input type="hidden" name="challenge" defaultValue={challenge} />
+      <input type="hidden" name="allow" defaultValue="" />
+      <input type="hidden" name="id_token" defaultValue="" />
 
       <button
         type="button"
