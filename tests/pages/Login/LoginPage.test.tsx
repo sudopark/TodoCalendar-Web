@@ -135,4 +135,62 @@ describe('LoginPage', () => {
       })
     })
   })
+
+  describe('from-state 복귀 시 search/hash 보존', () => {
+    it('account가 있고 from이 pathname만 있으면 그 pathname으로 navigate', () => {
+      vi.mocked(useAuthStore).mockImplementation((selector: any) =>
+        selector({ account: { uid: 'test-user' }, loading: false })
+      )
+
+      render(
+        <MemoryRouter initialEntries={[{ pathname: '/login', state: { from: { pathname: '/settings' } } }]}>
+          <LoginPage />
+        </MemoryRouter>
+      )
+    })
+
+    it('from에 search가 있으면 search까지 보존해 navigate', () => {
+      vi.mocked(useAuthStore).mockImplementation((selector: any) =>
+        selector({ account: { uid: 'test-user' }, loading: false })
+      )
+
+      render(
+        <MemoryRouter
+          initialEntries={[
+            { pathname: '/login', state: { from: { pathname: '/oauth/consent', search: '?challenge=abc-123' } } },
+          ]}
+        >
+          <LoginPage />
+        </MemoryRouter>
+      )
+    })
+
+    it('from에 hash가 있으면 hash까지 보존해 navigate', () => {
+      vi.mocked(useAuthStore).mockImplementation((selector: any) =>
+        selector({ account: { uid: 'test-user' }, loading: false })
+      )
+
+      render(
+        <MemoryRouter
+          initialEntries={[
+            { pathname: '/login', state: { from: { pathname: '/settings', hash: '#account' } } },
+          ]}
+        >
+          <LoginPage />
+        </MemoryRouter>
+      )
+    })
+
+    it('from이 없으면 /로 navigate', () => {
+      vi.mocked(useAuthStore).mockImplementation((selector: any) =>
+        selector({ account: { uid: 'test-user' }, loading: false })
+      )
+
+      render(
+        <MemoryRouter initialEntries={['/login']}>
+          <LoginPage />
+        </MemoryRouter>
+      )
+    })
+  })
 })
