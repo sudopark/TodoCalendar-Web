@@ -1,6 +1,9 @@
 export class InvalidChallengeError extends Error {
   readonly code = 'invalid_challenge'
-  constructor() { super('Invalid or expired challenge') }
+  constructor() {
+    super('Invalid or expired challenge')
+    this.name = 'InvalidChallengeError'
+  }
 }
 
 export class OAuthAsTransientError extends Error {
@@ -10,6 +13,7 @@ export class OAuthAsTransientError extends Error {
 
   constructor(status?: number, cause?: unknown) {
     super(`AS transient error${status ? ` (${status})` : ''}`)
+    this.name = 'OAuthAsTransientError'
     this.status = status
     this.cause = cause
   }
