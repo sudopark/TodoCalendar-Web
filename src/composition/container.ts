@@ -53,6 +53,7 @@ export interface Repositories {
   authRepo: AuthRepository
   settingsRepo: SettingsRepository
   oauthConsentRepo: OAuthConsentRepository
+  oauthConsentCallbackUrl: string
   localStorageContainer: LocalStorageContainer
 }
 
@@ -69,5 +70,6 @@ export const repositories: Repositories = {
   authRepo,
   settingsRepo: new SettingsRepository(),
   oauthConsentRepo,
+  oauthConsentCallbackUrl: `${oauthAsBaseUrl}/v1/oauth/consent/callback`,
   localStorageContainer,
 }

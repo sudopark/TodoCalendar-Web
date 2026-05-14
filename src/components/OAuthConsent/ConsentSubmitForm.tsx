@@ -2,23 +2,23 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface Props {
-  asBaseUrl: string
+  callbackUrl: string
   challenge: string
   onBeforeSubmit: () => Promise<string>
 }
 
-export function ConsentSubmitForm({ asBaseUrl, challenge, onBeforeSubmit }: Props) {
+export function ConsentSubmitForm({ callbackUrl, challenge, onBeforeSubmit }: Props) {
   const { t } = useTranslation()
   const formRef = useRef<HTMLFormElement>(null)
   const [submitting, setSubmitting] = useState(false)
 
   async function handleAllow() {
     if (submitting) return
+    const form = formRef.current
+    if (!form) return
     setSubmitting(true)
     try {
       const idToken = await onBeforeSubmit()
-      const form = formRef.current
-      if (!form) return
       ;(form.elements.namedItem('allow') as HTMLInputElement).value = 'true'
       ;(form.elements.namedItem('id_token') as HTMLInputElement).value = idToken
       form.submit()
@@ -29,9 +29,9 @@ export function ConsentSubmitForm({ asBaseUrl, challenge, onBeforeSubmit }: Prop
 
   function handleDeny() {
     if (submitting) return
-    setSubmitting(true)
     const form = formRef.current
     if (!form) return
+    setSubmitting(true)
     ;(form.elements.namedItem('allow') as HTMLInputElement).value = 'false'
     form.submit()
   }
@@ -40,7 +40,7 @@ export function ConsentSubmitForm({ asBaseUrl, challenge, onBeforeSubmit }: Prop
     <form
       ref={formRef}
       data-testid="consent-form"
-      action={`${asBaseUrl}/v1/oauth/consent/callback`}
+      action={callbackUrl}
       method="post"
       encType="application/x-www-form-urlencoded"
       onSubmit={e => e.preventDefault()}
