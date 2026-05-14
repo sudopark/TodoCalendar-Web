@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { LoginPage } from '../../../src/pages/Login/LoginPage'
 import { useAuthStore } from '../../../src/stores/authStore'
 import { useRepositories } from '../../../src/composition/RepositoriesProvider'
@@ -13,10 +13,27 @@ vi.mock('../../../src/composition/RepositoriesProvider', () => ({
   useRepositories: vi.fn(),
 }))
 
+/** Navigate 대상 위치를 data-testid="dest" 에 렌더링하는 헬퍼 컴포넌트 */
+function Dest() {
+  const loc = useLocation()
+  return <div data-testid="dest">{`${loc.pathname}${loc.search}${loc.hash}`}</div>
+}
+
 function renderLoginPage() {
   return render(
     <MemoryRouter initialEntries={['/login']}>
       <LoginPage />
+    </MemoryRouter>
+  )
+}
+
+function renderLoginPageWithRouter(initialEntry: string | object) {
+  return render(
+    <MemoryRouter initialEntries={[initialEntry]}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="*" element={<Dest />} />
+      </Routes>
     </MemoryRouter>
   )
 }
@@ -137,59 +154,57 @@ describe('LoginPage', () => {
   })
 
   describe('from-state 복귀 시 search/hash 보존', () => {
-    it('account가 있고 from이 pathname만 있으면 그 pathname으로 navigate', () => {
+    it('account가 있고 from이 pathname만 있으면 그 pathname으로 navigate', async () => {
       vi.mocked(useAuthStore).mockImplementation((selector: any) =>
         selector({ account: { uid: 'test-user' }, loading: false })
       )
 
-      render(
-        <MemoryRouter initialEntries={[{ pathname: '/login', state: { from: { pathname: '/settings' } } }]}>
-          <LoginPage />
-        </MemoryRouter>
+      renderLoginPageWithRouter({ pathname: '/login', state: { from: { pathname: '/settings' } } })
+
+      await waitFor(() =>
+        expect(screen.getByTestId('dest')).toHaveTextContent('/settings')
       )
     })
 
-    it('from에 search가 있으면 search까지 보존해 navigate', () => {
+    it('from에 search가 있으면 search까지 보존해 navigate', async () => {
       vi.mocked(useAuthStore).mockImplementation((selector: any) =>
         selector({ account: { uid: 'test-user' }, loading: false })
       )
 
-      render(
-        <MemoryRouter
-          initialEntries={[
-            { pathname: '/login', state: { from: { pathname: '/oauth/consent', search: '?challenge=abc-123' } } },
-          ]}
-        >
-          <LoginPage />
-        </MemoryRouter>
+      renderLoginPageWithRouter({
+        pathname: '/login',
+        state: { from: { pathname: '/oauth/consent', search: '?challenge=abc-123' } },
+      })
+
+      await waitFor(() =>
+        expect(screen.getByTestId('dest')).toHaveTextContent('/oauth/consent?challenge=abc-123')
       )
     })
 
-    it('from에 hash가 있으면 hash까지 보존해 navigate', () => {
+    it('from에 hash가 있으면 hash까지 보존해 navigate', async () => {
       vi.mocked(useAuthStore).mockImplementation((selector: any) =>
         selector({ account: { uid: 'test-user' }, loading: false })
       )
 
-      render(
-        <MemoryRouter
-          initialEntries={[
-            { pathname: '/login', state: { from: { pathname: '/settings', hash: '#account' } } },
-          ]}
-        >
-          <LoginPage />
-        </MemoryRouter>
+      renderLoginPageWithRouter({
+        pathname: '/login',
+        state: { from: { pathname: '/settings', hash: '#account' } },
+      })
+
+      await waitFor(() =>
+        expect(screen.getByTestId('dest')).toHaveTextContent('/settings#account')
       )
     })
 
-    it('from이 없으면 /로 navigate', () => {
+    it('from이 없으면 /로 navigate', async () => {
       vi.mocked(useAuthStore).mockImplementation((selector: any) =>
         selector({ account: { uid: 'test-user' }, loading: false })
       )
 
-      render(
-        <MemoryRouter initialEntries={['/login']}>
-          <LoginPage />
-        </MemoryRouter>
+      renderLoginPageWithRouter('/login')
+
+      await waitFor(() =>
+        expect(screen.getByTestId('dest')).toHaveTextContent('/')
       )
     })
   })
