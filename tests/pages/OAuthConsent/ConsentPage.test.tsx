@@ -19,6 +19,7 @@ let authStateMock: { account: { uid: string; email: string } | null; loading: bo
 vi.mock('../../../src/composition/RepositoriesProvider', () => ({
   useRepositories: () => ({
     oauthConsentRepo: { fetchClientInfo: (c: string) => mockFetch(c) },
+    oauthConsentCallbackUrl: 'http://as.test/v1/oauth/consent/callback',
   }),
 }))
 
@@ -29,8 +30,6 @@ vi.mock('../../../src/stores/authStore', () => ({
 vi.mock('../../../src/firebase', () => ({
   getAuthInstance: () => ({ currentUser: { getIdToken: async () => 'fresh-token' } }),
 }))
-
-vi.stubEnv('VITE_OAUTH_AS_BASE_URL', 'http://as.test')
 
 function Loc() {
   const loc = useLocation()

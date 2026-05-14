@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useConsentViewModel } from './useConsentViewModel'
 import { useAuthStore } from '../../stores/authStore'
 import { getAuthInstance } from '../../firebase'
+import { useRepositories } from '../../composition/RepositoriesProvider'
 import { ConsentLayout } from '../../components/OAuthConsent/ConsentLayout'
 import { ScopeList } from '../../components/OAuthConsent/ScopeList'
 import { ConsentSubmitForm } from '../../components/OAuthConsent/ConsentSubmitForm'
@@ -15,7 +16,7 @@ export function ConsentPage() {
   const location = useLocation()
   const account = useAuthStore(s => s.account)
   const vm = useConsentViewModel(challenge)
-  const asBaseUrl = import.meta.env.VITE_OAUTH_AS_BASE_URL as string
+  const { oauthConsentCallbackUrl } = useRepositories()
 
   useEffect(() => {
     document.title = t('oauth.consent.title')
@@ -108,7 +109,7 @@ export function ConsentPage() {
       }
       actions={
         <ConsentSubmitForm
-          asBaseUrl={asBaseUrl}
+          callbackUrl={oauthConsentCallbackUrl}
           challenge={challenge}
           onBeforeSubmit={async () => {
             const user = getAuthInstance().currentUser

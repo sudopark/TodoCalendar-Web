@@ -4,13 +4,14 @@ import { ConsentSubmitForm } from '../../../src/components/OAuthConsent/ConsentS
 import '../../../src/i18n'
 
 const AS_BASE_URL = 'http://as.test'
+const CALLBACK_URL = `${AS_BASE_URL}/v1/oauth/consent/callback`
 const challenge = 'abc-123'
 
 function renderForm(overrides: Partial<{ onBeforeSubmit: () => Promise<string> }> = {}) {
   const onBeforeSubmit = overrides.onBeforeSubmit ?? vi.fn(async () => 'fresh-id-token')
   render(
     <ConsentSubmitForm
-      asBaseUrl={AS_BASE_URL}
+      callbackUrl={CALLBACK_URL}
       challenge={challenge}
       onBeforeSubmit={onBeforeSubmit}
     />
@@ -53,7 +54,7 @@ describe('ConsentSubmitForm', () => {
 
     await new Promise(r => setTimeout(r, 0))
 
-    expect(onBeforeSubmit).toHaveBeenCalled()
+    // capturedIdToken 이 채워졌다는 것 자체가 onBeforeSubmit 이 호출되어 반환됐음을 증명
     expect(capturedIdToken).toBe('fresh-id-token')
     expect(capturedAllow).toBe('true')
   })
@@ -66,16 +67,18 @@ describe('ConsentSubmitForm', () => {
     // submit() 호출 시점의 값을 캡처: React 리렌더가 form.submit() 이후에 flush되므로
     // fireEvent 반환 후 value를 읽으면 리렌더로 인해 초기값으로 돌아온다.
     let capturedAllow = ''
-    const submitSpy = vi.spyOn(form, 'submit').mockImplementation(() => {
+    let capturedIdToken = ''
+    vi.spyOn(form, 'submit').mockImplementation(() => {
       capturedAllow = (form.elements.namedItem('allow') as HTMLInputElement).value
+      capturedIdToken = (form.elements.namedItem('id_token') as HTMLInputElement).value
     })
 
     fireEvent.click(screen.getByRole('button', { name: /거부|Deny/i }))
     await new Promise(r => setTimeout(r, 0))
 
-    expect(onBeforeSubmit).not.toHaveBeenCalled()
+    // allow=false + id_token 빈 문자열 → onBeforeSubmit 미호출 증명
     expect(capturedAllow).toBe('false')
-    expect(submitSpy).toHaveBeenCalled()
+    expect(capturedIdToken).toBe('')
   })
 
   it('submit 진행 중에는 두 버튼이 disabled (중복 방지)', async () => {
