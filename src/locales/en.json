@@ -342,5 +342,21 @@
   "dev.seeder.start": "Seeding test data...",
   "dev.seeder.done": "Test data seeded — {{summary}}",
   "dev.seeder.done_with_errors": "Test data seeded ({{count}} error(s)) — {{summary}}",
-  "dev.seeder.failed": "Test data seed failed: {{msg}}"
+  "dev.seeder.failed": "Test data seed failed: {{msg}}",
+  "oauth.consent.title": "Permission request",
+  "oauth.consent.subtitle": "{{clientName}} is requesting the following permissions",
+  "oauth.consent.redirect_label": "Will return to",
+  "oauth.consent.account_label": "Signed in as",
+  "oauth.consent.allow": "Allow",
+  "oauth.consent.deny": "Deny",
+  "oauth.consent.scope_unknown": "{{code}} (unknown permission)",
+  "oauth.consent.transient_error": "A temporary error occurred. Please try again.",
+  "oauth.consent.retry": "Retry",
+  "oauth.consent.invalid_query": "Invalid request. Please restart from the requesting app.",
+  "oauth.scope.read_calendar": "Read calendar events",
+  "oauth.scope.write_calendar": "Create/update/delete calendar events",
+  "oauth.error.title": "Cannot process the request",
+  "oauth.error.invalid_challenge": "This request has already been handled or expired. Please restart from the requesting app.",
+  "oauth.error.fallback": "An error occurred. Please restart from the requesting app.",
+  "oauth.error.go_home": "Go home"
 }
