@@ -39,29 +39,42 @@ describe('ConsentSubmitForm', () => {
     const onBeforeSubmit = vi.fn(async () => 'fresh-id-token')
     renderForm({ onBeforeSubmit })
     const form = screen.getByTestId('consent-form') as HTMLFormElement
-    const submitSpy = vi.spyOn(form, 'submit').mockImplementation(() => {})
+
+    // submit() 호출 시점의 값을 캡처: React 리렌더가 form.submit() 이후에 flush되므로
+    // fireEvent 반환 후 value를 읽으면 리렌더로 인해 초기값으로 돌아온다.
+    let capturedIdToken = ''
+    let capturedAllow = ''
+    vi.spyOn(form, 'submit').mockImplementation(() => {
+      capturedAllow = (form.elements.namedItem('allow') as HTMLInputElement).value
+      capturedIdToken = (form.elements.namedItem('id_token') as HTMLInputElement).value
+    })
 
     fireEvent.click(screen.getByRole('button', { name: /허용|Allow/i }))
 
     await new Promise(r => setTimeout(r, 0))
 
     expect(onBeforeSubmit).toHaveBeenCalled()
-    expect((form.elements.namedItem('id_token') as HTMLInputElement).value).toBe('fresh-id-token')
-    expect((form.elements.namedItem('allow') as HTMLInputElement).value).toBe('true')
-    expect(submitSpy).toHaveBeenCalled()
+    expect(capturedIdToken).toBe('fresh-id-token')
+    expect(capturedAllow).toBe('true')
   })
 
   it('Deny 클릭 시 id_token 없이 allow=false 로 submit', async () => {
     const onBeforeSubmit = vi.fn(async () => 'fresh-id-token')
     renderForm({ onBeforeSubmit })
     const form = screen.getByTestId('consent-form') as HTMLFormElement
-    const submitSpy = vi.spyOn(form, 'submit').mockImplementation(() => {})
+
+    // submit() 호출 시점의 값을 캡처: React 리렌더가 form.submit() 이후에 flush되므로
+    // fireEvent 반환 후 value를 읽으면 리렌더로 인해 초기값으로 돌아온다.
+    let capturedAllow = ''
+    const submitSpy = vi.spyOn(form, 'submit').mockImplementation(() => {
+      capturedAllow = (form.elements.namedItem('allow') as HTMLInputElement).value
+    })
 
     fireEvent.click(screen.getByRole('button', { name: /거부|Deny/i }))
     await new Promise(r => setTimeout(r, 0))
 
     expect(onBeforeSubmit).not.toHaveBeenCalled()
-    expect((form.elements.namedItem('allow') as HTMLInputElement).value).toBe('false')
+    expect(capturedAllow).toBe('false')
     expect(submitSpy).toHaveBeenCalled()
   })
 
