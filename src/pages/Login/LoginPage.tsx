@@ -8,7 +8,10 @@ export function LoginPage() {
   const { t } = useTranslation()
   const account = useAuthStore(s => s.account)
   const location = useLocation()
-  const from = (location.state as { from?: Location })?.from?.pathname || '/'
+  const fromLocation = (location.state as { from?: Location })?.from
+  const from = fromLocation
+    ? `${fromLocation.pathname}${fromLocation.search ?? ''}${fromLocation.hash ?? ''}`
+    : '/'
 
   const vm = useLoginViewModel()
 
