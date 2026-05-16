@@ -12,7 +12,7 @@ export function ConsentLayout({ header, body, actions }: Props) {
       {/* 상단 로고 + 서비스명 — 메인앱 TopToolbar 패턴 */}
       <div className="border-b border-line bg-surface h-16 flex items-center">
         <div className="max-w-2xl mx-auto w-full px-6 flex items-center gap-2">
-          <img src="/logo-light.png" alt="To-do Calendar" className="h-7 shrink-0" />
+          <img src="/logo-light.png" alt="To-do Calendar" className="h-7 shrink-0 dark:invert" />
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-fg whitespace-nowrap">
             To-do Calendar
           </span>

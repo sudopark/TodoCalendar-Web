@@ -74,7 +74,7 @@ export default function TopToolbar({
               sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-1 pointer-events-none'
             )}
           >
-            <img src="/logo-light.png" alt="To-do Calendar" className="h-7 shrink-0" />
+            <img src="/logo-light.png" alt="To-do Calendar" className="h-7 shrink-0 dark:invert" />
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-fg whitespace-nowrap">
               To-do Calendar
             </span>
