@@ -21,8 +21,9 @@ describe('ConsentLayout', () => {
     expect(screen.getByRole('main')).toBeInTheDocument()
   })
 
-  it('상단에 TodoCalendar wordmark 가 표시된다 (외부 사용자 신뢰 시그널)', () => {
+  it('상단에 To-do Calendar 로고/서비스명이 표시된다 (외부 사용자 신뢰 시그널)', () => {
     render(<ConsentLayout header={null} body={<div>x</div>} actions={null} />)
-    expect(screen.getByText('TodoCalendar')).toBeInTheDocument()
+    expect(screen.getByText('To-do Calendar')).toBeInTheDocument()
+    expect(screen.getByAltText('To-do Calendar')).toBeInTheDocument()
   })
 })

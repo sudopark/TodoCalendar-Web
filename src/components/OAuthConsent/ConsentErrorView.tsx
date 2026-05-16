@@ -14,10 +14,12 @@ export function ConsentErrorView({ reason }: Props) {
   return (
     <ConsentLayout
       header={
-        <h1 className="text-xl font-bold text-fg text-center">{t('oauth.error.title')}</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold text-fg leading-snug">
+          {t('oauth.error.title')}
+        </h1>
       }
       body={
-        <p role="alert" className="text-sm text-fg-secondary text-center leading-relaxed">
+        <p role="alert" className="text-sm text-fg-secondary leading-relaxed">
           {t(messageKey)}
         </p>
       }
