@@ -72,7 +72,7 @@ test('"+" 버튼으로 새 태그를 생성하면 리스트에 즉시 추가된�
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ uuid: 'new-id', name: '신규 태그', color_hex: '#22c55e' }),
+        body: JSON.stringify({ uuid: 'new-id', name: '신규 태그', color_hex: '#3CB371' }),
       })
     } else {
       await route.continue()
@@ -87,20 +87,20 @@ test('"+" 버튼으로 새 태그를 생성하면 리스트에 즉시 추가된�
   await expect(page.getByRole('heading', { name: '새 태그' })).toBeVisible()
 
   await page.getByLabel('이름').fill('신규 태그')
-  await page.getByTitle('#22c55e').click()
+  await page.getByTitle('#3CB371').click()
   await page.getByRole('button', { name: '저장' }).click()
 
   await expect(panel.getByText('신규 태그')).toBeVisible()
 })
 
 test('유저 태그 편집: 이름/색상 수정 후 저장하면 스토어에 반영된다', async ({ page }) => {
-  await mockTagEndpoints(page, [{ uuid: 'u-1', name: '원래', color_hex: '#ff0000' }])
+  await mockTagEndpoints(page, [{ uuid: 'u-1', name: '원래', color_hex: '#F42D2D' }])
   await page.route('**/v2/tags/tag/u-1', async route => {
     if (route.request().method() === 'PUT') {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ uuid: 'u-1', name: '바뀐', color_hex: '#3b82f6' }),
+        body: JSON.stringify({ uuid: 'u-1', name: '바뀐', color_hex: '#1E90FF' }),
       })
     } else {
       await route.continue()
@@ -118,7 +118,7 @@ test('유저 태그 편집: 이름/색상 수정 후 저장하면 스토어에 �
 
   await expect(page.getByRole('heading', { name: '태그 편집' })).toBeVisible()
   await page.getByLabel('이름').fill('바뀐')
-  await page.getByTitle('#3b82f6').click()
+  await page.getByTitle('#1E90FF').click()
   await page.getByRole('button', { name: '저장' }).click()
 
   await expect(panel.getByText('바뀐')).toBeVisible()
@@ -131,7 +131,7 @@ test('기본 태그 편집 패널: 이름은 readonly, 삭제 버튼은 없으�
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ default: '#22c55e', holiday: '#ef4444' }),
+        body: JSON.stringify({ default: '#3CB371', holiday: '#ef4444' }),
       })
     } else if (route.request().method() === 'GET') {
       await route.fulfill({
@@ -157,7 +157,7 @@ test('기본 태그 편집 패널: 이름은 readonly, 삭제 버튼은 없으�
   await expect(nameInput).toHaveValue('기본')
   await expect(page.getByRole('button', { name: '삭제', exact: true })).toHaveCount(0)
 
-  await page.getByTitle('#22c55e').click()
+  await page.getByTitle('#3CB371').click()
   await page.getByRole('button', { name: '저장' }).click()
 
   await expect(page.getByRole('heading', { name: '태그 편집' })).toBeHidden()
