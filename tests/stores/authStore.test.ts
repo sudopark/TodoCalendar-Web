@@ -42,7 +42,7 @@ describe('authStore', () => {
       expect(state.loading).toBe(false)
     })
 
-    it('계정 등록 실패 시 account는 null이고 loading은 끝난다', async () => {
+    it('계정 등록 실패 시 account는 null이고 loading은 끝나며 signInError 신호가 set 된다', async () => {
       // given
       const { apiClient } = await import('../../src/api/apiClient')
       vi.mocked(apiClient.put).mockRejectedValue(new Error('network error'))
@@ -54,6 +54,19 @@ describe('authStore', () => {
       const state = useAuthStore.getState()
       expect(state.account).toBeNull()
       expect(state.loading).toBe(false)
+      // #109: 로그인 화면이 stuck 되지 않도록 fail 신호를 노출한다.
+      expect(state.signInError).toBe('account_register_failed')
+    })
+
+    it('계정 등록 성공 시 signInError 는 null 로 유지된다', async () => {
+      // given: 직전 시도가 실패해 signInError 가 set 되어 있던 상황
+      useAuthStore.setState({ signInError: 'account_register_failed' })
+
+      // when
+      await authCallbackRef.current({ uid: 'firebase-user' })
+
+      // then
+      expect(useAuthStore.getState().signInError).toBeNull()
     })
 
     it('미인증 상태를 받으면 account가 null이고 loading이 끝난다', async () => {
@@ -101,6 +114,31 @@ describe('authStore', () => {
       // then
       expect(useAuthStore.getState().account).toBeNull()
       expect(useAuthStore.getState().loading).toBe(false)
+    })
+
+    it('reset 호출 시 signInError 도 초기화된다', () => {
+      // given
+      useAuthStore.setState({ signInError: 'account_register_failed' })
+
+      // when
+      useAuthStore.getState().reset()
+
+      // then
+      expect(useAuthStore.getState().signInError).toBeNull()
+    })
+  })
+
+  // #109: viewmodel 이 신호 처리를 마친 뒤 명시적으로 클리어할 수 있어야 한다.
+  describe('clearSignInError', () => {
+    it('clearSignInError 호출 시 signInError 가 null 로 돌아간다', () => {
+      // given
+      useAuthStore.setState({ signInError: 'account_register_failed' })
+
+      // when
+      useAuthStore.getState().clearSignInError()
+
+      // then
+      expect(useAuthStore.getState().signInError).toBeNull()
     })
   })
 })

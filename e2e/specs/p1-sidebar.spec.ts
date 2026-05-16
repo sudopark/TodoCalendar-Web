@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/fixedClock'
 import { setupAuthContext } from '../helpers/auth'
 
 test.beforeEach(async ({ context }) => {
@@ -6,27 +6,27 @@ test.beforeEach(async ({ context }) => {
 })
 
 async function setupRoutes(page: Parameters<Parameters<typeof test>[1]>[0]['page']) {
-  await page.route('**/v1/todos**', async route => {
+  await page.route('**/v2/todos**', async route => {
     if (route.request().method() === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     } else {
       await route.continue()
     }
   })
-  await page.route('**/v1/schedules**', async route => {
+  await page.route('**/v2/schedules**', async route => {
     if (route.request().method() === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
     } else {
       await route.continue()
     }
   })
-  await page.route('**/v1/tags**', async route => {
+  await page.route('**/v2/tags**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/foremost**', async route => {
+  await page.route('**/v2/foremost**', async route => {
     await route.fulfill({ status: 404, body: '{}' })
   })
-  await page.route('**/v1/holidays**', async route => {
+  await page.route('**/v2/holidays**', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
 }

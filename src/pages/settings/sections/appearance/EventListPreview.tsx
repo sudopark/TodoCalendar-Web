@@ -1,16 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { PRESET_COLORS } from '../../../../components/ColorPalette'
 
-const SAMPLE_EVENTS = [
-  { name: '디자인 리뷰', time: '10:00 — 11:00', color: PRESET_COLORS[5] },      // purple
-  { name: '점심 약속', time: '12:30', color: PRESET_COLORS[2] },                 // yellow
-  { name: '주간 리포트 작성', time: '15:00 — 16:30', color: PRESET_COLORS[4] }, // blue
-]
-
-const SAMPLE_UNCOMPLETED = [
-  { name: '메일 회신' },
-]
-
 interface Props {
   eventListFontSizeWeight: number
   showHolidayInEventList: boolean
@@ -26,15 +16,25 @@ export function EventListPreview({ eventListFontSizeWeight, showHolidayInEventLi
 
   const nameFontSize = `${14 + eventListFontSizeWeight}px`
 
+  const sampleEvents = [
+    { name: t('settings.preview_event.design_review'), time: '10:00 — 11:00', color: PRESET_COLORS[5] },      // purple
+    { name: t('settings.preview_event.lunch'), time: '12:30', color: PRESET_COLORS[2] },                       // yellow
+    { name: t('settings.preview_event.weekly_report_write'), time: '15:00 — 16:30', color: PRESET_COLORS[4] }, // blue
+  ]
+
+  const sampleUncompleted = [
+    { name: t('settings.preview_todo.mail_reply') },
+  ]
+
   return (
     <div className="rounded-lg border border-line bg-surface p-4 space-y-4">
       {/* 날짜 헤더 */}
       <div>
-        <h3 className="text-base font-bold text-fg">2026년 4월 27일</h3>
+        <h3 className="text-base font-bold text-fg">{t('settings.preview_date')}</h3>
         <div className="flex flex-wrap items-center gap-x-2 mt-0.5">
-          <p className="text-xs text-fg-tertiary">월요일</p>
+          <p className="text-xs text-fg-tertiary">{t('settings.preview_weekday')}</p>
           {showLunarCalendar && (
-            <p className="text-xs text-fg-tertiary">· {t('settings.lunar_prefix', '음력')} 3월 9일</p>
+            <p className="text-xs text-fg-tertiary">· {t('settings.lunar_prefix')} {t('settings.preview_lunar_date')}</p>
           )}
         </div>
         {showHolidayInEventList && (
@@ -51,7 +51,7 @@ export function EventListPreview({ eventListFontSizeWeight, showHolidayInEventLi
             </span>
             <div className="flex-1 h-px bg-line" />
           </div>
-          {SAMPLE_UNCOMPLETED.map(t2 => (
+          {sampleUncompleted.map(t2 => (
             <div key={t2.name} className="flex items-center gap-2 py-1">
               <span className="h-2 w-2 rounded-full ring-2 ring-surface shrink-0" style={{ backgroundColor: PRESET_COLORS[6] }} />
               <span className="font-semibold text-danger" style={{ fontSize: nameFontSize }}>{t2.name}</span>
@@ -68,7 +68,7 @@ export function EventListPreview({ eventListFontSizeWeight, showHolidayInEventLi
           </span>
           <div className="flex-1 h-px bg-line" />
         </div>
-        {SAMPLE_EVENTS.map(e => (
+        {sampleEvents.map(e => (
           <div key={e.name} className="flex items-start gap-2 py-1">
             <span className="h-2 w-2 mt-1.5 rounded-full ring-2 ring-surface shrink-0" style={{ backgroundColor: e.color }} />
             <div className="min-w-0">

@@ -5,10 +5,16 @@ import { MemoryRouter } from 'react-router-dom'
 import { EventDetailPopover } from '../../../src/components/EventDetail/EventDetailPopover'
 import { useEventTagListCache } from '../../../src/repositories/caches/eventTagListCache'
 import type { CalendarEvent } from '../../../src/domain/functions/eventTime'
-import type { EventTime, Repeating, NotificationOption } from '../../../src/models'
+import type { EventTime, Repeating, NotificationOption, EventDetail } from '../../../src/models'
 import type { EventDetailRepository } from '../../../src/repositories/EventDetailRepository'
 import type { Repositories } from '../../../src/composition/container'
+import { LocalStorageContainer } from '../../../src/repositories/local-storage/LocalStorageContainer'
 import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvider'
+import { useIsMobile } from '../../../src/hooks/useIsMobile'
+
+vi.mock('../../../src/hooks/useIsMobile', () => ({
+  useIsMobile: vi.fn(() => false),
+}))
 
 vi.mock('../../../src/api/eventTagApi', () => ({
   eventTagApi: { getAllTags: vi.fn(async () => []) },
@@ -84,7 +90,7 @@ function makeScheduleEvent(overrides: {
   }
 }
 
-function createFakeDetailRepo(detail: { place?: string | null; url?: string | null; memo?: string | null } = {}): EventDetailRepository {
+function createFakeDetailRepo(detail: { place?: EventDetail['place']; url?: string | null; memo?: string | null } = {}): EventDetailRepository {
   return {
     get: vi.fn(async () => ({ place: detail.place ?? null, url: detail.url ?? null, memo: detail.memo ?? null })),
     save: vi.fn(async (_, d) => d),
@@ -102,24 +108,38 @@ function createFakeRepos(detailRepo?: EventDetailRepository): Repositories {
     foremostEventRepo: {} as unknown as Repositories['foremostEventRepo'],
     authRepo: {} as unknown as Repositories['authRepo'],
     settingsRepo: {} as unknown as Repositories['settingsRepo'],
+    localStorageContainer: new LocalStorageContainer(),
   }
+}
+
+interface RenderOpts {
+  handlers?: { onClose?: () => void; onEdit?: () => void; onDelete?: () => void }
+  detailData?: { place?: EventDetail['place']; url?: string | null; memo?: string | null }
+  /** anchorRect 부재 (모바일 또는 fallback 검증용)를 표현하려면 noAnchor: true */
+  noAnchor?: boolean
 }
 
 function renderPopover(
   calEvent: CalendarEvent,
-  handlers: { onClose?: () => void; onEdit?: () => void; onDelete?: () => void } = {},
-  detailData: { place?: string | null; url?: string | null; memo?: string | null } = {},
+  arg2?: RenderOpts['handlers'] | RenderOpts,
+  detailData: NonNullable<RenderOpts['detailData']> = {},
 ) {
+  // 기존 호출(handlers 위치 인자) 호환 + 새 옵션 객체 둘 다 지원
+  const opts: RenderOpts = arg2 && (
+    'handlers' in arg2 || 'detailData' in arg2 || 'noAnchor' in arg2
+  ) ? (arg2 as RenderOpts) : { handlers: arg2 as RenderOpts['handlers'], detailData }
+  const handlers = opts.handlers ?? {}
+  const data = opts.detailData ?? detailData
   const onClose = handlers.onClose ?? vi.fn()
   const onEdit = handlers.onEdit ?? vi.fn()
   const onDelete = handlers.onDelete ?? vi.fn()
-  const repos = createFakeRepos(createFakeDetailRepo(detailData))
+  const repos = createFakeRepos(createFakeDetailRepo(data))
   return render(
     <MemoryRouter>
       <RepositoriesProvider value={repos}>
         <EventDetailPopover
           calEvent={calEvent}
-          anchorRect={mockAnchorRect}
+          anchorRect={opts.noAnchor ? undefined : mockAnchorRect}
           onClose={onClose}
           onEdit={onEdit}
           onDelete={onDelete}
@@ -132,6 +152,7 @@ function renderPopover(
 describe('EventDetailPopover', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(useIsMobile).mockReturnValue(false)
     useEventTagListCache.setState({ tags: new Map() })
   })
 
@@ -151,7 +172,7 @@ describe('EventDetailPopover', () => {
     expect(screen.getByTestId('event-detail-popover')).toBeInTheDocument()
   })
 
-  it('반복 정보를 표시한다', async () => {
+  it('반복 정보를 표시한다 — describeRepeating 결과와 동일한 텍스트', async () => {
     // given: 매일 반복 설정이 있는 일정
     const calEvent = makeTodoEvent({
       name: '매일 운동',
@@ -161,10 +182,25 @@ describe('EventDetailPopover', () => {
     // when: 팝오버 렌더
     renderPopover(calEvent)
 
-    // then: 반복 정보가 표시된다
+    // then: 반복 정보가 describeRepeating 결과("매일 반복")로 표시된다
     const repeatingInfo = screen.getByTestId('repeating-info')
     expect(repeatingInfo).toBeInTheDocument()
-    expect(repeatingInfo).toHaveTextContent('매 1일')
+    expect(repeatingInfo).toHaveTextContent('매일 반복')
+  })
+
+  it('매주 반복 설정이 있으면 describeRepeating 결과가 표시된다', async () => {
+    // given: 매주 월·수 반복 설정
+    const calEvent = makeTodoEvent({
+      name: '주간 운동',
+      repeating: { start: 1710480600, option: { optionType: 'every_week', interval: 1, dayOfWeek: [1, 3] } },
+    })
+
+    // when: 팝오버 렌더
+    renderPopover(calEvent)
+
+    // then: 폼에서 사용하는 describeRepeating 결과와 동일한 텍스트가 표시된다
+    const repeatingInfo = screen.getByTestId('repeating-info')
+    expect(repeatingInfo).toHaveTextContent('매주 월·수 반복')
   })
 
   it('알림 설정을 표시한다', async () => {
@@ -195,6 +231,60 @@ describe('EventDetailPopover', () => {
       expect(screen.getByText('서울 카페')).toBeInTheDocument()
       expect(screen.getByText('https://example.com')).toBeInTheDocument()
       expect(screen.getByText('미팅 메모')).toBeInTheDocument()
+    })
+  })
+
+  it('place가 객체(name/address/coordinate) 형태로 응답되어도 렌더 에러 없이 name이 표시된다', async () => {
+    // given: 다른 클라이언트(앱)가 저장하여 place 가 객체로 오는 케이스
+    const calEvent = makeTodoEvent({ name: '카페 모임' })
+
+    // when
+    renderPopover(calEvent, {}, {
+      place: {
+        name: '스타벅스 강남점',
+        address: '서울 강남구 테헤란로 1',
+        coordinate: { latitude: 37.5, longitude: 127.0 },
+      },
+    })
+
+    // then: name 이 화면에 표시되고 React 에러가 발생하지 않는다
+    await waitFor(() => {
+      expect(screen.getByText('스타벅스 강남점')).toBeInTheDocument()
+    })
+  })
+
+  it('place가 객체이고 name 이 없으면 address 가 표시된다', async () => {
+    // given
+    const calEvent = makeTodoEvent({ name: '약속' })
+
+    // when
+    renderPopover(calEvent, {}, {
+      place: {
+        name: null,
+        address: '서울 종로구 종로 1',
+        coordinate: { latitude: 37.57, longitude: 126.98 },
+      },
+    })
+
+    // then
+    await waitFor(() => {
+      expect(screen.getByText('서울 종로구 종로 1')).toBeInTheDocument()
+    })
+  })
+
+  it('place가 객체인데 name/address 둘 다 비어 있으면 장소 행을 표시하지 않는다', async () => {
+    // given
+    const calEvent = makeTodoEvent({ name: '약속' })
+
+    // when
+    renderPopover(calEvent, {}, {
+      place: { name: null, address: null, coordinate: { latitude: 1, longitude: 2 } },
+    })
+
+    // then: MapPin 아이콘 행이 그려지지 않는다 (장소 텍스트가 없으므로 행 자체 미노출)
+    // place 표시 영역의 정체성을 확인하기 위해 known 다른 텍스트가 안 들어왔는지 검증
+    await waitFor(() => {
+      expect(screen.queryByText('[object Object]')).not.toBeInTheDocument()
     })
   })
 
@@ -306,5 +396,46 @@ describe('EventDetailPopover', () => {
     // then
     expect(screen.getByText('팀 미팅')).toBeInTheDocument()
     expect(screen.getByTestId('event-detail-popover')).toBeInTheDocument()
+  })
+
+  it('데스크톱이면 floating 카드(data-testid="event-detail-popover")로 렌더한다', () => {
+    // given: 데스크톱 환경
+    vi.mocked(useIsMobile).mockReturnValue(false)
+    const calEvent = makeTodoEvent()
+
+    // when: 팝오버 렌더
+    renderPopover(calEvent)
+
+    // then: floating 카드가 렌더되고, BottomSheet 백드롭은 없다
+    expect(screen.getByTestId('event-detail-popover')).toBeInTheDocument()
+    expect(screen.queryByTestId('bottom-sheet-backdrop')).not.toBeInTheDocument()
+  })
+
+  it('모바일이면 BottomSheet 백드롭과 함께 같은 본문이 렌더된다', () => {
+    // given: 모바일 환경
+    vi.mocked(useIsMobile).mockReturnValue(true)
+    const calEvent = makeTodoEvent({ name: '모바일 할 일' })
+
+    // when: 팝오버 렌더
+    renderPopover(calEvent)
+
+    // then: BottomSheet 백드롭이 렌더되고, 본문도 함께 보인다. 데스크톱 floating 카드는 같이 뜨지 않는다.
+    expect(screen.getByTestId('bottom-sheet-backdrop')).toBeInTheDocument()
+    expect(screen.getByText('모바일 할 일')).toBeInTheDocument()
+    expect(screen.queryByTestId('event-detail-popover')).not.toBeInTheDocument()
+  })
+
+  it('데스크톱에서 anchorRect가 없으면 floating 카드가 viewport 중앙으로 위치한다', () => {
+    // given: 데스크톱이고 anchor 미제공
+    vi.mocked(useIsMobile).mockReturnValue(false)
+    const calEvent = makeTodoEvent()
+
+    // when: anchorRect 없이 렌더
+    renderPopover(calEvent, { noAnchor: true })
+
+    // then: 카드가 렌더되며, transform translateY(-50%)가 부착됨 (center fallback의 신호)
+    const card = screen.getByTestId('event-detail-popover')
+    expect(card).toBeInTheDocument()
+    expect(card.getAttribute('style')).toMatch(/translateY\(-50%\)/)
   })
 })

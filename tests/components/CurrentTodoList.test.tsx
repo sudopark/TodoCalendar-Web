@@ -5,7 +5,11 @@ import { MemoryRouter } from 'react-router-dom'
 import { CurrentTodoList, type CurrentTodoListProps } from '../../src/components/CurrentTodoList'
 import { useCurrentTodosCache } from '../../src/repositories/caches/currentTodosCache'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
+import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
+import type { Repositories } from '../../src/composition/container'
+import { LocalStorageContainer } from '../../src/repositories/local-storage/LocalStorageContainer'
 import type { Todo } from '../../src/models'
+import type { EventRepository } from '../../src/repositories/EventRepository'
 
 vi.mock('../../src/api/todoApi', () => ({
   todoApi: {
@@ -44,8 +48,42 @@ vi.mock('../../src/firebase', () => ({
   getAuthInstance: vi.fn(() => ({})),
   db: {},
 }))
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: vi.fn(() => () => {}),
+  signInWithPopup: vi.fn(),
+  signOut: vi.fn(),
+  GoogleAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+  OAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+}))
+vi.mock('../../src/api/firebaseAuthApi', () => ({ firebaseAuthApi: {} }))
+vi.mock('../../src/api/eventTagApi', () => ({ eventTagApi: { getAllTags: vi.fn(async () => []) } }))
+vi.mock('../../src/api/settingApi', () => ({ settingApi: {} }))
+vi.mock('../../src/api/doneTodoApi', () => ({ doneTodoApi: {} }))
+vi.mock('../../src/api/foremostApi', () => ({ foremostApi: {} }))
+vi.mock('../../src/api/holidayApi', () => ({ holidayApi: {} }))
+vi.mock('../../src/api/eventDetailApi', () => ({ eventDetailApi: {} }))
 
 const mockOnEventClick = vi.fn()
+
+function makeFakeEventRepo(completeTodoImpl?: (todo: Todo) => Promise<any>): EventRepository {
+  return {
+    completeTodo: completeTodoImpl ?? vi.fn(async () => ({ uuid: 'done', done_at: 0 })),
+  } as unknown as EventRepository
+}
+
+function makeFakeRepos(eventRepo: EventRepository): Repositories {
+  return {
+    eventRepo,
+    eventDetailRepo: {} as any,
+    tagRepo: {} as any,
+    holidayRepo: {} as any,
+    doneTodoRepo: {} as any,
+    foremostEventRepo: {} as any,
+    authRepo: {} as any,
+    settingsRepo: {} as any,
+    localStorageContainer: new LocalStorageContainer(),
+  }
+}
 
 function defaultProps(overrides: Partial<CurrentTodoListProps> = {}): CurrentTodoListProps {
   return {
@@ -56,11 +94,14 @@ function defaultProps(overrides: Partial<CurrentTodoListProps> = {}): CurrentTod
   }
 }
 
-function renderComponent(props: Partial<CurrentTodoListProps> = {}) {
+function renderComponent(props: Partial<CurrentTodoListProps> = {}, eventRepo?: EventRepository) {
+  const repo = eventRepo ?? makeFakeEventRepo()
   return render(
-    <MemoryRouter>
-      <CurrentTodoList {...defaultProps(props)} />
-    </MemoryRouter>
+    <RepositoriesProvider value={makeFakeRepos(repo)}>
+      <MemoryRouter>
+        <CurrentTodoList {...defaultProps(props)} />
+      </MemoryRouter>
+    </RepositoriesProvider>
   )
 }
 
@@ -90,6 +131,60 @@ describe('CurrentTodoList', () => {
     expect(screen.getByText('시간 없는 할 일 B')).toBeInTheDocument()
   })
 
+  it('event_time이 있는 current todo는 시간 정보가 함께 표시된다', () => {
+    // given: event_time(at)이 있는 todo (KST 오후 2:30 = UTC timestamp 1710480600)
+    const todo: Todo = {
+      uuid: 'ct-at',
+      name: '시간 있는 현재 할 일',
+      is_current: true,
+      event_time: { time_type: 'at', timestamp: 1710480600 },
+    } as unknown as Todo
+
+    // when: 렌더링
+    renderComponent({ todos: [todo] })
+
+    // then: 할 일 이름과 시간 텍스트가 모두 표시된다
+    expect(screen.getByText('시간 있는 현재 할 일')).toBeInTheDocument()
+    expect(screen.getByText(/오후 2:30/)).toBeInTheDocument()
+  })
+
+  it('event_time이 null인 current todo는 시간 정보가 표시되지 않는다', () => {
+    // given: event_time이 null인 todo
+    const todo: Todo = {
+      uuid: 'ct-notime',
+      name: '시간 없는 현재 할 일',
+      is_current: true,
+      event_time: null,
+    } as Todo
+
+    // when: 렌더링
+    renderComponent({ todos: [todo] })
+
+    // then: 할 일 이름은 표시되지만, 시간 관련 텍스트(오전/오후)는 없다
+    expect(screen.getByText('시간 없는 현재 할 일')).toBeInTheDocument()
+    expect(screen.queryByText(/오전|오후/)).not.toBeInTheDocument()
+  })
+
+  it('event_time이 period 타입이면 시작~종료 시간 범위가 표시된다', () => {
+    // given: period 타입 event_time (KST 오후 2:30 ~ 오후 4:30)
+    const todo: Todo = {
+      uuid: 'ct-period',
+      name: '구간 시간 현재 할 일',
+      is_current: true,
+      event_time: {
+        time_type: 'period',
+        period_start: 1710480600,
+        period_end: 1710487800,
+      },
+    } as unknown as Todo
+
+    // when: 렌더링
+    renderComponent({ todos: [todo] })
+
+    // then: 시간 범위가 표시된다
+    expect(screen.getByText(/오후 2:30 – 오후 4:30/)).toBeInTheDocument()
+  })
+
   it('항목을 클릭하면 onEventClick 콜백을 calEvent와 anchorRect와 함께 호출한다', async () => {
     // given: todo 1개, onEventClick mock
     const todos = [{ uuid: 'ct-nav', name: '이동 테스트', is_current: true, event_time: null }] as Todo[]
@@ -108,21 +203,25 @@ describe('CurrentTodoList — 완료', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useCurrentTodosCache.setState({ todos: [] })
-    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: null })
+    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, loadedYears: new Set() })
   })
 
-  it('비반복 Todo 체크박스 클릭 시 해당 Todo가 목록에서 사라진다', async () => {
-    // given: todo가 currentTodosCache에 있는 상태
-    const { todoApi } = await import('../../src/api/todoApi')
-    vi.mocked(todoApi.completeTodo).mockResolvedValue({ uuid: 'done-1', done_at: 1000 } as any)
+  it('비반복 Todo 체크박스 클릭 시 eventRepo.completeTodo 완료 후 해당 Todo가 목록에서 사라진다', async () => {
+    // given: todo가 currentTodosCache에 있는 상태, fake eventRepo가 removeTodo를 실행
     const todo = { uuid: 't1', name: '완료 할 일', is_current: true, event_time: null } as Todo
     useCurrentTodosCache.setState({ todos: [todo] })
-    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: null })
+
+    const fakeEventRepo = makeFakeEventRepo(async (t) => {
+      useCurrentTodosCache.getState().removeTodo(t.uuid)
+      return { uuid: 'done-1', done_at: 1000 }
+    })
 
     render(
-      <MemoryRouter>
-        <CurrentTodoList todos={[todo]} isTagHidden={() => false} />
-      </MemoryRouter>
+      <RepositoriesProvider value={makeFakeRepos(fakeEventRepo)}>
+        <MemoryRouter>
+          <CurrentTodoList todos={[todo]} isTagHidden={() => false} />
+        </MemoryRouter>
+      </RepositoriesProvider>
     )
     await userEvent.click(screen.getByRole('button', { name: '완료 할 일' }))
 
@@ -133,8 +232,6 @@ describe('CurrentTodoList — 완료', () => {
 
   it('반복 Todo 체크박스 클릭 시 에러 없이 처리된다', async () => {
     // given: 반복 todo
-    const { todoApi } = await import('../../src/api/todoApi')
-    vi.mocked(todoApi.completeTodo).mockResolvedValue({ uuid: 'done-1', done_at: 1000 } as any)
     const repeatingTodo = {
       uuid: 't2',
       name: '반복 할 일',
@@ -142,18 +239,45 @@ describe('CurrentTodoList — 완료', () => {
       event_time: { time_type: 'at' as const, timestamp: 1743375600 },
       repeating: { start: 1743375600, option: { optionType: 'every_day' as const, interval: 1 } },
     } as unknown as Todo
-    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: { lower: 0, upper: 9999999999 } })
 
     render(
-      <MemoryRouter>
-        <CurrentTodoList todos={[repeatingTodo]} isTagHidden={() => false} />
-      </MemoryRouter>
+      <RepositoriesProvider value={makeFakeRepos(makeFakeEventRepo())}>
+        <MemoryRouter>
+          <CurrentTodoList todos={[repeatingTodo]} isTagHidden={() => false} />
+        </MemoryRouter>
+      </RepositoriesProvider>
     )
     await userEvent.click(screen.getByRole('button', { name: '반복 할 일' }))
 
     // 반복 Todo 완료 후 에러 없이 처리됨을 확인
     await waitFor(() => {
       expect(screen.queryByRole('alert')).toBeNull()
+    })
+  })
+
+  it('반복 Todo 체크박스 클릭 시 RepeatingScopeDialog가 표시되지 않는다', async () => {
+    // given: 반복 todo (사용자에게 차수 선택을 묻지 않아야 함)
+    const repeatingTodo = {
+      uuid: 't3',
+      name: '매일 반복',
+      is_current: true,
+      event_time: { time_type: 'at' as const, timestamp: 1743375600 },
+      repeating: { start: 1743375600, option: { optionType: 'every_day' as const, interval: 1 } },
+    } as unknown as Todo
+    useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false, lastRange: { lower: 0, upper: 9999999999 } } as any)
+
+    render(
+      <RepositoriesProvider value={makeFakeRepos(makeFakeEventRepo())}>
+        <MemoryRouter>
+          <CurrentTodoList todos={[repeatingTodo]} isTagHidden={() => false} />
+        </MemoryRouter>
+      </RepositoriesProvider>
+    )
+    await userEvent.click(screen.getByRole('button', { name: '매일 반복' }))
+
+    // then: 반복 차수 선택 다이얼로그(RepeatingScopeDialog)가 화면에 뜨지 않아야 한다
+    await waitFor(() => {
+      expect(screen.queryByTestId('repeating-scope-dialog')).toBeNull()
     })
   })
 })

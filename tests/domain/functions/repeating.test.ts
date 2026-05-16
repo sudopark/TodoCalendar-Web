@@ -38,6 +38,19 @@ describe('shiftEventTime', () => {
     // then
     expect(result).toEqual({ time_type: 'allday', period_start: 87400, period_end: 88400, seconds_from_gmt: 32400 })
   })
+
+  it('period_end 없는 allday를 시프트하면 결과의 period_end도 undefined다 (#127)', () => {
+    // given: 단일 일자 종일 (period_end 없음)
+    const time: EventTime = { time_type: 'allday', period_start: 1000, seconds_from_gmt: 32400 } as any
+    // when
+    const result = shiftEventTime(time, 86400)
+    // then
+    expect(result.time_type).toBe('allday')
+    if (result.time_type === 'allday') {
+      expect(result.period_start).toBe(87400)
+      expect(result.period_end).toBeUndefined()
+    }
+  })
 })
 
 describe('nextRepeatingTime - every_day', () => {

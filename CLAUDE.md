@@ -64,9 +64,10 @@ React 19 + TypeScript + Vite + Tailwind + Zustand. 구조는 `ls src/`로 확인
 - 테스트와 구현을 같은 커밋에 포함
 
 ### E2E 테스트
-- `npx playwright test --video on` 으로 실행 (영상 녹화 모드)
-- 테스트 완료 후 `test-results/` 폴더의 `.webm` 영상을 `open` 명령으로 자동 재생하여 결과 확인
-- `test-results/` 는 gitignore 대상 (커밋에 포함하지 않음)
+- `npm run test:e2e` 백그라운드 실행 (Claude Code: Bash tool 의 `run_in_background: true`). foreground 로 묶지 말 것
+- 비디오 녹화 없음 (`video: 'off'`) — 실패 시 screenshot + trace 만 남음. 영상 보고 싶으면 일회성으로 `PLAYWRIGHT_VIDEO=on npx playwright test`
+- 실패 분석은 `test-results/<spec>/error-context.md` + screenshot 으로
+- `test-results/` 는 gitignore 대상
 
 ### PR 전략
 - 어느 정도 작업이 모이면 PR 생성 (서브이슈 단위 또는 논리적 묶음)

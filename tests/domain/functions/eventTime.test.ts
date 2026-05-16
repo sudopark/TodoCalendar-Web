@@ -25,10 +25,18 @@ describe('eventTimeToStartDate', () => {
     expect(date.getTime()).toBe(1700000000 * 1000)
   })
 
-  it('"allday" 타입이면 period_start + seconds_from_gmt로 변환한다', () => {
-    const et: EventTime = { time_type: 'allday', period_start: 1700000000, period_end: 1700086400, seconds_from_gmt: 32400 }
+  // 종일 이벤트는 등록 timezone (seconds_from_gmt) 을 고정 기준으로 잡아 그 tz 의 일자를 표시해야
+  // 사용자 환경 timezone 과 무관하게 "이벤트가 등록된 날짜" 가 보존된다.
+  // 결과 Date 는 사용자 로컬 자정 — 캘린더 day-cell 에 정확히 매핑 가능.
+  it('"allday" 의 startDate 는 event tz (seconds_from_gmt) 기준 시작 일자의 사용자 로컬 자정 Date 를 반환한다', () => {
+    // KST(+9) 2026-05-15 00:00 시작 종일.
+    // period_start = KST 5/15 00:00 의 UTC seconds = UTC 5/14 15:00
+    const periodStart = Math.floor(Date.UTC(2026, 4, 14, 15, 0, 0) / 1000)
+    const offset = 9 * 3600
+    const et: EventTime = { time_type: 'allday', period_start: periodStart, period_end: periodStart + 86400 - 1, seconds_from_gmt: offset }
     const date = eventTimeToStartDate(et)
-    expect(date.getTime()).toBe((1700000000 + 32400) * 1000)
+    expect([date.getFullYear(), date.getMonth(), date.getDate()]).toEqual([2026, 4, 15])
+    expect([date.getHours(), date.getMinutes(), date.getSeconds()]).toEqual([0, 0, 0])
   })
 })
 
@@ -37,6 +45,19 @@ describe('eventTimeToEndDate', () => {
     const et: EventTime = { time_type: 'period', period_start: 1700000000, period_end: 1700100000 }
     const date = eventTimeToEndDate(et)
     expect(date.getTime()).toBe(1700100000 * 1000)
+  })
+
+  // iOS Calendar.endOfDay 가 "그 날 23:59:59" 를 반환하므로 period_end 는 종료 날의 마지막 초.
+  // event tz 고정 변환을 거치면 종료 일자 그대로 추출 → 사용자 로컬 자정 Date 로 매핑.
+  it('"allday" 의 endDate 는 event tz 기준 종료 일자의 사용자 로컬 자정 Date 를 반환한다 (iOS endOfDay 패턴)', () => {
+    // KST(+9) 2026-05-15 ~ 2026-05-17 (3일 종일). period_end = KST 5/17 23:59:59 의 UTC seconds
+    const periodStart = Math.floor(Date.UTC(2026, 4, 14, 15, 0, 0) / 1000)
+    const periodEnd = periodStart + 3 * 86400 - 1
+    const offset = 9 * 3600
+    const et: EventTime = { time_type: 'allday', period_start: periodStart, period_end: periodEnd, seconds_from_gmt: offset }
+    const date = eventTimeToEndDate(et)
+    expect([date.getFullYear(), date.getMonth(), date.getDate()]).toEqual([2026, 4, 17])
+    expect([date.getHours(), date.getMinutes(), date.getSeconds()]).toEqual([0, 0, 0])
   })
 })
 
@@ -259,6 +280,72 @@ describe('groupEventsByDate', () => {
     expect((e3.event as Schedule).show_turns).toEqual([3])
   })
 
+  // #103: 종일 이벤트는 등록 시 정한 timezone(seconds_from_gmt) 의 일자가 의미 단위.
+  // event tz 를 고정 기준으로 잡고 그 tz 의 일자만 추출해 사용자 로컬 자정 Date 로 변환하면
+  // 사용자 환경 tz 와 무관하게 "이벤트가 등록된 날짜" 가 캘린더 day-cell 에 그대로 매핑된다.
+  // iOS Calendar.endOfDay 패턴: period_end = period_start + N*86400 - 1 (그 날 23:59:59).
+  it('1일짜리 종일(allday) 이벤트는 시작일 하루에만 그룹핑되고 다음 날에는 표시되지 않는다 (#103)', () => {
+    // given: 사용자 환경 tz == 데이터 tz 가정. 로컬 6/15 00:00 ~ 6/15 23:59:59 종일.
+    const dayStart = new Date(2024, 5, 15, 0, 0, 0, 0)
+    const offset = -dayStart.getTimezoneOffset() * 60
+    const periodStart = dateToTimestamp(dayStart)
+    const periodEnd = periodStart + 86400 - 1  // iOS endOfDay: 그 날 23:59:59
+    const lower = dateToTimestamp(new Date(2024, 5, 1))
+    const upper = dateToTimestamp(new Date(2024, 5, 30, 23, 59, 59))
+
+    const schedules: Schedule[] = [
+      {
+        uuid: 's-allday-1d',
+        name: 'AllDay 1일',
+        event_time: {
+          time_type: 'allday',
+          period_start: periodStart,
+          period_end: periodEnd,
+          seconds_from_gmt: offset,
+        },
+      },
+    ]
+
+    // when
+    const result = groupEventsByDate([], schedules, lower, upper)
+
+    // then: 06-15 만 들어가고 06-16 은 비어 있다
+    expect(result.get('2024-06-15')).toHaveLength(1)
+    expect(result.get('2024-06-16')).toBeUndefined()
+  })
+
+  it('3일짜리 종일(allday) 이벤트는 정확히 3일에만 그룹핑된다', () => {
+    // given: 06-15 ~ 06-17 종일 (3일)
+    const dayStart = new Date(2024, 5, 15, 0, 0, 0, 0)
+    const offset = -dayStart.getTimezoneOffset() * 60
+    const periodStart = dateToTimestamp(dayStart)
+    const periodEnd = periodStart + 3 * 86400 - 1
+    const lower = dateToTimestamp(new Date(2024, 5, 1))
+    const upper = dateToTimestamp(new Date(2024, 5, 30, 23, 59, 59))
+
+    const schedules: Schedule[] = [
+      {
+        uuid: 's-allday-3d',
+        name: 'AllDay 3일',
+        event_time: {
+          time_type: 'allday',
+          period_start: periodStart,
+          period_end: periodEnd,
+          seconds_from_gmt: offset,
+        },
+      },
+    ]
+
+    // when
+    const result = groupEventsByDate([], schedules, lower, upper)
+
+    // then
+    expect(result.get('2024-06-15')).toHaveLength(1)
+    expect(result.get('2024-06-16')).toHaveLength(1)
+    expect(result.get('2024-06-17')).toHaveLength(1)
+    expect(result.get('2024-06-18')).toBeUndefined()
+  })
+
   it('exclude_repeatings에 있는 turn은 건너뛴다', () => {
     // given: 매일 반복, turn 2 제외
     const lower = dateToTimestamp(new Date(2024, 5, 1))
@@ -309,5 +396,49 @@ describe('eventTimeOverlapsRange', () => {
   it('at 이벤트가 범위 밖에 있으면 false를 반환한다', () => {
     const et: EventTime = { time_type: 'at', timestamp: 500 }
     expect(eventTimeOverlapsRange(et, 900, 1100)).toBe(false)
+  })
+
+  it('period_end 없는 allday(단일 일자 종일)는 시작 월 범위와 겹치면 true를 반환한다 (#127)', () => {
+    // given: 2026-05-15 KST 종일, period_end 없음
+    const offset = 9 * 3600
+    const periodStart = Math.floor(Date.UTC(2026, 4, 14, 15, 0, 0) / 1000) // KST 5/15 00:00
+    const et: EventTime = { time_type: 'allday', period_start: periodStart, seconds_from_gmt: offset } as any
+
+    // when: 2026-05 월 범위 안에서 조회
+    const lower = Math.floor(Date.UTC(2026, 4, 0, 15, 0, 0) / 1000)   // KST 5/1 00:00
+    const upper = Math.floor(Date.UTC(2026, 4, 30, 14, 59, 59) / 1000) // KST 5/31 23:59:59
+
+    // then: 겹쳐야 한다
+    expect(eventTimeOverlapsRange(et, lower, upper)).toBe(true)
+  })
+
+  it('period_end 없는 allday는 전혀 다른 월 범위에서는 false를 반환한다 (#127)', () => {
+    // given: 2026-05-15 KST 종일, period_end 없음
+    const offset = 9 * 3600
+    const periodStart = Math.floor(Date.UTC(2026, 4, 14, 15, 0, 0) / 1000) // KST 5/15 00:00
+    const et: EventTime = { time_type: 'allday', period_start: periodStart, seconds_from_gmt: offset } as any
+
+    // when: 2026-06 월 범위 조회
+    const lower = Math.floor(Date.UTC(2026, 4, 31, 15, 0, 0) / 1000)  // KST 6/1 00:00
+    const upper = Math.floor(Date.UTC(2026, 5, 29, 14, 59, 59) / 1000) // KST 6/30 23:59:59
+
+    // then: 겹치지 않아야 한다
+    expect(eventTimeOverlapsRange(et, lower, upper)).toBe(false)
+  })
+})
+
+describe('eventTimeToEndDate — allday no period_end (#127)', () => {
+  it('period_end 없는 allday는 period_start 기준 종료일을 반환한다', () => {
+    // given: KST 2026-05-15 단일 종일, period_end 없음
+    const offset = 9 * 3600
+    const periodStart = Math.floor(Date.UTC(2026, 4, 14, 15, 0, 0) / 1000) // KST 5/15 00:00
+    const et: EventTime = { time_type: 'allday', period_start: periodStart, seconds_from_gmt: offset } as any
+
+    // when
+    const date = eventTimeToEndDate(et)
+
+    // then: 종료일 == 시작일 (5/15)
+    expect([date.getFullYear(), date.getMonth(), date.getDate()]).toEqual([2026, 4, 15])
+    expect([date.getHours(), date.getMinutes(), date.getSeconds()]).toEqual([0, 0, 0])
   })
 })

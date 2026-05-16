@@ -1,16 +1,13 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { todoApi } from '../api/todoApi'
-import { useUncompletedTodosCache } from '../repositories/caches/uncompletedTodosCache'
-import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
-import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
-import { nextRepeatingTime, getStartTimestamp } from '../domain/functions/repeating'
-import { useCurrentTodosCache } from '../repositories/caches/currentTodosCache'
+import type { RepeatScope } from './RepeatingScopeDialog'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
+import { useRepositories } from '../composition/RepositoriesProvider'
 import type { Todo } from '../models'
 import type { CalendarEvent } from '../domain/functions/eventTime'
+import { EventTimeDisplay } from './EventTimeDisplay'
 
 interface UncompletedTodoRowProps {
   todo: Todo
@@ -50,6 +47,11 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: Uncomple
             className="truncate font-semibold text-danger leading-snug"
             style={{ fontSize: nameFontSize }}
           >{todo.name}</p>
+          {todo.event_time && (
+            <p className="text-xs text-fg-tertiary leading-snug mt-0.5">
+              <EventTimeDisplay eventTime={todo.event_time} />
+            </p>
+          )}
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             <span className="text-xs text-fg-quaternary leading-none">Todo</span>
             {tagName && (
@@ -81,50 +83,28 @@ export interface UncompletedTodoListProps {
 
 export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick }: UncompletedTodoListProps) {
   const { t } = useTranslation()
-  const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)
+  const { eventRepo } = useRepositories()
+  const [isReloading, setIsReloading] = useState(false)
 
   async function handleComplete(todo: Todo) {
-    if (todo.repeating && todo.event_time) {
-      setScopeTarget(todo)
-      return
-    }
-    await doComplete(todo)
+    // 반복 할일은 차수 선택 팝업을 띄우지 않고 항상 현재 차수만 완료 + 다음 차수로 이동 (앱과 동일한 정책)
+    const scope: RepeatScope | undefined = (todo.repeating && todo.event_time) ? 'this' : undefined
+    await doComplete(todo, scope)
   }
 
   async function doComplete(todo: Todo, scope?: RepeatScope) {
-    const { removeTodo } = useUncompletedTodosCache.getState()
-    const { removeEvent } = useCalendarEventsCache.getState()
     try {
-      if (scope === 'this' && todo.repeating && todo.event_time) {
-        const next = nextRepeatingTime(todo.event_time, todo.repeating_turn ?? 1, todo.repeating, todo.exclude_repeatings)
-        await todoApi.completeTodo(todo.uuid, { origin: todo, next_event_time: next?.time, next_repeating_turn: next?.turn })
-      } else if (scope === 'future') {
-        const startTs = getStartTimestamp(todo.event_time!)
-        await todoApi.patchTodo(todo.uuid, { repeating: { ...todo.repeating, end: startTs - 1 } })
-        await todoApi.completeTodo(todo.uuid, { origin: todo })
-      } else {
-        await todoApi.completeTodo(todo.uuid, { origin: todo })
-      }
-
-      if (todo.repeating) {
-        await Promise.all([
-          useUncompletedTodosCache.getState().fetch(),
-          useCurrentTodosCache.getState().fetch(),
-        ]).catch(e => console.warn('Todo stores refresh failed:', e))
-      } else {
-        removeEvent(todo.uuid)
-        removeTodo(todo.uuid)
-      }
+      await eventRepo.completeTodo(todo, scope)
     } catch (e) {
       console.warn('완료 처리 실패:', e)
     }
   }
 
-  async function handleCompleteWithScope(scope: RepeatScope) {
-    if (!scopeTarget) return
-    const todo = scopeTarget
-    setScopeTarget(null)
-    await doComplete(todo, scope)
+  async function handleReload() {
+    if (isReloading) return
+    setIsReloading(true)
+    try { await onReload() }
+    finally { setIsReloading(false) }
   }
 
   const visibleTodos = todos.filter(t => !isTagHidden(t.event_tag_id))
@@ -139,11 +119,13 @@ export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick
         </span>
         <div className="flex-1 h-px bg-line" />
         <button
-          onClick={onReload}
-          className="shrink-0 text-fg-quaternary hover:text-fg-tertiary transition-colors"
+          onClick={handleReload}
+          disabled={isReloading}
+          aria-busy={isReloading}
+          className="shrink-0 text-fg-quaternary hover:text-fg-tertiary transition-colors disabled:hover:text-fg-quaternary disabled:cursor-default"
           aria-label="refresh"
         >
-          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`h-3.5 w-3.5${isReloading ? ' animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
         </button>
@@ -159,14 +141,6 @@ export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick
           />
         ))}
       </div>
-      {scopeTarget && (
-        <RepeatingScopeDialog
-          mode="complete"
-          eventType="todo"
-          onSelect={handleCompleteWithScope}
-          onCancel={() => setScopeTarget(null)}
-        />
-      )}
     </section>
   )
 }

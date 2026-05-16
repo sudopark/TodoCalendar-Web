@@ -20,31 +20,32 @@ describe('todoApi', () => {
     await todoApi.getTodos(1000000, 2000000)
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos')
+    expect(String(url)).toContain('/v2/todos')
     expect(String(url)).toContain('lower=1000000')
     expect(String(url)).toContain('upper=2000000')
     expect((options as RequestInit).method).toBe('GET')
   })
 
-  it('getCurrentTodos()가 /v1/todos로 GET 호출한다', async () => {
+  it('getCurrentTodos()가 /v2/todos로 GET 호출한다', async () => {
     const { todoApi } = await import('../../src/api/todoApi')
     await todoApi.getCurrentTodos()
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos')
+    expect(String(url)).toContain('/v2/todos')
     expect((options as RequestInit).method).toBe('GET')
   })
 
-  it('getUncompletedTodos()가 /v1/todos/uncompleted로 GET 호출한다', async () => {
+  it('getUncompletedTodos(refTime)가 /v2/todos/uncompleted?refTime= 으로 GET 호출한다', async () => {
     const { todoApi } = await import('../../src/api/todoApi')
-    await todoApi.getUncompletedTodos()
+    await todoApi.getUncompletedTodos(1700000000)
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos/uncompleted')
+    expect(String(url)).toContain('/v2/todos/uncompleted')
+    expect(String(url)).toContain('refTime=1700000000')
     expect((options as RequestInit).method).toBe('GET')
   })
 
-  it('getTodo(id)가 /v1/todos/todo/:id로 GET 호출한다', async () => {
+  it('getTodo(id)가 /v2/todos/todo/:id로 GET 호출한다', async () => {
     fetchSpy.mockResolvedValue(
       new Response(JSON.stringify({ uuid: 'todo-1' }), { status: 200, headers: { 'content-type': 'application/json' } })
     )
@@ -53,11 +54,11 @@ describe('todoApi', () => {
     await todoApi.getTodo('todo-1')
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos/todo/todo-1')
+    expect(String(url)).toContain('/v2/todos/todo/todo-1')
     expect((options as RequestInit).method).toBe('GET')
   })
 
-  it('createTodo(body)가 /v1/todos/todo로 POST 호출한다', async () => {
+  it('createTodo(body)가 /v2/todos/todo로 POST 호출한다', async () => {
     fetchSpy.mockResolvedValue(
       new Response(JSON.stringify({ uuid: 'todo-2', name: 'New Todo' }), { status: 200, headers: { 'content-type': 'application/json' } })
     )
@@ -67,12 +68,12 @@ describe('todoApi', () => {
     await todoApi.createTodo(body)
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos/todo')
+    expect(String(url)).toContain('/v2/todos/todo')
     expect((options as RequestInit).method).toBe('POST')
     expect(JSON.parse((options as RequestInit).body as string)).toEqual(body)
   })
 
-  it('updateTodo(id, body)가 /v1/todos/todo/:id로 PUT 호출한다', async () => {
+  it('updateTodo(id, body)가 /v2/todos/todo/:id로 PUT 호출한다', async () => {
     fetchSpy.mockResolvedValue(
       new Response(JSON.stringify({ uuid: 'todo-1', name: 'Updated' }), { status: 200, headers: { 'content-type': 'application/json' } })
     )
@@ -82,12 +83,12 @@ describe('todoApi', () => {
     await todoApi.updateTodo('todo-1', body)
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos/todo/todo-1')
+    expect(String(url)).toContain('/v2/todos/todo/todo-1')
     expect((options as RequestInit).method).toBe('PUT')
     expect(JSON.parse((options as RequestInit).body as string)).toEqual(body)
   })
 
-  it('completeTodo(id, body)가 /v1/todos/todo/:id/complete로 POST 호출한다', async () => {
+  it('completeTodo(id, body)가 /v2/todos/todo/:id/complete로 POST 호출한다', async () => {
     fetchSpy.mockResolvedValue(
       new Response(JSON.stringify({ uuid: 'done-1' }), { status: 200, headers: { 'content-type': 'application/json' } })
     )
@@ -97,7 +98,7 @@ describe('todoApi', () => {
     await todoApi.completeTodo('todo-1', { origin })
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos/todo/todo-1/complete')
+    expect(String(url)).toContain('/v2/todos/todo/todo-1/complete')
     expect((options as RequestInit).method).toBe('POST')
   })
 
@@ -150,7 +151,7 @@ describe('todoApi', () => {
     expect(body.origin).toEqual({ name: 'Test' })
   })
 
-  it('patchTodo(id, body)가 /v1/todos/todo/:id로 PATCH 호출한다', async () => {
+  it('patchTodo(id, body)가 /v2/todos/todo/:id로 PATCH 호출한다', async () => {
     fetchSpy.mockResolvedValue(
       new Response(JSON.stringify({ uuid: 'todo-1' }), { status: 200, headers: { 'content-type': 'application/json' } })
     )
@@ -160,12 +161,12 @@ describe('todoApi', () => {
     await todoApi.patchTodo('todo-1', body)
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos/todo/todo-1')
+    expect(String(url)).toContain('/v2/todos/todo/todo-1')
     expect((options as RequestInit).method).toBe('PATCH')
     expect(JSON.parse((options as RequestInit).body as string)).toEqual(body)
   })
 
-  it('deleteTodo(id)가 /v1/todos/todo/:id로 DELETE 호출한다', async () => {
+  it('deleteTodo(id)가 /v2/todos/todo/:id로 DELETE 호출한다', async () => {
     fetchSpy.mockResolvedValue(
       new Response(JSON.stringify({ status: 'ok' }), { status: 200, headers: { 'content-type': 'application/json' } })
     )
@@ -174,7 +175,7 @@ describe('todoApi', () => {
     await todoApi.deleteTodo('todo-1')
 
     const [url, options] = fetchSpy.mock.calls[0]
-    expect(String(url)).toContain('/v1/todos/todo/todo-1')
+    expect(String(url)).toContain('/v2/todos/todo/todo-1')
     expect((options as RequestInit).method).toBe('DELETE')
   })
 })

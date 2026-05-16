@@ -16,7 +16,8 @@ export function useKeyboardShortcuts() {
 
       switch (e.key) {
         case 'n': {
-          // New event (Todo by default) — open popover instead of navigating
+          // 'n' 단축키는 데스크톱 power user용 — 모바일은 useOpenEventForm으로 라우트 분기되지만
+          // 키보드 단축키 자체가 모바일 viewport에서 사실상 트리거되지 않으므로 분기 없이 store 직접 호출.
           const formStore = useEventFormStore.getState()
           if (formStore.isOpen) return  // 이미 폼 열림
           formStore.openForm(null, 'todo')

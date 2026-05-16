@@ -11,10 +11,10 @@ test.beforeEach(async ({ context }) => {
 const TAG_MGMT_PATH = '/settings/editEvent/tags'
 
 async function setupTagPanel(page: Page) {
-  await page.route('**/v1/tags/all', async route => {
+  await page.route('**/v2/tags/all', async route => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
-  await page.route('**/v1/setting/event/tag/default/color', async route => {
+  await page.route('**/v2/setting/event/tag/default/color', async route => {
     if (route.request().method() === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ default: '#4A90D9', holiday: '#ef4444' }) })
     } else {
@@ -37,7 +37,7 @@ async function triggerTagCreateError(page: Page, name: string) {
 test('태그 생성 API가 500 에러를 반환하면 에러 토스트 알림이 표시된다', async ({ page }) => {
   // given — 태그 생성 API를 500으로 모킹
   await setupTagPanel(page)
-  await page.route('**/v1/tags/tag', async route => {
+  await page.route('**/v2/tags/tag', async route => {
     if (route.request().method() === 'POST') {
       await route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ message: 'Internal Server Error' }) })
     } else {
@@ -56,7 +56,7 @@ test('태그 생성 API가 500 에러를 반환하면 에러 토스트 알림이
 test('API 에러 토스트는 일정 시간 뒤 자동으로 사라진다', async ({ page }) => {
   // given
   await setupTagPanel(page)
-  await page.route('**/v1/tags/tag', async route => {
+  await page.route('**/v2/tags/tag', async route => {
     if (route.request().method() === 'POST') {
       await route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ message: 'Internal Server Error' }) })
     } else {
@@ -75,7 +75,7 @@ test('API 에러 토스트는 일정 시간 뒤 자동으로 사라진다', asyn
 test('에러 토스트를 클릭하면 즉시 사라진다', async ({ page }) => {
   // given
   await setupTagPanel(page)
-  await page.route('**/v1/tags/tag', async route => {
+  await page.route('**/v2/tags/tag', async route => {
     if (route.request().method() === 'POST') {
       await route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ message: 'error' }) })
     } else {

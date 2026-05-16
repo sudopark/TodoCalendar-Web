@@ -1,16 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { useDoneTodosCache } from '../../../src/repositories/caches/doneTodosCache'
-import { useCurrentTodosCache } from '../../../src/repositories/caches/currentTodosCache'
-import { doneTodoApi } from '../../../src/api/doneTodoApi'
-import type { Todo } from '../../../src/models'
-
-vi.mock('../../../src/api/doneTodoApi', () => ({
-  doneTodoApi: {
-    getDoneTodos: vi.fn(),
-    deleteDoneTodo: vi.fn(),
-    revertDoneTodo: vi.fn(),
-  },
-}))
 
 const makeDone = (id: string, done_at: number | null = 1000) => ({
   uuid: id,
@@ -21,119 +10,12 @@ const makeDone = (id: string, done_at: number | null = 1000) => ({
   event_tag_id: null,
 })
 
-describe('useDoneTodosCache', () => {
+describe('useDoneTodosCache — primitive operations', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     useDoneTodosCache.getState().reset()
-    useCurrentTodosCache.getState().reset()
   })
 
-  it('fetchNext 호출 시 items에 결과가 추가된다', async () => {
-    // given
-    vi.mocked(doneTodoApi.getDoneTodos).mockResolvedValue([makeDone('d1', 2000), makeDone('d2', 1000)])
-
-    // when
-    await useDoneTodosCache.getState().fetchNext()
-
-    // then
-    expect(useDoneTodosCache.getState().items).toHaveLength(2)
-  })
-
-  it('fetchNext 연속 호출 시 items가 누적된다', async () => {
-    // given: 첫 번째 응답 20개, 두 번째 응답 5개
-    const page1 = Array.from({ length: 20 }, (_, i) => makeDone(`d${i}`, 2000 - i))
-    const page2 = [makeDone('d20', 100)]
-    vi.mocked(doneTodoApi.getDoneTodos)
-      .mockResolvedValueOnce(page1)
-      .mockResolvedValueOnce(page2)
-
-    // when
-    await useDoneTodosCache.getState().fetchNext()
-    await useDoneTodosCache.getState().fetchNext()
-
-    // then
-    expect(useDoneTodosCache.getState().items).toHaveLength(21)
-    expect(useDoneTodosCache.getState().hasMore).toBe(false)
-  })
-
-  it('반환 개수가 PAGE_SIZE 미만이면 hasMore가 false가 된다', async () => {
-    // given
-    vi.mocked(doneTodoApi.getDoneTodos).mockResolvedValue([makeDone('d1')])
-
-    // when
-    await useDoneTodosCache.getState().fetchNext()
-
-    // then
-    expect(useDoneTodosCache.getState().hasMore).toBe(false)
-  })
-
-  it('remove 호출 시 items에서 해당 항목이 제거된다', async () => {
-    // given
-    useDoneTodosCache.setState({ items: [makeDone('d1'), makeDone('d2')] })
-    vi.mocked(doneTodoApi.deleteDoneTodo).mockResolvedValue({ status: 'ok' })
-
-    // when
-    await useDoneTodosCache.getState().remove('d1')
-
-    // then
-    expect(useDoneTodosCache.getState().items.map(i => i.uuid)).toEqual(['d2'])
-  })
-
-  it('revert 호출 시 plain revert 를 호출하고 items 에서 해당 항목이 제거된다', async () => {
-    // given — iOS RevertTodoResultMapper 와 동일한 { todo, detail } 응답
-    useDoneTodosCache.setState({ items: [makeDone('d1'), makeDone('d2')] })
-    const restored: Todo = { uuid: 'todo-1', name: 'done-d1', is_current: true }
-    vi.mocked(doneTodoApi.revertDoneTodo).mockResolvedValue({ todo: restored, detail: null })
-
-    // when
-    await useDoneTodosCache.getState().revert('d1')
-
-    // then
-    expect(useDoneTodosCache.getState().items.map(i => i.uuid)).toEqual(['d2'])
-  })
-
-  it('revert 응답의 todo 가 is_current 면 currentTodosCache 에 추가된다 (iOS 와 동일 시맨틱)', async () => {
-    useDoneTodosCache.setState({ items: [makeDone('d1')] })
-    useCurrentTodosCache.getState().reset()
-    const restored: Todo = { uuid: 'todo-1', name: '복구된 current', is_current: true }
-    vi.mocked(doneTodoApi.revertDoneTodo).mockResolvedValue({ todo: restored, detail: null })
-
-    await useDoneTodosCache.getState().revert('d1')
-
-    expect(useCurrentTodosCache.getState().todos.find(t => t.uuid === 'todo-1')).toEqual(restored)
-  })
-
-  it('revert 응답의 todo 가 event_time 을 가지면 calendarEventsCache 에도 추가된다', async () => {
-    useDoneTodosCache.setState({ items: [makeDone('d1')] })
-    useCurrentTodosCache.getState().reset()
-    const restored: Todo = {
-      uuid: 'todo-1',
-      name: 'scheduled',
-      is_current: false,
-      event_time: { time_type: 'at', timestamp: 1700 },
-    }
-    vi.mocked(doneTodoApi.revertDoneTodo).mockResolvedValue({ todo: restored, detail: null })
-
-    await useDoneTodosCache.getState().revert('d1')
-
-    // current 가 아니면 currentTodos 에 추가되지 않는다 — BFF 응답을 그대로 신뢰
-    expect(useCurrentTodosCache.getState().todos.find(t => t.uuid === 'todo-1')).toBeUndefined()
-  })
-
-  it('마지막 항목의 done_at이 null이면 hasMore가 false가 된다', async () => {
-    // given: PAGE_SIZE(20)개를 반환하지만 마지막 항목의 done_at이 null
-    const items = Array.from({ length: 20 }, (_, i) => makeDone(`d${i}`, i < 19 ? 2000 - i : null))
-    vi.mocked(doneTodoApi.getDoneTodos).mockResolvedValue(items)
-
-    // when
-    await useDoneTodosCache.getState().fetchNext()
-
-    // then: cursor가 null이므로 다음 페이지 없음
-    expect(useDoneTodosCache.getState().hasMore).toBe(false)
-    expect(useDoneTodosCache.getState().cursor).toBeNull()
-  })
-
-  it('reset 호출 시 상태가 초기화된다', async () => {
+  it('reset 호출 시 상태가 초기화된다', () => {
     // given
     useDoneTodosCache.setState({ items: [makeDone('d1')], hasMore: false, cursor: 999 })
 
@@ -147,46 +29,118 @@ describe('useDoneTodosCache', () => {
     expect(state.cursor).toBeNull()
   })
 
-  it('fetchNext 응답 도착 전에 reset 이 일어났다면 stale 응답은 cache 를 다시 채우지 않는다', async () => {
-    // given — fetchNext 응답을 deferred 로 잡아둔다 (race 시나리오 시뮬레이션)
-    let resolveGet!: (items: ReturnType<typeof makeDone>[]) => void
-    vi.mocked(doneTodoApi.getDoneTodos).mockReturnValue(
-      new Promise(resolve => { resolveGet = resolve as never }),
-    )
+  it('appendPage 호출 시 items 에 결과가 누적되고 cursor/hasMore 가 갱신된다', () => {
+    // given
+    const page1 = [makeDone('d1', 2000), makeDone('d2', 1000)]
 
-    // when — fetchNext 시작 후 응답 도착 전에 reset → stale 한 응답이 도착
-    const inflight = useDoneTodosCache.getState().fetchNext()
-    useDoneTodosCache.getState().reset()
-    resolveGet([makeDone('d-stale', 1000)])
-    await inflight
+    // when
+    useDoneTodosCache.getState().appendPage(page1 as any, 1000, true)
 
-    // then — reset 으로 비워진 cache 는 stale 응답으로 다시 채워지지 않는다
-    expect(useDoneTodosCache.getState().items).toHaveLength(0)
+    // then
+    expect(useDoneTodosCache.getState().items).toHaveLength(2)
+    expect(useDoneTodosCache.getState().cursor).toBe(1000)
+    expect(useDoneTodosCache.getState().hasMore).toBe(true)
   })
 
-  it('fetchNext 응답 도착 전에 revert/remove 가 일어나면 stale 응답이 cache 를 다시 채우지 않는다', async () => {
-    // given — 초기 상태: 한 항목이 있고 fetchNext 가 in-flight
-    useDoneTodosCache.setState({
-      items: [{ ...makeDone('d1', 1500), origin_event_id: 'todo-1' }],
-      cursor: 1500,
-      hasMore: true,
-    })
-    let resolveGet!: (items: ReturnType<typeof makeDone>[]) => void
-    vi.mocked(doneTodoApi.getDoneTodos).mockReturnValue(
-      new Promise(resolve => { resolveGet = resolve as never }),
-    )
-    vi.mocked(doneTodoApi.revertDoneTodo).mockResolvedValue({
-      todo: { uuid: 'todo-1', name: 'done-d1', is_current: true },
-      detail: null,
-    })
+  it('appendPage 를 두 번 호출하면 누적된다', () => {
+    const page1 = Array.from({ length: 20 }, (_, i) => makeDone(`d${i}`, 2000 - i))
+    const page2 = [makeDone('d20', 100)]
 
-    // when — 사용자가 빠르게 revert 클릭 → cache 에서 d1 제거 → fetchNext 응답 뒤늦게 도착
-    const inflight = useDoneTodosCache.getState().fetchNext()
-    await useDoneTodosCache.getState().revert('d1')
-    resolveGet([makeDone('d1', 1500)]) // 백엔드가 다음 페이지 응답으로 d1 을 다시 보내는 케이스
-    await inflight
+    useDoneTodosCache.getState().appendPage(page1 as any, 2000 - 19, true)
+    useDoneTodosCache.getState().appendPage(page2 as any, null, false)
 
-    // then — 사용자가 막 지운 d1 이 stale 응답에 의해 되살아나지 않는다
-    expect(useDoneTodosCache.getState().items.find(i => i.uuid === 'd1')).toBeUndefined()
+    expect(useDoneTodosCache.getState().items).toHaveLength(21)
+    expect(useDoneTodosCache.getState().hasMore).toBe(false)
+  })
+
+  it('removeItem 호출 시 items 에서 해당 항목이 제거된다', () => {
+    // given
+    useDoneTodosCache.setState({ items: [makeDone('d1'), makeDone('d2')] })
+
+    // when
+    useDoneTodosCache.getState().removeItem('d1')
+
+    // then
+    expect(useDoneTodosCache.getState().items.map(i => i.uuid)).toEqual(['d2'])
+  })
+
+  it('removeItem 호출 시 generation 이 증가한다 (stale 응답 차단 메커니즘)', () => {
+    // given
+    useDoneTodosCache.setState({ items: [makeDone('d1')], generation: 0 })
+
+    // when
+    useDoneTodosCache.getState().removeItem('d1')
+
+    // then
+    expect(useDoneTodosCache.getState().generation).toBeGreaterThan(0)
+  })
+
+  it('replaceAll 호출 시 items 전체가 교체된다', () => {
+    // given: 기존 items
+    useDoneTodosCache.setState({ items: [makeDone('old', 9999)] })
+    const newItems = [makeDone('n1', 2000), makeDone('n2', 1000)]
+
+    // when
+    useDoneTodosCache.getState().replaceAll(newItems as any)
+
+    // then
+    const state = useDoneTodosCache.getState()
+    expect(state.items.map(i => i.uuid)).toEqual(['n1', 'n2'])
+  })
+
+  it('prependItem 호출 시 새 항목이 목록 최상단(인덱스 0)에 추가된다', () => {
+    // given: 기존 items
+    useDoneTodosCache.setState({ items: [makeDone('old1', 2000), makeDone('old2', 1000)] })
+    const newDone = makeDone('new-done', 3000)
+
+    // when
+    useDoneTodosCache.getState().prependItem(newDone as any)
+
+    // then: 새 항목이 최상단에 위치해야 한다
+    const state = useDoneTodosCache.getState()
+    expect(state.items[0].uuid).toBe('new-done')
+    expect(state.items.map(i => i.uuid)).toEqual(['new-done', 'old1', 'old2'])
+  })
+
+  it('prependItem 호출 시 기존 목록이 비어있어도 단일 항목으로 채워진다', () => {
+    // given: 빈 목록
+    useDoneTodosCache.getState().reset()
+    const newDone = makeDone('first-done', 5000)
+
+    // when
+    useDoneTodosCache.getState().prependItem(newDone as any)
+
+    // then
+    const state = useDoneTodosCache.getState()
+    expect(state.items).toHaveLength(1)
+    expect(state.items[0].uuid).toBe('first-done')
+  })
+
+  it('prependItem 호출 시 generation 이 증가한다 (stale in-flight fetchNextPage 차단 메커니즘)', () => {
+    // given
+    useDoneTodosCache.setState({ items: [], generation: 3 })
+    const newDone = makeDone('gen-test', 9000)
+
+    // when
+    useDoneTodosCache.getState().prependItem(newDone as any)
+
+    // then
+    expect(useDoneTodosCache.getState().generation).toBeGreaterThan(3)
+  })
+
+  it('같은 uuid 의 항목을 두 번 prependItem 하면 1개만 남고 최신 데이터로 교체된다', () => {
+    // given: 기존 목록에 'd1' 이 이미 있는 상황 (이전 fetchNextPage 응답이 먼저 도착한 경우)
+    useDoneTodosCache.setState({ items: [makeDone('d1', 1000), makeDone('d2', 500)] })
+    const updatedDone = { ...makeDone('d1', 1000), name: 'done-d1-updated' }
+
+    // when: 같은 uuid 로 prependItem (completeTodo 응답이 뒤늦게 도착)
+    useDoneTodosCache.getState().prependItem(updatedDone as any)
+
+    // then: uuid 'd1' 은 최상단 1개만 존재, 최신 데이터로 교체
+    const state = useDoneTodosCache.getState()
+    expect(state.items.filter(i => i.uuid === 'd1')).toHaveLength(1)
+    expect(state.items[0].uuid).toBe('d1')
+    expect(state.items[0].name).toBe('done-d1-updated')
+    expect(state.items.map(i => i.uuid)).toEqual(['d1', 'd2'])
   })
 })

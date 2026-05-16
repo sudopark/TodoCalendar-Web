@@ -12,7 +12,7 @@ export interface SupportedCountryDTO {
 
 export const holidayApi = {
   getHolidays(year: number, locale: string, code: string): Promise<HolidayResponse> {
-    return apiClient.get(`/v1/holiday?year=${year}&locale=${locale}&code=${code}`)
+    return apiClient.get(`/v2/holiday?year=${year}&locale=${locale}&code=${code}`)
   },
 
   async getSupportedCountries(): Promise<SupportedCountryDTO[]> {

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { CalendarDay } from './calendarUtils'
 import type { CalendarEvent } from '../domain/functions/eventTime'
 import { formatDateKey } from '../domain/functions/eventTime'
-import { buildWeekEventStack, type EventOnWeekRow } from './weekEventStackBuilder'
+import { buildWeekEventStack, computeMoreEventCounts, type EventOnWeekRow } from './weekEventStackBuilder'
 import { useUiStore } from '../stores/uiStore'
 import { useCalendarEventsCache } from '../repositories/caches/calendarEventsCache'
 import { useHolidayCache } from '../repositories/caches/holidayCache'
@@ -59,7 +59,13 @@ function EventBar({ ev, timeType, showEventNames, fontSizeWeight, onEventClick }
       data-testid="event-bar"
       style={{
         gridColumn: `${ev.startCol} / ${ev.endCol + 1}`,
-        backgroundColor: isAtTime ? 'transparent' : `${color}22`,
+        // #104: CSS Grid auto-flow 가 DOM 순서로 cursor 진행하기 때문에 fillRow push 순서
+        // (best → left → right 재귀) 가 col 오름차순이 아니면 col disjoint chip 도 다른 grid row 로 자동 강등됨.
+        // 같은 row 컨테이너의 모든 chip 을 grid row 1 에 강제 배치 — 알고리즘이 col disjoint 보장하므로 안전.
+        gridRow: 1,
+        // #106: 옛 alpha 22(12%) → 44(27%) 도 다크/라이트 모두 너무 옅어 chip 영역이 식별 안 됨.
+        // 88(53%) 로 키워 텍스트 가독성을 유지하면서 chip span 이 명확히 보이도록.
+        backgroundColor: isAtTime ? 'transparent' : `${color}88`,
         fontSize,
       }}
       onClick={(e) => {
@@ -200,9 +206,10 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
           const stack = weekStacks[wi] ?? { rows: [] }
           const stackRowsLen = stack.rows.length
           const visibleRows = isFull ? stack.rows : stack.rows.slice(0, maxVisibleRows)
-          const hiddenCount = !isFull && stack.rows.length > maxVisibleRows
-            ? stack.rows.slice(maxVisibleRows).reduce((sum, row) => sum + row.length, 0)
-            : 0
+          // hidden 이벤트는 row 단위 합계가 아니라 day(col) 별로 집계해 각 셀 위치에 +N 표시 (#102)
+          const moreCounts = !isFull
+            ? computeMoreEventCounts(stack, maxVisibleRows, weekDays.length)
+            : []
           const isLastWeek = wi === totalWeeks - 1
 
           return (
@@ -304,11 +311,19 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
                     </div>
                   ))}
 
-                  {hiddenCount > 0 && (
+                  {moreCounts.length > 0 && (
                     <div className="grid grid-cols-7">
-                      <div className="col-span-7 text-meta font-medium text-fg-tertiary px-2 pointer-events-auto">
-                        +{hiddenCount} more
-                      </div>
+                      {moreCounts.map(({ col, count }) => (
+                        <div
+                          key={col}
+                          className="text-meta font-medium text-fg-tertiary px-1.5 pointer-events-auto"
+                          style={{ gridColumn: `${col} / ${col + 1}` }}
+                          data-testid="more-events"
+                          data-day-col={col}
+                        >
+                          +{count}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

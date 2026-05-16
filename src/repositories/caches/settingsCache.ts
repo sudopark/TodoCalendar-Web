@@ -228,7 +228,7 @@ export const useSettingsCache = create<SettingsState>((set, get) => ({
         set(s => ({ notification: { ...s.notification, fcmToken: token } }))
 
         const { apiClient } = await import('../../api/apiClient')
-        await apiClient.put('/v1/user/notification', { fcm_token: token }).catch(() => {})
+        await apiClient.put('/v2/user/notification', { fcm_token: token }).catch(() => {})
       }
     } catch (e) {
       console.warn('알림 권한 요청 실패:', e)

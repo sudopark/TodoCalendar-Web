@@ -1,15 +1,13 @@
 import { useState } from 'react'
 import { cleanupTestData, seedTestData } from '../../dev/testDataSeeder'
-import { useEventTagListCache } from '../../repositories/caches/eventTagListCache'
+import { useRepositories } from '../../composition/RepositoriesProvider'
 import { useCalendarEventsCache } from '../../repositories/caches/calendarEventsCache'
-import { useCurrentTodosCache } from '../../repositories/caches/currentTodosCache'
-import { useUncompletedTodosCache } from '../../repositories/caches/uncompletedTodosCache'
-import { useForemostEventCache } from '../../repositories/caches/foremostEventCache'
 import { useDoneTodosCache } from '../../repositories/caches/doneTodosCache'
 import { useToastStore } from '../../stores/toastStore'
 
 export default function TestDataSeederButton() {
   const [running, setRunning] = useState(false)
+  const { tagRepo, eventRepo, foremostEventRepo, doneTodoRepo } = useRepositories()
 
   async function handleClick() {
     if (running) return
@@ -22,22 +20,23 @@ export default function TestDataSeederButton() {
       const result = await seedTestData()
 
       // 관련 store 전체 갱신
-      await useEventTagListCache.getState().fetchAll().catch(() => {})
+      await tagRepo.fetchAll().catch(() => {})
 
       const loadedYears = Array.from(useCalendarEventsCache.getState().loadedYears)
       if (loadedYears.length > 0) {
-        await useCalendarEventsCache.getState().refreshYears(loadedYears).catch(() => {})
+        useCalendarEventsCache.getState().invalidateYears(loadedYears)
+        await Promise.allSettled(loadedYears.map(y => eventRepo.fetchEventsForYear(y)))
       }
 
       await Promise.allSettled([
-        useCurrentTodosCache.getState().fetch(),
-        useUncompletedTodosCache.getState().fetch(),
-        useForemostEventCache.getState().fetch(),
+        eventRepo.fetchCurrentTodos(),
+        eventRepo.fetchUncompletedTodos(),
+        foremostEventRepo.fetch(),
       ])
 
       // Done todos는 페이지네이션 상태 초기화 후 첫 페이지 재로딩
-      useDoneTodosCache.setState({ items: [], cursor: null, hasMore: true, isLoading: false })
-      await useDoneTodosCache.getState().fetchNext().catch(() => {})
+      useDoneTodosCache.getState().reset()
+      await doneTodoRepo.fetchNextPage().catch(() => {})
 
       const totalErrors = cleanupErrors.length + result.errors.length
       const summary =

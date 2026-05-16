@@ -28,9 +28,12 @@ e2e/.auth/
 
 # Firebase
 .firebaserc
+.firebase/
 
-# Claude Code
-.claude/
+# Claude Code — skill 폴더만 tracking, settings/worktrees 등은 ignore
+.claude/*
+!.claude/skills/
+!.claude/skills/**
 
 # Git worktrees
 .worktrees/

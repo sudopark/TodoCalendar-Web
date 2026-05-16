@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft } from 'lucide-react'
 import { ColorPalette, PRESET_COLORS } from '../../../components/ColorPalette'
-import { useEventTagListCache } from '../../../repositories/caches/eventTagListCache'
+import { useRepositories } from '../../../composition/RepositoriesProvider'
 import { useTagFilterStore } from '../../../stores/tagFilterStore'
 import { useToastStore } from '../../../stores/toastStore'
 import { DeleteTagDialog } from './DeleteTagDialog'
@@ -33,11 +33,7 @@ export function TagEditPanel({ mode, onBack }: TagEditPanelProps) {
   const [showDelete, setShowDelete] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  const createTag = useEventTagListCache(s => s.createTag)
-  const updateTag = useEventTagListCache(s => s.updateTag)
-  const updateDefaultTagColor = useEventTagListCache(s => s.updateDefaultTagColor)
-  const deleteTag = useEventTagListCache(s => s.deleteTag)
-  const deleteTagAndEvents = useEventTagListCache(s => s.deleteTagAndEvents)
+  const { tagRepo } = useRepositories()
   const removeFromFilter = useTagFilterStore(s => s.removeTag)
 
   const isReadonlyName = mode.kind === 'edit' && (mode.row.kind === 'default' || mode.row.kind === 'holiday')
@@ -50,12 +46,12 @@ export function TagEditPanel({ mode, onBack }: TagEditPanelProps) {
     try {
       if (mode.kind === 'create') {
         if (!name.trim()) { setSaving(false); return }
-        await createTag(name.trim(), color)
+        await tagRepo.createTag(name.trim(), color)
       } else if (mode.row.kind === 'default' || mode.row.kind === 'holiday') {
-        await updateDefaultTagColor(mode.row.kind, color)
+        await tagRepo.updateDefaultTagColor(mode.row.kind, color)
       } else {
         if (!name.trim()) { setSaving(false); return }
-        await updateTag(mode.row.id, { name: name.trim(), color_hex: color })
+        await tagRepo.updateTag(mode.row.id, { name: name.trim(), color_hex: color })
       }
       onBack()
     } catch (e) {
@@ -74,7 +70,7 @@ export function TagEditPanel({ mode, onBack }: TagEditPanelProps) {
   async function handleDeleteTagOnly() {
     if (mode.kind !== 'edit' || mode.row.kind !== 'custom') return
     try {
-      await deleteTag(mode.row.id)
+      await tagRepo.deleteTag(mode.row.id)
       removeFromFilter(mode.row.id)
       setShowDelete(false)
       onBack()
@@ -87,7 +83,7 @@ export function TagEditPanel({ mode, onBack }: TagEditPanelProps) {
   async function handleDeleteWithEvents() {
     if (mode.kind !== 'edit' || mode.row.kind !== 'custom') return
     try {
-      await deleteTagAndEvents(mode.row.id)
+      await tagRepo.deleteTagAndEvents(mode.row.id)
       removeFromFilter(mode.row.id)
       setShowDelete(false)
       onBack()

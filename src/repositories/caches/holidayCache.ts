@@ -80,9 +80,20 @@ export const useHolidayCache = create<HolidayCacheState>((set, get) => ({
   // ── cache primitive operations ────────────────────────────────────
 
   setHolidaysForYear: (year, items) => {
-    const newHolidays = new Map(get().holidays)
+    // 같은 year 에 대해 다중 호출(StrictMode 이중 effect, 동시 trigger 등) 되어도
+    // 결과가 누적되지 않도록 idempotent replace: 해당 year의 기존 키를 모두 제거 후 채운다.
+    const yearPrefix = String(year)
+    const newHolidays = new Map<string, string[]>()
+    for (const [key, names] of get().holidays) {
+      if (!key.startsWith(yearPrefix)) newHolidays.set(key, names)
+    }
+    const seen = new Map<string, Set<string>>()
     for (const item of items) {
       const dateKey = item.start.date
+      const seenForKey = seen.get(dateKey) ?? new Set<string>()
+      if (seenForKey.has(item.summary)) continue
+      seenForKey.add(item.summary)
+      seen.set(dateKey, seenForKey)
       const existing = newHolidays.get(dateKey) ?? []
       newHolidays.set(dateKey, [...existing, item.summary])
     }

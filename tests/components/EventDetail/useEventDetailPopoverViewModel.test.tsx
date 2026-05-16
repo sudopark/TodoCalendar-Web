@@ -4,6 +4,7 @@ import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvi
 import { useEventDetailPopoverViewModel } from '../../../src/components/EventDetail/useEventDetailPopoverViewModel'
 import type { EventDetailRepository } from '../../../src/repositories/EventDetailRepository'
 import type { Repositories } from '../../../src/composition/container'
+import { LocalStorageContainer } from '../../../src/repositories/local-storage/LocalStorageContainer'
 import type { CalendarEvent } from '../../../src/domain/functions/eventTime'
 
 // ── API 부수 초기화 차단 ─────────────────────────────────────────────
@@ -60,6 +61,7 @@ function createFakeRepos(detailRepo: EventDetailRepository): Repositories {
     foremostEventRepo: {} as unknown as Repositories['foremostEventRepo'],
     authRepo: {} as unknown as Repositories['authRepo'],
     settingsRepo: {} as unknown as Repositories['settingsRepo'],
+    localStorageContainer: new LocalStorageContainer(),
   }
 }
 

@@ -4,8 +4,15 @@ interface EventTimeDisplayProps {
   eventTime: EventTime
 }
 
+// toLocaleTimeString('ko-KR', ...) 는 ICU 데이터에 의존해 jsdom/일부 Node 환경에서
+// 영어 fallback ("PM 2:30") 으로 떨어진다. 한국어 형식을 deterministic 하게 합성.
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit', hour12: true })
+  const hours = date.getHours()
+  const minutes = date.getMinutes()
+  const isPm = hours >= 12
+  const h12 = hours % 12 === 0 ? 12 : hours % 12
+  const mm = String(minutes).padStart(2, '0')
+  return `${isPm ? '오후' : '오전'} ${h12}:${mm}`
 }
 
 function formatDateUTC(date: Date): string {
@@ -32,9 +39,11 @@ export function EventTimeDisplay({ eventTime }: EventTimeDisplayProps) {
 
   // allday: offset을 더해 "원본 타임존의 자정"으로 맞춘 뒤 UTC 메서드로 날짜를 읽음
   // (브라우저 타임존과 무관하게 이벤트 생성 타임존 기준 날짜를 표시)
+  // period_end 없는 단일 일자 종일은 시작일 == 종료일로 처리
   const offset = eventTime.seconds_from_gmt
+  const periodEnd = eventTime.period_end ?? eventTime.period_start
   const start = new Date((eventTime.period_start + offset) * 1000)
-  const end = new Date((eventTime.period_end + offset) * 1000)
+  const end = new Date((periodEnd + offset) * 1000)
 
   if (isSameDayUTC(start, end)) {
     return <span>종일</span>

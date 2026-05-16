@@ -4,7 +4,7 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
-        "source": "/v1/**",
+        "source": "/v2/**",
         "function": "api"
       },
       {
@@ -12,5 +12,9 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "emulators": {
+    "auth": { "port": 9099 },
+    "singleProjectMode": false
   }
 }

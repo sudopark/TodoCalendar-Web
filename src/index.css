@@ -39,10 +39,21 @@
   --color-warning: #f59e0b;
   --color-success: #16a34a;
 
-  /* === 폰트 사이즈 (이슈 #92) === */
-  --font-size-meta: 10px;            /* badge / time label / overflow count */
-  --font-size-section-label: 11px;   /* uppercase tracking-widest 섹션 라벨 */
-  --font-size-info: 13px;            /* popover info row */
+  /* === 폰트 사이즈 (이슈 #92) — Tailwind v4 는 --text-* 가 utility 생성 표준 === */
+  --text-meta: 10px;            /* badge / time label / overflow count */
+  --text-meta--line-height: 1.4;
+  --text-section-label: 11px;   /* uppercase tracking-widest 섹션 라벨 */
+  --text-section-label--line-height: 1.4;
+  --text-info: 13px;            /* popover info row */
+  --text-info--line-height: 1.5;
+
+  /* === 이벤트 조회 progress bar (#110) — toolbar 하단 indeterminate 인디케이터 === */
+  --animate-events-loading-bar: events-loading-bar 1.4s ease-in-out infinite;
+}
+
+@keyframes events-loading-bar {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
 }
 
 html {

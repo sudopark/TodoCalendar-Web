@@ -13,11 +13,13 @@ import type { AuthFirebaseApi } from '../repositories/AuthRepository'
 export const firebaseAuthApi: AuthFirebaseApi = {
   async signInWithGoogle(): Promise<void> {
     const provider = new GoogleAuthProvider()
+    provider.setCustomParameters({ prompt: 'select_account' })
     await signInWithPopup(getAuthInstance(), provider)
   },
 
   async signInWithApple(): Promise<void> {
     const provider = new OAuthProvider('apple.com')
+    provider.addScope('email')
     await signInWithPopup(getAuthInstance(), provider)
   },
 

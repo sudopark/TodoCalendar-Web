@@ -115,6 +115,46 @@ describe('HolidayRepository', () => {
     })
   })
 
+  // #99: 메인 캘린더 새로고침 시 같은 year 에 대해 holidayRepo.fetch 가 여러 effect 에서
+  // 동시에 trigger 되어 같은 API 가 여러 벌 나가던 트래픽 낭비를 막기 위한 in-flight dedup.
+  describe('fetch — in-flight dedup (#99)', () => {
+    it('같은 year 에 대해 동시 fetch 호출 시 API 는 한 번만 호출된다', async () => {
+      // given: 응답이 즉시 resolve 되지 않도록 deferred 패턴
+      let resolveFn!: (v: HolidayResponse) => void
+      const pending = new Promise<HolidayResponse>(r => { resolveFn = r })
+      const getHolidays = vi.fn(() => pending)
+      const fakeApi: HolidayApi = { getHolidays }
+      const repo = new HolidayRepository({ api: fakeApi, initialLocale: 'en' })
+
+      // when: 같은 year 동시 두 번 trigger
+      const p1 = repo.fetch(2026)
+      const p2 = repo.fetch(2026)
+      resolveFn(makeHolidayResponse([{ summary: '신정', date: '2026-01-01' }]))
+      await Promise.all([p1, p2])
+
+      // then: API 가 한 번만 호출되었다 (네트워크 트래픽 절감 — 사용자 관찰 가능 행위)
+      expect(getHolidays).toHaveBeenCalledTimes(1)
+      // 그리고 결과는 정상 반영
+      expect(repo.getHolidaysSnapshot(2026)).toEqual(
+        expect.arrayContaining([expect.objectContaining({ summary: '신정' })])
+      )
+    })
+
+    it('첫 fetch 가 끝난 뒤 다시 호출하면 새로 fetch 된다 (in-flight 만 dedup, 완료 후엔 통과)', async () => {
+      // given
+      const getHolidays = vi.fn(async () => makeHolidayResponse([{ summary: '신정', date: '2026-01-01' }]))
+      const fakeApi: HolidayApi = { getHolidays }
+      const repo = new HolidayRepository({ api: fakeApi, initialLocale: 'en' })
+
+      // when
+      await repo.fetch(2026)
+      await repo.fetch(2026)
+
+      // then: 두 번 호출 (in-flight 윈도우 밖이라 둘 다 수행 — refresh 시나리오 보장)
+      expect(getHolidays).toHaveBeenCalledTimes(2)
+    })
+  })
+
   describe('fetch — 연도별 독립', () => {
     it('2025년 fetch 후 2026년 fetch해도 2025년 캐시는 보존된다', async () => {
       // given: 연도에 따라 다른 공휴일을 반환

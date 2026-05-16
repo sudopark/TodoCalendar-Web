@@ -3,6 +3,9 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ArchivePanel } from '../../src/components/ArchivePanel'
 import { useDoneTodosCache } from '../../src/repositories/caches/doneTodosCache'
+import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
+import type { Repositories } from '../../src/composition/container'
+import type { DoneTodoRepository } from '../../src/repositories/DoneTodoRepository'
 
 const sampleItems = [
   { uuid: 'd-1', name: '완료된 일 A', done_at: 1714000000, event_tag_id: null },
@@ -10,7 +13,6 @@ const sampleItems = [
 
 vi.mock('../../src/api/doneTodoApi', () => ({
   doneTodoApi: {
-    // ArchivePanel mount 시 reset + fetchNext 가 실제로 흘러 들어가도록 응답을 보유 형태로 모킹
     getDoneTodos: vi.fn(async () => sampleItems),
     deleteDoneTodo: vi.fn(async () => ({ status: 'ok' })),
     revertDoneTodo: vi.fn(async () => ({})),
@@ -34,6 +36,44 @@ class MockIntersectionObserver {
   constructor(_cb: IntersectionObserverCallback) {}
 }
 
+function makeFakeDoneTodoRepo(overrides: Partial<DoneTodoRepository> = {}): DoneTodoRepository {
+  return {
+    fetchNextPage: overrides.fetchNextPage ?? vi.fn(async () => {
+      // mount 시 fetchNextPage 가 실제로 cache 를 채우도록 appendPage 호출
+      useDoneTodosCache.getState().appendPage(sampleItems as any, null, false)
+    }),
+    revert: overrides.revert ?? vi.fn(async () => ({ uuid: 'd-1', name: 't-1', is_current: true })),
+    remove: overrides.remove ?? vi.fn(async () => {}),
+    getSnapshot: vi.fn(() => []),
+  } as unknown as DoneTodoRepository
+}
+
+function makeFakeRepos(doneTodoRepo: DoneTodoRepository): Repositories {
+  return {
+    eventRepo: {} as any,
+    eventDetailRepo: {} as any,
+    tagRepo: {} as any,
+    holidayRepo: {} as any,
+    doneTodoRepo,
+    foremostEventRepo: {} as any,
+    authRepo: {} as any,
+    settingsRepo: {} as any,
+    localStorageContainer: {} as any,
+  }
+}
+
+function renderArchivePanel(overrides: Partial<{
+  doneTodoRepo: DoneTodoRepository
+  onDoneTodoClick: (...args: any[]) => void
+}> = {}) {
+  const doneTodoRepo = overrides.doneTodoRepo ?? makeFakeDoneTodoRepo()
+  return render(
+    <RepositoriesProvider value={makeFakeRepos(doneTodoRepo)}>
+      <ArchivePanel onDoneTodoClick={overrides.onDoneTodoClick} />
+    </RepositoriesProvider>
+  )
+}
+
 beforeEach(() => {
   vi.stubGlobal('IntersectionObserver', MockIntersectionObserver)
   useDoneTodosCache.getState().reset()
@@ -43,9 +83,9 @@ describe('ArchivePanel', () => {
   it('done todo 행을 클릭하면 onDoneTodoClick 이 done todo 와 anchorRect 와 함께 호출된다', async () => {
     const onDoneTodoClick = vi.fn()
     const user = userEvent.setup()
-    render(<ArchivePanel onDoneTodoClick={onDoneTodoClick} />)
+    renderArchivePanel({ onDoneTodoClick })
 
-    // mount 시 fetchNext 가 흘러 들어와 행이 노출될 때까지 대기
+    // mount 시 fetchNextPage 가 흘러 들어와 행이 노출될 때까지 대기
     const row = await screen.findByText('완료된 일 A')
     await user.click(row)
 
@@ -58,7 +98,7 @@ describe('ArchivePanel', () => {
   it('되돌리기 아이콘 버튼 클릭은 행 onClick 과 분리되어 onDoneTodoClick 이 호출되지 않는다', async () => {
     const onDoneTodoClick = vi.fn()
     const user = userEvent.setup()
-    render(<ArchivePanel onDoneTodoClick={onDoneTodoClick} />)
+    renderArchivePanel({ onDoneTodoClick })
 
     await screen.findByText('완료된 일 A')
     await user.click(screen.getByRole('button', { name: '되돌리기' }))
@@ -68,7 +108,7 @@ describe('ArchivePanel', () => {
   it('삭제 아이콘 버튼 클릭은 행 onClick 과 분리되어 onDoneTodoClick 이 호출되지 않는다', async () => {
     const onDoneTodoClick = vi.fn()
     const user = userEvent.setup()
-    render(<ArchivePanel onDoneTodoClick={onDoneTodoClick} />)
+    renderArchivePanel({ onDoneTodoClick })
 
     await screen.findByText('완료된 일 A')
     await user.click(screen.getByRole('button', { name: '삭제' }))
@@ -76,7 +116,7 @@ describe('ArchivePanel', () => {
   })
 
   it('onDoneTodoClick prop 없이도 정상 렌더된다 (콜백 미주입 호환)', async () => {
-    render(<ArchivePanel />)
+    renderArchivePanel()
     await waitFor(() => expect(screen.getByText('완료된 일 A')).toBeInTheDocument())
   })
 })

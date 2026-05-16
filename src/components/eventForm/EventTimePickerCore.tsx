@@ -18,12 +18,6 @@ function datetimeLocalToTs(v: string): number | null {
   return isNaN(ts) ? null : Math.floor(ts / 1000)
 }
 
-function tsToDateInput(ts: number): string {
-  const d = new Date(ts * 1000)
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
-}
-
 function dateInputToTs(v: string): number | null {
   if (!v) return null
   const ts = new Date(v + 'T00:00:00').getTime()
@@ -32,6 +26,58 @@ function dateInputToTs(v: string): number | null {
 
 function localSecondsFromGmt(): number {
   return -(new Date().getTimezoneOffset() * 60)
+}
+
+export function alldayWithStart(prev: EventTime, newStartTs: number): EventTime {
+  if (prev.time_type !== 'allday') return prev
+  // period_end 있고 시작보다 앞이면 시작 + 86400 - 1 (1일 종일) 로 정정. 없으면 그대로 유지.
+  const period_end = prev.period_end !== undefined && prev.period_end < newStartTs
+    ? newStartTs + 86400 - 1
+    : prev.period_end
+  return { ...prev, period_start: newStartTs, period_end }
+}
+
+// 입력은 종료 날짜의 자정 epoch (dateInputToTs 결과). +86400-1 로 그 날 23:59:59 로 변환.
+// 시작보다 앞서면 null 반환 (변경 거부).
+export function alldayWithEnd(prev: EventTime, newEndDateTs: number): EventTime | null {
+  if (prev.time_type !== 'allday') return null
+  const period_end = newEndDateTs + 86400 - 1
+  if (period_end < prev.period_start) return null
+  return { ...prev, period_end }
+}
+
+// allday date input 의 value (yyyy-mm-dd) 표시: event tz (secondsFromGMT) 기준 일자를 추출.
+// (period + offset) timestamp 의 UTC wall-clock 시각이 곧 event tz 의 wall-clock — UTC 메소드로 yyyy-mm-dd 추출.
+export function alldayDateInputValue(periodSeconds: number, secondsFromGMT: number): string {
+  const wall = new Date((periodSeconds + secondsFromGMT) * 1000)
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${wall.getUTCFullYear()}-${p(wall.getUTCMonth() + 1)}-${p(wall.getUTCDate())}`
+}
+
+// #108: 타입 토글 시 prev value 의 기준 timestamp 를 보존해 selectedDate 손실 차단.
+// prev=null 일 때만 now 를 baseTs 로 사용한다 (기존 동작 유지).
+export function nextEventTimeForType(
+  prev: EventTime | null,
+  type: 'at' | 'period' | 'allday',
+  now: number,
+  secondsFromGMT: number,
+): EventTime {
+  const baseTs =
+    prev === null ? now
+    : prev.time_type === 'at' ? prev.timestamp
+    : prev.time_type === 'period' ? prev.period_start
+    : prev.period_start  // allday — 이미 event tz 자정 epoch
+  if (type === 'at') {
+    return { time_type: 'at', timestamp: baseTs }
+  }
+  if (type === 'period') {
+    return { time_type: 'period', period_start: baseTs, period_end: baseTs + 3600 }
+  }
+  // allday: baseTs 의 일자의 local 자정으로 정규화. 기본 OFF 정책 — period_end 생략.
+  const d = new Date(baseTs * 1000)
+  d.setHours(0, 0, 0, 0)
+  const start = Math.floor(d.getTime() / 1000)
+  return { time_type: 'allday', period_start: start, seconds_from_gmt: secondsFromGMT }
 }
 
 // --- Component ---
@@ -64,27 +110,22 @@ export function EventTimePickerCore({ value, onChange, allowNone }: EventTimePic
       onChange(null)
       return
     }
-    let next: EventTime
-    if (type === 'at') {
-      next = { time_type: 'at', timestamp: now }
-    } else if (type === 'period') {
-      next = { time_type: 'period', period_start: now, period_end: now + 3600 }
-    } else {
-      next = { time_type: 'allday', period_start: now, period_end: now, seconds_from_gmt: localSecondsFromGmt() }
-    }
-    onChange(next)
+    onChange(nextEventTimeForType(value, type, now, localSecondsFromGmt()))
   }
 
   function handleAllDayToggle(checked: boolean) {
-    if (checked) {
-      handleTypeChange('allday')
-    } else {
-      const ts = value?.time_type === 'allday' ? value.period_start : now
-      onChange({ time_type: 'at', timestamp: ts })
-    }
+    handleTypeChange(checked ? 'allday' : 'at')
   }
 
-  const inputClass = 'rounded-md border border-input bg-transparent px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring'
+  // dark:[color-scheme:dark] — 다크모드에서 native datetime-local / date 의 calendar picker indicator 가 어두운 배경에 안 보이는 이슈 해결
+  const inputClass = 'rounded-md border border-input bg-transparent px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring dark:[color-scheme:dark]'
+
+  const TIME_TYPE_LABEL: Record<TimeType, string> = {
+    none: t('eventTime.none'),
+    at: t('eventTime.at'),
+    period: t('eventTime.period'),
+    allday: t('eventTime.allday'),
+  }
 
   return (
     <div className="space-y-3">
@@ -96,7 +137,7 @@ export function EventTimePickerCore({ value, onChange, allowNone }: EventTimePic
           onValueChange={(v) => { if (v) handleTypeChange(v as TimeType) }}
         >
           <SelectTrigger className="h-8 text-sm flex-1 min-w-0" aria-label={t('eventTime.time_label', '시각')}>
-            <SelectValue />
+            <SelectValue>{(v: TimeType) => TIME_TYPE_LABEL[v] ?? ''}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {allowNone && (
@@ -186,31 +227,51 @@ export function EventTimePickerCore({ value, onChange, allowNone }: EventTimePic
               aria-label={t('eventTime.start_date')}
               type="date"
               className={inputClass}
-              value={tsToDateInput(value.period_start + value.seconds_from_gmt)}
+              value={alldayDateInputValue(value.period_start, value.seconds_from_gmt)}
               onChange={e => {
                 const ts = dateInputToTs(e.target.value)
                 if (ts === null || value.time_type !== 'allday') return
-                onChange({ ...value, period_start: ts - value.seconds_from_gmt })
+                onChange(alldayWithStart(value, ts))
               }}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground w-8 shrink-0">{t('eventTime.end')}</span>
-            <input
-              id="allday-end"
-              aria-label={t('eventTime.end_date')}
-              type="date"
-              className={inputClass}
-              value={tsToDateInput(value.period_end + value.seconds_from_gmt)}
-              onChange={e => {
-                const ts = dateInputToTs(e.target.value)
-                if (ts === null || value.time_type !== 'allday') return
-                const newEnd = ts - value.seconds_from_gmt
-                if (newEnd < value.period_start) return
-                onChange({ ...value, period_end: newEnd })
+          <div className="flex items-center gap-1.5">
+            <Checkbox
+              id="allday-end-toggle"
+              checked={value.period_end !== undefined}
+              onCheckedChange={(checked) => {
+                if (value.time_type !== 'allday') return
+                if (checked) {
+                  onChange({ ...value, period_end: value.period_start + 86400 - 1 })
+                } else {
+                  const { period_end: _removed, ...rest } = value
+                  onChange(rest)
+                }
               }}
             />
+            <Label htmlFor="allday-end-toggle" className="text-sm font-normal cursor-pointer">
+              {t('eventTime.end_date_toggle', '종료일 지정')}
+            </Label>
           </div>
+          {value.period_end !== undefined && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground w-8 shrink-0">{t('eventTime.end')}</span>
+              <input
+                id="allday-end"
+                aria-label={t('eventTime.end_date')}
+                type="date"
+                className={inputClass}
+                value={alldayDateInputValue(value.period_end, value.seconds_from_gmt)}
+                onChange={e => {
+                  const ts = dateInputToTs(e.target.value)
+                  if (ts === null || value.time_type !== 'allday') return
+                  const next = alldayWithEnd(value, ts)
+                  if (next === null) return
+                  onChange(next)
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

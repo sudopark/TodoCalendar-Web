@@ -1,10 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { useUncompletedTodosCache } from '../../../src/repositories/caches/uncompletedTodosCache'
 import type { Todo } from '../../../src/models/Todo'
-
-vi.mock('../../../src/api/todoApi', () => ({
-  todoApi: { getUncompletedTodos: vi.fn() },
-}))
 
 const makeTodo = (uuid: string, name: string): Todo => ({
   uuid, name, is_current: false, event_time: null,
@@ -13,7 +9,6 @@ const makeTodo = (uuid: string, name: string): Todo => ({
 describe('useUncompletedTodosCache', () => {
   beforeEach(() => {
     useUncompletedTodosCache.setState({ todos: [] })
-    vi.clearAllMocks()
   })
 
   it('replaceAll 로 전체 교체하면 새 목록으로 대체된다', () => {
@@ -63,5 +58,18 @@ describe('useUncompletedTodosCache', () => {
 
     // then: 빈 목록
     expect(useUncompletedTodosCache.getState().todos).toEqual([])
+  })
+
+  it('addTodo를 호출하면 todos 목록에서 해당 todo를 찾을 수 있다', () => {
+    // given: 기존 todo가 하나 있는 상태
+    useUncompletedTodosCache.setState({ todos: [makeTodo('u1', '미완료1')] })
+
+    // when: 새 todo 추가
+    useUncompletedTodosCache.getState().addTodo(makeTodo('u2', '미완료2'))
+
+    // then: 기존 항목과 새 항목 모두 목록에 있어야 한다
+    const todos = useUncompletedTodosCache.getState().todos
+    expect(todos.some(t => t.uuid === 'u1')).toBe(true)
+    expect(todos.some(t => t.uuid === 'u2')).toBe(true)
   })
 })

@@ -133,13 +133,13 @@ export function ScheduleFormPage() {
       {vm.errorKey && vm.errorKey.includes('invalid_') && (
         <div
           role="alert"
-          className="border-b border-destructive/20 bg-destructive/10 px-6 py-2 text-sm text-destructive"
+          className="border-b border-destructive/20 bg-destructive/10 px-4 md:px-6 py-2 text-sm text-destructive"
         >
           {t(vm.errorKey)}
         </div>
       )}
 
-      <div className={`max-w-5xl px-6 py-6 space-y-6 ${vm.loading ? 'pointer-events-none opacity-60' : ''}`}>
+      <div className={`max-w-5xl px-4 md:px-6 py-6 space-y-6 ${vm.loading ? 'pointer-events-none opacity-60' : ''}`}>
         <EventTimeSection
           eventTime={vm.eventTime}
           onEventTimeChange={vm.setEventTime}

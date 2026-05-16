@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildWeekEventStack } from '../../src/calendar/weekEventStackBuilder'
+import { buildWeekEventStack, computeMoreEventCounts } from '../../src/calendar/weekEventStackBuilder'
 import type { CalendarDay } from '../../src/calendar/calendarUtils'
 import type { CalendarEvent } from '../../src/domain/functions/eventTime'
 import type { Todo } from '../../src/models/Todo'
@@ -305,6 +305,109 @@ describe('buildWeekEventStack', () => {
     expect(result.rows[0][0].endCol).toBe(3)
   })
 
+  // #104: 같은 시작일/같은 길이의 두 이벤트 중 "종일(allday)" 이벤트가 시간 이벤트보다 위 row 에 와야 한다.
+  // iOS WeekEventStackBuilder.swift 정렬: length desc → eventRangesOnWeek.lowerBound asc.
+  // allday 의 lowerBound 는 그 날 00:00 이라 시간 이벤트(예: 10:00)보다 작아 자연스럽게 우선.
+  it('같은 날에 종일 이벤트와 시간 이벤트가 있으면 종일 이벤트가 위 row 에 배치된다 (#104)', () => {
+    // given: 화요일에 종일 이벤트 "피부과 예약"(이름이 알파벳순으로 뒤) + 시간 이벤트 "A standup"
+    const tueDateLocal = new Date(2026, 2, 3, 0, 0, 0, 0)
+    const offsetSec = -tueDateLocal.getTimezoneOffset() * 60
+    const tueStartTs = Math.floor(tueDateLocal.getTime() / 1000)
+    const allday: CalendarEvent = {
+      type: 'schedule',
+      event: {
+        uuid: 'allday',
+        name: '피부과 예약',
+        event_tag_id: null,
+        event_time: {
+          time_type: 'allday',
+          period_start: tueStartTs,
+          period_end: tueStartTs + 86400 - 1, // iOS endOfDay: 그 날 23:59:59
+          seconds_from_gmt: offsetSec,
+        },
+      } as Schedule,
+    }
+    const timed: CalendarEvent = {
+      type: 'schedule',
+      event: {
+        uuid: 'timed',
+        name: 'A standup',
+        event_tag_id: null,
+        event_time: { time_type: 'at', timestamp: tueStartTs + 10 * 3600 }, // 화요일 10시
+      } as Schedule,
+    }
+    const eventsByDate = new Map<string, CalendarEvent[]>([
+      ['2026-03-03', [allday, timed]],
+    ])
+
+    // when
+    const result = buildWeekEventStack(weekDays, eventsByDate)
+
+    // then: 첫 row 에 종일 이벤트가 들어가야 한다 (이름 정렬에 휘둘리지 않음)
+    expect(result.rows.length).toBe(2)
+    expect(result.rows[0].some(e => e.event.event.uuid === 'allday')).toBe(true)
+  })
+
+  // #102: visibleRowCount 를 초과한 hidden row 들의 이벤트를 day(col) 별로 집계해
+  // 각 day cell 위치에 "+N" 라벨을 표시하기 위한 헬퍼.
+  describe('computeMoreEventCounts (#102)', () => {
+    it('visible row count 가 stack.rows.length 이상이면 빈 배열을 반환한다', () => {
+      // given: 1행 짜리 stack
+      const ev = makeTodoEvent('t1', 'Solo')
+      const eventsByDate = new Map<string, CalendarEvent[]>([['2026-03-03', [ev]]])
+      const stack = buildWeekEventStack(weekDays, eventsByDate)
+
+      // when / then
+      expect(computeMoreEventCounts(stack, 5, 7)).toEqual([])
+    })
+
+    it('hidden row 안 이벤트가 차지하는 각 col 에 +1 씩 카운팅된다', () => {
+      // given: 4행이 만들어지는 stack (모두 같은 화요일 col=3 에 4개 이벤트 → 4행)
+      const ev1 = makeTodoEvent('t1', 'A')
+      const ev2 = makeTodoEvent('t2', 'B')
+      const ev3 = makeTodoEvent('t3', 'C')
+      const ev4 = makeTodoEvent('t4', 'D')
+      const eventsByDate = new Map<string, CalendarEvent[]>([
+        ['2026-03-03', [ev1, ev2, ev3, ev4]], // Tue = col 3
+      ])
+      const stack = buildWeekEventStack(weekDays, eventsByDate)
+      expect(stack.rows.length).toBe(4)
+
+      // when: visible 2행만 → 2행 hidden, 각각 col 3 의 단일 이벤트
+      const counts = computeMoreEventCounts(stack, 2, 7)
+
+      // then: col 3 에 count 2
+      expect(counts).toEqual([{ col: 3, count: 2 }])
+    })
+
+    it('multi-day 이벤트가 hidden 되면 걸친 모든 col 에 +1 씩 더해진다', () => {
+      // given: 한 행에 multi-day(s1: col 2~5) 1개 — 다른 짧은 이벤트들로 이 multi-day 가 뒤로 밀려 hidden
+      // 짧은 이벤트들이 stack 위에 오게 만들기 위해 단순히 day 별 다수 이벤트로 row 늘림
+      const longEv = makeScheduleEvent('long', 'Multi-day')
+      const shortA = makeTodoEvent('a', 'a')
+      const shortB = makeTodoEvent('b', 'b')
+      const shortC = makeTodoEvent('c', 'c')
+      const eventsByDate = new Map<string, CalendarEvent[]>([
+        ['2026-03-02', [longEv, shortA]],
+        ['2026-03-03', [longEv, shortB]],
+        ['2026-03-04', [longEv, shortC]],
+        ['2026-03-05', [longEv]],
+      ])
+      const stack = buildWeekEventStack(weekDays, eventsByDate)
+      // longEv 가 가장 긴 4-day span 이라 첫 row. 그러므로 visible=1 이면 short 들이 hidden.
+      // hidden row 안의 1-day short 이벤트들이 각 col 에 표시되어야 한다.
+
+      // when: 첫 row 만 visible
+      const counts = computeMoreEventCounts(stack, 1, 7)
+
+      // then: hidden row 들의 short 이벤트가 각 col 에 1씩 (단일 이벤트들은 startCol == endCol)
+      const byCol = Object.fromEntries(counts.map(c => [c.col, c.count]))
+      expect(byCol[2]).toBe(1) // shortA
+      expect(byCol[3]).toBe(1) // shortB
+      expect(byCol[4]).toBe(1) // shortC
+    })
+  })
+
   it('행 정렬: 커버하는 총 일수가 많은 행이 위에 온다', () => {
     // given:
     //   row1에 1일짜리 이벤트 2개 (총 2일 커버)
@@ -327,5 +430,143 @@ describe('buildWeekEventStack', () => {
     // then: 긴 이벤트가 먼저 배치되므로 첫 행에 long1 포함
     const firstRowUuids = result.rows[0].map(e => e.event.event.uuid)
     expect(firstRowUuids).toContain('l1')
+  })
+
+  // 이슈 #104 회귀 — 알고리즘(`fillRow`)의 col disjoint invariant 보장 검증.
+  // 진짜 #104 fix 자체(CSS `gridRow: 1`)는 단위 테스트 영역 밖이지만, 본 describe 는
+  // fillRow 가 향후 잘못 수정되어도 invariant 가 깨지지 않도록 회귀 방지를 담당.
+  describe('이슈 #104 회귀 — fillRow invariant 보장', () => {
+    const may3 = new Date(2026, 4, 3) // 2026-05-03 Sunday
+    const may3Week = makeWeekDays(may3)
+
+    // 사용자 화면 시나리오 fixture: cols 2-3 의 두 별개 chip(allday-3d-A, weekend-trip) +
+    // cols 4-6 의 더 긴 chip(allday-3d-B) + 매일 반복 Daily meditation 7 turn.
+    // turn 별 timestamp 차등 부여 — startTimestamp asc tiebreak 가 stable input order 에
+    // 의존하지 않고 timestamp 자체로 결정되도록.
+    const allDay3dA = makeScheduleEvent('allday-3d-A', '[TEST] AllDay 3d (yellow)')
+    const allDay3dB = makeScheduleEvent('allday-3d-B', '[TEST] AllDay 3d (yellow)')
+    const weekendTrip = makeScheduleEvent('weekend-trip', '[TEST] Weekend trip')
+    const dailyTurn = (turn: number): CalendarEvent => ({
+      type: 'schedule',
+      event: {
+        uuid: 'daily-meditation',
+        name: '[TEST] Daily meditation',
+        event_tag_id: null,
+        event_time: { time_type: 'period', period_start: turn * 100, period_end: turn * 100 + 1800 },
+        show_turns: [turn],
+      } as Schedule,
+    })
+
+    function baseEventsByDate(): Map<string, CalendarEvent[]> {
+      return new Map<string, CalendarEvent[]>([
+        ['2026-05-03', [dailyTurn(1)]],                         // col 1
+        ['2026-05-04', [allDay3dA, weekendTrip, dailyTurn(2)]], // col 2
+        ['2026-05-05', [allDay3dA, weekendTrip, dailyTurn(3)]], // col 3
+        ['2026-05-06', [allDay3dB, dailyTurn(4)]],              // col 4
+        ['2026-05-07', [allDay3dB, dailyTurn(5)]],              // col 5
+        ['2026-05-08', [allDay3dB, dailyTurn(6)]],              // col 6
+        ['2026-05-09', [dailyTurn(7)]],                         // col 7
+      ])
+    }
+
+    function findRowIndex(rows: ReturnType<typeof buildWeekEventStack>['rows'], uuid: string): number {
+      return rows.findIndex(row => row.some(e => e.event.event.uuid === uuid))
+    }
+
+    function findOverlaps(rows: ReturnType<typeof buildWeekEventStack>['rows']): string[] {
+      const violations: string[] = []
+      rows.forEach((row, ri) => {
+        for (let i = 0; i < row.length; i++) {
+          for (let j = i + 1; j < row.length; j++) {
+            const a = row[i]
+            const b = row[j]
+            if (a.startCol <= b.endCol && b.startCol <= a.endCol) {
+              violations.push(
+                `row ${ri}: ${a.event.event.name}[${a.startCol}-${a.endCol}] ↔ ${b.event.event.name}[${b.startCol}-${b.endCol}]`
+              )
+            }
+          }
+        }
+      })
+      return violations
+    }
+
+    it('같은 col 을 점유하는 두 별개 multi-day 이벤트는 다른 row 에 배치되어야 한다', () => {
+      // when
+      const result = buildWeekEventStack(may3Week, baseEventsByDate())
+
+      // then: A 와 Weekend trip 이 같은 cols 2-3 → 다른 row 에 배치되어야 함
+      const rowOfA = findRowIndex(result.rows, 'allday-3d-A')
+      const rowOfWeekend = findRowIndex(result.rows, 'weekend-trip')
+      expect(rowOfA).toBeGreaterThanOrEqual(0)
+      expect(rowOfWeekend).toBeGreaterThanOrEqual(0)
+      expect(rowOfA).not.toBe(rowOfWeekend)
+    })
+
+    it('같은 row 안 chip 들의 col 은 disjoint 해야 한다 (invariant)', () => {
+      // when
+      const result = buildWeekEventStack(may3Week, baseEventsByDate())
+
+      // then: 모든 row 안 col 겹침 없음
+      const violations = findOverlaps(result.rows)
+      expect(violations, `invariant 위반:\n${violations.join('\n')}`).toEqual([])
+    })
+
+    it('시즈너 풀 데이터 + 두 AllDay 3d 인스턴스 — invariant 광범위 보장', () => {
+      // given: testDataSeeder 의 5/3 시작 주에 들어오는 모든 chip 재현
+      const offSiteDay = makeScheduleEvent('off-site', '[TEST] Off-site day')           // 5/3
+      const designReview = makeScheduleEvent('design-review', '[TEST] Design review')    // 5/3
+      const gymClass = makeScheduleEvent('gym-class', '[TEST] Gym class')                // 5/5
+      const bookClub = makeScheduleEvent('book-club', '[TEST] Book club')                // 5/6
+      const doctorVisit = makeScheduleEvent('doctor-visit', '[TEST] Doctor visit')       // 5/7
+      const weeklyStandup = makeScheduleEvent('weekly-standup', '[TEST] Weekly standup') // 5/4
+      const lunch = makeTodoEvent('lunch', '[TEST] Lunch with team')                     // 5/3
+      const dinner = makeTodoEvent('dinner', '[TEST] Dinner prep')                       // 5/3
+      const morningWorkout = (turn: number): CalendarEvent => ({
+        type: 'todo',
+        event: {
+          uuid: 'morning-workout',
+          name: '[TEST] Morning workout',
+          is_current: false,
+          event_tag_id: null,
+          event_time: { time_type: 'at', timestamp: turn * 100 },
+          repeating_turn: turn,
+        } as Todo,
+      })
+
+      const eventsByDate = new Map<string, CalendarEvent[]>([
+        ['2026-05-03', [offSiteDay, designReview, lunch, dinner, dailyTurn(1), morningWorkout(1)]],
+        ['2026-05-04', [weekendTrip, weeklyStandup, allDay3dA, dailyTurn(2), morningWorkout(2)]],
+        ['2026-05-05', [weekendTrip, gymClass, allDay3dA, dailyTurn(3), morningWorkout(3)]],
+        ['2026-05-06', [bookClub, allDay3dB, dailyTurn(4), morningWorkout(4)]],
+        ['2026-05-07', [doctorVisit, allDay3dB, dailyTurn(5), morningWorkout(5)]],
+        ['2026-05-08', [allDay3dB, dailyTurn(6), morningWorkout(6)]],
+        ['2026-05-09', [dailyTurn(7), morningWorkout(7)]],
+      ])
+
+      // when
+      const result = buildWeekEventStack(may3Week, eventsByDate)
+
+      // then: invariant 유지 + 같은 col 두 chip 은 서로 다른 row
+      const violations = findOverlaps(result.rows)
+      expect(violations, `invariant 위반:\n${violations.join('\n')}`).toEqual([])
+      expect(findRowIndex(result.rows, 'allday-3d-A')).not.toBe(findRowIndex(result.rows, 'weekend-trip'))
+    })
+
+    it('AllDay 3d B(4-6) 가 있는 row 에 좌측 빈 영역(cols 1-3) 의 chip 도 같이 묶여야 한다', () => {
+      // when
+      const result = buildWeekEventStack(may3Week, baseEventsByDate())
+
+      // then: greedy bin-packing 의 효율성 — B 만 단독으로 row 를 차지하지 않아야 함
+      const rowOfB = result.rows.find(row =>
+        row.some(e => e.event.event.uuid === 'allday-3d-B')
+      )
+      expect(rowOfB).toBeDefined()
+      const otherInBRow = rowOfB!.filter(e => e.event.event.uuid !== 'allday-3d-B')
+      expect(
+        otherInBRow.length,
+        `B(4-6) row 에 좌측(2-3) 또는 우측(7) chip 이 함께 들어가야 정상. 실제: ${rowOfB!.map(e => `${e.event.event.name}[${e.startCol}-${e.endCol}]`).join(', ')}`
+      ).toBeGreaterThan(0)
+    })
   })
 })

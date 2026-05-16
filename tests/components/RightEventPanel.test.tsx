@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { RightEventPanel, type RightEventPanelProps } from '../../src/components/RightEventPanel'
+import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
+import type { Repositories } from '../../src/composition/container'
+import { LocalStorageContainer } from '../../src/repositories/local-storage/LocalStorageContainer'
+import type { EventRepository } from '../../src/repositories/EventRepository'
 
 vi.mock('../../src/repositories/caches/eventTagListCache', () => ({
   useEventTagListCache: vi.fn((selector: any) => selector({ tags: new Map() })),
@@ -14,19 +18,69 @@ vi.mock('../../src/api/todoApi', () => ({
 vi.mock('../../src/api/scheduleApi', () => ({
   scheduleApi: { getSchedules: vi.fn().mockResolvedValue([]) },
 }))
-vi.mock('../../src/repositories/caches/calendarEventsCache', () => ({
-  useCalendarEventsCache: { getState: vi.fn(() => ({ removeEvent: vi.fn(), eventsByDate: new Map() })) },
-}))
 vi.mock('../../src/firebase', () => ({
   getAuthInstance: vi.fn(() => ({})),
   db: {},
 }))
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: vi.fn(() => () => {}),
+  signInWithPopup: vi.fn(),
+  signOut: vi.fn(),
+  GoogleAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+  OAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
+}))
+vi.mock('../../src/api/firebaseAuthApi', () => ({ firebaseAuthApi: {} }))
+vi.mock('../../src/api/eventTagApi', () => ({ eventTagApi: { getAllTags: vi.fn(async () => []) } }))
+vi.mock('../../src/api/settingApi', () => ({ settingApi: {} }))
+vi.mock('../../src/api/doneTodoApi', () => ({ doneTodoApi: {} }))
+vi.mock('../../src/api/foremostApi', () => ({ foremostApi: {} }))
+vi.mock('../../src/api/holidayApi', () => ({ holidayApi: {} }))
+vi.mock('../../src/api/eventDetailApi', () => ({ eventDetailApi: {} }))
+vi.mock('../../src/hooks/useIsMobile', () => ({
+  useIsMobile: vi.fn(() => false),
+}))
+vi.mock('../../src/repositories/caches/settingsCache', () => ({
+  useSettingsCache: vi.fn((selector: any) => selector({
+    calendarAppearance: {
+      weekStartDay: 0, accentDays: { holiday: true, saturday: false, sunday: true },
+      eventDisplayLevel: 'medium', rowHeight: 70, eventFontSizeWeight: 0, showEventNames: true,
+      eventListFontSizeWeight: 0, showHolidayInEventList: true, showLunarCalendar: false, showUncompletedTodos: true,
+    },
+    eventDefaults: { defaultTagId: null, defaultNotificationSeconds: null, defaultAllDayNotificationSeconds: null },
+    timezone: { timezone: 'UTC', systemTimezone: 'UTC', isCustom: false },
+    notification: { permission: 'default', fcmToken: null },
+    setAppearance: vi.fn(), resetAppearanceToDefaults: vi.fn(),
+    setEventDefaults: vi.fn(), setTimezone: vi.fn(),
+    setNotificationPermission: vi.fn(), setFcmToken: vi.fn(),
+    requestNotificationPermission: vi.fn(), reset: vi.fn(),
+  })),
+}))
+
+import { useIsMobile } from '../../src/hooks/useIsMobile'
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
   return { ...actual, useNavigate: () => mockNavigate }
 })
+
+function makeFakeEventRepo(): EventRepository {
+  return { completeTodo: vi.fn(async () => ({ uuid: 'done', done_at: 0 })) } as unknown as EventRepository
+}
+
+function makeFakeRepos(): Repositories {
+  return {
+    eventRepo: makeFakeEventRepo(),
+    eventDetailRepo: {} as any,
+    tagRepo: {} as any,
+    holidayRepo: {} as any,
+    doneTodoRepo: {} as any,
+    foremostEventRepo: {} as any,
+    authRepo: {} as any,
+    settingsRepo: {} as any,
+    localStorageContainer: new LocalStorageContainer(),
+  }
+}
 
 function defaultProps(overrides: Partial<RightEventPanelProps> = {}): RightEventPanelProps {
   return {
@@ -51,15 +105,18 @@ function defaultProps(overrides: Partial<RightEventPanelProps> = {}): RightEvent
 
 function renderComponent(props: Partial<RightEventPanelProps> = {}) {
   return render(
-    <MemoryRouter>
-      <RightEventPanel {...defaultProps(props)} />
-    </MemoryRouter>
+    <RepositoriesProvider value={makeFakeRepos()}>
+      <MemoryRouter>
+        <RightEventPanel {...defaultProps(props)} />
+      </MemoryRouter>
+    </RepositoriesProvider>
   )
 }
 
 describe('RightEventPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(useIsMobile).mockReturnValue(false)
   })
 
   it('QuickTodoInput과 CreateEventButton이 항상 표시된다', () => {
@@ -129,5 +186,17 @@ describe('RightEventPanel', () => {
     // then: 날짜 섹션 없이도 currentTodo가 보임
     expect(screen.getByText('현재 할 일')).toBeInTheDocument()
     expect(screen.queryByText('이벤트가 없습니다')).not.toBeInTheDocument()
+  })
+
+  it('데스크톱에서는 패널 닫기 버튼이 표시된다', () => {
+    vi.mocked(useIsMobile).mockReturnValue(false)
+    renderComponent()
+    expect(screen.getByRole('button', { name: /닫기|패널 닫기/ })).toBeInTheDocument()
+  })
+
+  it('모바일에서는 패널 닫기 버튼이 표시되지 않는다', () => {
+    vi.mocked(useIsMobile).mockReturnValue(true)
+    renderComponent()
+    expect(screen.queryByRole('button', { name: /닫기|패널 닫기/ })).not.toBeInTheDocument()
   })
 })

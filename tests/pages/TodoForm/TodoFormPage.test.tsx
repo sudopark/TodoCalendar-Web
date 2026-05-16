@@ -8,6 +8,7 @@ import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvi
 import { EventRepository } from '../../../src/repositories/EventRepository'
 import { EventDetailRepository } from '../../../src/repositories/EventDetailRepository'
 import type { Repositories } from '../../../src/composition/container'
+import { LocalStorageContainer } from '../../../src/repositories/local-storage/LocalStorageContainer'
 
 // Firebase 초기화 차단 (authStore → firebase.ts → Firebase SDK)
 vi.mock('../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
@@ -120,6 +121,7 @@ async function makeFakeRepos(): Promise<Repositories> {
     foremostEventRepo: {} as unknown as Repositories['foremostEventRepo'],
     authRepo: {} as unknown as Repositories['authRepo'],
     settingsRepo: {} as unknown as Repositories['settingsRepo'],
+    localStorageContainer: new LocalStorageContainer(),
   }
 }
 

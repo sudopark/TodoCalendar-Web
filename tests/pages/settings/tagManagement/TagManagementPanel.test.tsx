@@ -7,6 +7,7 @@ import { useTagFilterStore } from '../../../../src/stores/tagFilterStore'
 import { RepositoriesProvider } from '../../../../src/composition/RepositoriesProvider'
 import { TagRepository } from '../../../../src/repositories/TagRepository'
 import type { Repositories } from '../../../../src/composition/container'
+import { LocalStorageContainer } from '../../../../src/repositories/local-storage/LocalStorageContainer'
 
 vi.mock('../../../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
 vi.mock('firebase/auth', () => ({
@@ -49,6 +50,7 @@ async function makeFakeRepos(): Promise<Repositories> {
     foremostEventRepo: {} as unknown as Repositories['foremostEventRepo'],
     authRepo: {} as unknown as Repositories['authRepo'],
     settingsRepo: {} as unknown as Repositories['settingsRepo'],
+    localStorageContainer: new LocalStorageContainer(),
   }
 }
 

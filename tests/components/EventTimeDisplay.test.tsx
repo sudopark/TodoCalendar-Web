@@ -106,4 +106,19 @@ describe('EventTimeDisplay', () => {
     // then: KST 기준 날짜 범위가 표시된다
     expect(screen.getByText(/3월 15일.*–.*3월 17일/)).toBeInTheDocument()
   })
+
+  it('period_end 없는 allday(단일 일자 종일)는 "종일"을 표시한다 (#127)', () => {
+    // given: 2024-03-15 KST 종일, period_end 없음
+    const eventTime = {
+      time_type: 'allday' as const,
+      period_start: 1710428400,
+      seconds_from_gmt: 32400,
+    } as EventTime
+
+    // when: 렌더링
+    render(<EventTimeDisplay eventTime={eventTime} />)
+
+    // then: "종일" 텍스트가 표시된다
+    expect(screen.getByText('종일')).toBeInTheDocument()
+  })
 })

@@ -12,6 +12,8 @@ import { RepositoriesProvider } from './composition/RepositoriesProvider'
 import './stores/themeStore'
 
 const LoginPage = React.lazy(() => import('./pages/Login/LoginPage').then(m => ({ default: m.LoginPage })))
+const ConsentPage = React.lazy(() => import('./pages/OAuthConsent/ConsentPage').then(m => ({ default: m.ConsentPage })))
+const ConsentErrorPage = React.lazy(() => import('./pages/OAuthConsent/ConsentErrorPage').then(m => ({ default: m.ConsentErrorPage })))
 const SettingsPage = React.lazy(() => import('./pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
 
@@ -32,6 +34,8 @@ function AppRoutes() {
       <Suspense fallback={<LoadingSkeleton />}>
         <Routes location={background ?? location}>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/oauth/consent" element={<ConsentPage />} />
+          <Route path="/oauth/consent/error" element={<ConsentErrorPage />} />
           <Route
             path="/*"
             element={

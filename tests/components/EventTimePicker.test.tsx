@@ -136,3 +136,50 @@ describe('EventTimePicker — period 입력 상호작용', () => {
     expect(last.period_end - last.period_start).toBe(3 * 3600)
   })
 })
+
+describe('EventTimePicker — allday 종료일 지정 토글 (#127)', () => {
+  it('period_end 없는 allday 는 종료일 토글 OFF, 종료일 입력 미노출', () => {
+    // given
+    const value = { time_type: 'allday' as const, period_start: 1700000000, seconds_from_gmt: 32400 }
+    // when
+    render(<EventTimePicker value={value as any} onChange={vi.fn()} />)
+    // then: 종료일 지정 체크박스 unchecked, 종료일 input 없음
+    const toggle = screen.getByRole('checkbox', { name: '종료일 지정' })
+    expect(toggle).not.toBeChecked()
+    expect(screen.queryByLabelText('종료 날짜')).not.toBeInTheDocument()
+  })
+
+  it('period_end 있는 allday 는 종료일 토글 ON, 종료일 input 노출', () => {
+    // given
+    const value = {
+      time_type: 'allday' as const,
+      period_start: 1700000000,
+      period_end: 1700000000 + 86400 - 1,
+      seconds_from_gmt: 32400,
+    }
+    // when
+    render(<EventTimePicker value={value} onChange={vi.fn()} />)
+    // then
+    const toggle = screen.getByRole('checkbox', { name: '종료일 지정' })
+    expect(toggle).toBeChecked()
+    expect(screen.getByLabelText('종료 날짜')).toBeInTheDocument()
+  })
+
+  it('종료일 토글 ON 하면 onChange 에 period_end 가 초기화된 allday 가 전달된다', async () => {
+    // given
+    const value = { time_type: 'allday' as const, period_start: 1700000000, seconds_from_gmt: 32400 }
+    const onChange = vi.fn()
+    render(<EventTimePicker value={value as any} onChange={onChange} />)
+
+    // when
+    const toggle = screen.getByRole('checkbox', { name: '종료일 지정' })
+    await userEvent.click(toggle)
+
+    // then: period_end 가 있는 allday 로 emit
+    const last = onChange.mock.calls.at(-1)?.[0]
+    expect(last).toBeTruthy()
+    expect(last.time_type).toBe('allday')
+    expect(last.period_end).toBeDefined()
+    expect(last.period_end).toBeGreaterThanOrEqual(last.period_start)
+  })
+})

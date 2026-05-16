@@ -75,6 +75,16 @@ describe('validateTodoForm', () => {
       expect(result.ok).toBe(true)
       if (result.ok) expect(result.input.event_time).toBeUndefined()
     })
+
+    it('period_end 없는 allday(단일 일자 종일)도 valid로 판정한다 (#127)', () => {
+      // given
+      const eventTime: EventTime = { time_type: 'allday', period_start: 1700000000, seconds_from_gmt: 32400 } as any
+      // when
+      const result = validateTodoForm({ name: '할일', eventTime })
+      // then
+      expect(result.ok).toBe(true)
+      if (result.ok) expect(result.input.event_time).toEqual(eventTime)
+    })
   })
 
   describe('선택 필드 매핑', () => {

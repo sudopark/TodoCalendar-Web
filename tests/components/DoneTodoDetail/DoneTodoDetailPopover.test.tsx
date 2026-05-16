@@ -4,7 +4,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DoneTodoDetailPopover } from '../../../src/components/DoneTodoDetail/DoneTodoDetailPopover'
 import { useDoneTodosCache } from '../../../src/repositories/caches/doneTodosCache'
 import { useCurrentTodosCache } from '../../../src/repositories/caches/currentTodosCache'
+import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvider'
+import type { Repositories } from '../../../src/composition/container'
+import type { DoneTodoRepository } from '../../../src/repositories/DoneTodoRepository'
 import type { DoneTodo } from '../../../src/models'
+import { useIsMobile } from '../../../src/hooks/useIsMobile'
+
+vi.mock('../../../src/hooks/useIsMobile', () => ({
+  useIsMobile: vi.fn(() => false),
+}))
 
 const mockGetDoneTodoDetail = vi.fn()
 const mockRevertDoneTodo = vi.fn(async () => ({
@@ -41,6 +49,7 @@ const sample: DoneTodo = {
 }
 
 beforeEach(() => {
+  vi.mocked(useIsMobile).mockReturnValue(false)
   mockGetDoneTodoDetail.mockReset().mockResolvedValue(null)
   mockRevertDoneTodo.mockReset().mockResolvedValue({
     todo: { uuid: 'todo-1', name: '완료된 일', is_current: true },
@@ -51,20 +60,52 @@ beforeEach(() => {
   useCurrentTodosCache.getState().reset()
 })
 
+function makeFakeDoneTodoRepo(): DoneTodoRepository {
+  return {
+    fetchNextPage: vi.fn(async () => {}),
+    revert: vi.fn(async (id: string) => {
+      useDoneTodosCache.getState().removeItem(id)
+      return { uuid: 'todo-1', name: '완료된 일', is_current: true } as any
+    }),
+    remove: vi.fn(async (id: string) => {
+      useDoneTodosCache.getState().removeItem(id)
+    }),
+    getSnapshot: vi.fn(() => []),
+  } as unknown as DoneTodoRepository
+}
+
+function makeFakeRepos(doneTodoRepo: DoneTodoRepository): Repositories {
+  return {
+    eventRepo: {} as any,
+    eventDetailRepo: {} as any,
+    tagRepo: {} as any,
+    holidayRepo: {} as any,
+    doneTodoRepo,
+    foremostEventRepo: {} as any,
+    authRepo: {} as any,
+    settingsRepo: {} as any,
+    localStorageContainer: {} as any,
+  }
+}
+
 function renderPopover(overrides: Partial<{
   doneTodo: DoneTodo
   onClose: () => void
   onReverted: () => void
   onDeleted: () => void
+  anchorRect: DOMRect | undefined
 }> = {}) {
+  const anchor = 'anchorRect' in overrides ? overrides.anchorRect : anchorRect
   return render(
-    <DoneTodoDetailPopover
-      doneTodo={overrides.doneTodo ?? sample}
-      anchorRect={anchorRect}
-      onClose={overrides.onClose ?? vi.fn()}
-      onReverted={overrides.onReverted ?? vi.fn()}
-      onDeleted={overrides.onDeleted ?? vi.fn()}
-    />,
+    <RepositoriesProvider value={makeFakeRepos(makeFakeDoneTodoRepo())}>
+      <DoneTodoDetailPopover
+        doneTodo={overrides.doneTodo ?? sample}
+        anchorRect={anchor}
+        onClose={overrides.onClose ?? vi.fn()}
+        onReverted={overrides.onReverted ?? vi.fn()}
+        onDeleted={overrides.onDeleted ?? vi.fn()}
+      />
+    </RepositoriesProvider>,
   )
 }
 
@@ -150,5 +191,41 @@ describe('DoneTodoDetailPopover', () => {
       expect(useDoneTodosCache.getState().items.find(i => i.uuid === sample.uuid)).toBeUndefined()
     })
     expect(onDeleted).toHaveBeenCalled()
+  })
+
+  it('데스크톱이면 floating 카드로 렌더한다', () => {
+    // given: 데스크톱 환경
+    vi.mocked(useIsMobile).mockReturnValue(false)
+
+    // when: 팝오버 렌더
+    renderPopover()
+
+    // then: BottomSheet 백드롭은 없다
+    expect(screen.queryByTestId('bottom-sheet-backdrop')).not.toBeInTheDocument()
+  })
+
+  it('모바일이면 BottomSheet 백드롭이 렌더된다', () => {
+    // given: 모바일 환경
+    vi.mocked(useIsMobile).mockReturnValue(true)
+
+    // when: 팝오버 렌더
+    renderPopover()
+
+    // then: BottomSheet 백드롭이 보이고, 데스크톱 floating 카드는 같이 뜨지 않는다
+    expect(screen.getByTestId('bottom-sheet-backdrop')).toBeInTheDocument()
+    expect(screen.queryByTestId('done-todo-detail-popover')).not.toBeInTheDocument()
+  })
+
+  it('데스크톱에서 anchorRect가 없으면 floating 카드가 viewport 중앙으로 위치한다', () => {
+    // given: 데스크톱이고 anchor 미제공
+    vi.mocked(useIsMobile).mockReturnValue(false)
+
+    // when: anchorRect 없이 렌더
+    renderPopover({ anchorRect: undefined })
+
+    // then: 카드가 렌더되며, transform translateY(-50%)가 부착됨 (center fallback 의 신호)
+    const card = screen.getByTestId('done-todo-detail-popover')
+    expect(card).toBeInTheDocument()
+    expect(card.getAttribute('style')).toMatch(/translateY\(-50%\)/)
   })
 })

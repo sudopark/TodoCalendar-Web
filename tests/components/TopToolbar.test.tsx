@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import TopToolbar, { type TopToolbarProps } from '../../src/components/TopToolbar'
+import { RepositoriesProvider } from '../../src/composition/RepositoriesProvider'
+
+vi.mock('../../src/hooks/useIsMobile', () => ({
+  useIsMobile: vi.fn(() => false),
+}))
+import { useIsMobile } from '../../src/hooks/useIsMobile'
 
 const noop = vi.fn()
 
@@ -19,10 +25,16 @@ function defaultProps(overrides: Partial<TopToolbarProps> = {}): TopToolbarProps
   }
 }
 
+// dev 모드에서 TopToolbar 가 TestDataSeederButton 을 렌더 → useRepositories 호출
+// → Provider 누락 시 throw. 테스트에 최소 Provider 주입.
+const fakeRepos = { tagRepo: { fetchAll: vi.fn() } } as never
+
 function renderToolbar(props?: Partial<TopToolbarProps>) {
   return render(
     <MemoryRouter>
-      <TopToolbar {...defaultProps(props)} />
+      <RepositoriesProvider value={fakeRepos}>
+        <TopToolbar {...defaultProps(props)} />
+      </RepositoriesProvider>
     </MemoryRouter>
   )
 }
@@ -30,6 +42,7 @@ function renderToolbar(props?: Partial<TopToolbarProps>) {
 describe('TopToolbar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(useIsMobile).mockReturnValue(false)
   })
 
   it('현재 월 제목을 표시한다', () => {
@@ -145,5 +158,59 @@ describe('TopToolbar', () => {
 
     // then
     expect(screen.getByLabelText(/새로고침|refresh/i)).toBeDisabled()
+  })
+
+  it('데스크톱에서 sidebarOpen=true 이면 로고/라벨이 표시된다', () => {
+    // given
+    vi.mocked(useIsMobile).mockReturnValue(false)
+
+    // when
+    renderToolbar({ sidebarOpen: true })
+
+    // then
+    expect(screen.getByText('To-do Calendar')).toBeInTheDocument()
+  })
+
+  it('모바일이면 sidebarOpen=true 이어도 로고/라벨이 표시되지 않는다', () => {
+    // given
+    vi.mocked(useIsMobile).mockReturnValue(true)
+
+    // when
+    renderToolbar({ sidebarOpen: true })
+
+    // then
+    expect(screen.queryByText('To-do Calendar')).not.toBeInTheDocument()
+  })
+
+  // #110: 메인화면 진입 후 캘린더는 그려진 상태에서 이벤트 조회 완료까지 시간이 걸리는 동안
+  // 사용자에게 "조회중" 임을 시각적으로 표시한다. 인터랙션은 막지 않는다.
+  describe('#110 이벤트 조회 로딩 인디케이터', () => {
+    it('loading=true 이면 progressbar role 의 인디케이터가 표시된다', () => {
+      // given / when
+      renderToolbar({ loading: true })
+
+      // then: progressbar 가 렌더되어 보조 기술이 인지 가능
+      expect(screen.getByRole('progressbar', { name: /이벤트 조회|loading events/i })).toBeInTheDocument()
+    })
+
+    it('loading=false 이면 progressbar 인디케이터가 표시되지 않는다', () => {
+      // given / when
+      renderToolbar({ loading: false })
+
+      // then
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+    })
+
+    it('로딩 중에도 인디케이터가 다른 버튼 클릭을 가로채지 않는다', () => {
+      // given: loading 인 상태에서도 다른 버튼은 클릭 가능해야 함
+      const onGoToToday = vi.fn()
+      renderToolbar({ loading: true, onGoToToday })
+
+      // when: 다른 버튼 클릭
+      fireEvent.click(screen.getByRole('button', { name: /오늘/i }))
+
+      // then: 콜백이 정상 호출됨 (인디케이터 오버레이가 가로채지 않음)
+      expect(onGoToToday).toHaveBeenCalled()
+    })
   })
 })

@@ -18,45 +18,45 @@ function buildCompleteOrigin(origin: Todo): Record<string, unknown> {
 
 export const todoApi = {
   getTodos(lower: number, upper: number): Promise<Todo[]> {
-    return apiClient.get(`/v1/todos?lower=${lower}&upper=${upper}`)
+    return apiClient.get(`/v2/todos?lower=${lower}&upper=${upper}`)
   },
 
   getCurrentTodos(): Promise<Todo[]> {
-    return apiClient.get('/v1/todos')
+    return apiClient.get('/v2/todos')
   },
 
-  getUncompletedTodos(): Promise<Todo[]> {
-    return apiClient.get('/v1/todos/uncompleted')
+  getUncompletedTodos(refTime: number): Promise<Todo[]> {
+    return apiClient.get(`/v2/todos/uncompleted?refTime=${refTime}`)
   },
 
   getTodo(id: string): Promise<Todo> {
-    return apiClient.get(`/v1/todos/todo/${id}`)
+    return apiClient.get(`/v2/todos/todo/${id}`)
   },
 
   createTodo(body: { name: string; event_tag_id?: string; event_time?: EventTime; repeating?: Repeating; notification_options?: NotificationOption[]; is_current?: boolean }): Promise<Todo> {
-    return apiClient.post('/v1/todos/todo', body)
+    return apiClient.post('/v2/todos/todo', body)
   },
 
   updateTodo(id: string, body: Partial<Pick<Todo, 'name' | 'event_tag_id' | 'event_time' | 'repeating' | 'notification_options'>>): Promise<Todo> {
-    return apiClient.put(`/v1/todos/todo/${id}`, body)
+    return apiClient.put(`/v2/todos/todo/${id}`, body)
   },
 
   completeTodo(id: string, body: { origin: Todo; next_event_time?: EventTime; next_repeating_turn?: number }): Promise<DoneTodo> {
     const sanitized: Record<string, unknown> = { origin: buildCompleteOrigin(body.origin) }
     if (body.next_event_time != null) sanitized.next_event_time = body.next_event_time
     if (body.next_repeating_turn != null) sanitized.next_repeating_turn = body.next_repeating_turn
-    return apiClient.post(`/v1/todos/todo/${id}/complete`, sanitized)
+    return apiClient.post(`/v2/todos/todo/${id}/complete`, sanitized)
   },
 
   replaceTodo(id: string, body: { new: Record<string, unknown>; origin_next_event_time?: EventTime; next_repeating_turn?: number }): Promise<{ new_todo: Todo; next_repeating?: Todo }> {
-    return apiClient.post(`/v1/todos/todo/${id}/replace`, body)
+    return apiClient.post(`/v2/todos/todo/${id}/replace`, body)
   },
 
   patchTodo(id: string, body: Record<string, unknown>): Promise<Todo> {
-    return apiClient.patch(`/v1/todos/todo/${id}`, body)
+    return apiClient.patch(`/v2/todos/todo/${id}`, body)
   },
 
   deleteTodo(id: string): Promise<{ status: string }> {
-    return apiClient.delete(`/v1/todos/todo/${id}`)
+    return apiClient.delete(`/v2/todos/todo/${id}`)
   },
 }

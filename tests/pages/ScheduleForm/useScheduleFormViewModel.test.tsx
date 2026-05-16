@@ -5,6 +5,7 @@ import { useScheduleFormViewModel } from '../../../src/pages/ScheduleForm/useSch
 import type { EventRepository } from '../../../src/repositories/EventRepository'
 import type { EventDetailRepository } from '../../../src/repositories/EventDetailRepository'
 import type { Repositories } from '../../../src/composition/container'
+import { LocalStorageContainer } from '../../../src/repositories/local-storage/LocalStorageContainer'
 import type { Schedule } from '../../../src/models/Schedule'
 import type { EventDetail } from '../../../src/models/EventDetail'
 
@@ -105,6 +106,7 @@ function createFakeRepos(
     foremostEventRepo: {} as unknown as Repositories['foremostEventRepo'],
     authRepo: {} as unknown as Repositories['authRepo'],
     settingsRepo: {} as unknown as Repositories['settingsRepo'],
+    localStorageContainer: new LocalStorageContainer(),
   }
 }
 

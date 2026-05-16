@@ -24,7 +24,7 @@ export function RepeatingScopeDialog({ mode, eventType = 'schedule', onSelect, o
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div data-testid="repeating-scope-dialog" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-sm rounded-xl bg-surface-elevated p-6 shadow-xl">
         <h2 className="text-base font-semibold text-fg">
           {dialogTitle()}

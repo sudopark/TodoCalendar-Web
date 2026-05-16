@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { createElement } from 'react'
 import { RepositoriesProvider } from '../../../src/composition/RepositoriesProvider'
 import { useLoginViewModel } from '../../../src/pages/Login/useLoginViewModel'
 import { AuthError } from '../../../src/domain/errors/AuthError'
+import { useAuthStore } from '../../../src/stores/authStore'
 import type { Repositories } from '../../../src/composition/container'
 
 // ── Firebase / API 부수 초기화 차단 ─────────────────────────────────
@@ -52,6 +53,11 @@ function makeWrapper(repos: Repositories) {
 }
 
 describe('useLoginViewModel', () => {
+  // #109: authStore 의 signInError 신호를 viewmodel 이 관측하므로 각 테스트 전 초기화한다.
+  beforeEach(() => {
+    useAuthStore.setState({ account: null, loading: false, signInError: null })
+  })
+
   describe('초기 상태', () => {
     it('loading은 false, errorKey는 null이다', () => {
       const authRepo = createFakeAuthRepo()
@@ -65,7 +71,9 @@ describe('useLoginViewModel', () => {
   })
 
   describe('signInWithGoogle', () => {
-    it('성공 시 errorKey가 null로 유지된다', async () => {
+    // #109: 로그인 성공 후 authStore 의 account 가 세팅되고 LoginPage 가 Navigate 로 unmount 되기까지
+    // 시간 텀이 있다. 이 동안 vm.loading=true 를 유지해 LoginPage 가 전환 중 로딩 표시를 그릴 수 있게 한다.
+    it('성공 시 errorKey 는 null, loading 은 true 로 유지된다 (페이지 전환 대기)', async () => {
       const authRepo = createFakeAuthRepo()
       const { result } = renderHook(
         () => useLoginViewModel(),
@@ -77,10 +85,10 @@ describe('useLoginViewModel', () => {
       })
 
       expect(result.current.errorKey).toBeNull()
-      expect(result.current.loading).toBe(false)
+      expect(result.current.loading).toBe(true)
     })
 
-    it('AuthError(cancelled) 시 errorKey가 null로 유지된다', async () => {
+    it('AuthError(cancelled) 시 errorKey 는 null, loading 은 false 로 해제된다', async () => {
       const authRepo = createFakeAuthRepo({
         signInWithGoogle: () => Promise.reject(new AuthError({ type: 'cancelled' })),
       })
@@ -94,9 +102,11 @@ describe('useLoginViewModel', () => {
       })
 
       expect(result.current.errorKey).toBeNull()
+      // #109: 취소는 다시 시도할 수 있도록 loading 해제 (전환 대기 아님)
+      expect(result.current.loading).toBe(false)
     })
 
-    it('auth/popup-closed-by-user 에러 시 errorKey가 null로 유지된다', async () => {
+    it('auth/popup-closed-by-user 에러 시 errorKey 는 null, loading 은 false 로 해제된다', async () => {
       const popupClosedError = Object.assign(new Error('popup closed'), {
         code: 'auth/popup-closed-by-user',
       })
@@ -113,9 +123,10 @@ describe('useLoginViewModel', () => {
       })
 
       expect(result.current.errorKey).toBeNull()
+      expect(result.current.loading).toBe(false)
     })
 
-    it('AuthError(network) 시 errorKey가 설정된다', async () => {
+    it('AuthError(network) 시 errorKey 가 설정되고 loading 은 false', async () => {
       const authRepo = createFakeAuthRepo({
         signInWithGoogle: () => Promise.reject(new AuthError({ type: 'network' })),
       })
@@ -129,9 +140,10 @@ describe('useLoginViewModel', () => {
       })
 
       expect(result.current.errorKey).toBe('error.auth.network')
+      expect(result.current.loading).toBe(false)
     })
 
-    it('알 수 없는 에러 시 errorKey가 error.unknown으로 설정된다', async () => {
+    it('알 수 없는 에러 시 errorKey 가 error.unknown 이고 loading 은 false', async () => {
       const authRepo = createFakeAuthRepo({
         signInWithGoogle: () => Promise.reject(new Error('unknown')),
       })
@@ -145,11 +157,12 @@ describe('useLoginViewModel', () => {
       })
 
       expect(result.current.errorKey).toBe('error.unknown')
+      expect(result.current.loading).toBe(false)
     })
   })
 
   describe('signInWithApple', () => {
-    it('성공 시 errorKey가 null로 유지된다', async () => {
+    it('성공 시 errorKey 는 null, loading 은 true 로 유지된다 (페이지 전환 대기)', async () => {
       const authRepo = createFakeAuthRepo()
       const { result } = renderHook(
         () => useLoginViewModel(),
@@ -161,10 +174,10 @@ describe('useLoginViewModel', () => {
       })
 
       expect(result.current.errorKey).toBeNull()
-      expect(result.current.loading).toBe(false)
+      expect(result.current.loading).toBe(true)
     })
 
-    it('AuthError(cancelled) 시 errorKey가 null로 유지된다', async () => {
+    it('AuthError(cancelled) 시 errorKey 는 null, loading 은 false 로 해제된다', async () => {
       const authRepo = createFakeAuthRepo({
         signInWithApple: () => Promise.reject(new AuthError({ type: 'cancelled' })),
       })
@@ -178,6 +191,7 @@ describe('useLoginViewModel', () => {
       })
 
       expect(result.current.errorKey).toBeNull()
+      expect(result.current.loading).toBe(false)
     })
 
     it('알 수 없는 에러 시 errorKey가 error.unknown으로 설정된다', async () => {
@@ -217,6 +231,58 @@ describe('useLoginViewModel', () => {
       })
 
       expect(result.current.errorKey).toBeNull()
+    })
+  })
+
+  // #109: stuck-spinner 회귀 차단.
+  // Firebase 인증은 성공했으나 authStore 의 백엔드 account 등록이 실패한 경우 (signInError 신호),
+  // viewmodel 은 loading 을 해제하고 errorKey 를 설정해 사용자가 재시도할 수 있어야 한다.
+  describe('signInError 신호 (백엔드 account 등록 실패)', () => {
+    it('로그인 시도 중 signInError 신호가 set 되면 loading 이 해제되고 errorKey 가 설정된다', async () => {
+      const authRepo = createFakeAuthRepo()
+      const { result } = renderHook(
+        () => useLoginViewModel(),
+        { wrapper: makeWrapper(createFakeRepos(authRepo)) },
+      )
+
+      // when: signInWithGoogle 가 resolve 됐지만 LoginPage 는 unmount 되지 않은 상태
+      await act(async () => {
+        await result.current.signInWithGoogle()
+      })
+      expect(result.current.loading).toBe(true)
+
+      // 백엔드 account 등록 실패 신호 도착
+      act(() => {
+        useAuthStore.setState({ signInError: 'account_register_failed' })
+      })
+
+      // then: 사용자 재시도 가능 상태 — loading 풀리고 errorKey 노출
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+        expect(result.current.errorKey).toBe('error.unknown')
+      })
+    })
+
+    it('Apple 로그인 경로에서도 signInError 신호로 loading 이 해제된다', async () => {
+      const authRepo = createFakeAuthRepo()
+      const { result } = renderHook(
+        () => useLoginViewModel(),
+        { wrapper: makeWrapper(createFakeRepos(authRepo)) },
+      )
+
+      await act(async () => {
+        await result.current.signInWithApple()
+      })
+      expect(result.current.loading).toBe(true)
+
+      act(() => {
+        useAuthStore.setState({ signInError: 'account_register_failed' })
+      })
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+        expect(result.current.errorKey).toBe('error.unknown')
+      })
     })
   })
 })
