@@ -15,14 +15,20 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Copy local .env.local
-        run: cp ~/.config/todocalendar/.env.local .env.local
-
       - run: npm ci
 
       - run: npm run build
         env:
           VITE_DEPLOY_ENV: staging
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_OAUTH_AS_BASE_URL: ${{ vars.VITE_OAUTH_AS_BASE_URL }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
 
       - name: Deploy to Firebase Hosting (staging channel)
         run: firebase hosting:channel:deploy staging --expires 30d --project todocalendar-1707723626269 --non-interactive
