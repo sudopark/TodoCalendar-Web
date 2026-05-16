@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../helpers/fixedClock'
 import { setupAuthContext } from '../helpers/auth'
 
 test.beforeEach(async ({ context }) => {

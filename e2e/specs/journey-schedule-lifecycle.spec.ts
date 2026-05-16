@@ -3,13 +3,13 @@
  *
  * FAB → 일정 생성 → 캘린더에서 확인 → 상세 보기 → 편집/삭제까지의 전체 흐름을 검증한다.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, FIXED_DATE, FIXED_TODAY_TIMESTAMP } from '../helpers/fixedClock'
 import { setupAuthContext } from '../helpers/auth'
 
-const NOW_SEC = Math.floor(Date.now() / 1000)
+const NOW_SEC = FIXED_TODAY_TIMESTAMP
 
-// 오늘 날짜 (2026-04-11 기준, 테스트 환경의 실제 날짜 사용)
-const today = new Date()
+// 오늘 날짜 (FIXED_DATE = 2026-04-11) — runner 프로세스 시간이 아닌 fixture 시점과 동기화
+const today = new Date(FIXED_DATE)
 const todayYear = today.getFullYear()
 const todayMonth = today.getMonth() + 1
 const todayDay = today.getDate()

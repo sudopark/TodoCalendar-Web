@@ -3,15 +3,15 @@
  *
  * 특정 날짜에 이벤트 → 캘린더 셀 표시 → DayEventList 표시 → 빈 날짜 → 월 이동 흐름을 검증한다.
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, FIXED_DATE } from '../helpers/fixedClock'
 import { setupAuthContext } from '../helpers/auth'
 
 test.beforeEach(async ({ context }) => {
   await setupAuthContext(context)
 })
 
-// 오늘 기준으로 타임스탬프 계산
-const today = new Date()
+// page.clock 으로 고정한 시점과 spec 의 'today' 를 동기화 — runner 프로세스 시간과 분리
+const today = new Date(FIXED_DATE)
 today.setHours(12, 0, 0, 0)
 const todayTimestamp = Math.floor(today.getTime() / 1000)
 
