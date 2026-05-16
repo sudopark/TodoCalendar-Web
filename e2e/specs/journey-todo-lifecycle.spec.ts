@@ -420,8 +420,9 @@ test('설정 페이지에서 로그아웃하면 로그인 페이지로 리다이
   await page.goto('/settings/account')
   await page.waitForLoadState('networkidle')
 
-  // when — 로그아웃 버튼 클릭
+  // when — 로그아웃 버튼 클릭 → ConfirmDialog 의 '로그아웃' 으로 확정
   await page.getByRole('button', { name: '로그아웃' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: '로그아웃' }).click()
 
   // then — 로그인 페이지로 리다이렉트
   await expect(page).toHaveURL(/\/login/)
