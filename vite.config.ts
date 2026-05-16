@@ -19,7 +19,8 @@ const commitSha =
 const buildTime = new Date().toISOString()
 const deployEnv = process.env.VITE_DEPLOY_ENV ?? 'local'
 const appVersion =
-  deployEnv === 'production' ? pkg.version : `${pkg.version}+${commitSha}`
+  process.env.VITE_APP_VERSION
+  ?? (deployEnv === 'production' ? pkg.version : `${pkg.version}+${commitSha}`)
 
 // https://vite.dev/config/
 export default defineConfig({
