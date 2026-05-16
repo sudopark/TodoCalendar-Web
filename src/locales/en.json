@@ -347,6 +347,8 @@
   "oauth.consent.subtitle": "{{clientName}} is requesting the following permissions",
   "oauth.consent.redirect_label": "Will return to",
   "oauth.consent.account_label": "Signed in as",
+  "oauth.consent.permissions_label": "Permissions",
+  "oauth.consent.transient_title": "Temporary error",
   "oauth.consent.allow": "Allow",
   "oauth.consent.deny": "Deny",
   "oauth.consent.scope_unknown": "{{code}} (unknown permission)",

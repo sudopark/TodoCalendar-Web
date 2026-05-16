@@ -62,7 +62,7 @@ export function ConsentSubmitForm({ callbackUrl, challenge, onBeforeSubmit }: Pr
         type="button"
         onClick={handleAllow}
         disabled={submitting}
-        className="flex-1 py-3 px-4 rounded-xl bg-brand text-action-fg font-semibold hover:bg-brand/90 active:bg-brand/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="flex-1 py-3 px-4 rounded-xl bg-action text-action-fg font-semibold hover:bg-action/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {t('oauth.consent.allow')}
       </button>

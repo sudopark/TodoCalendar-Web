@@ -43,10 +43,10 @@ export function ConsentPage() {
       <ConsentLayout
         header={null}
         body={
-          <div role="status" aria-live="polite" className="flex justify-center py-12">
+          <div role="status" aria-live="polite" className="flex justify-center py-24">
             <div
               data-testid="consent-loading"
-              className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin"
+              className="w-10 h-10 border-4 border-action border-t-transparent rounded-full animate-spin"
             />
           </div>
         }
@@ -57,9 +57,13 @@ export function ConsentPage() {
   if (vm.state === 'transient_error') {
     return (
       <ConsentLayout
-        header={<h1 className="text-xl font-bold text-fg text-center">{t('oauth.consent.title')}</h1>}
+        header={
+          <h1 className="text-2xl sm:text-3xl font-semibold text-fg leading-snug">
+            {t('oauth.consent.transient_title')}
+          </h1>
+        }
         body={
-          <p role="alert" className="text-sm text-fg-secondary text-center leading-relaxed">
+          <p role="alert" className="text-sm text-fg-secondary leading-relaxed">
             {t('oauth.consent.transient_error')}
           </p>
         }
@@ -67,7 +71,7 @@ export function ConsentPage() {
           <button
             type="button"
             onClick={() => vm.retry?.()}
-            className="flex-1 py-3 px-4 rounded-xl bg-brand text-action-fg font-semibold hover:bg-brand/90 active:bg-brand/80 transition-colors"
+            className="flex-1 py-3 px-4 rounded-xl bg-action text-action-fg font-semibold hover:bg-action/90 transition-colors"
           >
             {t('oauth.consent.retry')}
           </button>
@@ -81,30 +85,37 @@ export function ConsentPage() {
   return (
     <ConsentLayout
       header={
-        <div className="text-center">
-          <h1 className="text-xl font-bold text-fg">{t('oauth.consent.title')}</h1>
-          <p className="text-sm text-fg-secondary mt-2">
-            {t('oauth.consent.subtitle', { clientName: info.clientName })}
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-fg-tertiary mb-4">
+            {t('oauth.consent.title')}
           </p>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-fg leading-snug">
+            {t('oauth.consent.subtitle', { clientName: info.clientName })}
+          </h1>
+          <div className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-surface-elevated border border-line">
+            <span className="text-[10px] uppercase tracking-wider text-fg-tertiary">
+              {t('oauth.consent.redirect_label')}
+            </span>
+            <span className="text-xs font-mono text-fg-secondary break-all">
+              {info.redirectUriOrigin}
+            </span>
+          </div>
         </div>
       }
       body={
-        <div className="flex flex-col gap-5">
-          <div>
-            <p className="text-xs text-fg-tertiary uppercase tracking-wider mb-1">
-              {t('oauth.consent.redirect_label')}
-            </p>
-            <p className="text-sm text-fg break-all">{info.redirectUriOrigin}</p>
-          </div>
-          <div>
-            <p className="text-xs text-fg-tertiary uppercase tracking-wider mb-1">
-              {t('oauth.consent.account_label')}
-            </p>
-            <p className="text-sm text-fg">{account?.email ?? account?.uid}</p>
-          </div>
-          <div className="pt-2 border-t border-line">
+        <div className="flex flex-col gap-10">
+          <section>
+            <h2 className="text-xs uppercase tracking-wider text-fg-tertiary mb-4">
+              {t('oauth.consent.permissions_label')}
+            </h2>
             <ScopeList scopes={info.scopes} />
-          </div>
+          </section>
+          <section className="pt-8 border-t border-line">
+            <h2 className="text-xs uppercase tracking-wider text-fg-tertiary mb-2">
+              {t('oauth.consent.account_label')}
+            </h2>
+            <p className="text-sm text-fg">{account?.email ?? account?.uid}</p>
+          </section>
         </div>
       }
       actions={

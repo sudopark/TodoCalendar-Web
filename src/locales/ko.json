@@ -347,6 +347,8 @@
   "oauth.consent.subtitle": "{{clientName}} 이(가) 다음 권한을 요청했어요",
   "oauth.consent.redirect_label": "인증 후 돌아갈 주소",
   "oauth.consent.account_label": "현재 계정",
+  "oauth.consent.permissions_label": "이 앱이 가능한 작업",
+  "oauth.consent.transient_title": "일시적 오류",
   "oauth.consent.allow": "허용",
   "oauth.consent.deny": "거부",
   "oauth.consent.scope_unknown": "{{code}} (알 수 없는 권한)",
