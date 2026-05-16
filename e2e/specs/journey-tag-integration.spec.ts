@@ -33,7 +33,7 @@ function setupBaseMocks(page: Parameters<Parameters<typeof test>[1]>[0], extraTa
 // Test 1: /tags 이동 → 태그 "업무" 생성 → 목록에 나타남
 // ─────────────────────────────────────────────────────────────────────────────
 test('/tags 페이지에서 새 태그를 생성하면 목록에 나타난다', async ({ page }) => {
-  const newTag = { uuid: 'tag-work-001', name: '업무', color_hex: '#3b82f6' }
+  const newTag = { uuid: 'tag-work-001', name: '업무', color_hex: '#1E90FF' }
   let tags: object[] = []
 
   // given
@@ -70,7 +70,7 @@ test('/tags 페이지에서 새 태그를 생성하면 목록에 나타난다', 
   await page.getByRole('button', { name: '새 태그 추가' }).click()
   await expect(page.getByRole('heading', { name: '새 태그' })).toBeVisible()
   await page.getByLabel('이름').fill('업무')
-  await page.getByTitle('#3b82f6').click()
+  await page.getByTitle('#1E90FF').click()
   await page.getByRole('button', { name: '저장' }).click()
 
   // then — 생성된 태그가 목록에 표시된다
@@ -81,7 +81,7 @@ test('/tags 페이지에서 새 태그를 생성하면 목록에 나타난다', 
 // Test 2: FAB → Todo → TagDropdown에서 태그 선택 → 저장 → 메인 색상 점 확인
 // ─────────────────────────────────────────────────────────────────────────────
 test('Todo 폼에서 "업무" 태그를 선택하고 저장하면 Current 목록에서 태그 색상 점이 표시된다', async ({ page }) => {
-  const tag = { uuid: 'tag-work-001', name: '업무', color_hex: '#3b82f6' }
+  const tag = { uuid: 'tag-work-001', name: '업무', color_hex: '#1E90FF' }
   const newTodo = {
     uuid: 'todo-tagged-001',
     name: '업무 태그 Todo',
