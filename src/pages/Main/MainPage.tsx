@@ -18,6 +18,7 @@ import { EventDeletionService } from '../../domain/services/EventDeletionService
 import { useToastStore } from '../../stores/toastStore'
 import type { CalendarEvent } from '../../domain/functions/eventTime'
 import type { RepeatScope } from '../../components/RepeatingScopeDialog'
+import type { ScheduleOccurrence } from '../ScheduleForm/useScheduleFormViewModel'
 import type { DoneTodo } from '../../models'
 
 interface PopoverState {
@@ -66,7 +67,16 @@ export function MainPage() {
     const path = calEvent.type === 'todo'
       ? `/todos/${calEvent.event.uuid}/edit`
       : `/schedules/${calEvent.event.uuid}/edit`
-    navigate(path, { state: { background: location } })
+    // 반복 schedule 의 특정 차수를 클릭한 경우, 그 차수의 시간/turn 을 편집 화면으로 전달한다.
+    // turn 정보가 없으면 occurrence 자체를 안 넘긴다 — 잘못된 turn 으로 'this' 가 엉뚱한 회차를 지우는 걸 막기 위함.
+    const state: { background: typeof location; occurrence?: ScheduleOccurrence } = { background: location }
+    if (calEvent.type === 'schedule' && calEvent.event.repeating) {
+      const turn = calEvent.event.show_turns?.[0]
+      if (turn != null) {
+        state.occurrence = { eventTime: calEvent.event.event_time, turn }
+      }
+    }
+    navigate(path, { state })
     setPopover(null)
   }
 

@@ -9,7 +9,7 @@ import { EventFormHeader } from '../../components/eventForm/EventFormHeader'
 import { EventTimeSection } from '../../components/eventForm/EventTimeSection'
 import { EventDetailsSection } from '../../components/eventForm/EventDetailsSection'
 import { useState } from 'react'
-import { useScheduleFormViewModel } from './useScheduleFormViewModel'
+import { useScheduleFormViewModel, type ScheduleOccurrence } from './useScheduleFormViewModel'
 import type { EventFormSnapshot } from '../../hooks/useEventFormDirty'
 
 export function ScheduleFormPage() {
@@ -19,9 +19,11 @@ export function ScheduleFormPage() {
   const { t } = useTranslation()
   const selectedDate = useUiStore(s => s.selectedDate)
 
-  const prefilled = (location.state as { prefilled?: Partial<EventFormSnapshot> } | null)?.prefilled
+  const state = location.state as { prefilled?: Partial<EventFormSnapshot>; occurrence?: ScheduleOccurrence } | null
+  const prefilled = state?.prefilled
+  const occurrence = state?.occurrence
 
-  const vm = useScheduleFormViewModel(id, prefilled, selectedDate)
+  const vm = useScheduleFormViewModel(id, prefilled, selectedDate, occurrence)
 
   // ── 성공 키 → toast + navigate ─────────────────────────────────────
 

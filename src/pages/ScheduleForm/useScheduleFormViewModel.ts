@@ -47,12 +47,50 @@ export interface ScheduleFormViewModel {
   dismissMessage: () => void
 }
 
+export interface ScheduleOccurrence {
+  eventTime: EventTime
+  turn: number
+}
+
+// 차수 편집 시 사용자가 시간을 옮긴 만큼(baseline 대비 delta)을 시리즈 원본 시간에 적용한다.
+// 시간을 안 건드리면 delta=0 → 시리즈 앵커가 그대로 보존된다.
+function rebaseEventTime(edited: EventTime, baseline: EventTime, target: EventTime): EventTime {
+  if (edited.time_type === 'at' && baseline.time_type === 'at' && target.time_type === 'at') {
+    return { time_type: 'at', timestamp: target.timestamp + (edited.timestamp - baseline.timestamp) }
+  }
+  if (edited.time_type === 'period' && baseline.time_type === 'period' && target.time_type === 'period') {
+    return {
+      time_type: 'period',
+      period_start: target.period_start + (edited.period_start - baseline.period_start),
+      period_end: target.period_end + (edited.period_end - baseline.period_end),
+    }
+  }
+  if (edited.time_type === 'allday' && baseline.time_type === 'allday' && target.time_type === 'allday') {
+    // period_end 가 비대칭(사용자가 종료일 추가/제거)이면 delta 계산이 불가능하니
+    // 사용자의 편집값을 시리즈에 그대로 반영한다.
+    const canApplyEndDelta =
+      target.period_end != null && baseline.period_end != null && edited.period_end != null
+    return {
+      time_type: 'allday',
+      period_start: target.period_start + (edited.period_start - baseline.period_start),
+      period_end: canApplyEndDelta
+        ? target.period_end! + (edited.period_end! - baseline.period_end!)
+        : edited.period_end,
+      seconds_from_gmt: edited.seconds_from_gmt,
+    }
+  }
+  // time_type 이 바뀐 경우 delta 의미가 모호하다. 시리즈 앵커를 occurrence 로 점프시키지 않도록
+  // 원본을 보존한다(사용자가 'all' 로 time_type 을 바꿀 의도면 폼 단계에서 별도로 다뤄야 함).
+  return target
+}
+
 // MARK: - Hook
 
 export function useScheduleFormViewModel(
   id: string | undefined,
   prefilled?: Partial<EventFormSnapshot>,
   selectedDate?: Date | null,
+  occurrence?: ScheduleOccurrence,
 ): ScheduleFormViewModel {
   const { eventRepo, eventDetailRepo } = useRepositories()
 
@@ -131,7 +169,8 @@ export function useScheduleFormViewModel(
     ]).then(([schedule, detail]) => {
       const loadedName = schedule.name
       const loadedTagId = schedule.event_tag_id ?? null
-      const loadedEventTime = schedule.event_time
+      // 반복 일정의 특정 차수로 진입한 경우, 시리즈 첫 turn 이 아니라 그 차수의 시간을 표시한다.
+      const loadedEventTime = occurrence ? occurrence.eventTime : schedule.event_time
       const loadedRepeating = schedule.repeating ?? null
       const loadedNotifications = schedule.notification_options ?? []
       const loadedPlace = displayPlace(detail?.place)
@@ -191,12 +230,17 @@ export function useScheduleFormViewModel(
         await saveDetail(created.uuid)
         setSuccessKey('event.created.schedule')
       } else if (!original.repeating || scope === 'all') {
-        // 비반복 또는 전체 scope: 일반 업데이트
+        // 비반복 또는 전체 scope: 일반 업데이트.
+        // 차수로 진입한 경우 화면 eventTime 은 그 차수 기준이므로, 사용자의 시간 변경분만
+        // 시리즈 원본 시간(original.event_time)에 rebase 해 앵커를 보존한다.
         const targetId = id
+        const seriesEventTime = occurrence && eventTime
+          ? rebaseEventTime(eventTime, occurrence.eventTime, original.event_time)
+          : eventTime
         await saveService.updateSchedule(targetId, {
           name,
           eventTagId: tagId,
-          eventTime,
+          eventTime: seriesEventTime,
           repeating: scope === 'all' ? original.repeating : repeating,
           notifications,
         })
@@ -204,7 +248,7 @@ export function useScheduleFormViewModel(
         setSuccessKey('event.updated.schedule')
       } else if (scope === 'this') {
         // 이 회차만 분리: 원본에서 해당 turn 제외 + 새 단건 schedule 생성
-        const turn = original.show_turns?.[0] ?? 0
+        const turn = occurrence?.turn ?? original.show_turns?.[0] ?? 0
         const excluded = [...(original.exclude_repeatings ?? []), turn]
         await eventRepo.excludeScheduleRepeating(id, excluded)
         const newSingle = await saveService.createSchedule({
@@ -233,7 +277,7 @@ export function useScheduleFormViewModel(
     } finally {
       setSaving(false)
     }
-  }, [id, original, name, tagId, eventTime, repeating, notifications, saveService, eventRepo, saveDetail])
+  }, [id, original, name, tagId, eventTime, repeating, notifications, occurrence, saveService, eventRepo, saveDetail])
 
   // ── 삭제 ─────────────────────────────────────────────────────────
 
