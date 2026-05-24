@@ -1,6 +1,7 @@
 export type EventSaveFailReason =
   | { type: 'invalid_name' }
   | { type: 'invalid_time' }
+  | { type: 'invalid_scope' }
   | { type: 'network' }
   | { type: 'forbidden' }
   | { type: 'unknown'; raw: unknown }
