@@ -28,11 +28,14 @@ export const scheduleApi = {
     return scheduleFromServer(await apiClient.post<Schedule>('/v2/schedules/schedule', bodyToServer(body)))
   },
 
+  // 서버 update_schedule 은 PATCH(부분 갱신)만 받는다. PUT 으로 보내면 누락 필드(name/event_time 등)로 400.
   async updateSchedule(id: string, body: Partial<Pick<Schedule, 'name' | 'event_tag_id' | 'event_time' | 'repeating' | 'notification_options'>>): Promise<Schedule> {
-    return scheduleFromServer(await apiClient.put<Schedule>(`/v2/schedules/schedule/${id}`, bodyToServer(body)))
+    return scheduleFromServer(await apiClient.patch<Schedule>(`/v2/schedules/schedule/${id}`, bodyToServer(body)))
   },
 
-  async excludeRepeating(id: string, body: { exclude_repeatings: number[] }): Promise<Schedule> {
+  // 서버 exclude_schedule_occurrence 는 body 가 단일 number(occurrence 의 epoch seconds).
+  // 배열로 보내면 Firestore 의 array field 에 nested 되어 "Nested arrays are not allowed" 500.
+  async excludeRepeating(id: string, body: { exclude_repeatings: number }): Promise<Schedule> {
     return scheduleFromServer(await apiClient.patch<Schedule>(`/v2/schedules/schedule/${id}/exclude`, body))
   },
 

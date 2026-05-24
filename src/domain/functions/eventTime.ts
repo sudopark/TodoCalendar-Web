@@ -1,5 +1,5 @@
 import type { EventTime, Todo, Schedule } from '../../models'
-import { enumerateRepeatingTimes } from './repeating'
+import { enumerateRepeatingTimes, getStartTimestamp } from './repeating'
 
 export function eventTimeToStartDate(eventTime: EventTime): Date {
   switch (eventTime.time_type) {
@@ -146,9 +146,11 @@ export function groupEventsByDate(
   for (const schedule of schedules) {
     // Schedule의 event_time은 항상 반복 시리즈의 첫 인스턴스(turn 1) 시간이다.
     // 서버가 제공하는 show_turns는 기간 필터링 힌트이지 첫 turn을 의미하지 않는다.
+    // schedule.exclude_repeatings 는 제외된 occurrence 들의 시작 timestamp(epoch seconds) 배열.
     const FIRST_TURN = 1
+    const firstStartTs = getStartTimestamp(schedule.event_time)
     // 원본(첫 turn) 인스턴스 배치 — exclude 아닌 경우만
-    if (!schedule.exclude_repeatings?.includes(FIRST_TURN)) {
+    if (!schedule.exclude_repeatings?.includes(firstStartTs)) {
       assignInstance(schedule.event_time, {
         type: 'schedule',
         event: { ...schedule, show_turns: [FIRST_TURN] },

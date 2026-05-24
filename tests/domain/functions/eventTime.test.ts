@@ -346,11 +346,12 @@ describe('groupEventsByDate', () => {
     expect(result.get('2024-06-18')).toBeUndefined()
   })
 
-  it('exclude_repeatings에 있는 turn은 건너뛴다', () => {
-    // given: 매일 반복, turn 2 제외
+  it('exclude_repeatings(=occurrence start timestamps) 에 있는 회차는 건너뛴다', () => {
+    // given: 매일 반복, turn 2(6/11) 의 시작 timestamp 제외
     const lower = dateToTimestamp(new Date(2024, 5, 1))
     const upper = dateToTimestamp(new Date(2024, 5, 30, 23, 59, 59))
     const startTs = dateToTimestamp(new Date(2024, 5, 10, 10, 0))
+    const turn2Ts = dateToTimestamp(new Date(2024, 5, 11, 10, 0))
 
     const schedules: Schedule[] = [
       {
@@ -362,7 +363,7 @@ describe('groupEventsByDate', () => {
           option: { optionType: 'every_day', interval: 1 },
           end_count: 4,
         },
-        exclude_repeatings: [2],
+        exclude_repeatings: [turn2Ts],
       },
     ]
 

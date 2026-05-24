@@ -64,7 +64,12 @@ function createFakeEventRepo(schedules: Map<string, Schedule> = new Map()): Pick
       return s
     }),
     createSchedule: vi.fn(async (input) => {
-      const created = makeSchedule({ uuid: 'created-1', name: input.name, event_time: input.event_time })
+      const created = makeSchedule({
+        uuid: 'created-1',
+        name: input.name,
+        event_time: input.event_time,
+        repeating: input.repeating ?? null,
+      })
       schedules.set(created.uuid, created)
       return created
     }),
@@ -362,9 +367,9 @@ describe('useScheduleFormViewModel — 반복 일정의 특정 차수(occurrence
       schedules.set(id, updated)
       return updated
     })
-    vi.mocked(repos.eventRepo.excludeScheduleRepeating).mockImplementation(async (id: string, excluded: number[]) => {
+    vi.mocked(repos.eventRepo.excludeScheduleRepeating).mockImplementation(async (id: string, excludeTs: number) => {
       const existing = schedules.get(id)!
-      const updated = { ...existing, exclude_repeatings: excluded } as Schedule
+      const updated = { ...existing, exclude_repeatings: [...(existing.exclude_repeatings ?? []), excludeTs] } as Schedule
       schedules.set(id, updated)
       return updated
     })
@@ -467,11 +472,13 @@ describe('useScheduleFormViewModel — 반복 일정의 특정 차수(occurrence
 
     // then: 원본 시리즈는 occurrence 직전에서 끝남
     expect(schedules.get('sched-rep')!.repeating!.end).toBe(OCC_START - 1)
-    // 새 시리즈는 occurrence 시간부터 시작
-    expect(schedules.get('created-1')!.event_time).toEqual(occurrence.eventTime)
+    // 새 시리즈는 occurrence 시간부터 시작 (event_time + repeating.start 모두 rebase)
+    const newSeries = schedules.get('created-1')!
+    expect(newSeries.event_time).toEqual(occurrence.eventTime)
+    expect(newSeries.repeating!.start).toBe(OCC_START)
   })
 
-  it("'this' scope 저장 시 클릭한 차수 turn 이 제외되고 새 단건이 그 차수 시간으로 생성된다", async () => {
+  it("'this' scope 저장 시 클릭한 차수 occurrence 의 시작 timestamp 가 제외되고 새 단건이 그 차수 시간으로 생성된다", async () => {
     // given
     const { schedules, repos } = setup()
     const { result } = renderHook(
@@ -484,8 +491,8 @@ describe('useScheduleFormViewModel — 반복 일정의 특정 차수(occurrence
     act(() => result.current.setName('이 회차만'))
     await act(async () => { await result.current.save('this') })
 
-    // then: 원본에서 turn 2 제외
-    expect(schedules.get('sched-rep')!.exclude_repeatings).toContain(occurrence.turn)
+    // then: 원본의 exclude_repeatings 에 occurrence 의 시작 timestamp 가 추가됨
+    expect(schedules.get('sched-rep')!.exclude_repeatings).toContain(OCC_START)
     // 새 단건은 차수 시간으로 생성
     expect(schedules.get('created-1')!.event_time).toEqual(occurrence.eventTime)
   })

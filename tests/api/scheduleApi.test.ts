@@ -55,7 +55,7 @@ describe('scheduleApi', () => {
     expect(JSON.parse((options as RequestInit).body as string)).toEqual(body)
   })
 
-  it('updateSchedule(id, body)가 /v2/schedules/schedule/:id로 PUT 호출한다', async () => {
+  it('updateSchedule(id, body)가 /v2/schedules/schedule/:id로 PATCH 호출한다 (서버 update_schedule 은 partial)', async () => {
     fetchSpy.mockResolvedValue(
       new Response(JSON.stringify({ uuid: 'sched-1' }), { status: 200, headers: { 'content-type': 'application/json' } })
     )
@@ -66,23 +66,25 @@ describe('scheduleApi', () => {
 
     const [url, options] = fetchSpy.mock.calls[0]
     expect(String(url)).toContain('/v2/schedules/schedule/sched-1')
-    expect((options as RequestInit).method).toBe('PUT')
+    expect((options as RequestInit).method).toBe('PATCH')
     expect(JSON.parse((options as RequestInit).body as string)).toEqual(body)
   })
 
-  it('excludeRepeating(id, body)가 /v2/schedules/schedule/:id/exclude로 PATCH 호출한다', async () => {
+  it('excludeRepeating(id, body)가 /v2/schedules/schedule/:id/exclude 로 PATCH 호출하고 exclude_repeatings 는 단일 timestamp number 다', async () => {
     fetchSpy.mockResolvedValue(
       new Response(JSON.stringify({ uuid: 'sched-1' }), { status: 200, headers: { 'content-type': 'application/json' } })
     )
 
     const { scheduleApi } = await import('../../src/api/scheduleApi')
-    const body = { exclude_repeatings: [1714000000] }
+    const body = { exclude_repeatings: 1714000000 }
     await scheduleApi.excludeRepeating('sched-1', body)
 
     const [url, options] = fetchSpy.mock.calls[0]
     expect(String(url)).toContain('/v2/schedules/schedule/sched-1/exclude')
     expect((options as RequestInit).method).toBe('PATCH')
-    expect(JSON.parse((options as RequestInit).body as string)).toEqual(body)
+    const sent = JSON.parse((options as RequestInit).body as string)
+    expect(sent).toEqual(body)
+    expect(typeof sent.exclude_repeatings).toBe('number')
   })
 
   describe('weekday 인코딩 변환 (서버 1=일..7=토 ↔ web getDay 0=일..6=토)', () => {
@@ -152,7 +154,7 @@ describe('scheduleApi', () => {
         new Response(JSON.stringify(serverSchedule), { status: 200, headers: { 'content-type': 'application/json' } })
       )
       const { scheduleApi } = await import('../../src/api/scheduleApi')
-      const updated = await scheduleApi.excludeRepeating('sched-rep', { exclude_repeatings: [2] })
+      const updated = await scheduleApi.excludeRepeating('sched-rep', { exclude_repeatings: 1770267600 })
       expect((updated.repeating!.option as any).dayOfWeek).toEqual([4])
     })
   })
