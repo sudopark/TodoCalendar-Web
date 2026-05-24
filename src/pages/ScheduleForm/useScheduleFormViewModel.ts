@@ -247,10 +247,10 @@ export function useScheduleFormViewModel(
         await saveDetail(targetId)
         setSuccessKey('event.updated.schedule')
       } else if (scope === 'this') {
-        // 이 회차만 분리: 원본에서 해당 turn 제외 + 새 단건 schedule 생성
-        const turn = occurrence?.turn ?? original.show_turns?.[0] ?? 0
-        const excluded = [...(original.exclude_repeatings ?? []), turn]
-        await eventRepo.excludeScheduleRepeating(id, excluded)
+        // 이 회차만 분리: 원본에서 해당 occurrence 의 timestamp 를 제외 + 새 단건 schedule 생성.
+        // occurrence 가 없는 비정상 경로(직접 URL 진입 등)에서는 시리즈 첫 회차 timestamp 로 fallback.
+        const excludeTs = getStartTimestamp(occurrence?.eventTime ?? original.event_time)
+        await eventRepo.excludeScheduleRepeating(id, excludeTs)
         const newSingle = await saveService.createSchedule({
           name,
           eventTagId: tagId,
@@ -260,11 +260,16 @@ export function useScheduleFormViewModel(
         await saveDetail(newSingle.uuid)
         setSuccessKey('event.updated.schedule')
       } else {
-        // future: 이후 전체를 새 시리즈로 분리
+        // future: 이후 전체를 새 시리즈로 분리. 원본은 occurrence 직전에서 끝내고,
+        // 새 시리즈의 repeating.start 도 occurrence timestamp 로 rebase 한다.
+        // (그대로 두면 새 시리즈의 start 가 시리즈 첫 회차(=과거)를 가리켜 occurrence 계산이 어긋남)
         const startTs = eventTime ? getStartTimestamp(eventTime) : 0
         const cutoff = startTs - 1
         await eventRepo.updateSchedule(id, { repeating: { ...original.repeating, end: cutoff } })
-        const newSeries = await saveService.createSchedule({ name, eventTagId: tagId, eventTime, repeating, notifications })
+        const newRepeating: Repeating | null = repeating
+          ? { ...repeating, start: startTs, end: undefined, end_count: undefined }
+          : null
+        const newSeries = await saveService.createSchedule({ name, eventTagId: tagId, eventTime, repeating: newRepeating, notifications })
         await saveDetail(newSeries.uuid)
         setSuccessKey('event.updated.schedule')
       }

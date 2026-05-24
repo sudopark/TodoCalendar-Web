@@ -239,7 +239,7 @@ describe('EventRepository — Schedule mutation LocalStorage write sync', () => 
       todoApi: todoApi as any, scheduleApi: scheduleApi as any,
       localStorageContainer: container,
     })
-    await repo.excludeScheduleRepeating('a', [3])
+    await repo.excludeScheduleRepeating('a', 1_717_000_000)
 
     expect((await container.schedule().loadSchedule('a'))?.name).toBe('after-exclude')
   })

@@ -266,17 +266,18 @@ describe('nextRepeatingTime - 종료 조건', () => {
   })
 })
 
-describe('nextRepeatingTime - excludeTurns', () => {
-  it('제외된 턴은 건너뛰고 다음 턴을 반환한다', () => {
-    // given: turn 2가 제외 → turn 3을 반환
+describe('nextRepeatingTime - excludeStartTimestamps', () => {
+  it('제외된 occurrence timestamp 는 건너뛰고 다음을 반환한다', () => {
+    // given: turn 2 의 시작 timestamp 가 제외 → turn 3 반환
     const startTs = ts(2024, 1, 15, 14, 0, 0)
+    const turn2Ts = ts(2024, 1, 16, 14, 0, 0)
     const time: EventTime = { time_type: 'at', timestamp: startTs }
     const repeating: Repeating = {
       start: startTs,
       option: { optionType: 'every_day', interval: 1 },
     }
     // when
-    const result = nextRepeatingTime(time, 1, repeating, [2])
+    const result = nextRepeatingTime(time, 1, repeating, [turn2Ts])
     // then: turn 2 건너뛰고 turn 3 (2일 후)
     const expectedTs = ts(2024, 1, 17, 14, 0, 0)
     expect(result).not.toBeNull()
@@ -285,15 +286,17 @@ describe('nextRepeatingTime - excludeTurns', () => {
   })
 
   it('연속 제외 시 반복적으로 건너뛴다', () => {
-    // given: turn 2, 3이 제외 → turn 4를 반환
+    // given: turn 2, 3 timestamp 가 제외 → turn 4 반환
     const startTs = ts(2024, 1, 15, 14, 0, 0)
+    const turn2Ts = ts(2024, 1, 16, 14, 0, 0)
+    const turn3Ts = ts(2024, 1, 17, 14, 0, 0)
     const time: EventTime = { time_type: 'at', timestamp: startTs }
     const repeating: Repeating = {
       start: startTs,
       option: { optionType: 'every_day', interval: 1 },
     }
     // when
-    const result = nextRepeatingTime(time, 1, repeating, [2, 3])
+    const result = nextRepeatingTime(time, 1, repeating, [turn2Ts, turn3Ts])
     // then: turn 4 (3일 후)
     const expectedTs = ts(2024, 1, 18, 14, 0, 0)
     expect(result).not.toBeNull()
@@ -345,9 +348,11 @@ describe('enumerateRepeatingTimes', () => {
     expect(result[1].time).toEqual({ time_type: 'at', timestamp: ts(2024, 1, 17, 9, 0, 0) })
   })
 
-  it('exclude_repeatings에 포함된 턴은 건너뛴다', () => {
-    // given: 2024-01-15부터 매일, turn 2와 4 제외, 2024-01-19까지 조회
+  it('exclude_repeatings(=occurrence start timestamps) 에 포함된 회차는 건너뛴다', () => {
+    // given: 2024-01-15부터 매일, turn 2(1/16) 와 turn 4(1/18) 의 timestamp 제외, 2024-01-19까지 조회
     const startTs = ts(2024, 1, 15, 9, 0, 0)
+    const turn2Ts = ts(2024, 1, 16, 9, 0, 0)
+    const turn4Ts = ts(2024, 1, 18, 9, 0, 0)
     const rangeEnd = ts(2024, 1, 19, 23, 59, 59)
     const time: EventTime = { time_type: 'at', timestamp: startTs }
     const repeating: Repeating = {
@@ -356,7 +361,7 @@ describe('enumerateRepeatingTimes', () => {
     }
 
     // when
-    const result = enumerateRepeatingTimes(time, 1, repeating, [2, 4], rangeEnd)
+    const result = enumerateRepeatingTimes(time, 1, repeating, [turn2Ts, turn4Ts], rangeEnd)
 
     // then: turn 3(1/17), turn 5(1/19)만 포함
     expect(result).toHaveLength(2)

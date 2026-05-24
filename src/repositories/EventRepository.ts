@@ -31,7 +31,7 @@ export interface ScheduleApi {
   getSchedule(id: string): Promise<Schedule>
   createSchedule(body: { name: string; event_tag_id?: string; event_time: EventTime; repeating?: Repeating; notification_options?: NotificationOption[] }): Promise<Schedule>
   updateSchedule(id: string, body: Partial<Pick<Schedule, 'name' | 'event_tag_id' | 'event_time' | 'repeating' | 'notification_options'>>): Promise<Schedule>
-  excludeRepeating(id: string, body: { exclude_repeatings: number[] }): Promise<Schedule>
+  excludeRepeating(id: string, body: { exclude_repeatings: number }): Promise<Schedule>
   deleteSchedule(id: string): Promise<{ status: string }>
 }
 
@@ -376,8 +376,10 @@ export class EventRepository {
     useCalendarEventsCache.getState().removeEvent(id)
   }
 
-  async excludeScheduleRepeating(id: string, excludeTurns: number[]): Promise<Schedule> {
-    const updated = await this.deps.scheduleApi.excludeRepeating(id, { exclude_repeatings: excludeTurns })
+  // excludeStartTimestamp: 제외할 occurrence 의 시작 timestamp(epoch seconds).
+  // 서버는 단일 timestamp 만 받아 origin schedule.exclude_repeatings 배열에 append.
+  async excludeScheduleRepeating(id: string, excludeStartTimestamp: number): Promise<Schedule> {
+    const updated = await this.deps.scheduleApi.excludeRepeating(id, { exclude_repeatings: excludeStartTimestamp })
     await this.writeLocal('excludeScheduleRepeating', () =>
       this.deps.localStorageContainer!.schedule().updateSchedule(updated),
     )

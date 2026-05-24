@@ -85,9 +85,10 @@ export class EventDeletionService {
           break
 
         case 'this': {
-          const turn = schedule.show_turns?.[0] ?? 0
-          const excluded = [...(schedule.exclude_repeatings ?? []), turn]
-          await this.deps.eventRepo.excludeScheduleRepeating(schedule.uuid, excluded)
+          // 캘린더 인스턴스를 클릭해 진입한 schedule 객체는 groupEventsByDate 가
+          // event_time 을 클릭한 occurrence 시간으로 set 해둔 상태. 그 시작 timestamp 를 제외.
+          const excludeTs = getStartTimestamp(schedule.event_time)
+          await this.deps.eventRepo.excludeScheduleRepeating(schedule.uuid, excludeTs)
           break
         }
 

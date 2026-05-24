@@ -12,11 +12,13 @@ export interface RepeatingTimes {
 
 // --- public API ---
 
+// excludeStartTimestamps: 제외할 occurrence 들의 시작 timestamp(epoch seconds) 배열.
+// 서버 schema 와 동일 의미. turn 번호와 헷갈리지 말 것.
 export function nextRepeatingTime(
   currentTime: EventTime,
   currentTurn: number,
   repeating: Repeating,
-  excludeTurns?: number[],
+  excludeStartTimestamps?: number[],
 ): RepeatingTimes | null {
   const nextTurn = currentTurn + 1
   const intervalSeconds = computeIntervalSeconds(currentTime, repeating.option)
@@ -31,9 +33,9 @@ export function nextRepeatingTime(
   }
   if (repeating.end_count != null && nextTurn > repeating.end_count) return null
 
-  // 제외 턴이면 반복문으로 다음 계산
+  // 제외 timestamp 면 반복문으로 다음 계산
   let result: RepeatingTimes = { time: nextTime, turn: nextTurn }
-  while (excludeTurns?.includes(result.turn)) {
+  while (excludeStartTimestamps?.includes(getStartTimestamp(result.time))) {
     const nextInterval = computeIntervalSeconds(result.time, repeating.option)
     if (nextInterval === null) return null
     const skippedTime = shiftEventTime(result.time, nextInterval)
@@ -56,13 +58,13 @@ export function enumerateRepeatingTimes(
   startTime: EventTime,
   startTurn: number,
   repeating: Repeating,
-  excludeTurns: number[] | undefined,
+  excludeStartTimestamps: number[] | undefined,
   rangeEnd: number,
 ): RepeatingTimes[] {
   const results: RepeatingTimes[] = []
   let current: RepeatingTimes | null = { time: startTime, turn: startTurn }
   while (true) {
-    const next = nextRepeatingTime(current.time, current.turn, repeating, excludeTurns)
+    const next = nextRepeatingTime(current.time, current.turn, repeating, excludeStartTimestamps)
     if (next === null) break
     if (getStartTimestamp(next.time) > rangeEnd) break
     results.push(next)
