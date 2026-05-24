@@ -328,6 +328,7 @@
   "event.deleted.schedule": "일정이 삭제되었습니다",
   "error.eventSave.invalid_name": "이름을 입력해주세요",
   "error.eventSave.invalid_time": "올바른 시간을 입력해주세요",
+  "error.eventSave.invalid_scope": "수정 범위가 올바르지 않습니다",
   "error.eventSave.network": "네트워크 오류가 발생했습니다. 다시 시도해주세요",
   "error.eventSave.forbidden": "저장 권한이 없습니다",
   "error.eventSave.unknown": "저장에 실패했습니다. 다시 시도해주세요",

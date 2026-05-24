@@ -328,6 +328,7 @@
   "event.deleted.schedule": "Schedule deleted",
   "error.eventSave.invalid_name": "Please enter a name",
   "error.eventSave.invalid_time": "Please enter a valid time",
+  "error.eventSave.invalid_scope": "Invalid edit scope",
   "error.eventSave.network": "A network error occurred. Please try again",
   "error.eventSave.forbidden": "You do not have permission to save",
   "error.eventSave.unknown": "Failed to save. Please try again",

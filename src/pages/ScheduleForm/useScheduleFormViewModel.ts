@@ -248,8 +248,12 @@ export function useScheduleFormViewModel(
         setSuccessKey('event.updated.schedule')
       } else if (scope === 'this') {
         // 이 회차만 분리: 원본에서 해당 occurrence 의 timestamp 를 제외 + 새 단건 schedule 생성.
-        // occurrence 가 없는 비정상 경로(직접 URL 진입 등)에서는 시리즈 첫 회차 timestamp 로 fallback.
-        const excludeTs = getStartTimestamp(occurrence?.eventTime ?? original.event_time)
+        // occurrence 컨텍스트 없이 'this' 를 호출하면 어느 회차를 제외할지 알 수 없다.
+        // 시리즈 첫 회차로 fallback 하면 silent 데이터 손상이라 명시적 에러로 차단.
+        if (!occurrence) {
+          throw new EventSaveError({ type: 'invalid_scope' })
+        }
+        const excludeTs = getStartTimestamp(occurrence.eventTime)
         await eventRepo.excludeScheduleRepeating(id, excludeTs)
         const newSingle = await saveService.createSchedule({
           name,
@@ -263,11 +267,12 @@ export function useScheduleFormViewModel(
         // future: 이후 전체를 새 시리즈로 분리. 원본은 occurrence 직전에서 끝내고,
         // 새 시리즈의 repeating.start 도 occurrence timestamp 로 rebase 한다.
         // (그대로 두면 새 시리즈의 start 가 시리즈 첫 회차(=과거)를 가리켜 occurrence 계산이 어긋남)
+        // end/end_count 같은 종료 조건은 폼 repeating 그대로 spread → 원본 시리즈가 종료일/회차 한정이었으면 새 시리즈도 그 한정을 따른다.
         const startTs = eventTime ? getStartTimestamp(eventTime) : 0
         const cutoff = startTs - 1
         await eventRepo.updateSchedule(id, { repeating: { ...original.repeating, end: cutoff } })
         const newRepeating: Repeating | null = repeating
-          ? { ...repeating, start: startTs, end: undefined, end_count: undefined }
+          ? { ...repeating, start: startTs }
           : null
         const newSeries = await saveService.createSchedule({ name, eventTagId: tagId, eventTime, repeating: newRepeating, notifications })
         await saveDetail(newSeries.uuid)
@@ -291,7 +296,17 @@ export function useScheduleFormViewModel(
     setSaving(true)
     setErrorKey(null)
     try {
-      await deletionService.deleteSchedule(original, scope)
+      // 'this' 는 occurrence 컨텍스트가 있어야 정확한 회차를 제외 가능.
+      // 없으면 시리즈 첫 회차가 silent 로 사라지는 손상 → 명시적 차단.
+      if (scope === 'this' && !occurrence) {
+        throw new EventDeletionError({ type: 'invalid_scope' })
+      }
+      // 폼 진입 시 vm.original 은 raw schedule(=시리즈 첫 회차 시간) 이므로,
+      // 'this' 처리의 deletionService 가 schedule.event_time 을 occurrence 로 인식하도록 inject.
+      const target = occurrence
+        ? { ...original, event_time: occurrence.eventTime }
+        : original
+      await deletionService.deleteSchedule(target, scope)
       setSuccessKey('event.deleted.schedule')
     } catch (e) {
       if (e instanceof EventDeletionError) {
@@ -302,7 +317,7 @@ export function useScheduleFormViewModel(
     } finally {
       setSaving(false)
     }
-  }, [id, original, deletionService])
+  }, [id, original, occurrence, deletionService])
 
   const dismissMessage = useCallback(() => {
     setSuccessKey(null)

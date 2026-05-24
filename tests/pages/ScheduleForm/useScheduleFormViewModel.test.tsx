@@ -496,4 +496,76 @@ describe('useScheduleFormViewModel — 반복 일정의 특정 차수(occurrence
     // 새 단건은 차수 시간으로 생성
     expect(schedules.get('created-1')!.event_time).toEqual(occurrence.eventTime)
   })
+
+  it("'this' scope 인데 occurrence 컨텍스트가 없으면 invalid_scope 에러로 차단된다 (첫 회차 silent 손상 방지)", async () => {
+    // given: occurrence 미주입 (직접 URL 진입 등 비정상 경로)
+    const { schedules, repos } = setup()
+    const { result } = renderHook(
+      () => useScheduleFormViewModel('sched-rep', undefined, undefined, undefined),
+      { wrapper: wrap(repos) },
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // when
+    act(() => result.current.setName('이 회차만'))
+    await act(async () => { await result.current.save('this') })
+
+    // then: 에러 키 설정 + 원본 exclude_repeatings 안 변함
+    expect(result.current.errorKey).toBe('error.eventSave.invalid_scope')
+    expect(schedules.get('sched-rep')!.exclude_repeatings).toBeUndefined()
+  })
+
+  it("'future' scope 에서 원본의 end_count(반복 횟수 한정) 는 새 시리즈에도 그대로 보존된다", async () => {
+    // given: end_count 가 있는 시리즈
+    const { schedules, repos } = setup()
+    const seriesWithCount = schedules.get('sched-rep')!
+    schedules.set('sched-rep', { ...seriesWithCount, repeating: { ...seriesWithCount.repeating!, end_count: 10 } })
+    const { result } = renderHook(
+      () => useScheduleFormViewModel('sched-rep', undefined, undefined, occurrence),
+      { wrapper: wrap(repos) },
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // when
+    act(() => result.current.setName('이후 전체'))
+    await act(async () => { await result.current.save('future') })
+
+    // then: 새 시리즈가 end_count 를 그대로 따라감 (분리 후에도 종료 조건 유지)
+    expect(schedules.get('created-1')!.repeating!.end_count).toBe(10)
+  })
+
+  it("'this' scope 삭제도 occurrence 의 시작 timestamp 가 exclude 되고, 시리즈 첫 회차는 건드리지 않는다", async () => {
+    // given: 폼 진입(vm.original.event_time 은 시리즈 첫 회차)
+    const { schedules, repos } = setup()
+    const { result } = renderHook(
+      () => useScheduleFormViewModel('sched-rep', undefined, undefined, occurrence),
+      { wrapper: wrap(repos) },
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // when
+    await act(async () => { await result.current.delete('this') })
+
+    // then: 첫 회차(SERIES_START) 가 아닌 occurrence(OCC_START) 가 exclude
+    const excluded = schedules.get('sched-rep')!.exclude_repeatings ?? []
+    expect(excluded).toContain(OCC_START)
+    expect(excluded).not.toContain(SERIES_START)
+  })
+
+  it("'this' scope 삭제 시 occurrence 컨텍스트가 없으면 invalid_scope 로 차단된다", async () => {
+    // given: occurrence 미주입
+    const { schedules, repos } = setup()
+    const { result } = renderHook(
+      () => useScheduleFormViewModel('sched-rep', undefined, undefined, undefined),
+      { wrapper: wrap(repos) },
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // when
+    await act(async () => { await result.current.delete('this') })
+
+    // then
+    expect(result.current.errorKey).toBe('error.eventDelete.invalid_scope')
+    expect(schedules.get('sched-rep')!.exclude_repeatings).toBeUndefined()
+  })
 })
