@@ -8,6 +8,7 @@ import type { Repositories } from '../../../src/composition/container'
 import { LocalStorageContainer } from '../../../src/repositories/local-storage/LocalStorageContainer'
 import type { Schedule } from '../../../src/models/Schedule'
 import type { EventDetail } from '../../../src/models/EventDetail'
+import type { EventTime, Repeating } from '../../../src/models'
 
 // ── 캐시 / api 부수 초기화 차단 ─────────────────────────────────────
 vi.mock('../../../src/api/todoApi', () => ({ todoApi: {} }))
@@ -331,5 +332,161 @@ describe('useScheduleFormViewModel — 삭제', () => {
     // then
     expect(result.current.errorKey).toMatch(/^error\.eventDelete\./)
     expect(result.current.successKey).toBeNull()
+  })
+})
+
+describe('useScheduleFormViewModel — 반복 일정의 특정 차수(occurrence) 진입', () => {
+  const SERIES_START = 1770267600 // 시리즈 첫 turn (생성 시점)
+  const SERIES_END = SERIES_START + 14400
+  const OCC_START = SERIES_START + 1209600 // 2주 뒤 차수
+  const OCC_END = OCC_START + 14400
+  const repeating: Repeating = {
+    start: SERIES_START,
+    option: { optionType: 'every_week', interval: 2, dayOfWeek: [4], timeZone: 'Asia/Seoul' },
+  }
+  const seriesEventTime: EventTime = { time_type: 'period', period_start: SERIES_START, period_end: SERIES_END }
+  const occurrence = {
+    eventTime: { time_type: 'period', period_start: OCC_START, period_end: OCC_END } as EventTime,
+    turn: 2,
+  }
+
+  function setup() {
+    const schedules = new Map<string, Schedule>([
+      ['sched-rep', makeSchedule({ uuid: 'sched-rep', name: '정기청소', event_time: seriesEventTime, repeating })],
+    ])
+    const repos = createFakeRepos(schedules)
+    // 저장 결과를 store 에 실제로 반영해 outcome 으로 검증한다
+    vi.mocked(repos.eventRepo.updateSchedule).mockImplementation(async (id, patch) => {
+      const existing = schedules.get(id)!
+      const updated = { ...existing, ...patch } as Schedule
+      schedules.set(id, updated)
+      return updated
+    })
+    vi.mocked(repos.eventRepo.excludeScheduleRepeating).mockImplementation(async (id: string, excluded: number[]) => {
+      const existing = schedules.get(id)!
+      const updated = { ...existing, exclude_repeatings: excluded } as Schedule
+      schedules.set(id, updated)
+      return updated
+    })
+    return { schedules, repos }
+  }
+
+  it('차수 진입 시 eventTime 은 시리즈 첫 turn 이 아니라 선택한 차수의 시간으로 표시된다', async () => {
+    // given / when
+    const { repos } = setup()
+    const { result } = renderHook(
+      () => useScheduleFormViewModel('sched-rep', undefined, undefined, occurrence),
+      { wrapper: wrap(repos) },
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // then
+    expect(result.current.eventTime).toEqual(occurrence.eventTime)
+  })
+
+  it('차수 진입 직후에는 isDirty 가 false 다 (차수 시간이 기준선이 됨)', async () => {
+    // given / when
+    const { repos } = setup()
+    const { result } = renderHook(
+      () => useScheduleFormViewModel('sched-rep', undefined, undefined, occurrence),
+      { wrapper: wrap(repos) },
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // then
+    expect(result.current.isDirty).toBe(false)
+  })
+
+  it("'all' scope 로 시간을 안 건드리고 저장하면 시리즈 앵커(첫 turn 시간)가 보존된다", async () => {
+    // given
+    const { schedules, repos } = setup()
+    const { result } = renderHook(
+      () => useScheduleFormViewModel('sched-rep', undefined, undefined, occurrence),
+      { wrapper: wrap(repos) },
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // when: 이름만 바꾸고 전체 저장
+    act(() => result.current.setName('정기청소(수정)'))
+    await act(async () => { await result.current.save('all') })
+
+    // then: 저장된 시리즈 event_time 은 occurrence 가 아니라 원래 시리즈 시작
+    expect(schedules.get('sched-rep')!.event_time).toEqual(seriesEventTime)
+  })
+
+  it("'all' scope 에서 차수 시간을 +30분 옮기면 시리즈 시작도 +30분 옮겨 저장된다", async () => {
+    // given
+    const { schedules, repos } = setup()
+    const { result } = renderHook(
+      () => useScheduleFormViewModel('sched-rep', undefined, undefined, occurrence),
+      { wrapper: wrap(repos) },
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // when: 차수 시간을 30분 뒤로
+    act(() => result.current.setEventTime({ time_type: 'period', period_start: OCC_START + 1800, period_end: OCC_END + 1800 }))
+    await act(async () => { await result.current.save('all') })
+
+    // then: 시리즈 시작도 동일하게 +1800
+    expect(schedules.get('sched-rep')!.event_time).toEqual({
+      time_type: 'period', period_start: SERIES_START + 1800, period_end: SERIES_END + 1800,
+    })
+  })
+
+  it("'all' scope 에서 사용자가 time_type 을 바꾸면 시리즈 앵커는 변경 없이 보존된다", async () => {
+    // given: occurrence(period) 진입
+    const { schedules, repos } = setup()
+    const { result } = renderHook(
+      () => useScheduleFormViewModel('sched-rep', undefined, undefined, occurrence),
+      { wrapper: wrap(repos) },
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // when: time_type 을 period → allday 로 바꾸고 'all' 저장
+    act(() => result.current.setEventTime({
+      time_type: 'allday', period_start: OCC_START, period_end: OCC_END, seconds_from_gmt: 32400,
+    }))
+    await act(async () => { await result.current.save('all') })
+
+    // then: 시리즈 앵커는 occurrence 시간으로 점프하지 않고 원본 그대로 보존
+    expect(schedules.get('sched-rep')!.event_time).toEqual(seriesEventTime)
+  })
+
+  it("'future' scope 저장 시 cutoff 는 차수 시간 기준이고 새 시리즈는 그 차수에서 시작한다", async () => {
+    // given
+    const { schedules, repos } = setup()
+    const { result } = renderHook(
+      () => useScheduleFormViewModel('sched-rep', undefined, undefined, occurrence),
+      { wrapper: wrap(repos) },
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // when
+    act(() => result.current.setName('이후 전체'))
+    await act(async () => { await result.current.save('future') })
+
+    // then: 원본 시리즈는 occurrence 직전에서 끝남
+    expect(schedules.get('sched-rep')!.repeating!.end).toBe(OCC_START - 1)
+    // 새 시리즈는 occurrence 시간부터 시작
+    expect(schedules.get('created-1')!.event_time).toEqual(occurrence.eventTime)
+  })
+
+  it("'this' scope 저장 시 클릭한 차수 turn 이 제외되고 새 단건이 그 차수 시간으로 생성된다", async () => {
+    // given
+    const { schedules, repos } = setup()
+    const { result } = renderHook(
+      () => useScheduleFormViewModel('sched-rep', undefined, undefined, occurrence),
+      { wrapper: wrap(repos) },
+    )
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // when
+    act(() => result.current.setName('이 회차만'))
+    await act(async () => { await result.current.save('this') })
+
+    // then: 원본에서 turn 2 제외
+    expect(schedules.get('sched-rep')!.exclude_repeatings).toContain(occurrence.turn)
+    // 새 단건은 차수 시간으로 생성
+    expect(schedules.get('created-1')!.event_time).toEqual(occurrence.eventTime)
   })
 })
