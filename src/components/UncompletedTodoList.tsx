@@ -2,9 +2,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
-import type { RepeatScope } from './RepeatingScopeDialog'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
-import { useRepositories } from '../composition/RepositoriesProvider'
+import { useTodoCompleting } from '../hooks/useTodoCompleting'
 import type { Todo } from '../models'
 import type { CalendarEvent } from '../domain/functions/eventTime'
 import { EventTimeDisplay } from './EventTimeDisplay'
@@ -12,11 +11,12 @@ import { EventTimeDisplay } from './EventTimeDisplay'
 interface UncompletedTodoRowProps {
   todo: Todo
   onEventClick?: (calEvent: CalendarEvent, anchorRect: DOMRect) => void
-  onComplete: (todo: Todo) => void
+  onComplete: () => void
+  isCompleting: boolean
   isLast: boolean
 }
 
-function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: UncompletedTodoRowProps) {
+function UncompletedTodoRow({ todo, onEventClick, onComplete, isCompleting, isLast }: UncompletedTodoRowProps) {
   const { t } = useTranslation()
   const resolved = useResolvedEventTag(todo.event_tag_id)
   const color = resolved.color
@@ -66,8 +66,14 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete, isLast }: Uncomple
         </div>
         <button
           aria-label={todo.name}
-          className="shrink-0 h-5 w-5 rounded-full border-2 border-line-strong hover:border-fg transition-colors mt-0.5"
-          onClick={(e) => { e.stopPropagation(); onComplete(todo) }}
+          aria-pressed={isCompleting}
+          data-completing={isCompleting ? 'true' : 'false'}
+          className={`shrink-0 h-5 w-5 rounded-full border-2 transition-colors mt-0.5 ${
+            isCompleting
+              ? 'bg-fg border-fg animate-pulse'
+              : 'border-line-strong hover:border-fg'
+          }`}
+          onClick={(e) => { e.stopPropagation(); onComplete() }}
         />
       </div>
     </div>
@@ -83,22 +89,8 @@ export interface UncompletedTodoListProps {
 
 export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick }: UncompletedTodoListProps) {
   const { t } = useTranslation()
-  const { eventRepo } = useRepositories()
+  const { isCompleting, toggle } = useTodoCompleting()
   const [isReloading, setIsReloading] = useState(false)
-
-  async function handleComplete(todo: Todo) {
-    // 반복 할일은 차수 선택 팝업을 띄우지 않고 항상 현재 차수만 완료 + 다음 차수로 이동 (앱과 동일한 정책)
-    const scope: RepeatScope | undefined = (todo.repeating && todo.event_time) ? 'this' : undefined
-    await doComplete(todo, scope)
-  }
-
-  async function doComplete(todo: Todo, scope?: RepeatScope) {
-    try {
-      await eventRepo.completeTodo(todo, scope)
-    } catch (e) {
-      console.warn('완료 처리 실패:', e)
-    }
-  }
 
   async function handleReload() {
     if (isReloading) return
@@ -136,7 +128,8 @@ export function UncompletedTodoList({ todos, isTagHidden, onReload, onEventClick
             key={todo.uuid}
             todo={todo}
             onEventClick={onEventClick}
-            onComplete={handleComplete}
+            onComplete={() => toggle(todo)}
+            isCompleting={isCompleting(todo.uuid)}
             isLast={i === visibleTodos.length - 1}
           />
         ))}
