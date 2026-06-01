@@ -162,6 +162,7 @@
   "todo.revert_success": "Reverted successfully",
   "todo.revert_failed": "Failed to revert",
   "todo.delete_failed": "Failed to delete",
+  "todo.complete_failed": "Failed to complete",
   "todo.no_date": "No date",
   "common.loading": "Loading...",
   "common.close": "Close",
