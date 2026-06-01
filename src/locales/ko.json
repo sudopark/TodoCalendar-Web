@@ -162,6 +162,7 @@
   "todo.revert_success": "되돌리기 완료",
   "todo.revert_failed": "되돌리기에 실패했습니다",
   "todo.delete_failed": "삭제에 실패했습니다",
+  "todo.complete_failed": "완료 처리에 실패했습니다",
   "todo.no_date": "날짜 없음",
   "common.loading": "로딩 중...",
   "common.close": "닫기",
