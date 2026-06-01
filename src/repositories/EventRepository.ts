@@ -20,7 +20,7 @@ export interface TodoApi {
   getTodo(id: string): Promise<Todo>
   createTodo(body: { name: string; event_tag_id?: string; event_time?: EventTime; repeating?: Repeating; notification_options?: NotificationOption[]; is_current?: boolean }): Promise<Todo>
   updateTodo(id: string, body: Partial<Pick<Todo, 'name' | 'event_tag_id' | 'event_time' | 'repeating' | 'notification_options'>>): Promise<Todo>
-  completeTodo(id: string, body: { origin: Todo; next_event_time?: EventTime; next_repeating_turn?: number }): Promise<DoneTodo>
+  completeTodo(id: string, body: { origin: Todo; next_event_time?: EventTime; next_repeating_turn?: number }, options?: { signal?: AbortSignal }): Promise<DoneTodo>
   replaceTodo(id: string, body: { new: Record<string, unknown>; origin_next_event_time?: EventTime; next_repeating_turn?: number }): Promise<{ new_todo: Todo; next_repeating?: Todo }>
   patchTodo(id: string, body: Record<string, unknown>): Promise<Todo>
   deleteTodo(id: string): Promise<{ status: string }>
@@ -387,7 +387,7 @@ export class EventRepository {
     return updated
   }
 
-  async completeTodo(todo: Todo, scope?: 'this' | 'future' | 'all'): Promise<DoneTodo> {
+  async completeTodo(todo: Todo, scope?: 'this' | 'future' | 'all', options?: { signal?: AbortSignal }): Promise<DoneTodo> {
     const isRepeating = !!todo.repeating && !!todo.event_time
 
     if (scope === 'this' && isRepeating) {
@@ -396,7 +396,7 @@ export class EventRepository {
         origin: todo,
         next_event_time: next?.time,
         next_repeating_turn: next?.turn,
-      })
+      }, options)
       if (next?.time) {
         const nextTurn = next.turn ?? (todo.repeating_turn ?? 1) + 1
         const advanced: Todo = { ...todo, event_time: next.time, repeating_turn: nextTurn }
@@ -440,7 +440,7 @@ export class EventRepository {
       return done
     }
 
-    const done = await this.deps.todoApi.completeTodo(todo.uuid, { origin: todo })
+    const done = await this.deps.todoApi.completeTodo(todo.uuid, { origin: todo }, options)
     await this.writeLocal('completeTodo (all)', async () => {
       const local = this.deps.localStorageContainer!
       await local.todo().removeTodos([todo.uuid])
