@@ -255,6 +255,56 @@ describe('CurrentTodoList — 완료', () => {
     })
   })
 
+  it('완료 버튼 클릭 시 채움 + animate-pulse 클래스로 처리중 상태가 노출된다', async () => {
+    const todo = { uuid: 't-pulse', name: '펄스', is_current: true, event_time: null } as Todo
+    let releaseCompletion: (() => void) | null = null
+    const pendingRepo = makeFakeEventRepo(
+      () => new Promise<any>(r => { releaseCompletion = () => r({ uuid: 'done', done_at: 0 }) }),
+    )
+
+    render(
+      <RepositoriesProvider value={makeFakeRepos(pendingRepo)}>
+        <MemoryRouter>
+          <CurrentTodoList todos={[todo]} isTagHidden={() => false} />
+        </MemoryRouter>
+      </RepositoriesProvider>
+    )
+    const btn = screen.getByRole('button', { name: '펄스' })
+    await userEvent.click(btn)
+
+    await waitFor(() => expect(btn).toHaveAttribute('data-completing', 'true'))
+    expect(btn.className).toContain('animate-pulse')
+
+    // cleanup — 응답 풀어주어 pending Promise 정리
+    releaseCompletion?.()
+  })
+
+  it('처리중 상태에서 동일 버튼을 재클릭하면 빈 ○ 상태로 복귀한다 (취소)', async () => {
+    const todo = { uuid: 't-cancel', name: '취소', is_current: true, event_time: null } as Todo
+    const abortableRepo = makeFakeEventRepo(
+      ((_t: Todo, _s: unknown, opts?: { signal?: AbortSignal }) => new Promise<any>((_, reject) => {
+        opts?.signal?.addEventListener('abort', () => {
+          reject(Object.assign(new Error('aborted'), { name: 'AbortError' }))
+        })
+      })) as any,
+    )
+
+    render(
+      <RepositoriesProvider value={makeFakeRepos(abortableRepo)}>
+        <MemoryRouter>
+          <CurrentTodoList todos={[todo]} isTagHidden={() => false} />
+        </MemoryRouter>
+      </RepositoriesProvider>
+    )
+    const btn = screen.getByRole('button', { name: '취소' })
+    await userEvent.click(btn)
+    await waitFor(() => expect(btn).toHaveAttribute('data-completing', 'true'))
+
+    await userEvent.click(btn)
+    await waitFor(() => expect(btn).toHaveAttribute('data-completing', 'false'))
+    expect(btn.className).not.toContain('animate-pulse')
+  })
+
   it('반복 Todo 체크박스 클릭 시 RepeatingScopeDialog가 표시되지 않는다', async () => {
     // given: 반복 todo (사용자에게 차수 선택을 묻지 않아야 함)
     const repeatingTodo = {
