@@ -77,9 +77,9 @@ vi.mock('../../src/firebase', () => ({
 const mockOnReload = vi.fn()
 const mockOnEventClick = vi.fn()
 
-function makeFakeRepos(): Repositories {
+function makeFakeRepos(completeImpl?: EventRepository['completeTodo']): Repositories {
   return {
-    eventRepo: { completeTodo: vi.fn(async () => ({ uuid: 'done', done_at: 0 })) } as unknown as EventRepository,
+    eventRepo: { completeTodo: completeImpl ?? vi.fn(async () => ({ uuid: 'done', done_at: 0 })) } as unknown as EventRepository,
     eventDetailRepo: {} as any,
     tagRepo: {} as any,
     holidayRepo: {} as any,
@@ -175,6 +175,55 @@ describe('UncompletedTodoList', () => {
       expect(button).toHaveAttribute('aria-busy', 'false')
       expect(button).not.toBeDisabled()
     })
+  })
+
+  it('완료 버튼 클릭 시 채움 + animate-pulse 클래스로 처리중 상태가 노출된다', async () => {
+    const todo = { uuid: 'u-pulse', name: '펄스 미완료', is_current: false, event_time: null } as Todo
+    let releaseCompletion: (() => void) | null = null
+    const repos = makeFakeRepos(
+      (() => new Promise<any>(r => { releaseCompletion = () => r({ uuid: 'done', done_at: 0 }) })) as any,
+    )
+
+    render(
+      <RepositoriesProvider value={repos}>
+        <MemoryRouter>
+          <UncompletedTodoList {...defaultProps({ todos: [todo] })} />
+        </MemoryRouter>
+      </RepositoriesProvider>
+    )
+    const btn = screen.getByRole('button', { name: '펄스 미완료' })
+    await userEvent.click(btn)
+
+    await waitFor(() => expect(btn).toHaveAttribute('data-completing', 'true'))
+    expect(btn.className).toContain('animate-pulse')
+
+    releaseCompletion?.()
+  })
+
+  it('처리중 상태에서 동일 버튼을 재클릭하면 빈 ○ 상태로 복귀한다 (취소)', async () => {
+    const todo = { uuid: 'u-cancel', name: '취소 미완료', is_current: false, event_time: null } as Todo
+    const repos = makeFakeRepos(
+      ((_t: Todo, _s: unknown, opts?: { signal?: AbortSignal }) => new Promise<any>((_, reject) => {
+        opts?.signal?.addEventListener('abort', () => {
+          reject(Object.assign(new Error('aborted'), { name: 'AbortError' }))
+        })
+      })) as any,
+    )
+
+    render(
+      <RepositoriesProvider value={repos}>
+        <MemoryRouter>
+          <UncompletedTodoList {...defaultProps({ todos: [todo] })} />
+        </MemoryRouter>
+      </RepositoriesProvider>
+    )
+    const btn = screen.getByRole('button', { name: '취소 미완료' })
+    await userEvent.click(btn)
+    await waitFor(() => expect(btn).toHaveAttribute('data-completing', 'true'))
+
+    await userEvent.click(btn)
+    await waitFor(() => expect(btn).toHaveAttribute('data-completing', 'false'))
+    expect(btn.className).not.toContain('animate-pulse')
   })
 })
 
