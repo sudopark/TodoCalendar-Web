@@ -67,13 +67,15 @@ function CurrentTodoRow({ todo, onEventClick, onComplete, isCompleting, isLast }
           aria-label={todo.name}
           aria-pressed={isCompleting}
           data-completing={isCompleting ? 'true' : 'false'}
-          className={`shrink-0 h-5 w-5 rounded-full border-2 transition-colors mt-0.5 ${
-            isCompleting
-              ? 'bg-fg border-fg animate-pulse'
-              : 'border-line-strong hover:border-fg'
+          className={`shrink-0 h-5 w-5 rounded-full border-2 transition-colors mt-0.5 flex items-center justify-center ${
+            isCompleting ? 'border-fg animate-todo-completing' : 'border-line-strong hover:border-fg'
           }`}
           onClick={(e) => { e.stopPropagation(); onComplete() }}
-        />
+        >
+          {isCompleting && (
+            <span className="block h-2.5 w-2.5 rounded-full bg-fg" />
+          )}
+        </button>
       </div>
     </div>
   )
