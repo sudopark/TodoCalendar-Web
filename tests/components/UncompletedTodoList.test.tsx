@@ -177,7 +177,7 @@ describe('UncompletedTodoList', () => {
     })
   })
 
-  it('완료 버튼 클릭 시 채움 + animate-pulse 클래스로 처리중 상태가 노출된다', async () => {
+  it('완료 버튼 클릭 시 dot + 깜빡임으로 처리중 상태가 노출된다', async () => {
     const todo = { uuid: 'u-pulse', name: '펄스 미완료', is_current: false, event_time: null } as Todo
     let releaseCompletion: (() => void) | null = null
     const repos = makeFakeRepos(
@@ -195,7 +195,7 @@ describe('UncompletedTodoList', () => {
     await userEvent.click(btn)
 
     await waitFor(() => expect(btn).toHaveAttribute('data-completing', 'true'))
-    expect(btn.className).toContain('animate-pulse')
+    expect(btn.className).toContain('animate-todo-completing')
 
     releaseCompletion?.()
   })
@@ -223,7 +223,7 @@ describe('UncompletedTodoList', () => {
 
     await userEvent.click(btn)
     await waitFor(() => expect(btn).toHaveAttribute('data-completing', 'false'))
-    expect(btn.className).not.toContain('animate-pulse')
+    expect(btn.className).not.toContain('animate-todo-completing')
   })
 })
 

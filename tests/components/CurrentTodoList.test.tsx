@@ -255,7 +255,7 @@ describe('CurrentTodoList — 완료', () => {
     })
   })
 
-  it('완료 버튼 클릭 시 채움 + animate-pulse 클래스로 처리중 상태가 노출된다', async () => {
+  it('완료 버튼 클릭 시 dot + 깜빡임으로 처리중 상태가 노출된다', async () => {
     const todo = { uuid: 't-pulse', name: '펄스', is_current: true, event_time: null } as Todo
     let releaseCompletion: (() => void) | null = null
     const pendingRepo = makeFakeEventRepo(
@@ -273,7 +273,7 @@ describe('CurrentTodoList — 완료', () => {
     await userEvent.click(btn)
 
     await waitFor(() => expect(btn).toHaveAttribute('data-completing', 'true'))
-    expect(btn.className).toContain('animate-pulse')
+    expect(btn.className).toContain('animate-todo-completing')
 
     // cleanup — 응답 풀어주어 pending Promise 정리
     releaseCompletion?.()
@@ -302,7 +302,7 @@ describe('CurrentTodoList — 완료', () => {
 
     await userEvent.click(btn)
     await waitFor(() => expect(btn).toHaveAttribute('data-completing', 'false'))
-    expect(btn.className).not.toContain('animate-pulse')
+    expect(btn.className).not.toContain('animate-todo-completing')
   })
 
   it('반복 Todo 체크박스 클릭 시 RepeatingScopeDialog가 표시되지 않는다', async () => {
