@@ -36,9 +36,12 @@ class FakeEventRepo {
     this.schedules.delete(id)
   }
 
-  async excludeScheduleRepeating(id: string, excludeTurns: number[]): Promise<Schedule> {
+  async excludeScheduleRepeating(id: string, excludeStartTimestamp: number): Promise<Schedule> {
     const existing = this.schedules.get(id)!
-    const updated: Schedule = { ...existing, exclude_repeatings: excludeTurns }
+    const updated: Schedule = {
+      ...existing,
+      exclude_repeatings: [...(existing.exclude_repeatings ?? []), excludeStartTimestamp],
+    }
     this.schedules.set(id, updated)
     return updated
   }
@@ -243,13 +246,14 @@ describe('EventDeletionService', () => {
   // ── Schedule: scope='this' ───────────────────────────────────────
 
   describe("반복 schedule, scope='this'", () => {
-    it('show_turns[0] 값이 exclude_repeatings에 추가된다', async () => {
-      // given: show_turns=[3], exclude_repeatings=[1,2]
+    it('schedule.event_time(=클릭한 occurrence 시간)의 시작 timestamp 가 exclude_repeatings 에 추가된다', async () => {
+      // given: 캘린더 인스턴스 객체는 groupEventsByDate 가 클릭한 회차 시간으로 event_time 을 set 해둠
+      const OCCURRENCE_TS = AT_TIME.timestamp + INTERVAL_SECONDS * 2 // turn 3 = 시리즈 +2일
       const schedule = makeSchedule({
         uuid: 'schedule-1',
         repeating: DAILY_REPEATING,
-        show_turns: [3],
-        exclude_repeatings: [1, 2],
+        event_time: { time_type: 'at', timestamp: OCCURRENCE_TS },
+        exclude_repeatings: [AT_TIME.timestamp + INTERVAL_SECONDS], // 기존에 turn 2 timestamp 가 이미 제외
       })
       repo.schedules.set('schedule-1', schedule)
       const svc = makeService(repo)
@@ -257,16 +261,20 @@ describe('EventDeletionService', () => {
       // when
       await svc.deleteSchedule(schedule, 'this')
 
-      // then: schedule 남아 있고, exclude_repeatings에 3 추가
+      // then: schedule 남아 있고, exclude_repeatings 에 OCCURRENCE_TS 가 append
       expect(repo.schedules.has('schedule-1')).toBe(true)
-      expect(repo.schedules.get('schedule-1')!.exclude_repeatings).toEqual([1, 2, 3])
+      expect(repo.schedules.get('schedule-1')!.exclude_repeatings).toEqual([
+        AT_TIME.timestamp + INTERVAL_SECONDS,
+        OCCURRENCE_TS,
+      ])
     })
 
-    it('show_turns 없으면 turn=0이 exclude_repeatings에 추가된다', async () => {
-      // given: show_turns=undefined
+    it('exclude_repeatings 가 없던 schedule 도 첫 항목으로 occurrence timestamp 가 들어간다', async () => {
+      // given
       const schedule = makeSchedule({
         uuid: 'schedule-1',
         repeating: DAILY_REPEATING,
+        event_time: AT_TIME,
       })
       repo.schedules.set('schedule-1', schedule)
       const svc = makeService(repo)
@@ -275,7 +283,7 @@ describe('EventDeletionService', () => {
       await svc.deleteSchedule(schedule, 'this')
 
       // then
-      expect(repo.schedules.get('schedule-1')!.exclude_repeatings).toEqual([0])
+      expect(repo.schedules.get('schedule-1')!.exclude_repeatings).toEqual([AT_TIME.timestamp])
     })
   })
 

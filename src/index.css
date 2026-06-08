@@ -49,11 +49,23 @@
 
   /* === 이벤트 조회 progress bar (#110) — toolbar 하단 indeterminate 인디케이터 === */
   --animate-events-loading-bar: events-loading-bar 1.4s ease-in-out infinite;
+
+  /* === todo 완료 처리중 인디케이터 (#184) — 안쪽 dot 깜빡임 === */
+  --animate-todo-completing: todo-completing-blink 1.15s ease-in-out infinite;
 }
 
 @keyframes events-loading-bar {
   0%   { transform: translateX(-100%); }
   100% { transform: translateX(400%); }
+}
+
+@keyframes todo-completing-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.15; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-todo-completing { animation: none; opacity: 1; }
 }
 
 html {

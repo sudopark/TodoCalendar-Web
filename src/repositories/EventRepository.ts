@@ -20,7 +20,7 @@ export interface TodoApi {
   getTodo(id: string): Promise<Todo>
   createTodo(body: { name: string; event_tag_id?: string; event_time?: EventTime; repeating?: Repeating; notification_options?: NotificationOption[]; is_current?: boolean }): Promise<Todo>
   updateTodo(id: string, body: Partial<Pick<Todo, 'name' | 'event_tag_id' | 'event_time' | 'repeating' | 'notification_options'>>): Promise<Todo>
-  completeTodo(id: string, body: { origin: Todo; next_event_time?: EventTime; next_repeating_turn?: number }): Promise<DoneTodo>
+  completeTodo(id: string, body: { origin: Todo; next_event_time?: EventTime; next_repeating_turn?: number }, options?: { signal?: AbortSignal }): Promise<DoneTodo>
   replaceTodo(id: string, body: { new: Record<string, unknown>; origin_next_event_time?: EventTime; next_repeating_turn?: number }): Promise<{ new_todo: Todo; next_repeating?: Todo }>
   patchTodo(id: string, body: Record<string, unknown>): Promise<Todo>
   deleteTodo(id: string): Promise<{ status: string }>
@@ -31,7 +31,7 @@ export interface ScheduleApi {
   getSchedule(id: string): Promise<Schedule>
   createSchedule(body: { name: string; event_tag_id?: string; event_time: EventTime; repeating?: Repeating; notification_options?: NotificationOption[] }): Promise<Schedule>
   updateSchedule(id: string, body: Partial<Pick<Schedule, 'name' | 'event_tag_id' | 'event_time' | 'repeating' | 'notification_options'>>): Promise<Schedule>
-  excludeRepeating(id: string, body: { exclude_repeatings: number[] }): Promise<Schedule>
+  excludeRepeating(id: string, body: { exclude_repeatings: number }): Promise<Schedule>
   deleteSchedule(id: string): Promise<{ status: string }>
 }
 
@@ -376,8 +376,10 @@ export class EventRepository {
     useCalendarEventsCache.getState().removeEvent(id)
   }
 
-  async excludeScheduleRepeating(id: string, excludeTurns: number[]): Promise<Schedule> {
-    const updated = await this.deps.scheduleApi.excludeRepeating(id, { exclude_repeatings: excludeTurns })
+  // excludeStartTimestamp: 제외할 occurrence 의 시작 timestamp(epoch seconds).
+  // 서버는 단일 timestamp 만 받아 origin schedule.exclude_repeatings 배열에 append.
+  async excludeScheduleRepeating(id: string, excludeStartTimestamp: number): Promise<Schedule> {
+    const updated = await this.deps.scheduleApi.excludeRepeating(id, { exclude_repeatings: excludeStartTimestamp })
     await this.writeLocal('excludeScheduleRepeating', () =>
       this.deps.localStorageContainer!.schedule().updateSchedule(updated),
     )
@@ -385,7 +387,7 @@ export class EventRepository {
     return updated
   }
 
-  async completeTodo(todo: Todo, scope?: 'this' | 'future' | 'all'): Promise<DoneTodo> {
+  async completeTodo(todo: Todo, scope?: 'this' | 'future' | 'all', options?: { signal?: AbortSignal }): Promise<DoneTodo> {
     const isRepeating = !!todo.repeating && !!todo.event_time
 
     if (scope === 'this' && isRepeating) {
@@ -394,7 +396,7 @@ export class EventRepository {
         origin: todo,
         next_event_time: next?.time,
         next_repeating_turn: next?.turn,
-      })
+      }, options)
       if (next?.time) {
         const nextTurn = next.turn ?? (todo.repeating_turn ?? 1) + 1
         const advanced: Todo = { ...todo, event_time: next.time, repeating_turn: nextTurn }
@@ -438,7 +440,7 @@ export class EventRepository {
       return done
     }
 
-    const done = await this.deps.todoApi.completeTodo(todo.uuid, { origin: todo })
+    const done = await this.deps.todoApi.completeTodo(todo.uuid, { origin: todo }, options)
     await this.writeLocal('completeTodo (all)', async () => {
       const local = this.deps.localStorageContainer!
       await local.todo().removeTodos([todo.uuid])

@@ -41,11 +41,11 @@ export const todoApi = {
     return apiClient.put(`/v2/todos/todo/${id}`, body)
   },
 
-  completeTodo(id: string, body: { origin: Todo; next_event_time?: EventTime; next_repeating_turn?: number }): Promise<DoneTodo> {
+  completeTodo(id: string, body: { origin: Todo; next_event_time?: EventTime; next_repeating_turn?: number }, options?: { signal?: AbortSignal }): Promise<DoneTodo> {
     const sanitized: Record<string, unknown> = { origin: buildCompleteOrigin(body.origin) }
     if (body.next_event_time != null) sanitized.next_event_time = body.next_event_time
     if (body.next_repeating_turn != null) sanitized.next_repeating_turn = body.next_repeating_turn
-    return apiClient.post(`/v2/todos/todo/${id}/complete`, sanitized)
+    return apiClient.post(`/v2/todos/todo/${id}/complete`, sanitized, options)
   },
 
   replaceTodo(id: string, body: { new: Record<string, unknown>; origin_next_event_time?: EventTime; next_repeating_turn?: number }): Promise<{ new_todo: Todo; next_repeating?: Todo }> {
