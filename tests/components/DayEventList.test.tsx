@@ -162,4 +162,26 @@ describe('DayEventList', () => {
     expect(calEvent.event.uuid).toBe('todo-abc')
     expect(typeof anchorRect).toBe('object')
   })
+
+  it('반복 할일의 완료 버튼을 눌러도 회차 선택 팝업을 띄우지 않는다', async () => {
+    // given: 반복(repeating) + 시간이 있는 할일
+    const repeatingTodo = {
+      uuid: 'rt1',
+      name: '반복 할 일',
+      is_current: false,
+      event_time: { time_type: 'at' as const, timestamp: 1710480600 },
+      repeating: { start: { timestamp: 1710480600, timeZone: 'UTC' }, option: { optionType: 'everyDay' as const, interval: 1 } },
+      repeating_turn: 1,
+    }
+    const eventsByDate = new Map([
+      ['2024-03-15', [{ type: 'todo' as const, event: repeatingTodo }]],
+    ])
+
+    // when: 완료 버튼(aria-label = 할일 이름) 클릭
+    renderComponent({ selectedDate: new Date(2024, 2, 15), eventsByDate })
+    await userEvent.click(screen.getByRole('button', { name: '반복 할 일' }))
+
+    // then: 회차 선택 팝업이 노출되지 않는다 (우측 패널과 동일하게 바로 완료)
+    expect(screen.queryByTestId('repeating-scope-dialog')).not.toBeInTheDocument()
+  })
 })
