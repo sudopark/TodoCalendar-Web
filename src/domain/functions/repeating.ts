@@ -100,6 +100,8 @@ function nextOccurrence(
     const currentStart = lowerBound(cursorTime)
     const nextStart = nextStartByOption(repeating.option, currentStart)
     if (nextStart === null) return null
+    // 전진 보장: 옵션 계산이 회귀/정체하면 무한루프(메인 스레드 hang) 대신 회차 종료로 degrade
+    if (nextStart <= currentStart) return null
 
     const nextTime = shiftEventTime(cursorTime, nextStart - currentStart)
 
@@ -181,7 +183,8 @@ function nextStartByOption(option: RepeatingOption, currentSec: number): number 
     case 'lunar_calendar_every_year':
       return nextLunarYearSec(currentSec, zone)
   }
-  return next ? Math.round(next.toMillis() / 1000) : null
+  // invalid DateTime 은 truthy 라 toMillis()=NaN → 조용히 깨질 수 있어 isValid 로 차단
+  return next && next.isValid ? Math.round(next.toMillis() / 1000) : null
 }
 
 // --- date math helpers (luxon, zone-aware) — 서버 dateMath 미러 ---
