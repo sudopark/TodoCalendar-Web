@@ -1,9 +1,22 @@
+import { DateTime } from 'luxon'
+import { Solar, Lunar } from 'lunar-javascript'
 import type { EventTime, Repeating, RepeatingOption } from '../../models'
 import type {
   EveryMonthDaysSelection,
   EveryMonthWeekSelection,
   WeekOrdinal,
 } from '../../models'
+
+// 반복 다음 차수(occurrence) 계산.
+//
+// iOS `EventRepeatTimeEnumerator.swift` 와 그걸 1:1 포팅한 서버
+// (TodoCalendar-Functions `services/repeating/*`) 를 미러한 구현이다. 핵심은:
+//   - 모든 날짜 산술을 이벤트의 timeZone 기준으로 (every_day 만 UTC) — 브라우저 로컬 TZ 무관
+//   - exclude 회차는 turn 을 소비하지 않고 건너뛴다 (종료조건보다 먼저 판정)
+//   - 음력은 실제 음력 변환 (lunar-javascript) — 양력 근사 아님
+//
+// weekday 컨벤션: 도메인은 0=일..6=토 (Date.getDay), API 경계(repeatingCodec)에서 서버 1-7 과 변환.
+// 서버는 내부적으로 1-7 을 쓰지만 산술은 모듈러 차분이라 0-6 으로 일관되게 써도 동일하다.
 
 export interface RepeatingTimes {
   time: EventTime
@@ -20,35 +33,12 @@ export function nextRepeatingTime(
   repeating: Repeating,
   excludeStartTimestamps?: number[],
 ): RepeatingTimes | null {
-  const nextTurn = currentTurn + 1
-  const intervalSeconds = computeIntervalSeconds(currentTime, repeating.option)
-  if (intervalSeconds === null) return null
-
-  const nextTime = shiftEventTime(currentTime, intervalSeconds)
-
-  // end 조건 확인
-  if (repeating.end != null) {
-    const ts = getStartTimestamp(nextTime)
-    if (ts > repeating.end) return null
-  }
-  if (repeating.end_count != null && nextTurn > repeating.end_count) return null
-
-  // 제외 timestamp 면 반복문으로 다음 계산
-  let result: RepeatingTimes = { time: nextTime, turn: nextTurn }
-  while (excludeStartTimestamps?.includes(getStartTimestamp(result.time))) {
-    const nextInterval = computeIntervalSeconds(result.time, repeating.option)
-    if (nextInterval === null) return null
-    const skippedTime = shiftEventTime(result.time, nextInterval)
-    const skippedTurn = result.turn + 1
-    if (repeating.end != null) {
-      const ts = getStartTimestamp(skippedTime)
-      if (ts > repeating.end) return null
-    }
-    if (repeating.end_count != null && skippedTurn > repeating.end_count) return null
-    result = { time: skippedTime, turn: skippedTurn }
-  }
-
-  return result
+  return nextOccurrence(
+    { time: currentTime, turn: currentTurn },
+    repeating,
+    toExcludeSet(excludeStartTimestamps),
+    null,
+  )
 }
 
 // 기간 내 모든 반복 인스턴스를 나열한다.
@@ -61,14 +51,14 @@ export function enumerateRepeatingTimes(
   excludeStartTimestamps: number[] | undefined,
   rangeEnd: number,
 ): RepeatingTimes[] {
+  const excludes = toExcludeSet(excludeStartTimestamps)
   const results: RepeatingTimes[] = []
-  let current: RepeatingTimes | null = { time: startTime, turn: startTurn }
-  while (true) {
-    const next = nextRepeatingTime(current.time, current.turn, repeating, excludeStartTimestamps)
+  let cursor: RepeatingTimes = { time: startTime, turn: startTurn }
+  for (;;) {
+    const next = nextOccurrence(cursor, repeating, excludes, rangeEnd)
     if (next === null) break
-    if (getStartTimestamp(next.time) > rangeEnd) break
     results.push(next)
-    current = next
+    cursor = next
   }
   return results
 }
@@ -90,279 +80,334 @@ export function shiftEventTime(time: EventTime, intervalSeconds: number): EventT
 }
 
 export function getStartTimestamp(time: EventTime): number {
+  return lowerBound(time)
+}
+
+// --- core: 다음 occurrence 계산 (iOS nextEventTime 미러) ---
+
+function nextOccurrence(
+  from: RepeatingTimes,
+  repeating: Repeating,
+  excludes: Set<number>,
+  // 조회 상한(seconds). null 이면 상한 없음.
+  // display 용 window 라 occurrence '시작'(lowerBound) 기준으로 cap 한다 —
+  // 경계에 걸친 multi-day 인스턴스도 호출처(eventTime.buildEventMap)에서 overlap 필터로 처리.
+  // (repeating.end 는 도메인 종료일이라 서버처럼 upperBound 로 cap)
+  rangeEnd: number | null,
+): RepeatingTimes | null {
+  let cursorTime = from.time
+  for (;;) {
+    const currentStart = lowerBound(cursorTime)
+    const nextStart = nextStartByOption(repeating.option, currentStart)
+    if (nextStart === null) return null
+
+    const nextTime = shiftEventTime(cursorTime, nextStart - currentStart)
+
+    // exclude 회차는 turn 미소비 — 종료조건보다 먼저 건너뛴다 (iOS 와 동일)
+    if (excludes.has(lowerBound(nextTime))) {
+      cursorTime = nextTime
+      continue
+    }
+
+    if (repeating.end != null && upperBound(nextTime) > repeating.end) return null
+    if (rangeEnd != null && lowerBound(nextTime) > rangeEnd) return null
+
+    const next: RepeatingTimes = { time: nextTime, turn: from.turn + 1 }
+    if (repeating.end_count != null && next.turn > repeating.end_count) return null
+    return next
+  }
+}
+
+function toExcludeSet(excludeStartTimestamps?: number[]): Set<number> {
+  return new Set(excludeStartTimestamps ?? [])
+}
+
+function lowerBound(time: EventTime): number {
   return time.time_type === 'at' ? time.timestamp : time.period_start
 }
 
-// --- internal helpers ---
-
-function dateToDayOfWeek(date: Date): number {
-  // Sunday=0, Monday=1, ..., Saturday=6 (JS getDay convention)
-  return date.getDay()
+function upperBound(time: EventTime): number {
+  switch (time.time_type) {
+    case 'at':
+      return time.timestamp
+    case 'period':
+      return time.period_end
+    case 'allday':
+      return time.period_end ?? time.period_start
+  }
 }
 
-function daysInMonth(year: number, month: number): number {
-  return new Date(year, month, 0).getDate()
+// --- next start(seconds) by option (iOS nextEventDate 미러) ---
+
+interface Current {
+  dt: DateTime
+  year: number
+  month: number
+  day: number
+  weekday: number // 0=일..6=토
 }
 
-function nthWeekdayOfMonth(year: number, month: number, weekday: number, nth: number): Date | null {
-  // weekday: 0(Sun)~6(Sat) (JS getDay convention), nth: 1-based
-  const firstDay = new Date(year, month - 1, 1)
-  const firstOccurrence = firstDay.getDate() + ((weekday - firstDay.getDay() + 7) % 7)
-  const targetDate = firstOccurrence + (nth - 1) * 7
-  if (targetDate > daysInMonth(year, month)) return null
-  return new Date(year, month - 1, targetDate)
+function zoneOf(option: RepeatingOption): string {
+  // every_day 는 timeZone 필드가 없고 서버도 UTC 로 처리.
+  if (option.optionType === 'every_day') return 'UTC'
+  return option.timeZone || 'UTC'
 }
 
-function lastWeekdayOfMonth(year: number, month: number, weekday: number): Date {
-  // weekday: 0(Sun)~6(Sat) (JS getDay convention)
-  const lastDay = new Date(year, month, 0)
-  const diff = (lastDay.getDay() - weekday + 7) % 7
-  return new Date(year, month - 1, lastDay.getDate() - diff)
-}
+function nextStartByOption(option: RepeatingOption, currentSec: number): number | null {
+  const zone = zoneOf(option)
+  const dt = DateTime.fromMillis(currentSec * 1000, { zone })
+  const cur: Current = { dt, year: dt.year, month: dt.month, day: dt.day, weekday: appWeekday(dt) }
 
-function dateToTimestamp(date: Date): number {
-  return Math.floor(date.getTime() / 1000)
-}
-
-function timestampToDate(ts: number): Date {
-  return new Date(ts * 1000)
-}
-
-// --- interval computation per option ---
-
-function computeIntervalSeconds(currentTime: EventTime, option: RepeatingOption): number | null {
-  const startTs = getStartTimestamp(currentTime)
-  const currentDate = timestampToDate(startTs)
-
+  let next: DateTime | null = null
   switch (option.optionType) {
     case 'every_day':
-      return everyDayInterval(currentDate, startTs, option.interval)
+      next = dt.plus({ days: option.interval })
+      break
     case 'every_week':
-      return everyWeekInterval(currentDate, startTs, option.interval, option.dayOfWeek)
+      next = nextEveryWeek(option.interval, option.dayOfWeek, cur)
+      break
     case 'every_month':
-      return everyMonthInterval(currentDate, startTs, option.interval, option.monthDaySelection)
+      next =
+        'days' in option.monthDaySelection
+          ? nextEveryMonthDays(option.interval, option.monthDaySelection, cur)
+          : nextEveryMonthWeek(option.interval, option.monthDaySelection, cur)
+      break
     case 'every_year':
-      return everyYearInterval(currentDate, startTs, option.interval, option.months, option.weekOrdinals, option.dayOfWeek)
+      next = nextEveryYear(option.interval, option.months, option.weekOrdinals, option.dayOfWeek, cur)
+      break
     case 'every_year_some_day':
-      return everyYearSomeDayInterval(currentDate, startTs, option.interval)
+      next = dt.plus({ years: option.interval })
+      break
     case 'lunar_calendar_every_year':
-      // TODO: 정확한 음력 변환 필요 — 현재는 양력 기준 1년 후로 근사 처리
-      return everyYearSomeDayInterval(currentDate, startTs, 1)
+      return nextLunarYearSec(currentSec, zone)
   }
+  return next ? Math.round(next.toMillis() / 1000) : null
 }
 
-// 1. every_day — Date 날짜 연산으로 DST 안전 처리
-function everyDayInterval(currentDate: Date, currentTs: number, interval: number): number {
-  const nextDate = new Date(currentDate)
-  nextDate.setDate(nextDate.getDate() + interval)
-  return dateToTimestamp(nextDate) - currentTs
+// --- date math helpers (luxon, zone-aware) — 서버 dateMath 미러 ---
+
+// 앱 weekday: 일=0 ... 토=6 (Date.getDay). luxon weekday: 월=1 ... 일=7.
+function appWeekday(dt: DateTime): number {
+  return dt.weekday % 7
 }
 
-// 2. every_week — Date 날짜 연산으로 DST 안전 처리
-function everyWeekInterval(currentDate: Date, currentTs: number, interval: number, dayOfWeeks: number[]): number {
-  if (dayOfWeeks.length === 0) {
-    const nextDate = new Date(currentDate)
-    nextDate.setDate(nextDate.getDate() + interval * 7)
-    return dateToTimestamp(nextDate) - currentTs
-  }
-
-  const currentDow = dateToDayOfWeek(currentDate)
-  const sorted = [...dayOfWeeks].sort((a, b) => a - b)
-
-  // 같은 주에서 현재 요일보다 큰 다음 요일 찾기
-  const nextInWeek = sorted.find(d => d > currentDow)
-  if (nextInWeek !== undefined) {
-    const daysToAdd = nextInWeek - currentDow
-    const nextDate = new Date(currentDate)
-    nextDate.setDate(nextDate.getDate() + daysToAdd)
-    return dateToTimestamp(nextDate) - currentTs
-  }
-
-  // 없으면 interval주 후의 첫 번째 선택된 요일
-  const daysToEndOfWeek = 7 - currentDow
-  const additionalWeeks = (interval - 1) * 7
-  const daysToFirst = sorted[0]
-  const totalDays = daysToEndOfWeek + additionalWeeks + daysToFirst
-  const nextDate = new Date(currentDate)
-  nextDate.setDate(nextDate.getDate() + totalDays)
-  return dateToTimestamp(nextDate) - currentTs
+// 그 달에서 같은 요일의 서수(1-based). Foundation weekdayOrdinal.
+function weekdayOrdinal(dt: DateTime): number {
+  return Math.floor((dt.day - 1) / 7) + 1
 }
 
-// 3. every_month
-function everyMonthInterval(
-  currentDate: Date,
-  currentTs: number,
-  interval: number,
-  selection: import('../../models').MonthDaySelection,
-): number | null {
-  if ('days' in selection) {
-    return everyMonthDaysInterval(currentDate, currentTs, interval, selection as EveryMonthDaysSelection)
-  }
-  return everyMonthWeekInterval(currentDate, currentTs, interval, selection as EveryMonthWeekSelection)
+// day를 세팅하되 그 달에 없는 일자(=clamp 발생)면 null.
+function dateBySettingDay(dt: DateTime, day: number): DateTime | null {
+  const r = dt.set({ day })
+  return r.day === day ? r : null
 }
 
-// 3a. every_month (days mode)
-function everyMonthDaysInterval(
-  currentDate: Date,
-  currentTs: number,
+// 그 달의 첫 번째 '해당 요일'(0-6). 원본 시각 유지.
+function firstWeekday(dt: DateTime, appDay: number): DateTime {
+  const firstWd = appWeekday(dt.startOf('month'))
+  const daysToAdd = (appDay + 7 - firstWd) % 7
+  return dt.set({ day: 1 + daysToAdd })
+}
+
+// 그 달의 마지막 '같은 요일'.
+function lastOfSameWeekday(dt: DateTime): DateTime {
+  const wd = appWeekday(dt)
+  const lastDom = dt.endOf('month').startOf('day')
+  const lastWd = appWeekday(lastDom)
+  const daysToMinus = (lastWd - wd + 7) % 7
+  return dt.set({ day: lastDom.day - daysToMinus })
+}
+
+// origin 에 src 의 시/분/초를 입힘.
+function syncTimes(origin: DateTime, src: DateTime): DateTime {
+  return origin.set({ hour: src.hour, minute: src.minute, second: src.second })
+}
+
+function ascending(arr: number[]): number[] {
+  return [...arr].sort((a, b) => a - b)
+}
+
+// 배열에서 current 다음 요일/일자.
+function nextGreater(sorted: number[], current: number): number | undefined {
+  return sorted.find(v => v > current)
+}
+
+// --- every_week ---
+
+function nextEveryWeek(interval: number, dayOfWeek: number[], cur: Current): DateTime | null {
+  const days = ascending(dayOfWeek)
+  const nx = nextGreater(days, cur.weekday)
+  if (nx != null) return cur.dt.plus({ days: nx - cur.weekday })
+  const first = days[0]
+  if (first == null) return null
+  return cur.dt.plus({ days: first - cur.weekday }).plus({ days: interval * 7 })
+}
+
+// --- every_month (days) ---
+
+function nextEveryMonthDays(
   interval: number,
   selection: EveryMonthDaysSelection,
-): number | null {
-  const currentDay = currentDate.getDate()
-  const currentYear = currentDate.getFullYear()
-  const currentMonth = currentDate.getMonth() + 1 // 1-based
-  const sorted = [...selection.days].sort((a, b) => a - b)
-
-  // 같은 달에서 현재 day보다 큰 day 찾기 (해당 날이 실제 존재해야 함)
-  const maxDay = daysInMonth(currentYear, currentMonth)
-  const nextInMonth = sorted.find(d => d > currentDay && d <= maxDay)
-  if (nextInMonth !== undefined) {
-    const target = new Date(currentYear, currentMonth - 1, nextInMonth,
-      currentDate.getHours(), currentDate.getMinutes(), currentDate.getSeconds())
-    return dateToTimestamp(target) - currentTs
+  cur: Current,
+): DateTime | null {
+  const days = ascending(selection.days)
+  const nx = nextGreater(days, cur.day)
+  if (nx != null) {
+    const cand = dateBySettingDay(cur.dt, nx)
+    if (cand) return cand
   }
-
-  // interval개월 후부터 유효한 day 찾기
-  let targetMonth = currentMonth + interval
-  let targetYear = currentYear
-  while (targetMonth > 12) { targetMonth -= 12; targetYear++ }
-
-  for (let attempt = 0; attempt < 24; attempt++) {
-    const maxDayTarget = daysInMonth(targetYear, targetMonth)
-    const validDay = sorted.find(d => d <= maxDayTarget)
-    if (validDay !== undefined) {
-      const target = new Date(targetYear, targetMonth - 1, validDay,
-        currentDate.getHours(), currentDate.getMinutes(), currentDate.getSeconds())
-      return dateToTimestamp(target) - currentTs
-    }
-    targetMonth += interval
-    while (targetMonth > 12) { targetMonth -= 12; targetYear++ }
-  }
-
-  return null
+  const first = days[0]
+  if (first == null) return null
+  // 다음 interval-달의 '첫 선택일'(days[0]) 을 앵커로. iOS findEventDateOnNextMonthFirstReaptingDay.
+  const base = cur.dt.startOf('month').plus({ months: interval })
+  return syncTimes(base.plus({ days: first - 1 }), cur.dt)
 }
 
-// 3b. every_month (week mode)
-function everyMonthWeekInterval(
-  currentDate: Date,
-  currentTs: number,
+// --- every_month (week) ---
+
+function nextEveryMonthWeek(
   interval: number,
   selection: EveryMonthWeekSelection,
-): number | null {
-  const currentYear = currentDate.getFullYear()
-  const currentMonth = currentDate.getMonth() + 1
+  cur: Current,
+): DateTime | null {
+  const ordinals = selection.weekOrdinals
+  const weekDays = ascending(selection.weekDays)
+  const sameMonth = (cand: DateTime | null): boolean => cand != null && cand.month === cur.month
 
-  // 같은 달에서 현재 날짜 이후의 매칭 날짜 찾기
-  const candidates = findWeekSelectionDates(currentYear, currentMonth, selection)
-    .map(d => { preserveTime(d, currentDate); return d })
-  const nextInMonth = candidates.find(d => dateToTimestamp(d) > currentTs)
-  if (nextInMonth) {
-    return dateToTimestamp(nextInMonth) - currentTs
+  const nx = nextGreater(weekDays, cur.weekday)
+  if (nx != null) {
+    const c = cur.dt.plus({ days: nx - cur.weekday })
+    if (sameMonth(c)) return c
   }
-
-  // interval개월 후
-  let targetMonth = currentMonth + interval
-  let targetYear = currentYear
-  while (targetMonth > 12) { targetMonth -= 12; targetYear++ }
-
-  for (let attempt = 0; attempt < 24; attempt++) {
-    const futureCandidates = findWeekSelectionDates(targetYear, targetMonth, selection)
-      .map(d => { preserveTime(d, currentDate); return d })
-    if (futureCandidates.length > 0) {
-      const target = futureCandidates[0]
-      return dateToTimestamp(target) - currentTs
-    }
-    targetMonth += interval
-    while (targetMonth > 12) { targetMonth -= 12; targetYear++ }
+  if (weekDays[0] != null) {
+    const base = cur.dt.plus({ days: weekDays[0] - cur.weekday })
+    const c = nextOrdinalDate(ordinals, base)
+    if (sameMonth(c)) return c
   }
-
+  const nextMonth = cur.dt.plus({ months: interval })
+  const c = firstOrdinalAndWeekDay(ordinals[0], weekDays[0], nextMonth)
+  if (c && c.month === nextMonth.month) return c
   return null
 }
 
-// 4. every_year (months + weekOrdinals + dayOfWeek)
-function everyYearInterval(
-  currentDate: Date,
-  currentTs: number,
+// --- every_year ---
+
+function nextEveryYear(
   interval: number,
   months: number[],
   weekOrdinals: WeekOrdinal[],
-  dayOfWeeks: number[],
-): number | null {
-  const currentYear = currentDate.getFullYear()
-  const sortedMonths = [...months].sort((a, b) => a - b)
+  dayOfWeek: number[],
+  cur: Current,
+): DateTime | null {
+  const sortedMonths = ascending(months)
+  const days = ascending(dayOfWeek)
+  const sameYear = (cand: DateTime | null): boolean => cand != null && cand.year === cur.year
 
-  // 같은 해에서 현재 이후 찾기
-  for (const month of sortedMonths) {
-    const candidates = findYearWeekDates(currentYear, month, weekOrdinals, dayOfWeeks)
-      .map(d => { preserveTime(d, currentDate); return d })
-    const next = candidates.find(d => dateToTimestamp(d) > currentTs)
-    if (next) {
-      return dateToTimestamp(next) - currentTs
-    }
+  const nx = nextGreater(days, cur.weekday)
+  if (nx != null) {
+    const c = cur.dt.plus({ days: nx - cur.weekday })
+    if (sameYear(c)) return c
   }
-
-  // interval년 후
-  let targetYear = currentYear + interval
-  for (let attempt = 0; attempt < 10; attempt++) {
-    for (const month of sortedMonths) {
-      const candidates = findYearWeekDates(targetYear, month, weekOrdinals, dayOfWeeks)
-        .map(d => { preserveTime(d, currentDate); return d })
-      if (candidates.length > 0) {
-        const target = candidates[0]
-        return dateToTimestamp(target) - currentTs
-      }
-    }
-    targetYear += interval
+  if (days[0] != null) {
+    const base = cur.dt.plus({ days: days[0] - cur.weekday })
+    const c = nextOrdinalDate(weekOrdinals, base)
+    if (c && c.month === cur.month && sameYear(c)) return c
   }
-
+  const mi = nextMonthInterval(sortedMonths, cur.month)
+  if (mi != null) {
+    const nextMonth = cur.dt.plus({ months: mi })
+    const c = firstOrdinalAndWeekDay(weekOrdinals[0], days[0], nextMonth)
+    if (c && c.month === nextMonth.month && sameYear(c)) return c
+  }
+  const firstMonth = sortedMonths[0]
+  const firstOrd = weekOrdinals[0]
+  const firstWd = days[0]
+  if (firstMonth == null || firstOrd == null || firstWd == null) return null
+  const nextYearMonth = cur.dt.plus({ years: interval }).set({ month: firstMonth })
+  const c = firstOrdinalAndWeekDay(firstOrd, firstWd, nextYearMonth)
+  if (c && c.month === nextYearMonth.month) return c
   return null
 }
 
-// 5. every_year_some_day
-function everyYearSomeDayInterval(
-  currentDate: Date,
-  currentTs: number,
-  interval: number,
-): number | null {
-  const targetDate = new Date(currentDate)
-  targetDate.setFullYear(targetDate.getFullYear() + interval)
-  return dateToTimestamp(targetDate) - currentTs
+function nextMonthInterval(sortedMonths: number[], currentMonth: number): number | null {
+  const m = nextGreater(sortedMonths, currentMonth)
+  return m == null ? null : m - currentMonth
 }
 
-// --- week selection helpers ---
+// --- week ordinal helpers ---
 
-function findWeekSelectionDates(year: number, month: number, selection: EveryMonthWeekSelection): Date[] {
-  const results: Date[] = []
-  for (const ordinal of selection.weekOrdinals) {
-    for (const weekday of selection.weekDays) {
-      const d = resolveWeekOrdinalDate(year, month, weekday, ordinal)
-      if (d) results.push(d)
+// WeekOrdinal 배열에서 dt 기준 다음 ordinal 의 날짜.
+function nextOrdinalDate(ordinals: WeekOrdinal[], dt: DateTime): DateTime | null {
+  const ordinal = weekdayOrdinal(dt)
+  for (const o of ordinals) {
+    if (o.isLast) {
+      const last = lastOfSameWeekday(dt)
+      if (last && last.toMillis() > dt.toMillis()) return last
+    } else if (o.seq != null && ordinal < o.seq) {
+      return dt.plus({ days: (o.seq - ordinal) * 7 })
     }
-  }
-  return results.sort((a, b) => a.getTime() - b.getTime())
-}
-
-function findYearWeekDates(year: number, month: number, weekOrdinals: WeekOrdinal[], dayOfWeeks: number[]): Date[] {
-  const results: Date[] = []
-  for (const ordinal of weekOrdinals) {
-    for (const weekday of dayOfWeeks) {
-      const d = resolveWeekOrdinalDate(year, month, weekday, ordinal)
-      if (d) results.push(d)
-    }
-  }
-  return results.sort((a, b) => a.getTime() - b.getTime())
-}
-
-function resolveWeekOrdinalDate(year: number, month: number, weekday: number, ordinal: WeekOrdinal): Date | null {
-  if (ordinal.isLast) {
-    return lastWeekdayOfMonth(year, month, weekday)
-  }
-  if (ordinal.seq != null) {
-    return nthWeekdayOfMonth(year, month, weekday, ordinal.seq)
   }
   return null
 }
 
-function preserveTime(target: Date, source: Date): void {
-  target.setHours(source.getHours(), source.getMinutes(), source.getSeconds(), source.getMilliseconds())
+function ordinalValue(o: WeekOrdinal, dt: DateTime): number | null {
+  if (o.isLast) {
+    const last = lastOfSameWeekday(dt)
+    return last ? weekdayOrdinal(last) : null
+  }
+  return o.seq ?? null
+}
+
+// 주어진 달의 첫 (서수, 요일) 날짜.
+function firstOrdinalAndWeekDay(
+  ordinal: WeekOrdinal | undefined,
+  appWeekDay: number | undefined,
+  monthDt: DateTime,
+): DateTime | null {
+  if (ordinal == null || appWeekDay == null) return null
+  const firstWd = firstWeekday(monthDt, appWeekDay)
+  const firstOrd = weekdayOrdinal(firstWd)
+  const targetOrd = ordinalValue(ordinal, firstWd)
+  if (targetOrd == null) return null
+  return firstWd.plus({ days: (targetOrd - firstOrd) * 7 })
+}
+
+// --- lunar (서버 lunar/lunarYear 미러) ---
+
+// 음력 (year, month, day) → 양력 Solar. lunar-javascript 는 윤달을 음수 month 로 표현하고,
+// 대상 해에 같은 윤달이 없으면 throw 한다. 그 경우 평달(abs)로 fallback —
+// Swift Calendar(.chinese) 의 윤달 clamp 와 동일한 의도.
+function lunarToSolar(year: number, month: number, day: number) {
+  const months = month < 0 ? [month, Math.abs(month)] : [month]
+  for (const m of months) {
+    try {
+      return Lunar.fromYmd(year, m, day).getSolar()
+    } catch {
+      // 다음 month 후보로 진행
+    }
+  }
+  return null
+}
+
+// currentSec 의 zone 기준 날짜 → 음력 변환 → 음력 해 +1 → 같은 음력 월/일 → 양력 초.
+// 시/분/초 보존. resolve 불가면 null → 호출처는 회차 종료로 처리.
+function nextLunarYearSec(currentSec: number, zone: string): number | null {
+  const dt = DateTime.fromMillis(currentSec * 1000, { zone })
+  const lunar = Solar.fromYmd(dt.year, dt.month, dt.day).getLunar()
+
+  const nextSolar = lunarToSolar(lunar.getYear() + 1, lunar.getMonth(), lunar.getDay())
+  if (nextSolar == null) return null
+
+  const result = DateTime.fromObject(
+    {
+      year: nextSolar.getYear(),
+      month: nextSolar.getMonth(),
+      day: nextSolar.getDay(),
+      hour: dt.hour,
+      minute: dt.minute,
+      second: dt.second,
+    },
+    { zone },
+  )
+  return Math.round(result.toMillis() / 1000)
 }
