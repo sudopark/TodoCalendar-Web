@@ -1,12 +1,10 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
 import { TimeDescription } from './TimeDescription'
-import { RepeatingScopeDialog, type RepeatScope } from './RepeatingScopeDialog'
 import { formatDateKey } from '../domain/functions/eventTime'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
-import { useRepositories } from '../composition/RepositoriesProvider'
+import { useTodoCompleting } from '../hooks/useTodoCompleting'
 import type { CalendarEvent } from '../domain/functions/eventTime'
 import type { Todo } from '../models'
 
@@ -87,31 +85,7 @@ export interface DayEventListProps {
 
 export function DayEventList({ selectedDate, eventsByDate, isTagHidden, onEventClick }: DayEventListProps) {
   const { t } = useTranslation()
-  const { eventRepo } = useRepositories()
-  const [scopeTarget, setScopeTarget] = useState<Todo | null>(null)
-
-  async function handleComplete(todo: Todo) {
-    if (todo.repeating && todo.event_time) {
-      setScopeTarget(todo)
-      return
-    }
-    await doComplete(todo)
-  }
-
-  async function doComplete(todo: Todo, scope?: RepeatScope) {
-    try {
-      await eventRepo.completeTodo(todo, scope)
-    } catch (e) {
-      console.warn('완료 처리 실패:', e)
-    }
-  }
-
-  async function handleCompleteWithScope(scope: RepeatScope) {
-    if (!scopeTarget) return
-    const todo = scopeTarget
-    setScopeTarget(null)
-    await doComplete(todo, scope)
-  }
+  const { toggle } = useTodoCompleting()
 
   if (!selectedDate) return null
 
@@ -128,33 +102,22 @@ export function DayEventList({ selectedDate, eventsByDate, isTagHidden, onEventC
   const sorted = [...allEvents].sort((a, b) => getTimestamp(a) - getTimestamp(b))
 
   return (
-    <>
-      <div className="flex flex-col">
-        {sorted.length === 0 ? (
-          <div className="flex items-center justify-center py-8 text-sm text-fg-tertiary">
-            {t('event.no_events')}
-          </div>
-        ) : (
-          sorted.map((calEvent, i) => (
-            <EventItem
-              key={`${calEvent.event.uuid}-${i}`}
-              calEvent={calEvent}
-              onEventClick={onEventClick}
-              onComplete={handleComplete}
-              isLast={i === sorted.length - 1}
-            />
-          ))
-        )}
-      </div>
-
-      {scopeTarget && (
-        <RepeatingScopeDialog
-          mode="complete"
-          eventType="todo"
-          onSelect={handleCompleteWithScope}
-          onCancel={() => setScopeTarget(null)}
-        />
+    <div className="flex flex-col">
+      {sorted.length === 0 ? (
+        <div className="flex items-center justify-center py-8 text-sm text-fg-tertiary">
+          {t('event.no_events')}
+        </div>
+      ) : (
+        sorted.map((calEvent, i) => (
+          <EventItem
+            key={`${calEvent.event.uuid}-${i}`}
+            calEvent={calEvent}
+            onEventClick={onEventClick}
+            onComplete={toggle}
+            isLast={i === sorted.length - 1}
+          />
+        ))
       )}
-    </>
+    </div>
   )
 }
