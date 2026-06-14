@@ -178,4 +178,142 @@ describe('todoApi', () => {
     expect(String(url)).toContain('/v2/todos/todo/todo-1')
     expect((options as RequestInit).method).toBe('DELETE')
   })
+
+  // schedule 과 동일하게 todo 도 weekday 인코딩을 네트워크 경계에서 변환해야 한다.
+  // (issue #191) 이 변환이 빠지면 매주 일요일(서버 1) 반복 todo 가 web 도메인에서 월요일(1)로
+  // 해석돼, 완료 시 다음 차수가 다음주 일요일이 아니라 내일(월요일)로 계산된다.
+  describe('weekday 인코딩 변환 (서버 1=일..7=토 ↔ web getDay 0=일..6=토)', () => {
+    const sundayWeb = 0
+    const sundayServer = 1
+    const serverTodo = {
+      uuid: 'todo-rep',
+      name: '매주 일요일 할일',
+      is_current: true,
+      event_time: { time_type: 'at', timestamp: 1770267600 },
+      repeating: {
+        start: 1770267600,
+        option: { optionType: 'every_week', interval: 1, dayOfWeek: [sundayServer], timeZone: 'Asia/Seoul' },
+      },
+    }
+
+    const expectWebSunday = (todo: Todo) =>
+      expect((todo.repeating!.option as any).dayOfWeek).toEqual([sundayWeb])
+
+    it('getTodos 응답의 서버 요일(일=1)을 web getDay(일=0)로 변환해 돌려준다', async () => {
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify([serverTodo]), { status: 200, headers: { 'content-type': 'application/json' } })
+      )
+      const { todoApi } = await import('../../src/api/todoApi')
+      const [todo] = await todoApi.getTodos(0, 2_000_000_000)
+      expectWebSunday(todo)
+    })
+
+    it('getCurrentTodos 응답도 web getDay 로 변환한다', async () => {
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify([serverTodo]), { status: 200, headers: { 'content-type': 'application/json' } })
+      )
+      const { todoApi } = await import('../../src/api/todoApi')
+      const [todo] = await todoApi.getCurrentTodos()
+      expectWebSunday(todo)
+    })
+
+    it('getUncompletedTodos 응답도 web getDay 로 변환한다', async () => {
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify([serverTodo]), { status: 200, headers: { 'content-type': 'application/json' } })
+      )
+      const { todoApi } = await import('../../src/api/todoApi')
+      const [todo] = await todoApi.getUncompletedTodos(1770000000)
+      expectWebSunday(todo)
+    })
+
+    it('getTodo 응답도 web getDay 로 변환한다', async () => {
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(serverTodo), { status: 200, headers: { 'content-type': 'application/json' } })
+      )
+      const { todoApi } = await import('../../src/api/todoApi')
+      const todo = await todoApi.getTodo('todo-rep')
+      expectWebSunday(todo)
+    })
+
+    it('createTodo 는 web getDay(일=0)를 서버 요일(일=1)로 변환해 전송하고, 응답은 다시 web 으로 변환한다', async () => {
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(serverTodo), { status: 200, headers: { 'content-type': 'application/json' } })
+      )
+      const { todoApi } = await import('../../src/api/todoApi')
+      const created = await todoApi.createTodo({
+        name: '매주 일요일 할일',
+        event_time: { time_type: 'at', timestamp: 1770267600 },
+        repeating: {
+          start: 1770267600,
+          option: { optionType: 'every_week', interval: 1, dayOfWeek: [sundayWeb], timeZone: 'Asia/Seoul' },
+        },
+      })
+      const sentBody = JSON.parse((fetchSpy.mock.calls[0][1] as RequestInit).body as string)
+      expect(sentBody.repeating.option.dayOfWeek).toEqual([sundayServer])
+      expectWebSunday(created)
+    })
+
+    it('updateTodo 도 요청 body 의 요일을 서버 인코딩으로 변환해 전송한다', async () => {
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(serverTodo), { status: 200, headers: { 'content-type': 'application/json' } })
+      )
+      const { todoApi } = await import('../../src/api/todoApi')
+      await todoApi.updateTodo('todo-rep', {
+        repeating: {
+          start: 1770267600,
+          option: { optionType: 'every_week', interval: 1, dayOfWeek: [sundayWeb], timeZone: 'Asia/Seoul' },
+        },
+      })
+      const sentBody = JSON.parse((fetchSpy.mock.calls[0][1] as RequestInit).body as string)
+      expect(sentBody.repeating.option.dayOfWeek).toEqual([sundayServer])
+    })
+
+    it('patchTodo 의 body.repeating 도 서버 인코딩으로 변환하고 응답은 web 으로 변환한다', async () => {
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify(serverTodo), { status: 200, headers: { 'content-type': 'application/json' } })
+      )
+      const { todoApi } = await import('../../src/api/todoApi')
+      const updated = await todoApi.patchTodo('todo-rep', {
+        repeating: {
+          start: 1770267600,
+          option: { optionType: 'every_week', interval: 1, dayOfWeek: [sundayWeb], timeZone: 'Asia/Seoul' },
+        },
+      })
+      const sentBody = JSON.parse((fetchSpy.mock.calls[0][1] as RequestInit).body as string)
+      expect(sentBody.repeating.option.dayOfWeek).toEqual([sundayServer])
+      expectWebSunday(updated)
+    })
+
+    it('completeTodo 의 origin.repeating 도 서버 인코딩으로 변환해 전송한다', async () => {
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify({ uuid: 'done-1' }), { status: 200, headers: { 'content-type': 'application/json' } })
+      )
+      const { todoApi } = await import('../../src/api/todoApi')
+      const origin: Todo = {
+        uuid: 'todo-rep',
+        name: '매주 일요일 할일',
+        is_current: true,
+        event_time: { time_type: 'at', timestamp: 1770267600 },
+        repeating: {
+          start: 1770267600,
+          option: { optionType: 'every_week', interval: 1, dayOfWeek: [sundayWeb], timeZone: 'Asia/Seoul' },
+        },
+      }
+      await todoApi.completeTodo('todo-rep', { origin })
+      const sentBody = JSON.parse((fetchSpy.mock.calls[0][1] as RequestInit).body as string)
+      expect(sentBody.origin.repeating.option.dayOfWeek).toEqual([sundayServer])
+    })
+
+    it('replaceTodo 의 next_repeating 응답도 web getDay 로 변환한다', async () => {
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify({ new_todo: { uuid: 'new-1', name: 'x', is_current: true }, next_repeating: serverTodo }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
+      )
+      const { todoApi } = await import('../../src/api/todoApi')
+      const result = await todoApi.replaceTodo('todo-rep', { new: { name: 'x' } })
+      expectWebSunday(result.next_repeating!)
+    })
+  })
 })
