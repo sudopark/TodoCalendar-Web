@@ -402,6 +402,50 @@ describe('EventRepository — fetchUncompletedTodos', () => {
     expect(snapshot.some(t => t.uuid === 'unc-1')).toBe(true)
     expect(snapshot.some(t => t.uuid === 'unc-2')).toBe(true)
   })
+
+  it('다른 디바이스에서 완료되어 미완료 목록에서 빠진 todo는 캘린더 캐시에서도 제거된다', async () => {
+    // given: 미완료 todo A·B 가 우측 캐시와 캘린더 캐시 양쪽에 존재
+    const todoA = makeTodo({ uuid: 'unc-A', event_time: { time_type: 'at', timestamp: MAR_01_TS } })
+    const todoB = makeTodo({ uuid: 'unc-B', event_time: { time_type: 'at', timestamp: MAR_15_TS } })
+    useUncompletedTodosCache.setState({ todos: [todoA, todoB] })
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: todoA })
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: todoB })
+    // 서버는 B 가 완료되어 A 만 미완료로 반환
+    const repo = new EventRepository({
+      todoApi: makeFakeTodoApi({ getUncompletedTodos: async () => [todoA] }),
+      scheduleApi: makeFakeScheduleApi(),
+    })
+
+    // when
+    await repo.fetchUncompletedTodos()
+
+    // then: 캘린더 캐시에서도 B 가 사라지고 A 는 남는다
+    const calSnapshot = repo.getMonthEventsSnapshot(2025, 2)
+    expect(calSnapshot.some(e => e.event.uuid === 'unc-B')).toBe(false)
+    expect(calSnapshot.some(e => e.event.uuid === 'unc-A')).toBe(true)
+  })
+
+  it('미완료 목록에 남아있되 event_time 이 전진된 todo는 캘린더 캐시도 갱신된다', async () => {
+    // given: 캘린더·우측 캐시에 MAR_01 의 todo. 서버는 같은 uuid 를 MAR_15 로 전진해 반환
+    const before = makeTodo({ uuid: 'unc-rep', event_time: { time_type: 'at', timestamp: MAR_01_TS } })
+    const advanced = makeTodo({ uuid: 'unc-rep', event_time: { time_type: 'at', timestamp: MAR_15_TS } })
+    useUncompletedTodosCache.setState({ todos: [before] })
+    useCalendarEventsCache.getState().addEvent({ type: 'todo', event: before })
+    const repo = new EventRepository({
+      todoApi: makeFakeTodoApi({ getUncompletedTodos: async () => [advanced] }),
+      scheduleApi: makeFakeScheduleApi(),
+    })
+
+    // when
+    await repo.fetchUncompletedTodos()
+
+    // then: 캘린더 캐시의 해당 uuid event_time 이 MAR_15 로 갱신된다
+    const calSnapshot = repo.getMonthEventsSnapshot(2025, 2)
+    const found = calSnapshot.filter(e => e.event.uuid === 'unc-rep')
+    expect(found.length).toBeGreaterThan(0)
+    expect(found.every(e => e.event.event_time?.time_type === 'at'
+      && (e.event.event_time as any).timestamp === MAR_15_TS)).toBe(true)
+  })
 })
 
 describe('EventRepository — completeTodo', () => {
