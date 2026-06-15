@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
+import { withAlpha } from '../utils/color'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
 import { useTodoCompleting } from '../hooks/useTodoCompleting'
@@ -57,7 +58,7 @@ function UncompletedTodoRow({ todo, onEventClick, onComplete, isCompleting, isLa
             {tagName && (
               <span
                 className="shrink-0 text-meta font-semibold px-1.5 py-0.5 rounded-full leading-none"
-                style={{ color, backgroundColor: `${color}22` }}
+                style={{ color, backgroundColor: withAlpha(color, '22') }}
               >
                 {tagName}
               </span>

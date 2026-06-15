@@ -5,6 +5,7 @@ import { Pencil, Trash2, X, Clock, Repeat, Bell, MapPin, FileText, Link2 } from 
 import type { CalendarEvent } from '../../domain/functions/eventTime'
 import { displayPlace } from '../../models/EventDetail'
 import { useResolvedEventTag } from '../../hooks/useResolvedEventTag'
+import { withAlpha } from '../../utils/color'
 import { tagDisplayName } from '../../domain/functions/tagDisplay'
 import { EventTimeDisplay } from '../EventTimeDisplay'
 import { useEventDetailPopoverViewModel } from './useEventDetailPopoverViewModel'
@@ -104,7 +105,7 @@ export function EventDetailPopover({
           <div data-testid="popover-tag-name">
             <span
               className="inline-block text-meta font-semibold px-1.5 py-0.5 rounded-full leading-none"
-              style={{ color: tagColor, backgroundColor: `${tagColor}22` }}
+              style={{ color: tagColor, backgroundColor: withAlpha(tagColor, '22') }}
             >
               {tagName}
             </span>
