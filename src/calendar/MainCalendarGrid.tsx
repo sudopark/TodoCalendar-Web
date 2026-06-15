@@ -10,6 +10,7 @@ import { useHolidayCache } from '../repositories/caches/holidayCache'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
+import { withAlpha } from '../utils/color'
 
 const ALL_WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
 
@@ -65,7 +66,7 @@ function EventBar({ ev, timeType, showEventNames, fontSizeWeight, onEventClick }
         gridRow: 1,
         // #106: 옛 alpha 22(12%) → 44(27%) 도 다크/라이트 모두 너무 옅어 chip 영역이 식별 안 됨.
         // 88(53%) 로 키워 텍스트 가독성을 유지하면서 chip span 이 명확히 보이도록.
-        backgroundColor: isAtTime ? 'transparent' : `${color}88`,
+        backgroundColor: isAtTime ? 'transparent' : withAlpha(color, '88'),
         fontSize,
       }}
       onClick={(e) => {

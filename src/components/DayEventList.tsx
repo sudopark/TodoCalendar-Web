@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
+import { withAlpha } from '../utils/color'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
 import { TimeDescription } from './TimeDescription'
 import { formatDateKey } from '../domain/functions/eventTime'
@@ -56,7 +57,7 @@ function EventItem({ calEvent, onEventClick, onComplete, isLast }: {
             {tagName && (
               <span
                 className="shrink-0 text-meta font-semibold px-1.5 py-0.5 rounded-full leading-none"
-                style={{ color, backgroundColor: `${color}22` }}
+                style={{ color, backgroundColor: withAlpha(color, '22') }}
               >
                 {tagName}
               </span>
