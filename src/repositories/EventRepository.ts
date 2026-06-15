@@ -195,6 +195,9 @@ export class EventRepository {
     const refTime = Math.floor(Date.now() / 1000)
     const local = this.deps.localStorageContainer
 
+    // reconcile 기준점: remote 동기화 직전 미완료 스냅샷
+    const prevUncompleted = useUncompletedTodosCache.getState().todos
+
     // 1. Cache-first
     if (local?.isInitialized()) {
       try {
@@ -219,6 +222,20 @@ export class EventRepository {
       }
     }
     useUncompletedTodosCache.getState().replaceAll(todos)
+
+    // 3. 캘린더 캐시 reconcile — 우측 미완료 목록만 갱신하면 좌측 월간 캘린더가
+    // 다른 디바이스의 완료/전진을 반영 못 하므로(#195) 서버 응답을 캘린더에도 동기화한다.
+    const nextIds = new Set(todos.map(t => t.uuid))
+    // 미완료 목록에서 빠진 = 다른 곳에서 완료/삭제됨 → 캘린더에서도 제거
+    prevUncompleted
+      .filter(t => !nextIds.has(t.uuid))
+      .forEach(t => useCalendarEventsCache.getState().removeEvent(t.uuid))
+    // 남아있는 todo는 event_time 이 전진됐을 수 있으므로 교체
+    todos.forEach(t => {
+      if (t.event_time) {
+        useCalendarEventsCache.getState().replaceEvent(t.uuid, { type: 'todo', event: t })
+      }
+    })
   }
 
   // ── observe: snapshot ────────────────────────────────────────────
