@@ -9,7 +9,7 @@ export function LanguageSection() {
     <SettingsSection title={t('settings.language')}>
       <select
         className={settingsInput}
-        value={i18n.language}
+        value={i18n.language === 'ko' ? 'ko' : 'en'}
         onChange={e => {
           const lang = e.target.value
           loadLanguage(lang)
