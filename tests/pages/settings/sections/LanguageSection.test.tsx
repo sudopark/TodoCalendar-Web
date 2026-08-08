@@ -23,4 +23,17 @@ describe('LanguageSection', () => {
     // then — en 폴백 문구가 아니라 실제 한국어 문구가 나온다
     expect(await screen.findByText('언어')).toBeInTheDocument()
   })
+
+  test('활성 언어가 ko/en 아닌 제3언어면 select 는 en 옵션이 선택된 상태로 보인다', async () => {
+    // given — de 는 옵션에 없는 언어 (resolveLanguage 가 반환할 수 있는 31개 언어 중 하나)
+    await loadLanguage('de')
+
+    // when
+    render(<LanguageSection />)
+
+    // then — 옵션에 없는 값이라 selectedIndex 가 -1(빈 선택)이 되면 안 되고, en 이 실제로 선택돼야 한다
+    const select = screen.getByRole('combobox') as HTMLSelectElement
+    expect(select.value).toBe('en')
+    expect(screen.getByRole('option', { name: 'English', selected: true })).toBeInTheDocument()
+  })
 })
