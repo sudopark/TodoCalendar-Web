@@ -21,6 +21,8 @@ export default defineConfig({
   globalSetup: './e2e/global-setup.ts',
   use: {
     baseURL: BASE_URL,
+    // 기존 e2e assertion 이 한국어 문구 기준 — 시스템 언어 감지 결과를 ko 로 고정한다
+    locale: 'ko-KR',
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
     video: (process.env.PLAYWRIGHT_VIDEO ?? 'off') as 'on' | 'off' | 'retain-on-failure' | 'on-first-retry',
