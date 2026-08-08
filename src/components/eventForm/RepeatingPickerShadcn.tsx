@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import type { EventTime, Repeating, RepeatingOption } from '../../models'
+import { useLocale } from '../../hooks/useLocale'
+import { weekdayShortLabels, weekdayLongLabels } from '../../utils/locale'
 
 const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -37,20 +39,16 @@ interface RepeatingPickerShadcnProps {
 }
 
 export function RepeatingPickerShadcn({ eventTime, repeating, onRepeatingChange }: RepeatingPickerShadcnProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const setRepeating = onRepeatingChange
+  const locale = useLocale()
 
   const startTimestamp = eventTime
     ? (eventTime.time_type === 'at' ? eventTime.timestamp : eventTime.period_start)
     : Math.floor(Date.now() / 1000)
 
-  const isKo = i18n.language !== 'en'
-  const DAY_LABELS = isKo
-    ? ['일', '월', '화', '수', '목', '금', '토']
-    : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
-  const DAY_FULL_LABELS = isKo
-    ? ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
-    : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const DAY_LABELS = useMemo(() => weekdayShortLabels(locale, 0), [locale])
+  const DAY_FULL_LABELS = useMemo(() => weekdayLongLabels(locale), [locale])
 
   const [enabled, setEnabled] = useState(!!repeating)
   const [option, setOption] = useState<RepeatingOption>(
