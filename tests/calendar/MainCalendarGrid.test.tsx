@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import MainCalendarGrid from '../../src/calendar/MainCalendarGrid'
 import { buildCalendarGrid } from '../../src/calendar/calendarUtils'
+import { weekdayShortLabels } from '../../src/utils/locale'
 import { useUiStore } from '../../src/stores/uiStore'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import { useHolidayCache } from '../../src/repositories/caches/holidayCache'
@@ -34,7 +35,7 @@ describe('MainCalendarGrid', () => {
     render(<MainCalendarGrid days={marchDays} />)
 
     // then: 요일 헤더 7개 표시
-    const weekdays = ['일', '월', '화', '수', '목', '금', '토']
+    const weekdays = weekdayShortLabels('ko', 0)
     weekdays.forEach(day => {
       expect(screen.getByText(day)).toBeInTheDocument()
     })

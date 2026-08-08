@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import type { CalendarAppearance, EventDisplayLevel, WeekStartDay } from '../../../repositories/caches/settingsCache'
@@ -9,15 +10,17 @@ import {
 import { CalendarAppearancePreview } from './appearance/CalendarAppearancePreview'
 import { EventDisplayPreview } from './appearance/EventDisplayPreview'
 import { EventListPreview } from './appearance/EventListPreview'
+import { useLocale } from '../../../hooks/useLocale'
+import { weekdayShortLabels } from '../../../utils/locale'
 
-const WEEKDAY_OPTIONS: { value: WeekStartDay; key: string }[] = [
-  { value: 0, key: 'sun' },
-  { value: 1, key: 'mon' },
-  { value: 2, key: 'tue' },
-  { value: 3, key: 'wed' },
-  { value: 4, key: 'thu' },
-  { value: 5, key: 'fri' },
-  { value: 6, key: 'sat' },
+const WEEKDAY_OPTIONS: { value: WeekStartDay }[] = [
+  { value: 0 },
+  { value: 1 },
+  { value: 2 },
+  { value: 3 },
+  { value: 4 },
+  { value: 5 },
+  { value: 6 },
 ]
 
 const EVENT_DISPLAY_OPTIONS: { value: EventDisplayLevel; key: string }[] = [
@@ -77,6 +80,9 @@ export function AppearanceSection({
   resetAppearanceToDefaults,
 }: Props) {
   const { t } = useTranslation()
+  const locale = useLocale()
+  // 요일 선택 버튼은 항상 일요일=0 고정 순서로 표시 (weekStartDay 로 회전하지 않음)
+  const weekdayOptionLabels = useMemo(() => weekdayShortLabels(locale, 0), [locale])
   const {
     weekStartDay,
     accentDays,
@@ -118,7 +124,7 @@ export function AppearanceSection({
                     : 'bg-surface-sunken text-fg hover:bg-surface-elevated',
                 )}
               >
-                {t(`calendar.weekdays.${opt.key}`, opt.key.toUpperCase())}
+                {weekdayOptionLabels[opt.value]}
               </button>
             ))}
           </div>
