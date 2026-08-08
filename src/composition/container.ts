@@ -8,7 +8,7 @@ import { holidayApi } from '../api/holidayApi'
 import { doneTodoApi } from '../api/doneTodoApi'
 import { foremostApi } from '../api/foremostApi'
 import { firebaseAuthApi } from '../api/firebaseAuthApi'
-import { setUnauthorizedHandler } from '../api/apiClient'
+import { setUnauthorizedHandler, setAcceptLanguageProvider } from '../api/apiClient'
 import { createOAuthAsApi } from '../api/oauthAsApi'
 import { EventRepository } from '../repositories/EventRepository'
 import { EventDetailRepository } from '../repositories/EventDetailRepository'
@@ -35,6 +35,9 @@ const authRepo = new AuthRepository({ api: firebaseAuthApi, localStorageContaine
 
 // 401 응답 시 AuthRepository를 통해 로그아웃 처리 — apiClient가 store를 직접 참조하지 않는다
 setUnauthorizedHandler(() => { authRepo.signOut() })
+
+// 서버 응답 로컬라이제이션용 — api 레이어는 i18n 에 무지, composition root 에서만 주입
+setAcceptLanguageProvider(() => i18n.language)
 
 const oauthAsBaseUrl = import.meta.env.VITE_OAUTH_AS_BASE_URL
 if (!oauthAsBaseUrl) {
