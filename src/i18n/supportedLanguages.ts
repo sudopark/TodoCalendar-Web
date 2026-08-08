@@ -5,8 +5,6 @@ export const SUPPORTED_LANGUAGES = [
   'fi', 'pl', 'cs', 'sk', 'hu', 'ru', 'uk', 'ro', 'el', 'hr', 'tr', 'id', 'ms', 'hi',
 ] as const
 
-export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]
-
 export const LANGUAGE_NATIVE_NAMES: Record<string, string> = {
   en: 'English',
   ko: '한국어',

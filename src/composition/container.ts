@@ -1,4 +1,5 @@
 import i18n from '../i18n'
+import { FALLBACK_LANGUAGE } from '../i18n/resolveLanguage'
 import { todoApi } from '../api/todoApi'
 import { scheduleApi } from '../api/scheduleApi'
 import { eventDetailApi } from '../api/eventDetailApi'
@@ -25,7 +26,7 @@ const localStorageContainer = new LocalStorageContainer()
 
 const holidayRepo = new HolidayRepository({
   api: holidayApi,
-  initialLocale: i18n.language || 'en',
+  initialLocale: FALLBACK_LANGUAGE,
   localStorageContainer,
 })
 // composition root 에서만 i18n 이벤트 처리 — Repository 자체는 i18n 무지
