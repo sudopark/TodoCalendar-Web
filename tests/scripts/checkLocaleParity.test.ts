@@ -1,4 +1,4 @@
-import { placeholdersOf, duplicateKeysOf, checkLocale } from '../../scripts/check-locale-parity.mjs'
+import { placeholdersOf, duplicateKeysOf, checkLocale, diffLanguageFiles } from '../../scripts/check-locale-parity.mjs'
 
 describe('placeholdersOf', () => {
   test('중괄호 플레이스홀더를 정렬해서 뽑는다', () => {
@@ -14,6 +14,46 @@ describe('placeholdersOf', () => {
 
   test('같은 플레이스홀더가 두 번 나오면 두 번 센다', () => {
     expect(placeholdersOf('{{day}} ~ {{day}}')).toEqual(['{{day}}', '{{day}}'])
+  })
+
+  test('문자열이 아닌 값이면 TypeError 대신 읽을 수 있는 표식을 반환한다', () => {
+    // given / when / then
+    expect(() => placeholdersOf(42)).not.toThrow()
+    expect(placeholdersOf(42)).toEqual(['(문자열 아님: number)'])
+    expect(placeholdersOf(null)).toEqual(['(문자열 아님: object)'])
+  })
+})
+
+describe('diffLanguageFiles', () => {
+  test('지원 언어인데 파일이 없으면 missing 으로 보고한다', () => {
+    // given / when
+    const { unknown, missing } = diffLanguageFiles(['en', 'ko'], ['en', 'ko', 'ja'])
+    // then
+    expect(missing).toEqual(['ja'])
+    expect(unknown).toEqual([])
+  })
+
+  test('지원 목록에 없는 파일이 있으면 unknown 으로 보고한다', () => {
+    // given / when
+    const { unknown, missing } = diffLanguageFiles(['en', 'ko', 'zz'], ['en', 'ko'])
+    // then
+    expect(unknown).toEqual(['zz'])
+    expect(missing).toEqual([])
+  })
+
+  test('대소문자가 틀린 파일명은 unknown 이면서 정식 코드는 missing 으로도 잡힌다', () => {
+    // given — zh-Hans 가 지원 목록에 있는데 파일은 소문자 zh-hans.json 으로 잘못 저장된 경우
+    const { unknown, missing } = diffLanguageFiles(['en', 'zh-hans'], ['en', 'zh-Hans'])
+    // then
+    expect(unknown).toEqual(['zh-hans'])
+    expect(missing).toEqual(['zh-Hans'])
+  })
+
+  test('en 은 파일이 없어도 missing 대상이 아니다', () => {
+    // given / when
+    const { missing } = diffLanguageFiles(['ko'], ['en', 'ko'])
+    // then
+    expect(missing).toEqual([])
   })
 })
 
@@ -68,5 +108,13 @@ describe('checkLocale', () => {
     const raw = '{\n "nav.calendar": "달력",\n "repeating.detail_n_times": "{{count}}회",\n "nav.calendar": "캘린더"\n}'
     const violations = checkLocale(reference, JSON.parse(raw), raw, 'ko')
     expect(violations.join('\n')).toContain('중복')
+  })
+
+  test('값이 문자열이 아니면 TypeError 없이 플레이스홀더 불일치로 보고한다', () => {
+    const target = { 'nav.calendar': '달력', 'repeating.detail_n_times': 42 }
+    const raw = JSON.stringify(target)
+    expect(() => checkLocale(reference, target, raw, 'ko')).not.toThrow()
+    const violations = checkLocale(reference, target, raw, 'ko')
+    expect(violations.join('\n')).toContain('repeating.detail_n_times')
   })
 })

@@ -1,12 +1,16 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { SUPPORTED_LANGUAGES } from '../src/i18n/supportedLanguages.ts'
 
 export const IGNORED_PREFIXES = ['dev.']
 
 const isIgnored = key => IGNORED_PREFIXES.some(p => key.startsWith(p))
 
 export function placeholdersOf(value) {
+  if (typeof value !== 'string') {
+    return [`(문자열 아님: ${typeof value})`]
+  }
   return (value.match(/\{\{\s*[^}]+\s*\}\}/g) ?? [])
     .map(m => `{{${m.slice(2, -2).trim()}}}`)
     .sort()
@@ -53,6 +57,19 @@ export function checkLocale(reference, target, rawTarget, code) {
   return violations
 }
 
+/**
+ * 로케일 파일 목록을 SUPPORTED_LANGUAGES 와 양방향으로 대조한다.
+ * unknown: 지원 목록에 없는데 파일이 있는 경우 (오타·오타 코드 등) — 하드 위반 대상.
+ * missing: 지원 목록엔 있는데 파일이 아직 없는 경우 (en 제외) — 정보성, 실패 대상 아님.
+ */
+export function diffLanguageFiles(fileCodes, supported) {
+  const fileSet = new Set(fileCodes)
+  const supportedSet = new Set(supported)
+  const unknown = fileCodes.filter(code => !supportedSet.has(code)).sort()
+  const missing = supported.filter(code => code !== 'en' && !fileSet.has(code)).sort()
+  return { unknown, missing }
+}
+
 function main() {
   const dir = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '../src/locales')
   const rawEn = readFileSync(path.join(dir, 'en.json'), 'utf-8')
@@ -61,11 +78,23 @@ function main() {
   const all = []
   for (const dup of duplicateKeysOf(rawEn)) all.push(`[en] 중복 키: ${dup}`)
 
-  const files = readdirSync(dir).filter(f => f.endsWith('.json') && f !== 'en.json').sort()
+  const jsonFiles = readdirSync(dir).filter(f => f.endsWith('.json')).sort()
+  const fileCodes = jsonFiles.map(f => f.replace(/\.json$/, ''))
+  const { unknown, missing } = diffLanguageFiles(fileCodes, SUPPORTED_LANGUAGES)
+
+  for (const code of unknown) {
+    all.push(`[parity] SUPPORTED_LANGUAGES 에 없는 파일: ${code}.json`)
+  }
+
+  const files = jsonFiles.filter(f => f !== 'en.json')
   for (const file of files) {
     const code = file.replace(/\.json$/, '')
     const raw = readFileSync(path.join(dir, file), 'utf-8')
     all.push(...checkLocale(reference, JSON.parse(raw), raw, code))
+  }
+
+  if (missing.length > 0) {
+    console.log(`[info] 파일 없는 지원 언어 (${missing.length}개 — #201 예정): ${missing.join(', ')}`)
   }
 
   if (all.length > 0) {
