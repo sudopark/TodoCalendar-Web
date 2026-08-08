@@ -1,19 +1,27 @@
+import { useTranslation } from 'react-i18next'
 import type { EventTime } from '../models'
+import { useLocale } from '../hooks/useLocale'
+import { formatTimeOfDay, formatTimeRange } from '../utils/locale'
 
 export function TimeDescription({ eventTime }: { eventTime?: EventTime | null }) {
-  if (!eventTime) return <span>Todo</span>
+  const { t } = useTranslation()
+  const locale = useLocale()
+
+  if (!eventTime) return <span>{t('eventType.todo')}</span>
   switch (eventTime.time_type) {
-    case 'at': {
-      const d = new Date(eventTime.timestamp * 1000)
-      return <span>{d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
-    }
+    case 'at':
+      return <span>{formatTimeOfDay(new Date(eventTime.timestamp * 1000), locale)}</span>
     case 'allday':
-      return <span>All day</span>
-    case 'period': {
-      const start = new Date(eventTime.period_start * 1000)
-      const end = new Date(eventTime.period_end * 1000)
-      const fmt = (d: Date) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-      return <span>{fmt(start)} - {fmt(end)}</span>
-    }
+      return <span>{t('eventTime.allday')}</span>
+    case 'period':
+      return (
+        <span>
+          {formatTimeRange(
+            new Date(eventTime.period_start * 1000),
+            new Date(eventTime.period_end * 1000),
+            locale,
+          )}
+        </span>
+      )
   }
 }

@@ -58,6 +58,7 @@ function formatTimezoneLabel(): string {
   const absMin = Math.abs(offsetMin)
   const hh = String(Math.floor(absMin / 60)).padStart(2, '0')
   const mm = String(absMin % 60).padStart(2, '0')
+  // 타임존 식별자 표시용 — UI 언어와 무관하게 en 고정
   const longName =
     new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'long' })
       .formatToParts(new Date())
