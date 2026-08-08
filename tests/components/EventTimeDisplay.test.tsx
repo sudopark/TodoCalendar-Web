@@ -106,4 +106,20 @@ describe('EventTimeDisplay', () => {
     // then
     expect(screen.getByText(i18n.t('eventTime.allday'))).toBeInTheDocument()
   })
+
+  test('서쪽 오프셋(UTC-8) 여러 날 종일 일정은 UTC 기준으로 날짜를 읽는다', () => {
+    // given — period_start 는 2026-04-27T00:00Z, seconds_from_gmt=-28800(서쪽 오프셋).
+    // UTC 로 읽으면 4/26 시작인데, vitest 시스템 TZ(Asia/Seoul, +9h)로 읽으면 4/27 시작으로 하루씩 밀린다
+    const periodStart = Math.floor(new Date('2026-04-27T00:00:00Z').getTime() / 1000)
+    const periodEnd = periodStart + 2 * 86400
+    const eventTime: EventTime = {
+      time_type: 'allday', period_start: periodStart, period_end: periodEnd, seconds_from_gmt: -28800,
+    }
+    // when
+    render(<EventTimeDisplay eventTime={eventTime} />)
+    // then — UTC 기준 라벨이어야 한다 (시스템 TZ로 읽으면 하루씩 밀린 라벨이 나와 실패한다)
+    const s = formatMonthDay(new Date((periodStart - 28800) * 1000), i18n.language, 'UTC')
+    const e = formatMonthDay(new Date((periodEnd - 28800) * 1000), i18n.language, 'UTC')
+    expect(screen.getByText(`${s} – ${e}`)).toBeInTheDocument()
+  })
 })
