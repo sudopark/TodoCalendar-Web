@@ -82,6 +82,17 @@ React 19 + TypeScript + Vite + Tailwind + Zustand. 구조는 `ls src/`로 확인
 - 머지는 반드시 **rebase merge** (`--rebase`), 리뷰 approve + push 완료 후
 - 다음 태스크 브랜치는 항상 **최신 develop 기반**
 
+## 로컬라이제이션
+
+지원 언어 31개 — `en`(원문) `ko ja zh-Hans zh-Hant vi th es fr it pt-BR ca de nl sv da nb fi pl cs sk hu ru uk ro el hr tr id ms hi`. 리소스는 `src/locales/<code>.json`.
+
+**`src/locales/en.json` 에 키를 추가·삭제하거나 `{{...}}` 플레이스홀더를 바꾸면 같은 커밋 흐름에서 나머지 30개 언어 JSON 을 갱신한다.** en/ko 만 갱신하고 끝내면 29개 언어가 즉시 stale 이 된다.
+
+- 검증: `npm run test:locale` — 키 세트·플레이스홀더 multiset·중복 키를 en 과 대조. 커밋 전 0 위반 확인
+- `dev.*` 키는 개발 전용이라 en/ko 만 유지하며 파리티 검사에서 제외된다
+- JSON 은 **flat 구조에 점 포함 키**(`"nav.calendar": "..."`)다. 중첩 객체로 바꾸지 말 것
+- 날짜·시각 포맷은 번역 대상이 아니다 — `src/utils/locale.ts` 의 헬퍼가 `Intl` 로 처리한다
+
 ## Testing Strategy
 
 - **단위/컴포넌트 테스트**: Vitest + React Testing Library (`tests/`)
