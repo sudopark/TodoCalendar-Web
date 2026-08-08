@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useLocale } from '../hooks/useLocale'
+import { formatMonthLong } from '../utils/locale'
 import TestDataSeederButton from './dev/TestDataSeederButton'
 
 export interface TopToolbarProps {
@@ -26,13 +28,13 @@ export default function TopToolbar({
   onGoToNextMonth,
   onRefresh,
 }: TopToolbarProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
+  const locale = useLocale()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
 
   const year = currentMonth.getFullYear()
-  const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
-  const monthLabel = currentMonth.toLocaleDateString(dateLocale, { month: 'long' })
+  const monthLabel = formatMonthLong(currentMonth, locale)
 
   const iconBtn = 'rounded-full p-2 text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors'
   const navBtn = 'rounded-full p-2 text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors'

@@ -129,15 +129,16 @@ describe('navigateMonth', () => {
 })
 
 describe('formatMonthTitle', () => {
-  test('월과 연도를 포맷한다', () => {
-    expect(formatMonthTitle(2026, 2)).toBe('March 2026')
+  test('로케일에 맞춰 월과 연도를 포맷한다', () => {
+    expect(formatMonthTitle(2026, 2, 'en')).toBe('March 2026')
   })
 
-  test('1월을 올바르게 포맷한다', () => {
-    expect(formatMonthTitle(2026, 0)).toBe('January 2026')
+  test('다른 언어면 다른 표기를 낸다', () => {
+    expect(formatMonthTitle(2026, 2, 'ko')).toBe('2026년 3월')
   })
 
-  test('12월을 올바르게 포맷한다', () => {
-    expect(formatMonthTitle(2026, 11)).toBe('December 2026')
+  test('1월과 12월을 올바르게 포맷한다', () => {
+    expect(formatMonthTitle(2026, 0, 'en')).toBe('January 2026')
+    expect(formatMonthTitle(2026, 11, 'en')).toBe('December 2026')
   })
 })
