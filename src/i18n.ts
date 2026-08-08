@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next'
 import { SUPPORTED_LANGUAGES } from './i18n/supportedLanguages'
 import { resolveLanguage, FALLBACK_LANGUAGE } from './i18n/resolveLanguage'
 
-export const LANGUAGE_STORAGE_KEY = 'language'
+const LANGUAGE_STORAGE_KEY = 'language'
 
 const loaders = import.meta.glob('./locales/*.json') as Record<
   string,
@@ -60,8 +60,10 @@ function systemLanguages(): string[] {
 export async function initI18n(): Promise<void> {
   const initial = resolveLanguage(readStoredLanguage(), systemLanguages(), SUPPORTED_LANGUAGES)
 
-  const fallbackBundle = await fetchBundle(FALLBACK_LANGUAGE)
-  const initialBundle = initial === FALLBACK_LANGUAGE ? null : await fetchBundle(initial)
+  const [fallbackBundle, initialBundle] = await Promise.all([
+    fetchBundle(FALLBACK_LANGUAGE),
+    initial === FALLBACK_LANGUAGE ? Promise.resolve(null) : fetchBundle(initial),
+  ])
 
   await i18n.use(initReactI18next).init({
     resources: {

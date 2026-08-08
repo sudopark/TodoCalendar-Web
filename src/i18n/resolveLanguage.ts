@@ -15,7 +15,6 @@ const EXPLICIT_ALIASES: Record<string, string> = {
   no: 'nb',
   nn: 'nb',
   in: 'id',
-  iw: 'he',
 }
 
 function matchOne(tag: string, supported: readonly string[]): string | null {
