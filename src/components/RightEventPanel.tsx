@@ -12,6 +12,8 @@ import { QuickTodoInput } from './QuickTodoInput'
 import { CreateEventButton } from './CreateEventButton'
 import { ArchivePanel } from './ArchivePanel'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useLocale } from '../hooks/useLocale'
+import { formatFullDate, formatWeekdayLong } from '../utils/locale'
 import type { RightPanelMode } from '../stores/uiStore'
 
 function formatLunarDate(date: Date, locale: string): string | null {
@@ -69,22 +71,18 @@ export function RightEventPanel({
   onEventClick = () => {},
   onDoneTodoClick,
 }: RightEventPanelProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
+  const locale = useLocale()
   const isMobile = useIsMobile()
-  const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
 
   if (rightPanelMode === 'archive') {
     return <ArchivePanel onDoneTodoClick={onDoneTodoClick} />
   }
 
-  const dateTitle = selectedDate
-    ? selectedDate.toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric' })
-    : ''
-  const weekdayText = selectedDate
-    ? selectedDate.toLocaleDateString(dateLocale, { weekday: 'long' })
-    : ''
+  const dateTitle = selectedDate ? formatFullDate(selectedDate, locale) : ''
+  const weekdayText = selectedDate ? formatWeekdayLong(selectedDate, locale) : ''
   const holidayNames = selectedDate ? getHolidayNames(formatDateKey(selectedDate)) : []
-  const lunarText = selectedDate && showLunarCalendar ? formatLunarDate(selectedDate, dateLocale) : null
+  const lunarText = selectedDate && showLunarCalendar ? formatLunarDate(selectedDate, locale) : null
 
   return (
     <div className="w-full h-full flex flex-col bg-surface relative">

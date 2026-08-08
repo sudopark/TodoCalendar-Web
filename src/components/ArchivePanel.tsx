@@ -7,6 +7,8 @@ import { useUiStore } from '../stores/uiStore'
 import { useRepositories } from '../composition/RepositoriesProvider'
 import { ConfirmDialog } from './ConfirmDialog'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
+import { useLocale } from '../hooks/useLocale'
+import { formatDateNumeric } from '../utils/locale'
 import type { DoneTodo } from '../models'
 
 interface DoneTodoRowProps {
@@ -70,7 +72,8 @@ export interface ArchivePanelProps {
 }
 
 export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
+  const locale = useLocale()
   const exitArchivePanel = useUiStore(s => s.exitArchivePanel)
   const toggleRightPanel = useUiStore(s => s.toggleRightPanel)
   const { doneTodoRepo } = useRepositories()
@@ -82,14 +85,14 @@ export function ArchivePanel({ onDoneTodoClick }: ArchivePanelProps = {}) {
     const result = new Map<string, DoneTodo[]>()
     for (const item of items) {
       const dateKey = item.done_at
-        ? new Date(item.done_at * 1000).toLocaleDateString(i18n.language)
+        ? formatDateNumeric(new Date(item.done_at * 1000), locale)
         : t('todo.no_date')
       const group = result.get(dateKey) ?? []
       group.push(item)
       result.set(dateKey, group)
     }
     return result
-  }, [items, i18n.language, t])
+  }, [items, locale, t])
 
   useEffect(() => {
     reset()

@@ -22,6 +22,7 @@ function isSameDay(a: Date, b: Date): boolean {
  *    마지막 날이 토요일이면 아래에 다음 달 첫 주 1행 추가)
  */
 import { formatDateKey } from '../domain/functions/eventTime'
+import { formatMonthYearLong } from '../utils/locale'
 
 export function buildCalendarGrid(
   year: number,
@@ -69,7 +70,6 @@ export function navigateMonth(current: Date, delta: -1 | 1): Date {
   return new Date(current.getFullYear(), current.getMonth() + delta, 1)
 }
 
-export function formatMonthTitle(year: number, month: number): string {
-  const date = new Date(year, month, 1)
-  return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date)
+export function formatMonthTitle(year: number, month: number, locale: string): string {
+  return formatMonthYearLong(new Date(year, month, 1), locale)
 }
