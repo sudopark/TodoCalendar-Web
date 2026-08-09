@@ -66,6 +66,18 @@ describe('duplicateKeysOf', () => {
   test('중복이 없으면 빈 배열이다', () => {
     expect(duplicateKeysOf('{\n "a.b": "1",\n "c.d": "2"\n}')).toEqual([])
   })
+
+  test('한 줄로 압축된(minified) JSON 이어도 같은 줄 위의 중복을 검출한다', () => {
+    // given — 개행 없는 compact JSON, "a.b" 가 한 줄 안에서 두 번
+    const raw = '{"a.b":"1","c.d":"2","a.b":"3"}'
+    expect(duplicateKeysOf(raw)).toEqual(['a.b'])
+  })
+
+  test('값 문자열 안의 "따옴표+콜론" 시퀀스를 key 로 오인하지 않는다', () => {
+    // given — value 안에 이스케이프된 큰따옴표 뒤에 콜론이 오는 문자열(`\": `)이 포함됨
+    const raw = '{\n "a.b": "He said \\": there\\"",\n "c.d": "2"\n}'
+    expect(duplicateKeysOf(raw)).toEqual([])
+  })
 })
 
 describe('checkLocale', () => {

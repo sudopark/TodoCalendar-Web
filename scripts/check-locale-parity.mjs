@@ -16,11 +16,17 @@ export function placeholdersOf(value) {
     .sort()
 }
 
+/**
+ * 로케일 JSON은 항상 평평한 `{ "key": "value", ... }` 형태(중첩 없음)라는 전제로,
+ * 줄바꿈에 기대지 않고 따옴표 문자열 리터럴을 escape 인지하며 순서대로 뽑아 짝수 번째(0-based)를
+ * key 로 취급한다. 한 줄에 여러 key 가 있어도, 값 안에 `":` 시퀀스가 있어도 흔들리지 않는다.
+ */
 export function duplicateKeysOf(rawJson) {
+  const strings = [...rawJson.matchAll(/"((?:[^"\\]|\\.)*)"/g)].map(m => m[1])
   const seen = new Set()
   const dupes = new Set()
-  for (const m of rawJson.matchAll(/^\s*"((?:[^"\\]|\\.)*)"\s*:/gm)) {
-    const key = m[1]
+  for (let i = 0; i < strings.length; i += 2) {
+    const key = strings[i]
     if (seen.has(key)) dupes.add(key)
     seen.add(key)
   }
