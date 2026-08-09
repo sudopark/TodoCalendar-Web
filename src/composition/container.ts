@@ -24,13 +24,20 @@ import { LocalStorageContainer } from '../repositories/local-storage/LocalStorag
 
 const localStorageContainer = new LocalStorageContainer()
 
+// 공휴일 API 는 Google Calendar holiday 캘린더 id(`${locale}.${countryCode}.official#holiday@group.v.calendar.google.com`)
+// 에 locale 을 그대로 꽂아 넣는다. 이 id 가 유효한 값은 사실상 ko/en 뿐이라 나머지 29개 UI 언어 태그를
+// 그대로 보내면 조회가 통째로 실패한다 (TodoCalendar-Functions holidayService.js). ko/en 으로 clamp.
+function toHolidayApiLocale(uiLanguage: string): 'ko' | 'en' {
+  return uiLanguage === 'ko' ? 'ko' : 'en'
+}
+
 const holidayRepo = new HolidayRepository({
   api: holidayApi,
-  initialLocale: FALLBACK_LANGUAGE,
+  initialLocale: toHolidayApiLocale(FALLBACK_LANGUAGE),
   localStorageContainer,
 })
 // composition root 에서만 i18n 이벤트 처리 — Repository 자체는 i18n 무지
-i18n.on('languageChanged', (lng: string) => holidayRepo.setLocale(lng))
+i18n.on('languageChanged', (lng: string) => holidayRepo.setLocale(toHolidayApiLocale(lng)))
 
 const authRepo = new AuthRepository({ api: firebaseAuthApi, localStorageContainer })
 
