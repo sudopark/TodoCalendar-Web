@@ -1,7 +1,14 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { SUPPORTED_LANGUAGES } from '../src/i18n/supportedLanguages.ts'
+
+// .ts 를 .mjs 에서 직접 import 하면 Node ≥22.18 의 type-stripping 이 필요해 .nvmrc(메이저만 고정)
+// 범위 안의 구버전 Node 22 에서 ERR_UNKNOWN_FILE_EXTENSION 으로 죽는다. supportedLanguages.ts 가
+// 참조하는 JSON을 여기서도 직접 읽어 같은 소스를 공유한다.
+const scriptDir = path.dirname(fileURLToPath(import.meta.url))
+const { codes: SUPPORTED_LANGUAGES } = JSON.parse(
+  readFileSync(path.resolve(scriptDir, '../src/i18n/supportedLanguages.json'), 'utf-8'),
+)
 
 export const IGNORED_PREFIXES = ['dev.']
 
