@@ -9,9 +9,10 @@ describe('LANGUAGE_OPTIONS', () => {
     const codes = LANGUAGE_OPTIONS.map(o => o.code)
 
     // then: 지원 언어와 코드 집합이 일치하고, 모든 항목에 표기 이름이 채워져 있다
+    // 이름이 빠지면 코드 문자열로 폴백하므로, 폴백하지 않았음을 확인해야 실제 가드가 된다
     expect(codes).toEqual([...SUPPORTED_LANGUAGES])
-    expect(LANGUAGE_OPTIONS.every(o => o.nativeName.length > 0)).toBe(true)
-    expect(LANGUAGE_OPTIONS.every(o => o.englishName.length > 0)).toBe(true)
+    expect(LANGUAGE_OPTIONS.filter(o => o.nativeName === o.code)).toEqual([])
+    expect(LANGUAGE_OPTIONS.filter(o => o.englishName === o.code)).toEqual([])
   })
 })
 

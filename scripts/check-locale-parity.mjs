@@ -6,9 +6,11 @@ import { fileURLToPath } from 'node:url'
 // 범위 안의 구버전 Node 22 에서 ERR_UNKNOWN_FILE_EXTENSION 으로 죽는다. supportedLanguages.ts 가
 // 참조하는 JSON을 여기서도 직접 읽어 같은 소스를 공유한다.
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
-const { codes: SUPPORTED_LANGUAGES } = JSON.parse(
-  readFileSync(path.resolve(scriptDir, '../src/i18n/supportedLanguages.json'), 'utf-8'),
-)
+const {
+  codes: SUPPORTED_LANGUAGES,
+  nativeNames: LANGUAGE_NATIVE_NAMES,
+  englishNames: LANGUAGE_ENGLISH_NAMES,
+} = JSON.parse(readFileSync(path.resolve(scriptDir, '../src/i18n/supportedLanguages.json'), 'utf-8'))
 
 export const IGNORED_PREFIXES = ['dev.']
 
@@ -83,6 +85,19 @@ export function diffLanguageFiles(fileCodes, supported) {
   return { unknown, missing }
 }
 
+/**
+ * codes 에 언어를 추가하고 표시 이름을 빠뜨리면 LanguagePicker 목록·검색이 코드 문자열로 폴백해
+ * 조용히 반쪽으로 동작한다. 코드 쪽 폴백은 런타임 방어일 뿐이라 여기서 누락 자체를 막는다.
+ */
+export function missingDisplayNames(codes, nativeNames, englishNames) {
+  const violations = []
+  for (const code of codes) {
+    if (!nativeNames[code]) violations.push(`[parity] ${code}: nativeNames 누락`)
+    if (!englishNames[code]) violations.push(`[parity] ${code}: englishNames 누락`)
+  }
+  return violations
+}
+
 function main() {
   const dir = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '../src/locales')
   const rawEn = readFileSync(path.join(dir, 'en.json'), 'utf-8')
@@ -98,6 +113,8 @@ function main() {
   for (const code of unknown) {
     all.push(`[parity] SUPPORTED_LANGUAGES 에 없는 파일: ${code}.json`)
   }
+
+  all.push(...missingDisplayNames(SUPPORTED_LANGUAGES, LANGUAGE_NATIVE_NAMES, LANGUAGE_ENGLISH_NAMES))
 
   const files = jsonFiles.filter(f => f !== 'en.json')
   for (const file of files) {
