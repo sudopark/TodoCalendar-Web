@@ -37,7 +37,15 @@ const holidayRepo = new HolidayRepository({
   localStorageContainer,
 })
 // composition root 에서만 i18n 이벤트 처리 — Repository 자체는 i18n 무지
-i18n.on('languageChanged', (lng: string) => holidayRepo.setLocale(toHolidayApiLocale(lng)))
+let holidayApiLocale = toHolidayApiLocale(FALLBACK_LANGUAGE)
+i18n.on('languageChanged', (lng: string) => {
+  const next = toHolidayApiLocale(lng)
+  if (next === holidayApiLocale) return
+  holidayApiLocale = next
+  holidayRepo.setLocale(next)
+  // 화면 이동 없이 언어만 바꾸는 경로(툴바 LanguagePicker)에서는 재조회를 태울 다른 계기가 없다.
+  holidayRepo.refetchLoadedYears()
+})
 
 const authRepo = new AuthRepository({ api: firebaseAuthApi, localStorageContainer })
 
