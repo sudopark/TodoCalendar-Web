@@ -1,4 +1,4 @@
-import { placeholdersOf, duplicateKeysOf, checkLocale, diffLanguageFiles } from '../../scripts/check-locale-parity.mjs'
+import { placeholdersOf, duplicateKeysOf, checkLocale, diffLanguageFiles, missingDisplayNames } from '../../scripts/check-locale-parity.mjs'
 
 describe('placeholdersOf', () => {
   test('중괄호 플레이스홀더를 정렬해서 뽑는다', () => {
@@ -128,5 +128,44 @@ describe('checkLocale', () => {
     expect(() => checkLocale(reference, target, raw, 'ko')).not.toThrow()
     const violations = checkLocale(reference, target, raw, 'ko')
     expect(violations.join('\n')).toContain('repeating.detail_n_times')
+  })
+})
+
+describe('missingDisplayNames', () => {
+  it('모든 지원 언어에 자국어명·영문명이 있으면 위반이 없다', () => {
+    // given / when
+    const violations = missingDisplayNames(
+      ['en', 'ko'],
+      { en: 'English', ko: '한국어' },
+      { en: 'English', ko: 'Korean' },
+    )
+
+    // then
+    expect(violations).toEqual([])
+  })
+
+  it('지원 언어를 추가하고 표시 이름을 빠뜨리면 어느 이름이 빠졌는지 알려준다', () => {
+    // given: codes 에는 있는데 englishNames 에만 없는 언어
+    // when
+    const violations = missingDisplayNames(
+      ['en', 'ko', 'ja'],
+      { en: 'English', ko: '한국어', ja: '日本語' },
+      { en: 'English', ko: 'Korean' },
+    )
+
+    // then
+    expect(violations).toEqual(['[parity] ja: englishNames 누락'])
+  })
+
+  it('자국어명이 빠진 경우도 잡는다', () => {
+    // given / when
+    const violations = missingDisplayNames(
+      ['en', 'th'],
+      { en: 'English' },
+      { en: 'English', th: 'Thai' },
+    )
+
+    // then
+    expect(violations).toEqual(['[parity] th: nativeNames 누락'])
   })
 })
