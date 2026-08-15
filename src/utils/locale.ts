@@ -59,3 +59,8 @@ export function weekdayShortLabels(locale: string, weekStartDay: number): string
 export function weekdayLongLabels(locale: string): string[] {
   return weekdayLabels(locale, 'long')
 }
+
+export function monthLongLabels(locale: string): string[] {
+  const fmt = new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' })
+  return Array.from({ length: 12 }, (_, i) => fmt.format(new Date(Date.UTC(2026, i, 1))))
+}
