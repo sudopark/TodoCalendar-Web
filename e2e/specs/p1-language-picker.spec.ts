@@ -23,6 +23,10 @@ test.describe('메인 툴바 언어 선택', () => {
       /January|February|March|April|May|June|July|August|September|October|November|December/,
     )
 
+    // 요일 헤더도 영어 축약 표기로 바뀐다
+    await expect(page.getByTestId('calendar-weekday-header')).toContainText('Sun')
+    await expect(page.getByTestId('calendar-weekday-header')).not.toContainText('일')
+
     // 다른 화면에도 선택이 적용된다
     await page.goto('/settings')
     await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()

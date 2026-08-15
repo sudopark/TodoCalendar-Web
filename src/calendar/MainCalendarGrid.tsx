@@ -182,7 +182,7 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
   return (
     <div className="flex h-full flex-col">
       {/* 요일 헤더 */}
-      <div className="grid grid-cols-7 pb-2 shrink-0">
+      <div data-testid="calendar-weekday-header" className="grid grid-cols-7 pb-2 shrink-0">
         {weekdayLabels.map((label, i) => {
           const dayOfWeek = (weekStartDay + i) % 7
           const accent = (accentDays.sunday && dayOfWeek === 0) || (accentDays.saturday && dayOfWeek === 6)
