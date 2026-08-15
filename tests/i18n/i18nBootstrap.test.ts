@@ -29,12 +29,27 @@ describe('i18n 부트스트랩', () => {
     expect(withoutBundle).toEqual([])
   })
 
-  test('번들이 없는 언어로 전환하면 en 문구로 폴백한다', async () => {
-    // given — 로케일 파일이 없는 코드
-    expect(loaderFor('xx')).toBeUndefined()
+  test('지원 언어인데 번들만 없으면 언어는 그대로 두고 문구만 en 으로 폴백한다', async () => {
+    // given — de 로더만 없는 상태. setup.ts 의 initI18n 이 vi.mock hoisting 보다 먼저 돌아서
+    // top-level mock 이 안 먹으므로 resetModules + doMock 으로 새 인스턴스를 만든다
+    vi.resetModules()
+    vi.doMock('../../src/i18n/localeBundleLoaders', async () => {
+      const actual = await vi.importActual<typeof import('../../src/i18n/localeBundleLoaders')>(
+        '../../src/i18n/localeBundleLoaders',
+      )
+      return { loaderFor: (lng: string) => (lng === 'de' ? undefined : actual.loaderFor(lng)) }
+    })
+    const fresh = await import('../../src/i18n')
+    await fresh.initI18n()
+
     // when
-    await loadLanguage('xx')
-    // then
-    expect(i18n.t('nav.calendar')).toBe('Calendar')
+    await fresh.loadLanguage('de')
+
+    // then — 미지원 코드로 걸러진 게 아니라 번들만 없는 상태여야 의미가 있다
+    expect(fresh.default.language).toBe('de')
+    expect(fresh.default.t('nav.calendar')).toBe('Calendar')
+
+    vi.doUnmock('../../src/i18n/localeBundleLoaders')
+    vi.resetModules()
   })
 })
