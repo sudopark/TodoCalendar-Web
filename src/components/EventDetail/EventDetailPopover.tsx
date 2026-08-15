@@ -13,6 +13,7 @@ import { formatNotification } from '../../utils/formatNotification'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { BottomSheet } from '../ui/BottomSheet'
 import { describeRepeating } from '../../domain/functions/repeatingDescription'
+import { useLocale } from '../../hooks/useLocale'
 
 const ACTION_BTN = 'p-1.5 rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors'
 const INFO_ROW = 'flex items-start gap-2 text-info text-fg-secondary leading-snug'
@@ -35,6 +36,7 @@ export function EventDetailPopover({
   onDelete,
 }: EventDetailPopoverProps) {
   const { t } = useTranslation()
+  const locale = useLocale()
   const isMobile = useIsMobile()
   const vm = useEventDetailPopoverViewModel(calEvent)
   const titleId = useId()
@@ -124,7 +126,7 @@ export function EventDetailPopover({
         {repeating && (
           <div className={INFO_ROW} data-testid="repeating-info">
             <Repeat className={INFO_ICON} />
-            <span className="min-w-0">{describeRepeating(repeating)}</span>
+            <span className="min-w-0">{describeRepeating(repeating, t, locale)}</span>
           </div>
         )}
 
