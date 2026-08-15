@@ -11,6 +11,7 @@ import { foremostApi } from '../api/foremostApi'
 import { firebaseAuthApi } from '../api/firebaseAuthApi'
 import { setUnauthorizedHandler, setAcceptLanguageProvider } from '../api/apiClient'
 import { createOAuthAsApi } from '../api/oauthAsApi'
+import { createPublicDocApi } from '../api/publicDocApi'
 import { EventRepository } from '../repositories/EventRepository'
 import { EventDetailRepository } from '../repositories/EventDetailRepository'
 import { TagRepository } from '../repositories/TagRepository'
@@ -20,6 +21,7 @@ import { ForemostEventRepository } from '../repositories/ForemostEventRepository
 import { AuthRepository } from '../repositories/AuthRepository'
 import { SettingsRepository } from '../repositories/SettingsRepository'
 import { OAuthConsentRepository } from '../repositories/OAuthConsentRepository'
+import { PublicDocRepository } from '../repositories/PublicDocRepository'
 import { LocalStorageContainer } from '../repositories/local-storage/LocalStorageContainer'
 
 const localStorageContainer = new LocalStorageContainer()
@@ -62,6 +64,12 @@ if (!oauthAsBaseUrl) {
 const oauthAsApi = createOAuthAsApi(oauthAsBaseUrl)
 const oauthConsentRepo = new OAuthConsentRepository({ api: oauthAsApi })
 
+// 환경별 문서 소스 교체용. 미설정 시 운영 기본값 — 공개 URL 이라 항상 동작해야 하므로 throw 하지 않는다.
+const publicDocsBaseUrl =
+  import.meta.env.VITE_PUBLIC_DOCS_BASE_URL ??
+  'https://raw.githubusercontent.com/sudopark/TodoCalendar-Terms/main'
+const publicDocRepo = new PublicDocRepository({ api: createPublicDocApi(publicDocsBaseUrl) })
+
 export interface Repositories {
   eventRepo: EventRepository
   eventDetailRepo: EventDetailRepository
@@ -73,6 +81,7 @@ export interface Repositories {
   settingsRepo: SettingsRepository
   oauthConsentRepo: OAuthConsentRepository
   oauthConsentCallbackUrl: string
+  publicDocRepo: PublicDocRepository
   localStorageContainer: LocalStorageContainer
 }
 
@@ -90,5 +99,6 @@ export const repositories: Repositories = {
   settingsRepo: new SettingsRepository(),
   oauthConsentRepo,
   oauthConsentCallbackUrl: `${oauthAsBaseUrl}/v1/oauth/consent/callback`,
+  publicDocRepo,
   localStorageContainer,
 }
