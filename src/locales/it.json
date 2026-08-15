@@ -20,7 +20,7 @@
   "todo.done_list": "Da fare completati",
   "todo.complete": "Completa",
   "todo.skip": "Salta",
-  "todo.revert": "Annulla completamento",
+  "todo.revert": "Ripristina",
   "event.name": "Nome",
   "event.namePlaceholder": "Aggiungi un nome evento",
   "event.tag": "Etichetta",
