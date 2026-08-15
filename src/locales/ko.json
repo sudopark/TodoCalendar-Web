@@ -123,6 +123,7 @@
   "settings.menu.notification": "알림",
   "settings.menu.account": "계정",
   "settings.back": "뒤로",
+  "settings.legal": "법적 고지",
   "tag.default_name": "기본",
   "tag.holiday_name": "공휴일",
   "tag.manage": "태그 관리",
@@ -357,5 +358,18 @@
   "oauth.error.title": "요청을 처리할 수 없어요",
   "oauth.error.invalid_challenge": "이미 처리됐거나 만료된 요청이에요. 요청한 앱에서 다시 시작해주세요.",
   "oauth.error.fallback": "오류가 발생했어요. 요청한 앱에서 다시 시작해주세요.",
-  "oauth.error.go_home": "홈으로"
+  "oauth.error.go_home": "홈으로",
+  "footer.terms": "이용약관",
+  "footer.privacy": "개인정보처리방침",
+  "publicDoc.terms.title": "이용약관",
+  "publicDoc.privacy.title": "개인정보처리방침",
+  "publicDoc.home": "앱으로 돌아가기",
+  "publicDoc.loading": "문서 불러오는 중",
+  "publicDoc.language.label": "문서 언어",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "문서를 불러오지 못했어요",
+  "publicDoc.error.description": "네트워크 연결을 확인하고 다시 시도해 주세요.",
+  "publicDoc.error.retry": "다시 시도",
+  "publicDoc.error.openSource": "원본 보기"
 }

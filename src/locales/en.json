@@ -123,6 +123,7 @@
   "settings.menu.notification": "Notifications",
   "settings.menu.account": "Account",
   "settings.back": "Back",
+  "settings.legal": "Legal",
   "tag.default_name": "Default",
   "tag.holiday_name": "Holiday",
   "tag.manage": "Manage Tags",
@@ -357,5 +358,18 @@
   "oauth.error.title": "Cannot process the request",
   "oauth.error.invalid_challenge": "This request has already been handled or expired. Please restart from the requesting app.",
   "oauth.error.fallback": "An error occurred. Please restart from the requesting app.",
-  "oauth.error.go_home": "Go home"
+  "oauth.error.go_home": "Go home",
+  "footer.terms": "Terms of Use",
+  "footer.privacy": "Privacy Policy",
+  "publicDoc.terms.title": "Terms of Use",
+  "publicDoc.privacy.title": "Privacy Policy",
+  "publicDoc.home": "Back to app",
+  "publicDoc.loading": "Loading document",
+  "publicDoc.language.label": "Document language",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Couldn't load the document",
+  "publicDoc.error.description": "Check your network connection and try again.",
+  "publicDoc.error.retry": "Try again",
+  "publicDoc.error.openSource": "View original"
 }
