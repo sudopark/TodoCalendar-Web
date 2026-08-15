@@ -105,6 +105,30 @@ describe('LanguagePicker', () => {
     expect(localStorage.getItem('language')).toBe('en')
   })
 
+  it('검색 후 Enter 를 누르면 남은 첫 언어가 선택된다', async () => {
+    // given: 한국어로 그려진 화면
+    render(<Harness />)
+
+    // when: 검색으로 좁힌 뒤 Enter 를 누른다
+    await openPicker()
+    await userEvent.type(await screen.findByRole('searchbox'), 'english{Enter}')
+
+    // then: 목록까지 이동하지 않고도 전환된다
+    expect(await screen.findByText('Settings')).toBeInTheDocument()
+  })
+
+  it('검색 결과가 없을 때 Enter 를 눌러도 언어가 바뀌지 않는다', async () => {
+    // given: 한국어로 그려진 화면
+    render(<Harness />)
+
+    // when: 매칭 없는 검색어로 Enter 를 누른다
+    await openPicker()
+    await userEvent.type(await screen.findByRole('searchbox'), 'zzzz{Enter}')
+
+    // then: 한국어가 유지된다
+    expect(screen.getByText('설정')).toBeInTheDocument()
+  })
+
   it('labeled 변형은 현재 언어의 자국어 명칭을 트리거에 함께 보여준다', async () => {
     // given/when: labeled 변형으로 렌더한다
     render(<LanguagePicker variant="labeled" />)
