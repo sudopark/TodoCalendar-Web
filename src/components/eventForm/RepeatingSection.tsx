@@ -4,6 +4,7 @@ import { Repeat } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { RepeatingPickerShadcn } from './RepeatingPickerShadcn'
 import { describeRepeating } from '../../domain/functions/repeatingDescription'
+import { useLocale } from '../../hooks/useLocale'
 import type { EventTime, Repeating } from '../../models'
 
 interface RepeatingSectionProps {
@@ -14,6 +15,7 @@ interface RepeatingSectionProps {
 
 export function RepeatingSection({ eventTime, repeating, onRepeatingChange }: RepeatingSectionProps) {
   const { t } = useTranslation()
+  const locale = useLocale()
   const [open, setOpen] = useState(false)
 
   if (!eventTime) return null
@@ -22,7 +24,7 @@ export function RepeatingSection({ eventTime, repeating, onRepeatingChange }: Re
   const summary = isOn
     ? t('repeating.summary_on', '반복 설정됨')
     : t('repeating.summary_off', '반복 안 함')
-  const description = repeating ? describeRepeating(repeating) : ''
+  const description = repeating ? describeRepeating(repeating, t, locale) : ''
 
   return (
     <div className="flex flex-col">
