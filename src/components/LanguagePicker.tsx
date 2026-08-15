@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, Globe, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -38,6 +38,18 @@ export function LanguagePicker({ variant = 'icon', className }: Props) {
       })
   }
 
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return
+    e.preventDefault()
+    const first = filtered[0]
+    if (first) handleSelect(first.code)
+  }
+
+  // 31개 중 현재 언어가 목록 뒤쪽이면 열었을 때 화면 밖이라 선택 상태가 보이지 않는다.
+  const focusSelectedRow = useCallback((node: HTMLButtonElement | null) => {
+    node?.scrollIntoView?.({ block: 'nearest' })
+  }, [])
+
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger
@@ -65,6 +77,7 @@ export function LanguagePicker({ variant = 'icon', className }: Props) {
             autoFocus
             value={query}
             onChange={e => setQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             placeholder={t('language.search_placeholder')}
             aria-label={t('language.search_placeholder')}
             className="w-full rounded-md bg-surface-elevated py-2 pl-8 pr-2 text-sm text-fg placeholder:text-fg-quaternary outline-none focus:ring-2 focus:ring-brand/40"
@@ -80,11 +93,12 @@ export function LanguagePicker({ variant = 'icon', className }: Props) {
             {filtered.map(option => {
               const selected = option.code === current
               return (
-                <li key={option.code}>
+                <li key={option.code} role="presentation">
                   <button
                     type="button"
                     role="option"
                     aria-selected={selected}
+                    ref={selected ? focusSelectedRow : undefined}
                     onClick={() => handleSelect(option.code)}
                     className={cn(
                       'flex w-full items-center gap-2 px-3 py-2 text-left text-[15px] transition-colors',
