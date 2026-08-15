@@ -87,15 +87,15 @@ describe('PublicDocPage', () => {
     await waitFor(() => expect(screen.getByText('English body.')).toBeInTheDocument())
   })
 
-  it('지원하지 않는 언어 경로로 들어와도 404 대신 영문 본문이 뜬다', async () => {
-    // given — UI 언어를 en 으로 전환
-    await i18n.changeLanguage('en')
+  it('지원하지 않는 언어 경로로 들어오면 404 대신 현재 UI 언어 문서가 뜬다', async () => {
+    // given — UI 언어를 ko 로 명시 (다른 테스트가 en 으로 바꿔놔도 새지 않게)
+    await i18n.changeLanguage('ko')
 
     // when
     renderAt('/terms/fr')
 
-    // then
-    await waitFor(() => expect(screen.getByText('English body.')).toBeInTheDocument())
+    // then — UI 언어(ko)에 맞춰 한국어 본문이 뜬다. en 고정 구현이었다면 실패한다.
+    await waitFor(() => expect(screen.getByText('한국어 본문입니다.')).toBeInTheDocument())
   })
 
   it('언어 토글을 누르면 다른 언어 본문으로 바뀐다', async () => {

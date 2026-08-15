@@ -161,6 +161,17 @@ describe('LoginPage', () => {
     })
   })
 
+  describe('법적 고지 링크', () => {
+    it('미로그인 화면 하단에서 약관과 개인정보처리방침으로 갈 수 있다', () => {
+      // given / when
+      renderLoginPage()
+
+      // then
+      expect(screen.getByTestId('login-terms-link')).toHaveAttribute('href', '/terms')
+      expect(screen.getByTestId('login-privacy-link')).toHaveAttribute('href', '/privacy')
+    })
+  })
+
   describe('from-state 복귀 시 search/hash 보존', () => {
     it('account가 있고 from이 pathname만 있으면 그 pathname으로 navigate', async () => {
       vi.mocked(useAuthStore).mockImplementation((selector: any) =>
