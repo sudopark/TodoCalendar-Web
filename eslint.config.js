@@ -19,8 +19,12 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+  },
+  {
+    // react-markdown v10 컴포넌트 override 는 hast `node` 를 구조분해로 걷어내고 버린다.
+    // 이 예외는 그 패턴을 쓰는 마크다운 렌더러로만 한정한다.
+    files: ['src/components/markdown/**/*.tsx'],
     rules: {
-      // react-markdown v10 컴포넌트 override 는 hast `node` 를 구조분해로 걷어내고 버린다.
       '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
     },
   },
