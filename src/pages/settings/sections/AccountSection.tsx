@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useToastStore } from '../../../stores/toastStore'
 import { accountApi } from '../../../api/accountApi'
@@ -50,6 +50,17 @@ export function AccountSection({ account, signOut }: Props) {
           <button className={settingsBtnSecondary} onClick={() => setShowLogoutConfirm(true)}>
             {t('settings.logout')}
           </button>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection title={t('settings.legal')}>
+        <div className="flex flex-col items-start gap-2">
+          <Link to="/terms" className="text-sm text-brand underline underline-offset-2">
+            {t('footer.terms')}
+          </Link>
+          <Link to="/privacy" className="text-sm text-brand underline underline-offset-2">
+            {t('footer.privacy')}
+          </Link>
         </div>
       </SettingsSection>
 

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, Link } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
 import { LanguagePicker } from '../../components/LanguagePicker'
 import { useAuthStore } from '../../stores/authStore'
@@ -75,6 +75,16 @@ export function LoginPage() {
           </div>
         )}
       </div>
+
+      <footer className="mt-6 flex items-center gap-3 text-xs text-fg-tertiary">
+        <Link to="/terms" data-testid="login-terms-link" className="hover:text-fg-secondary">
+          {t('footer.terms')}
+        </Link>
+        <span aria-hidden="true">·</span>
+        <Link to="/privacy" data-testid="login-privacy-link" className="hover:text-fg-secondary">
+          {t('footer.privacy')}
+        </Link>
+      </footer>
     </div>
   )
 }
