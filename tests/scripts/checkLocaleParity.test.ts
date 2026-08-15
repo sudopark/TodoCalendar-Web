@@ -105,6 +105,39 @@ describe('checkLocale', () => {
     expect(violations.join('\n')).toContain('zz.extra')
   })
 
+  test('{{count}} 키의 복수형 변형은 en 에 없어도 위반이 아니다', () => {
+    // given — 러시아어처럼 복수형이 3형 이상인 언어가 추가하는 접미사 항목
+    const target = {
+      'nav.calendar': 'календарь',
+      'repeating.detail_n_times': '{{count}} раза',
+      'repeating.detail_n_times_many': '{{count}} раз',
+    }
+    // when / then
+    expect(checkLocale(reference, target, JSON.stringify(target), 'ru')).toEqual([])
+  })
+
+  test('복수형 변형의 플레이스홀더가 원본 키와 다르면 위반으로 보고한다', () => {
+    // given
+    const target = {
+      'nav.calendar': 'календарь',
+      'repeating.detail_n_times': '{{count}} раза',
+      'repeating.detail_n_times_many': '{{cnt}} раз',
+    }
+    // when
+    const violations = checkLocale(reference, target, JSON.stringify(target), 'ru')
+    // then
+    expect(violations.join('\n')).toContain('repeating.detail_n_times_many')
+  })
+
+  test('{{count}} 를 쓰지 않는 키에 복수형 접미사를 붙이면 위반으로 보고한다', () => {
+    // given — nav.calendar 는 count 가 없어 복수형 분기 대상이 아니다
+    const target = { 'nav.calendar': '달력', 'nav.calendar_other': '달력들', 'repeating.detail_n_times': '{{count}}회' }
+    // when
+    const violations = checkLocale(reference, target, JSON.stringify(target), 'ko')
+    // then
+    expect(violations.join('\n')).toContain('nav.calendar_other')
+  })
+
   test('플레이스홀더 이름이 다르면 위반으로 보고한다', () => {
     const target = { 'nav.calendar': '달력', 'repeating.detail_n_times': '{{cnt}}회' }
     const violations = checkLocale(reference, target, JSON.stringify(target), 'ko')

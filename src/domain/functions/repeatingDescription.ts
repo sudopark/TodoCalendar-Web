@@ -1,6 +1,6 @@
-import type { TFunction } from 'i18next'
 import type { Repeating, WeekOrdinal } from '../../models'
-import { formatFullDate, monthLongLabels, weekdayShortLabels } from '../../utils/locale'
+import type { TranslateFn } from './translate'
+import { formatFullDate, monthNamesInDateContext, weekdayShortLabels } from '../../utils/locale'
 
 const ORDINAL_KEYS = [
   'repeating.ordinal.first',
@@ -10,14 +10,14 @@ const ORDINAL_KEYS = [
   'repeating.ordinal.fifth',
 ]
 
-function ordinalLabel(ordinal: WeekOrdinal, t: TFunction): string {
+function ordinalLabel(ordinal: WeekOrdinal, t: TranslateFn): string {
   if (ordinal.isLast) return t('repeating.ordinal.last')
   if (ordinal.seq == null) return t('repeating.ordinal.first')
   const key = ORDINAL_KEYS[ordinal.seq - 1]
   return key ? t(key) : t('repeating.ordinal.nth', { n: ordinal.seq })
 }
 
-function daysLabel(dayOfWeek: readonly number[], t: TFunction, locale: string): string {
+function daysLabel(dayOfWeek: readonly number[], t: TranslateFn, locale: string): string {
   // weekStartDay 0 으로 받아 배열 인덱스가 곧 요일 번호(0=일)가 되게 한다
   const labels = weekdayShortLabels(locale, 0)
   return [...dayOfWeek]
@@ -27,23 +27,23 @@ function daysLabel(dayOfWeek: readonly number[], t: TFunction, locale: string): 
 }
 
 function monthLabel(month: number | undefined, locale: string): string {
-  return monthLongLabels(locale)[(month ?? 1) - 1] ?? String(month)
+  return monthNamesInDateContext(locale)[(month ?? 1) - 1] ?? String(month)
 }
 
-function describeOption(repeating: Repeating, t: TFunction, locale: string): string {
+function describeOption(repeating: Repeating, t: TranslateFn, locale: string): string {
   const { option } = repeating
 
   switch (option.optionType) {
     case 'every_day':
       return option.interval === 1
         ? t('repeating.desc.every_day')
-        : t('repeating.desc.every_n_days', { interval: option.interval })
+        : t('repeating.desc.every_n_days', { count: option.interval })
 
     case 'every_week': {
       const days = daysLabel(option.dayOfWeek, t, locale)
       return option.interval === 1
         ? t('repeating.desc.every_week', { days })
-        : t('repeating.desc.every_n_weeks', { interval: option.interval, days })
+        : t('repeating.desc.every_n_weeks', { count: option.interval, days })
     }
 
     case 'every_month': {
@@ -52,14 +52,14 @@ function describeOption(repeating: Repeating, t: TFunction, locale: string): str
         const day = sel.days[0]
         return option.interval === 1
           ? t('repeating.desc.every_month_day', { day })
-          : t('repeating.desc.every_n_months_day', { interval: option.interval, day })
+          : t('repeating.desc.every_n_months_day', { count: option.interval, day })
       }
       // 앱 UX 상 ordinal/요일은 단일 선택만 지원하므로 첫 번째 요소만 사용
       const ordinal = ordinalLabel(sel.weekOrdinals[0], t)
       const days = daysLabel(sel.weekDays, t, locale)
       return option.interval === 1
         ? t('repeating.desc.every_month_ordinal', { ordinal, days })
-        : t('repeating.desc.every_n_months_ordinal', { interval: option.interval, ordinal, days })
+        : t('repeating.desc.every_n_months_ordinal', { count: option.interval, ordinal, days })
     }
 
     case 'every_year': {
@@ -69,14 +69,14 @@ function describeOption(repeating: Repeating, t: TFunction, locale: string): str
       const days = daysLabel(option.dayOfWeek, t, locale)
       return option.interval === 1
         ? t('repeating.desc.every_year_ordinal', { month, ordinal, days })
-        : t('repeating.desc.every_n_years_ordinal', { interval: option.interval, month, ordinal, days })
+        : t('repeating.desc.every_n_years_ordinal', { count: option.interval, month, ordinal, days })
     }
 
     case 'every_year_some_day': {
       const month = monthLabel(option.month, locale)
       return option.interval === 1
         ? t('repeating.desc.every_year_date', { month, day: option.day })
-        : t('repeating.desc.every_n_years_date', { interval: option.interval, month, day: option.day })
+        : t('repeating.desc.every_n_years_date', { count: option.interval, month, day: option.day })
     }
 
     case 'lunar_calendar_every_year':
@@ -87,7 +87,7 @@ function describeOption(repeating: Repeating, t: TFunction, locale: string): str
   }
 }
 
-function withEndCondition(description: string, repeating: Repeating, t: TFunction, locale: string): string {
+function withEndCondition(description: string, repeating: Repeating, t: TranslateFn, locale: string): string {
   if (repeating.end != null) {
     return t('repeating.desc.until_date', {
       description,
@@ -95,11 +95,11 @@ function withEndCondition(description: string, repeating: Repeating, t: TFunctio
     })
   }
   if (repeating.end_count != null) {
-    return t('repeating.desc.n_times', { description, n: repeating.end_count })
+    return t('repeating.desc.n_times', { description, count: repeating.end_count })
   }
   return description
 }
 
-export function describeRepeating(repeating: Repeating, t: TFunction, locale: string): string {
+export function describeRepeating(repeating: Repeating, t: TranslateFn, locale: string): string {
   return withEndCondition(describeOption(repeating, t, locale), repeating, t, locale)
 }

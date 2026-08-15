@@ -42,6 +42,22 @@ export function duplicateKeysOf(rawJson) {
   return [...dupes]
 }
 
+const PLURAL_SUFFIXES = ['zero', 'one', 'two', 'few', 'many', 'other']
+
+/**
+ * i18next 는 {{count}} 를 쓰는 키에 한해 `키_few` 같은 접미사 항목으로 언어별 복수형을 고른다.
+ * 러시아어·폴란드어처럼 복수형이 3형 이상인 언어는 이 항목이 있어야 문장이 맞으므로, en 에 없어도
+ * 허용하고 대신 원본 키와 같은 플레이스홀더를 요구한다. 대응하는 en 키를 반환, 아니면 null.
+ */
+export function pluralBaseKeyOf(key, reference) {
+  const cut = key.lastIndexOf('_')
+  if (cut < 0) return null
+  if (!PLURAL_SUFFIXES.includes(key.slice(cut + 1))) return null
+  const base = key.slice(0, cut)
+  if (!(base in reference)) return null
+  return placeholdersOf(reference[base]).includes('{{count}}') ? base : null
+}
+
 export function checkLocale(reference, target, rawTarget, code) {
   const violations = []
 
@@ -65,8 +81,19 @@ export function checkLocale(reference, target, rawTarget, code) {
   }
 
   for (const key of Object.keys(target)) {
-    if (isIgnored(key)) continue
-    if (!(key in reference)) violations.push(`[${code}] en 에 없는 키: ${key}`)
+    if (isIgnored(key) || key in reference) continue
+    const base = pluralBaseKeyOf(key, reference)
+    if (base == null) {
+      violations.push(`[${code}] en 에 없는 키: ${key}`)
+      continue
+    }
+    const expected = placeholdersOf(reference[base])
+    const actual = placeholdersOf(target[key])
+    if (expected.join('|') !== actual.join('|')) {
+      violations.push(
+        `[${code}] 플레이스홀더 불일치: ${key} — en=${base}:${expected.join(',') || '(없음)'} / ${code}=${actual.join(',') || '(없음)'}`
+      )
+    }
   }
 
   return violations

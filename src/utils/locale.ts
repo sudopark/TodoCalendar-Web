@@ -60,7 +60,13 @@ export function weekdayLongLabels(locale: string): string[] {
   return weekdayLabels(locale, 'long')
 }
 
-export function monthLongLabels(locale: string): string[] {
-  const fmt = new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' })
-  return Array.from({ length: 12 }, (_, i) => fmt.format(new Date(Date.UTC(2026, i, 1))))
+// 러시아어·폴란드어·핀란드어 등은 일(day)과 결합될 때 월 이름이 격변화한다 (январь → января).
+// 월 단독 포맷은 주격을 주므로, 날짜 문장에 끼워 넣을 이름은 일과 함께 포맷한 결과에서 뽑아야 한다.
+export function monthNamesInDateContext(locale: string): string[] {
+  const withDay = new Intl.DateTimeFormat(locale, { month: 'long', day: 'numeric', timeZone: 'UTC' })
+  const standalone = new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' })
+  return Array.from({ length: 12 }, (_, i) => {
+    const date = new Date(Date.UTC(2026, i, 1))
+    return withDay.formatToParts(date).find(p => p.type === 'month')?.value ?? standalone.format(date)
+  })
 }

@@ -1,7 +1,7 @@
 import {
   formatTimeOfDay, formatTimeRange, formatMonthDay, formatMonthLong,
   formatMonthYearLong, formatFullDate, formatWeekdayLong, formatDateTimeMedium,
-  weekdayShortLabels, weekdayLongLabels,
+  weekdayShortLabels, weekdayLongLabels, monthNamesInDateContext,
 } from '../../src/utils/locale'
 
 // 2026-04-27 14:30 KST (vitest TZ 는 Asia/Seoul 고정)
@@ -97,5 +97,24 @@ describe('weekdayLongLabels', () => {
     expect(labels[0]).toBe('Sunday')
     expect(labels[1]).toBe('Monday')
     expect(labels[6]).toBe('Saturday')
+  })
+})
+
+describe('monthNamesInDateContext', () => {
+  test('Date.getMonth() 인덱스와 맞물린다', () => {
+    // given / when
+    const labels = monthNamesInDateContext('en')
+    // then
+    expect(labels[0]).toBe('January')
+    expect(labels[11]).toBe('December')
+  })
+
+  test('격변화가 있는 언어는 단독 월 이름이 아니라 날짜와 결합된 형태를 준다', () => {
+    // given — 러시아어는 일(day)과 함께 쓰일 때 январь 가 января 로 바뀐다
+    // when
+    const labels = monthNamesInDateContext('ru')
+    // then
+    expect(labels[0]).toBe('января')
+    expect(labels[0]).not.toBe(formatMonthLong(new Date(Date.UTC(2026, 0, 1)), 'ru'))
   })
 })
