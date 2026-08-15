@@ -36,51 +36,6 @@ test('테마 버튼을 클릭하면 해당 버튼이 활성화 스타일을 갖�
   await expect(page.getByRole('button', { name: '라이트' })).toHaveClass(/bg-action/)
 })
 
-test('언어 카테고리에 한국어와 English 옵션이 존재한다', async ({ page }) => {
-  await page.goto('/settings/language')
-  await page.waitForLoadState('networkidle')
-
-  const langSelect = page.locator('select').filter({ hasText: '한국어' })
-  await expect(langSelect).toBeVisible()
-  await expect(langSelect.locator('option[value="ko"]')).toHaveText('한국어')
-  await expect(langSelect.locator('option[value="en"]')).toHaveText('English')
-})
-
-test('언어를 English로 변경하면 메뉴 헤더와 로그아웃 버튼 텍스트가 영어로 바뀐다', async ({ page }) => {
-  // given
-  await page.goto('/settings/language')
-  await page.waitForLoadState('networkidle')
-  await expect(page.getByRole('heading', { name: '설정' })).toBeVisible()
-
-  // when
-  const langSelect = page.locator('select').filter({ hasText: '한국어' })
-  await langSelect.selectOption('en')
-
-  // then — 메뉴 헤더가 영어로 갱신
-  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
-
-  // 계정 카테고리에서 로그아웃 버튼이 영어로 표기되는지 확인
-  await page.goto('/settings/account')
-  await expect(page.getByRole('button', { name: 'Log Out' })).toBeVisible()
-})
-
-test('언어를 English로 변경 후 다시 한국어로 되돌릴 수 있다', async ({ page }) => {
-  // given
-  await page.goto('/settings/language')
-  await page.waitForLoadState('networkidle')
-
-  const langSelect = page.locator('select').filter({ hasText: '한국어' })
-  await langSelect.selectOption('en')
-  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
-
-  // when
-  const langSelectEn = page.locator('select').filter({ hasText: 'English' })
-  await langSelectEn.selectOption('ko')
-
-  // then
-  await expect(page.getByRole('heading', { name: '설정' })).toBeVisible()
-})
-
 test('계정 카테고리에 로그아웃 버튼이 표시된다', async ({ page }) => {
   await page.goto('/settings/account')
   await page.waitForLoadState('networkidle')

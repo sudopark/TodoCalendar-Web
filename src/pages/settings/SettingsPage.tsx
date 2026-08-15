@@ -14,7 +14,6 @@ import { AppearanceSection } from './sections/AppearanceSection'
 import { EditEventSection } from './sections/EditEventSection'
 import { HolidaySection } from './sections/HolidaySection'
 import { TimezoneSection } from './sections/TimezoneSection'
-import { LanguageSection } from './sections/LanguageSection'
 import { NotificationSection } from './sections/NotificationSection'
 import { AccountSection } from './sections/AccountSection'
 import { TagManagementPanel } from './tagManagement/TagManagementPanel'
@@ -57,7 +56,6 @@ function renderSection(id: SettingCategoryId, vm: SettingsViewModel, onNavigate:
         setTimezone={vm.setTimezone}
       />
     )
-    case 'language': return <LanguageSection />
     case 'notification': return (
       <NotificationSection
         notification={vm.notification}
