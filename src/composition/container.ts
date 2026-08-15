@@ -66,7 +66,7 @@ const oauthConsentRepo = new OAuthConsentRepository({ api: oauthAsApi })
 
 // 환경별 문서 소스 교체용. 미설정 시 운영 기본값 — 공개 URL 이라 항상 동작해야 하므로 throw 하지 않는다.
 const publicDocsBaseUrl =
-  import.meta.env.VITE_PUBLIC_DOCS_BASE_URL ??
+  import.meta.env.VITE_PUBLIC_DOCS_BASE_URL ||
   'https://raw.githubusercontent.com/sudopark/TodoCalendar-Terms/main'
 const publicDocRepo = new PublicDocRepository({ api: createPublicDocApi(publicDocsBaseUrl) })
 
