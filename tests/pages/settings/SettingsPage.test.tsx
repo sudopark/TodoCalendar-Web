@@ -61,7 +61,6 @@ describe('SettingsPage', () => {
     expect(withinNav('외형')).toBe(true)
     expect(withinNav('공휴일')).toBe(true)
     expect(withinNav('타임존')).toBe(true)
-    expect(withinNav('언어')).toBe(true)
     expect(withinNav('알림')).toBe(true)
     expect(withinNav('계정')).toBe(true)
   })

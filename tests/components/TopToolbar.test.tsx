@@ -213,4 +213,14 @@ describe('TopToolbar', () => {
       expect(onGoToToday).toHaveBeenCalled()
     })
   })
+
+  describe('언어 선택', () => {
+    it('우측 액션 영역에서 언어를 바꿀 수 있다', () => {
+      // given / when
+      renderToolbar()
+
+      // then: 언어 선택 트리거가 노출된다
+      expect(screen.getByRole('button', { name: '언어' })).toBeInTheDocument()
+    })
+  })
 })

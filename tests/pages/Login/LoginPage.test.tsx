@@ -56,6 +56,14 @@ describe('LoginPage', () => {
     } as any)
   })
 
+  it('로그인 전에도 현재 언어가 표기된 트리거로 언어를 바꿀 수 있다', () => {
+    // given / when
+    renderLoginPage()
+
+    // then: 화면을 읽지 못해도 알아볼 수 있게 자국어 명칭이 트리거에 노출된다
+    expect(screen.getByRole('button', { name: /한국어/ })).toBeInTheDocument()
+  })
+
   it('Google 로그인 버튼이 표시된다', () => {
     renderLoginPage()
     expect(screen.getByRole('button', { name: /google/i })).toBeInTheDocument()

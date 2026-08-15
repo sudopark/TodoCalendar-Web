@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
+import { LanguagePicker } from '../../components/LanguagePicker'
 import { useAuthStore } from '../../stores/authStore'
 import { useLoginViewModel } from './useLoginViewModel'
 
@@ -20,7 +21,9 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-surface">
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-surface">
+      <LanguagePicker variant="labeled" className="absolute right-4 top-4" />
+
       <div className="w-full max-w-sm p-8 bg-surface-elevated rounded-2xl shadow-md">
         <h1 className="text-2xl font-bold text-center text-fg mb-2">{t('login.title')}</h1>
         <p className="text-sm text-center text-fg-tertiary mb-8">{t('login.subtitle')}</p>

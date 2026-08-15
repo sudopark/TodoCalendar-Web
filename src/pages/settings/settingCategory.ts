@@ -3,7 +3,6 @@ export type SettingCategoryId =
   | 'editEvent'
   | 'holiday'
   | 'timezone'
-  | 'language'
   | 'notification'
   | 'account'
 
@@ -17,7 +16,6 @@ export const SETTING_CATEGORIES: readonly SettingCategory[] = [
   { id: 'editEvent', labelKey: 'settings.menu.edit_event' },
   { id: 'holiday', labelKey: 'settings.menu.holiday' },
   { id: 'timezone', labelKey: 'settings.menu.timezone' },
-  { id: 'language', labelKey: 'settings.menu.language' },
   { id: 'notification', labelKey: 'settings.menu.notification' },
   { id: 'account', labelKey: 'settings.menu.account' },
 ]
