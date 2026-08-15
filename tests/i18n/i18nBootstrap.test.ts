@@ -1,4 +1,6 @@
 import i18n, { loadLanguage } from '../../src/i18n'
+import { SUPPORTED_LANGUAGES } from '../../src/i18n/supportedLanguages'
+import { loaderFor } from '../../src/i18n/localeBundleLoaders'
 
 describe('i18n 부트스트랩', () => {
   afterEach(async () => {
@@ -20,10 +22,19 @@ describe('i18n 부트스트랩', () => {
     expect(i18n.t('nav.calendar')).toBe('Calendar')
   })
 
-  test('아직 번역이 없는 언어는 en 문구로 폴백한다', async () => {
+  test('지원 언어는 모두 번들 로더를 갖는다', () => {
     // given / when
-    await loadLanguage('de')
-    // then — de.json 이 아직 없으므로 fallbackLng 인 en 문구
+    const withoutBundle = SUPPORTED_LANGUAGES.filter(lng => loaderFor(lng) === undefined)
+    // then
+    expect(withoutBundle).toEqual([])
+  })
+
+  test('번들이 없는 언어로 전환하면 en 문구로 폴백한다', async () => {
+    // given — 로케일 파일이 없는 코드
+    expect(loaderFor('xx')).toBeUndefined()
+    // when
+    await loadLanguage('xx')
+    // then
     expect(i18n.t('nav.calendar')).toBe('Calendar')
   })
 })
