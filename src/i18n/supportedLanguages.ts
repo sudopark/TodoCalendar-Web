@@ -7,3 +7,6 @@ import data from './supportedLanguages.json'
 export const SUPPORTED_LANGUAGES: readonly string[] = data.codes
 
 export const LANGUAGE_NATIVE_NAMES: Record<string, string> = data.nativeNames
+
+/** 검색 매칭용 — 현재 UI 언어를 읽지 못하는 사용자가 라틴 문자로 자기 언어를 찾을 수 있게 한다. */
+export const LANGUAGE_ENGLISH_NAMES: Record<string, string> = data.englishNames
