@@ -54,6 +54,21 @@ describe('PublicDocRepository', () => {
     expect(markdown).toBe('English body')
   })
 
+  it('영문 폴백을 받은 뒤 요청 언어 문서가 생기면 다음 호출에서 그 언어로 회복된다', async () => {
+    // given: ko 가 없어 en 폴백을 받는다
+    const bodies: Partial<Record<DocLanguage, string>> = { en: 'English body' }
+    const repo = new PublicDocRepository({ api: stubApi(bodies) })
+    const fallback = await repo.loadDoc(TERMS, 'ko')
+    expect(fallback).toBe('English body')
+
+    // when: ko 본문이 이제 생겼다
+    bodies.ko = '한국어 본문'
+    const recovered = await repo.loadDoc(TERMS, 'ko')
+
+    // then: 폴백 결과가 ko 키에 캐시되지 않아 다시 시도해 한국어를 받는다
+    expect(recovered).toBe('한국어 본문')
+  })
+
   it('en 원문마저 실패하면 reject 된다', async () => {
     // given
     const repo = new PublicDocRepository({ api: stubApi({}) })
