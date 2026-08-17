@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react'
-import { useTranslation } from 'react-i18next'
 import type { CalendarDay } from './calendarUtils'
 import type { CalendarEvent } from '../domain/functions/eventTime'
 import { formatDateKey } from '../domain/functions/eventTime'
@@ -10,8 +9,9 @@ import { useHolidayCache } from '../repositories/caches/holidayCache'
 import { useTagFilterStore } from '../stores/tagFilterStore'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
-
-const ALL_WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
+import { withAlpha } from '../utils/color'
+import { useLocale } from '../hooks/useLocale'
+import { weekdayShortLabels } from '../utils/locale'
 
 // 이벤트 바 높이(px) + 간격
 const EVENT_ROW_HEIGHT = 20
@@ -65,7 +65,7 @@ function EventBar({ ev, timeType, showEventNames, fontSizeWeight, onEventClick }
         gridRow: 1,
         // #106: 옛 alpha 22(12%) → 44(27%) 도 다크/라이트 모두 너무 옅어 chip 영역이 식별 안 됨.
         // 88(53%) 로 키워 텍스트 가독성을 유지하면서 chip span 이 명확히 보이도록.
-        backgroundColor: isAtTime ? 'transparent' : `${color}88`,
+        backgroundColor: isAtTime ? 'transparent' : withAlpha(color, '88'),
         fontSize,
       }}
       onClick={(e) => {
@@ -85,7 +85,7 @@ function EventBar({ ev, timeType, showEventNames, fontSizeWeight, onEventClick }
 }
 
 export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGridProps) {
-  const { t } = useTranslation()
+  const locale = useLocale()
   const selectedDate = useUiStore(s => s.selectedDate)
   const setSelectedDate = useUiStore(s => s.setSelectedDate)
   const eventsByDate = useCalendarEventsCache(s => s.eventsByDate)
@@ -130,11 +130,8 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
     return () => observer.disconnect()
   }, [isFull, isMinimal])
 
-  // 주 시작 요일에 따라 헤더 키 회전
-  const weekdayKeys = useMemo(
-    () => [...ALL_WEEKDAY_KEYS.slice(weekStartDay), ...ALL_WEEKDAY_KEYS.slice(0, weekStartDay)],
-    [weekStartDay],
-  )
+  // 주 시작 요일에 따라 헤더 라벨 회전
+  const weekdayLabels = useMemo(() => weekdayShortLabels(locale, weekStartDay), [locale, weekStartDay])
 
   // days를 7일 단위로 주(week) 분할
   const weeks = useMemo(() => {
@@ -185,16 +182,16 @@ export default function MainCalendarGrid({ days, onEventClick }: MainCalendarGri
   return (
     <div className="flex h-full flex-col">
       {/* 요일 헤더 */}
-      <div className="grid grid-cols-7 pb-2 shrink-0">
-        {weekdayKeys.map((key, i) => {
+      <div data-testid="calendar-weekday-header" className="grid grid-cols-7 pb-2 shrink-0">
+        {weekdayLabels.map((label, i) => {
           const dayOfWeek = (weekStartDay + i) % 7
           const accent = (accentDays.sunday && dayOfWeek === 0) || (accentDays.saturday && dayOfWeek === 6)
           return (
             <div
-              key={key}
+              key={dayOfWeek}
               className={`px-3 py-1.5 text-section-label font-semibold uppercase tracking-widest ${accent ? 'text-[#e8a5a5]' : 'text-fg-quaternary'}`}
             >
-              {t(`calendar.weekdays.${key}`, key.toUpperCase())}
+              {label}
             </div>
           )
         })}

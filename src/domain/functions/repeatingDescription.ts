@@ -1,88 +1,105 @@
-import type { Repeating } from '../../models'
+import type { Repeating, WeekOrdinal } from '../../models'
+import type { TranslateFn } from './translate'
+import { formatFullDate, monthNamesInDateContext, weekdayShortLabels } from '../../utils/locale'
 
-const KO_DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
-const KO_MONTH_LABELS = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
-const KO_ORD_LABELS = ['첫째', '둘째', '셋째', '넷째', '다섯째']
+const ORDINAL_KEYS = [
+  'repeating.ordinal.first',
+  'repeating.ordinal.second',
+  'repeating.ordinal.third',
+  'repeating.ordinal.fourth',
+  'repeating.ordinal.fifth',
+]
 
-function formatEndSuffix(repeating: Repeating): string {
-  if (repeating.end != null) {
-    const d = new Date(repeating.end * 1000)
-    const y = d.getFullYear()
-    const m = d.getMonth() + 1
-    const day = d.getDate()
-    return `, ${y}년 ${m}월 ${day}일까지`
-  }
-  if (repeating.end_count != null) {
-    return `, ${repeating.end_count}회`
-  }
-  return ''
+function ordinalLabel(ordinal: WeekOrdinal, t: TranslateFn): string {
+  if (ordinal.isLast) return t('repeating.ordinal.last')
+  if (ordinal.seq == null) return t('repeating.ordinal.first')
+  const key = ORDINAL_KEYS[ordinal.seq - 1]
+  return key ? t(key) : t('repeating.ordinal.nth', { n: ordinal.seq })
 }
 
-export function describeRepeating(repeating: Repeating): string {
+function daysLabel(dayOfWeek: readonly number[], t: TranslateFn, locale: string): string {
+  // weekStartDay 0 으로 받아 배열 인덱스가 곧 요일 번호(0=일)가 되게 한다
+  const labels = weekdayShortLabels(locale, 0)
+  return [...dayOfWeek]
+    .sort((a, b) => a - b)
+    .map(d => labels[d])
+    .join(t('repeating.day_separator'))
+}
+
+function monthLabel(month: number | undefined, locale: string): string {
+  return monthNamesInDateContext(locale)[(month ?? 1) - 1] ?? String(month)
+}
+
+function describeOption(repeating: Repeating, t: TranslateFn, locale: string): string {
   const { option } = repeating
-  const suffix = formatEndSuffix(repeating)
 
   switch (option.optionType) {
-    case 'every_day': {
-      const base = option.interval === 1 ? '매일 반복' : `${option.interval}일마다 반복`
-      return base + suffix
-    }
+    case 'every_day':
+      return option.interval === 1
+        ? t('repeating.desc.every_day')
+        : t('repeating.desc.every_n_days', { count: option.interval })
 
     case 'every_week': {
-      const sorted = [...option.dayOfWeek].sort((a, b) => a - b)
-      const daysLabel = sorted.map(d => KO_DAY_LABELS[d]).join('·')
-      const base =
-        option.interval === 1
-          ? `매주 ${daysLabel} 반복`
-          : `${option.interval}주마다 ${daysLabel} 반복`
-      return base + suffix
+      const days = daysLabel(option.dayOfWeek, t, locale)
+      return option.interval === 1
+        ? t('repeating.desc.every_week', { days })
+        : t('repeating.desc.every_n_weeks', { count: option.interval, days })
     }
 
     case 'every_month': {
       const sel = option.monthDaySelection
-      let baseDesc: string
       if ('days' in sel) {
         const day = sel.days[0]
-        const base = option.interval === 1 ? `매월 ${day}일 반복` : `${option.interval}개월마다 ${day}일 반복`
-        baseDesc = base
-      } else {
-        // week ordinal mode
-        // 앱 UX 상 ordinal/요일은 단일 선택만 지원하므로 첫 번째 요소만 사용
-        const ordinal = sel.weekOrdinals[0]
-        const ordLabel = ordinal.isLast ? '마지막' : (ordinal.seq != null ? KO_ORD_LABELS[ordinal.seq - 1] ?? `${ordinal.seq}번째` : '첫째')
-        const weekDaysLabel = sel.weekDays.map(d => KO_DAY_LABELS[d]).join('·')
-        const base = option.interval === 1
-          ? `매월 ${ordLabel} ${weekDaysLabel} 반복`
-          : `${option.interval}개월마다 ${ordLabel} ${weekDaysLabel} 반복`
-        baseDesc = base
+        return option.interval === 1
+          ? t('repeating.desc.every_month_day', { day })
+          : t('repeating.desc.every_n_months_day', { count: option.interval, day })
       }
-      return baseDesc + suffix
+      // 앱 UX 상 ordinal/요일은 단일 선택만 지원하므로 첫 번째 요소만 사용
+      const ordinal = ordinalLabel(sel.weekOrdinals[0], t)
+      const days = daysLabel(sel.weekDays, t, locale)
+      return option.interval === 1
+        ? t('repeating.desc.every_month_ordinal', { ordinal, days })
+        : t('repeating.desc.every_n_months_ordinal', { count: option.interval, ordinal, days })
     }
 
     case 'every_year': {
       // 앱 UX 상 ordinal/요일은 단일 선택만 지원하므로 첫 번째 요소만 사용
-      const month = option.months[0]
-      const ordinal = option.weekOrdinals[0]
-      const ordLabel = ordinal.isLast ? '마지막' : (ordinal.seq != null ? KO_ORD_LABELS[ordinal.seq - 1] ?? `${ordinal.seq}번째` : '첫째')
-      const weekDaysLabel = option.dayOfWeek.map(d => KO_DAY_LABELS[d]).join('·')
-      const monthName = KO_MONTH_LABELS[(month ?? 1) - 1] ?? `${month}월`
-      const base = option.interval === 1
-        ? `매년 ${monthName} ${ordLabel} ${weekDaysLabel} 반복`
-        : `${option.interval}년마다 ${monthName} ${ordLabel} ${weekDaysLabel} 반복`
-      return base + suffix
+      const month = monthLabel(option.months[0], locale)
+      const ordinal = ordinalLabel(option.weekOrdinals[0], t)
+      const days = daysLabel(option.dayOfWeek, t, locale)
+      return option.interval === 1
+        ? t('repeating.desc.every_year_ordinal', { month, ordinal, days })
+        : t('repeating.desc.every_n_years_ordinal', { count: option.interval, month, ordinal, days })
     }
 
     case 'every_year_some_day': {
-      const monthName = KO_MONTH_LABELS[(option.month ?? 1) - 1] ?? `${option.month}월`
-      const base = option.interval === 1
-        ? `매년 ${monthName} ${option.day}일 반복`
-        : `${option.interval}년마다 ${monthName} ${option.day}일 반복`
-      return base + suffix
+      const month = monthLabel(option.month, locale)
+      return option.interval === 1
+        ? t('repeating.desc.every_year_date', { month, day: option.day })
+        : t('repeating.desc.every_n_years_date', { count: option.interval, month, day: option.day })
     }
 
-    case 'lunar_calendar_every_year': {
-      const monthName = KO_MONTH_LABELS[(option.month ?? 1) - 1] ?? `${option.month}월`
-      return `음력 매년 ${monthName} ${option.day}일 반복` + suffix
-    }
+    case 'lunar_calendar_every_year':
+      return t('repeating.desc.lunar_every_year', {
+        month: monthLabel(option.month, locale),
+        day: option.day,
+      })
   }
+}
+
+function withEndCondition(description: string, repeating: Repeating, t: TranslateFn, locale: string): string {
+  if (repeating.end != null) {
+    return t('repeating.desc.until_date', {
+      description,
+      date: formatFullDate(new Date(repeating.end * 1000), locale),
+    })
+  }
+  if (repeating.end_count != null) {
+    return t('repeating.desc.n_times', { description, count: repeating.end_count })
+  }
+  return description
+}
+
+export function describeRepeating(repeating: Repeating, t: TranslateFn, locale: string): string {
+  return withEndCondition(describeOption(repeating, t, locale), repeating, t, locale)
 }

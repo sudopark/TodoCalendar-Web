@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
 import type { AccentDays, WeekStartDay } from '../../../../repositories/caches/settingsCache'
-
-const ALL_WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
+import { useLocale } from '../../../../hooks/useLocale'
+import { weekdayShortLabels } from '../../../../utils/locale'
 
 interface Props {
   weekStartDay: WeekStartDay
@@ -14,12 +13,9 @@ interface Props {
  * 실제 데이터 없이 4주 분량의 더미 그리드 + 토요일/일요일/공휴일 색만 시연
  */
 export function CalendarAppearancePreview({ weekStartDay, accentDays }: Props) {
-  const { t } = useTranslation()
+  const locale = useLocale()
 
-  const weekdayKeys = useMemo(
-    () => [...ALL_WEEKDAY_KEYS.slice(weekStartDay), ...ALL_WEEKDAY_KEYS.slice(0, weekStartDay)],
-    [weekStartDay],
-  )
+  const weekdayLabels = useMemo(() => weekdayShortLabels(locale, weekStartDay), [locale, weekStartDay])
 
   // 가짜 4주 그리드 (1~28일)
   const weeks = useMemo(() => {
@@ -47,15 +43,15 @@ export function CalendarAppearancePreview({ weekStartDay, accentDays }: Props) {
   return (
     <div className="rounded-lg border border-line bg-surface p-4">
       <div className="grid grid-cols-7 mb-1">
-        {weekdayKeys.map((k, i) => {
+        {weekdayLabels.map((label, i) => {
           const dow = (weekStartDay + i) % 7
           const isAccent = (accentDays.sunday && dow === 0) || (accentDays.saturday && dow === 6)
           return (
             <div
-              key={k}
+              key={dow}
               className={`text-center text-meta font-semibold uppercase tracking-widest ${isAccent ? 'text-[#e8a5a5]' : 'text-fg-quaternary'}`}
             >
-              {t(`calendar.weekdays.${k}`, k)}
+              {label}
             </div>
           )
         })}

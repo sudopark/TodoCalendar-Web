@@ -10,6 +10,8 @@ import type { Repositories } from '../../src/composition/container'
 import { LocalStorageContainer } from '../../src/repositories/local-storage/LocalStorageContainer'
 import type { Todo } from '../../src/models'
 import type { EventRepository } from '../../src/repositories/EventRepository'
+import i18n from '../../src/i18n'
+import { formatTimeOfDay, formatTimeRange } from '../../src/utils/locale'
 
 vi.mock('../../src/api/todoApi', () => ({
   todoApi: {
@@ -145,7 +147,7 @@ describe('CurrentTodoList', () => {
 
     // then: 할 일 이름과 시간 텍스트가 모두 표시된다
     expect(screen.getByText('시간 있는 현재 할 일')).toBeInTheDocument()
-    expect(screen.getByText(/오후 2:30/)).toBeInTheDocument()
+    expect(screen.getByText(formatTimeOfDay(new Date(1710480600 * 1000), i18n.language))).toBeInTheDocument()
   })
 
   it('event_time이 null인 current todo는 시간 정보가 표시되지 않는다', () => {
@@ -182,7 +184,8 @@ describe('CurrentTodoList', () => {
     renderComponent({ todos: [todo] })
 
     // then: 시간 범위가 표시된다
-    expect(screen.getByText(/오후 2:30 – 오후 4:30/)).toBeInTheDocument()
+    const expected = formatTimeRange(new Date(1710480600 * 1000), new Date(1710487800 * 1000), i18n.language)
+    expect(screen.getByText(expected)).toBeInTheDocument()
   })
 
   it('항목을 클릭하면 onEventClick 콜백을 calEvent와 anchorRect와 함께 호출한다', async () => {

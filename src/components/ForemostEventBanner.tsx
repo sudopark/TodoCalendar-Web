@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useResolvedEventTag } from '../hooks/useResolvedEventTag'
+import { withAlpha } from '../utils/color'
 import { useSettingsCache } from '../repositories/caches/settingsCache'
 import { tagDisplayName } from '../domain/functions/tagDisplay'
 import { TimeDescription } from './TimeDescription'
@@ -56,7 +57,7 @@ export function ForemostEventBanner({ foremostEvent, onEventClick }: ForemostEve
             {tagName && (
               <span
                 className="shrink-0 text-meta font-semibold px-1.5 py-0.5 rounded-full leading-none"
-                style={{ color: resolved.color, backgroundColor: `${resolved.color}22` }}
+                style={{ color: resolved.color, backgroundColor: withAlpha(resolved.color, '22') }}
               >
                 {tagName}
               </span>

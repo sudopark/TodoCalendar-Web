@@ -5,6 +5,7 @@ import { Pencil, Trash2, X, Clock, Repeat, Bell, MapPin, FileText, Link2 } from 
 import type { CalendarEvent } from '../../domain/functions/eventTime'
 import { displayPlace } from '../../models/EventDetail'
 import { useResolvedEventTag } from '../../hooks/useResolvedEventTag'
+import { withAlpha } from '../../utils/color'
 import { tagDisplayName } from '../../domain/functions/tagDisplay'
 import { EventTimeDisplay } from '../EventTimeDisplay'
 import { useEventDetailPopoverViewModel } from './useEventDetailPopoverViewModel'
@@ -12,6 +13,7 @@ import { formatNotification } from '../../utils/formatNotification'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { BottomSheet } from '../ui/BottomSheet'
 import { describeRepeating } from '../../domain/functions/repeatingDescription'
+import { useLocale } from '../../hooks/useLocale'
 
 const ACTION_BTN = 'p-1.5 rounded-full text-fg-quaternary hover:text-fg hover:bg-surface-elevated transition-colors'
 const INFO_ROW = 'flex items-start gap-2 text-info text-fg-secondary leading-snug'
@@ -34,6 +36,7 @@ export function EventDetailPopover({
   onDelete,
 }: EventDetailPopoverProps) {
   const { t } = useTranslation()
+  const locale = useLocale()
   const isMobile = useIsMobile()
   const vm = useEventDetailPopoverViewModel(calEvent)
   const titleId = useId()
@@ -104,7 +107,7 @@ export function EventDetailPopover({
           <div data-testid="popover-tag-name">
             <span
               className="inline-block text-meta font-semibold px-1.5 py-0.5 rounded-full leading-none"
-              style={{ color: tagColor, backgroundColor: `${tagColor}22` }}
+              style={{ color: tagColor, backgroundColor: withAlpha(tagColor, '22') }}
             >
               {tagName}
             </span>
@@ -123,7 +126,7 @@ export function EventDetailPopover({
         {repeating && (
           <div className={INFO_ROW} data-testid="repeating-info">
             <Repeat className={INFO_ICON} />
-            <span className="min-w-0">{describeRepeating(repeating)}</span>
+            <span className="min-w-0">{describeRepeating(repeating, t, locale)}</span>
           </div>
         )}
 

@@ -3,10 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import MainCalendarGrid from '../../src/calendar/MainCalendarGrid'
 import { buildCalendarGrid } from '../../src/calendar/calendarUtils'
+import { weekdayShortLabels } from '../../src/utils/locale'
 import { useUiStore } from '../../src/stores/uiStore'
 import { useCalendarEventsCache } from '../../src/repositories/caches/calendarEventsCache'
 import { useHolidayCache } from '../../src/repositories/caches/holidayCache'
 import { useEventTagListCache } from '../../src/repositories/caches/eventTagListCache'
+import { useSettingsCache } from '../../src/repositories/caches/settingsCache'
 import type { CalendarEvent } from '../../src/domain/functions/eventTime'
 
 vi.mock('../../src/firebase', () => ({ getAuthInstance: vi.fn(() => ({})) }))
@@ -26,18 +28,35 @@ describe('MainCalendarGrid', () => {
     useCalendarEventsCache.setState({ eventsByDate: new Map(), loading: false })
     useHolidayCache.setState({ holidays: new Map(), loadedYears: new Set() })
     useEventTagListCache.setState({ tags: new Map() })
+    useSettingsCache.setState(state => ({
+      calendarAppearance: { ...state.calendarAppearance, weekStartDay: 0 },
+    }))
   })
 
-  it('7개의 요일 헤더를 렌더링한다', () => {
-    // given: 3월 그리드
+  it('요일 헤더를 weekStartDay(일요일 시작) 순서 그대로 렌더링한다', () => {
+    // given: 3월 그리드, weekStartDay 기본값(0=일요일)
     // when: MainCalendarGrid 렌더
-    render(<MainCalendarGrid days={marchDays} />)
+    const { container } = render(<MainCalendarGrid days={marchDays} />)
 
-    // then: 요일 헤더 7개 표시
-    const weekdays = ['일', '월', '화', '수', '목', '금', '토']
-    weekdays.forEach(day => {
-      expect(screen.getByText(day)).toBeInTheDocument()
-    })
+    // then: 헤더 셀이 DOM 순서대로 weekdayShortLabels('ko', 0) 과 정확히 일치한다
+    const headerCells = container.querySelectorAll('.grid.grid-cols-7.pb-2 > div')
+    const renderedOrder = Array.from(headerCells).map(el => el.textContent)
+    expect(renderedOrder).toEqual(weekdayShortLabels('ko', 0))
+  })
+
+  it('weekStartDay 가 월요일(1)이면 요일 헤더가 월요일부터 회전해 렌더링된다', () => {
+    // given: weekStartDay=1 (월요일 시작)
+    useSettingsCache.setState(state => ({
+      calendarAppearance: { ...state.calendarAppearance, weekStartDay: 1 },
+    }))
+
+    // when: MainCalendarGrid 렌더
+    const { container } = render(<MainCalendarGrid days={marchDays} />)
+
+    // then: 헤더 셀 순서가 월요일 시작 회전 순서와 정확히 일치한다
+    const headerCells = container.querySelectorAll('.grid.grid-cols-7.pb-2 > div')
+    const renderedOrder = Array.from(headerCells).map(el => el.textContent)
+    expect(renderedOrder).toEqual(weekdayShortLabels('ko', 1))
   })
 
   it('올바른 수의 날짜 셀을 렌더링한다', () => {

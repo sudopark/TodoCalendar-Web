@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DayButton } from 'react-day-picker'
 import { Calendar } from '@/components/ui/calendar'
@@ -8,18 +8,8 @@ import { formatDateKey } from '../domain/functions/eventTime'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_WIDTH_CLASS } from '../constants/layout'
 import { useIsMobile } from '../hooks/useIsMobile'
-
-const WEEKDAY_KEYS = [
-  'calendar.weekdays.sun',
-  'calendar.weekdays.mon',
-  'calendar.weekdays.tue',
-  'calendar.weekdays.wed',
-  'calendar.weekdays.thu',
-  'calendar.weekdays.fri',
-  'calendar.weekdays.sat',
-] as const
-
-const WEEKDAY_FALLBACKS = ['일', '월', '화', '수', '목', '금', '토']
+import { useLocale } from '../hooks/useLocale'
+import { weekdayShortLabels } from '../utils/locale'
 
 const isSundayModifier = (date: Date) => date.getDay() === 0
 
@@ -123,12 +113,16 @@ function LeftSidebarContent({
   onOpenEventForm,
 }: Omit<LeftSidebarProps, 'sidebarOpen' | 'onToggleSidebar'>) {
   const { t } = useTranslation()
+  const locale = useLocale()
   const [showCreateMenu, setShowCreateMenu] = useState(false)
   const createButtonRef = useRef<HTMLButtonElement>(null)
 
+  // react-day-picker 는 Date.prototype.getDay() 기준(일요일=0)으로 dayIndex 를 넘긴다.
+  const weekdayLabels = useMemo(() => weekdayShortLabels(locale, 0), [locale])
+
   const formatWeekdayName = (date: Date) => {
     const dayIndex = date.getDay()
-    return t(WEEKDAY_KEYS[dayIndex], WEEKDAY_FALLBACKS[dayIndex])
+    return weekdayLabels[dayIndex]
   }
 
   return (

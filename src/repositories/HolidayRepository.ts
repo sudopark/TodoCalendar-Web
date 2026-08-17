@@ -37,6 +37,12 @@ export class HolidayRepository {
     this.locale = locale
   }
 
+  /** 공휴일 문구는 서버가 locale 로 내려주므로, locale 이 바뀌면 이미 받아둔 연도를 다시 채워야 한다. */
+  async refetchLoadedYears(): Promise<void> {
+    const years = [...useHolidayCache.getState().loadedYears]
+    await Promise.all(years.map(year => this.fetch(year)))
+  }
+
   // ── fetch: cache-first → 서버 → 캐시 ────────────────────────────
 
   async fetch(year: number): Promise<void> {

@@ -17,7 +17,10 @@ vi.mock('firebase/auth', () => ({
   OAuthProvider: vi.fn().mockImplementation(function (this: unknown) { return this }),
 }))
 
-import '../src/i18n'
+import { initI18n, loadLanguage } from '../src/i18n'
+
+await initI18n()
+await loadLanguage('ko')
 
 // @base-ui/react Checkbox가 jsdom에 없는 PointerEvent를 참조하는 문제 방지
 if (typeof globalThis.PointerEvent === 'undefined') {

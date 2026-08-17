@@ -1,124 +1,125 @@
-import { describe, it, expect } from 'vitest'
+import { describe, test, expect, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import i18n from '../../src/i18n'
 import { EventTimeDisplay } from '../../src/components/EventTimeDisplay'
 import type { EventTime } from '../../src/models'
+import { formatTimeOfDay, formatTimeRange, formatMonthDay } from '../../src/utils/locale'
 
-// 모든 타임스탬프는 UTC 기준 고정값 사용 (TZ=Asia/Seoul 환경에서도 일관된 결과)
-// 2024-03-15 00:00:00 UTC = 1710460800
-// 2024-03-15 05:30:00 UTC = 1710480600  (= KST 14:30)
-// 2024-03-15 07:30:00 UTC = 1710487800  (= KST 16:30)
+const AT_TS = Math.floor(new Date('2026-04-27T05:30:00Z').getTime() / 1000)
 
 describe('EventTimeDisplay', () => {
-  it('at 타입 이벤트는 시각을 표시한다', () => {
-    // given: 2024-03-15 05:30:00 UTC = KST 오후 2:30
-    const eventTime: EventTime = { time_type: 'at', timestamp: 1710480600 }
-
-    // when: 렌더링
-    render(<EventTimeDisplay eventTime={eventTime} />)
-
-    // then: 오후 2:30 텍스트가 표시된다
-    expect(screen.getByText(/오후 2:30/)).toBeInTheDocument()
+  afterEach(async () => {
+    await i18n.changeLanguage('ko')
   })
 
-  it('period 타입 이벤트는 시작-종료 시각 범위를 표시한다', () => {
-    // given: KST 오후 2:30 ~ 오후 4:30
+  test('at 타입이면 활성 로케일의 시각 표기를 보여준다', () => {
+    // given
+    const eventTime: EventTime = { time_type: 'at', timestamp: AT_TS }
+    // when
+    render(<EventTimeDisplay eventTime={eventTime} />)
+    // then
+    const expected = formatTimeOfDay(new Date(AT_TS * 1000), i18n.language)
+    expect(screen.getByText(expected)).toBeInTheDocument()
+  })
+
+  test('언어를 바꾸면 시각 표기도 바뀐다', async () => {
+    // given
+    const eventTime: EventTime = { time_type: 'at', timestamp: AT_TS }
+    await i18n.changeLanguage('de')
+    // when
+    render(<EventTimeDisplay eventTime={eventTime} />)
+    // then — de 는 24시간제
+    expect(screen.getByText('14:30')).toBeInTheDocument()
+  })
+
+  test('period 타입이면 시작–종료 구간을 보여준다', () => {
+    // given
+    const endTs = AT_TS + 1800
+    const eventTime: EventTime = { time_type: 'period', period_start: AT_TS, period_end: endTs }
+    // when
+    render(<EventTimeDisplay eventTime={eventTime} />)
+    // then
+    const expected = formatTimeRange(new Date(AT_TS * 1000), new Date(endTs * 1000), i18n.language)
+    expect(screen.getByText(expected)).toBeInTheDocument()
+  })
+
+  test('하루짜리 종일 일정이면 종일 문구를 보여준다', () => {
+    // given — 2026-04-27 KST 자정 ~ 같은 날
+    const dayStart = Math.floor(new Date('2026-04-26T15:00:00Z').getTime() / 1000)
     const eventTime: EventTime = {
-      time_type: 'period',
-      period_start: 1710480600,
-      period_end: 1710487800,
+      time_type: 'allday', period_start: dayStart, period_end: dayStart, seconds_from_gmt: 32400,
     }
-
-    // when: 렌더링
+    // when
     render(<EventTimeDisplay eventTime={eventTime} />)
-
-    // then: 시작–종료 시각이 표시된다
-    expect(screen.getByText(/오후 2:30 – 오후 4:30/)).toBeInTheDocument()
+    // then
+    expect(screen.getByText(i18n.t('eventTime.allday'))).toBeInTheDocument()
   })
 
-  it('allday 타입 이벤트가 하루짜리면 "종일"을 표시한다 (UTC 이벤트)', () => {
-    // given: 2024-03-15 UTC 하루 종일 이벤트 (seconds_from_gmt=0)
-    // period_start = 1710460800 (2024-03-15 00:00:00 UTC)
-    // period_end   = 1710547199 (2024-03-15 23:59:59 UTC)
+  test('여러 날 종일 일정이면 시작일–종료일을 보여준다', () => {
+    // given — 2026-04-27 ~ 2026-04-29 KST
+    const dayStart = Math.floor(new Date('2026-04-26T15:00:00Z').getTime() / 1000)
+    const dayEnd = dayStart + 2 * 86400
     const eventTime: EventTime = {
-      time_type: 'allday',
-      period_start: 1710460800,
-      period_end: 1710547199,
-      seconds_from_gmt: 0,
+      time_type: 'allday', period_start: dayStart, period_end: dayEnd, seconds_from_gmt: 32400,
     }
-
-    // when: 렌더링
+    // when
     render(<EventTimeDisplay eventTime={eventTime} />)
-
-    // then: "종일" 텍스트가 표시된다
-    expect(screen.getByText('종일')).toBeInTheDocument()
+    // then
+    const s = formatMonthDay(new Date((dayStart + 32400) * 1000), i18n.language, 'UTC')
+    const e = formatMonthDay(new Date((dayEnd + 32400) * 1000), i18n.language, 'UTC')
+    expect(screen.getByText(`${s} – ${e}`)).toBeInTheDocument()
   })
 
-  it('allday 타입 이벤트가 여러 날이면 날짜 범위를 표시한다 (UTC 이벤트)', () => {
-    // given: 2024-03-15 ~ 2024-03-17 UTC 이벤트 (seconds_from_gmt=0)
-    // period_start = 1710460800 (2024-03-15 00:00:00 UTC)
-    // period_end   = 1710719999 (2024-03-17 23:59:59 UTC)
+  test('UTC 기준 하루짜리 종일 일정(seconds_from_gmt=0)이면 종일 문구를 보여준다', () => {
+    // given — 2026-04-27 UTC 하루 종일
+    const dayStart = Math.floor(new Date('2026-04-27T00:00:00Z').getTime() / 1000)
     const eventTime: EventTime = {
-      time_type: 'allday',
-      period_start: 1710460800,
-      period_end: 1710719999,
-      seconds_from_gmt: 0,
+      time_type: 'allday', period_start: dayStart, period_end: dayStart, seconds_from_gmt: 0,
     }
-
-    // when: 렌더링
+    // when
     render(<EventTimeDisplay eventTime={eventTime} />)
-
-    // then: 날짜 범위가 표시된다
-    expect(screen.getByText(/3월 15일.*–.*3월 17일/)).toBeInTheDocument()
+    // then
+    expect(screen.getByText(i18n.t('eventTime.allday'))).toBeInTheDocument()
   })
 
-  it('allday 타입 이벤트가 하루짜리면 "종일"을 표시한다 (KST 이벤트)', () => {
-    // given: 2024-03-15 KST 하루 종일 이벤트 (seconds_from_gmt=32400)
-    // period_start = 1710428400 (2024-03-15 00:00:00 KST = 2024-03-14 15:00:00 UTC)
-    // period_end   = 1710514799 (2024-03-15 23:59:59 KST = 2024-03-15 14:59:59 UTC)
+  test('UTC 기준 여러 날 종일 일정(seconds_from_gmt=0)이면 날짜 범위를 보여준다', () => {
+    // given — 2026-04-27 ~ 2026-04-29 UTC
+    const dayStart = Math.floor(new Date('2026-04-27T00:00:00Z').getTime() / 1000)
+    const dayEnd = dayStart + 2 * 86400
     const eventTime: EventTime = {
-      time_type: 'allday',
-      period_start: 1710428400,
-      period_end: 1710514799,
-      seconds_from_gmt: 32400,
+      time_type: 'allday', period_start: dayStart, period_end: dayEnd, seconds_from_gmt: 0,
     }
-
-    // when: 렌더링
+    // when
     render(<EventTimeDisplay eventTime={eventTime} />)
-
-    // then: "종일" 텍스트가 표시된다
-    expect(screen.getByText('종일')).toBeInTheDocument()
+    // then
+    const s = formatMonthDay(new Date(dayStart * 1000), i18n.language, 'UTC')
+    const e = formatMonthDay(new Date(dayEnd * 1000), i18n.language, 'UTC')
+    expect(screen.getByText(`${s} – ${e}`)).toBeInTheDocument()
   })
 
-  it('allday 타입 이벤트가 여러 날이면 날짜 범위를 표시한다 (KST 이벤트)', () => {
-    // given: 2024-03-15 ~ 2024-03-17 KST 이벤트 (seconds_from_gmt=32400)
-    // period_start = 1710428400 (2024-03-15 00:00:00 KST)
-    // period_end   = 1710687599 (2024-03-17 23:59:59 KST = 2024-03-17 14:59:59 UTC)
+  test('period_end 없는 단일 일자 종일 일정이면 종일 문구를 보여준다 (#127)', () => {
+    // given
+    const dayStart = Math.floor(new Date('2026-04-26T15:00:00Z').getTime() / 1000)
+    const eventTime: EventTime = { time_type: 'allday', period_start: dayStart, seconds_from_gmt: 32400 }
+    // when
+    render(<EventTimeDisplay eventTime={eventTime} />)
+    // then
+    expect(screen.getByText(i18n.t('eventTime.allday'))).toBeInTheDocument()
+  })
+
+  test('서쪽 오프셋(UTC-8) 여러 날 종일 일정은 UTC 기준으로 날짜를 읽는다', () => {
+    // given — period_start 는 2026-04-27T00:00Z, seconds_from_gmt=-28800(서쪽 오프셋).
+    // UTC 로 읽으면 4/26 시작인데, vitest 시스템 TZ(Asia/Seoul, +9h)로 읽으면 4/27 시작으로 하루씩 밀린다
+    const periodStart = Math.floor(new Date('2026-04-27T00:00:00Z').getTime() / 1000)
+    const periodEnd = periodStart + 2 * 86400
     const eventTime: EventTime = {
-      time_type: 'allday',
-      period_start: 1710428400,
-      period_end: 1710687599,
-      seconds_from_gmt: 32400,
+      time_type: 'allday', period_start: periodStart, period_end: periodEnd, seconds_from_gmt: -28800,
     }
-
-    // when: 렌더링
+    // when
     render(<EventTimeDisplay eventTime={eventTime} />)
-
-    // then: KST 기준 날짜 범위가 표시된다
-    expect(screen.getByText(/3월 15일.*–.*3월 17일/)).toBeInTheDocument()
-  })
-
-  it('period_end 없는 allday(단일 일자 종일)는 "종일"을 표시한다 (#127)', () => {
-    // given: 2024-03-15 KST 종일, period_end 없음
-    const eventTime = {
-      time_type: 'allday' as const,
-      period_start: 1710428400,
-      seconds_from_gmt: 32400,
-    } as EventTime
-
-    // when: 렌더링
-    render(<EventTimeDisplay eventTime={eventTime} />)
-
-    // then: "종일" 텍스트가 표시된다
-    expect(screen.getByText('종일')).toBeInTheDocument()
+    // then — UTC 기준 라벨이어야 한다 (시스템 TZ로 읽으면 하루씩 밀린 라벨이 나와 실패한다)
+    const s = formatMonthDay(new Date((periodStart - 28800) * 1000), i18n.language, 'UTC')
+    const e = formatMonthDay(new Date((periodEnd - 28800) * 1000), i18n.language, 'UTC')
+    expect(screen.getByText(`${s} – ${e}`)).toBeInTheDocument()
   })
 })

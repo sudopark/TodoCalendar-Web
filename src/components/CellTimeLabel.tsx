@@ -1,19 +1,15 @@
+import { useTranslation } from 'react-i18next'
 import type { EventTime } from '../models'
+import { useLocale } from '../hooks/useLocale'
+import { formatTimeOfDay, formatMonthDay } from '../utils/locale'
 
 interface CellTimeLabelProps {
   type: 'todo' | 'schedule'
   eventTime?: EventTime | null
 }
 
-function formatTimeShort(ts: number): string {
-  const d = new Date(ts * 1000)
-  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-}
-
-function formatDateShort(ts: number): string {
-  const d = new Date(ts * 1000)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
+const timeShort = (ts: number, locale: string) => formatTimeOfDay(new Date(ts * 1000), locale)
+const dateShort = (ts: number, locale: string) => formatMonthDay(new Date(ts * 1000), locale)
 
 function isSameDay(ts1: number, ts2: number): boolean {
   const d1 = new Date(ts1 * 1000)
@@ -28,53 +24,62 @@ function isSameDay(ts1: number, ts2: number): boolean {
  * singleText: 한 줄 표시, doubleText: 상/하 두 줄 표시.
  */
 export function CellTimeLabel({ type, eventTime }: CellTimeLabelProps) {
+  const { t } = useTranslation()
+  const locale = useLocale()
+
   if (type === 'todo') {
-    return <TodoTimeLabel eventTime={eventTime} />
+    return <TodoTimeLabel eventTime={eventTime} locale={locale} t={t} />
   }
   if (!eventTime) return null
-  return <ScheduleTimeLabel eventTime={eventTime} />
+  return <ScheduleTimeLabel eventTime={eventTime} locale={locale} t={t} />
 }
 
-function TodoTimeLabel({ eventTime }: { eventTime?: EventTime | null }) {
+interface TimeLabelProps {
+  eventTime?: EventTime | null
+  locale: string
+  t: (key: string) => string
+}
+
+function TodoTimeLabel({ eventTime, locale, t }: TimeLabelProps) {
   if (!eventTime) {
-    return <SingleLine text="Todo" />
+    return <SingleLine text={t('eventType.todo')} />
   }
 
   if (eventTime.time_type === 'at') {
-    return <DoubleLine top="Todo" bottom={formatTimeShort(eventTime.timestamp)} />
+    return <DoubleLine top={t('eventType.todo')} bottom={timeShort(eventTime.timestamp, locale)} />
   }
 
   if (eventTime.time_type === 'allday') {
-    return <DoubleLine top="Todo" bottom="Allday" />
+    return <DoubleLine top={t('eventType.todo')} bottom={t('eventTime.allday')} />
   }
 
   // period
-  return <DoubleLine top="Todo" bottom={formatTimeShort(eventTime.period_start)} />
+  return <DoubleLine top={t('eventType.todo')} bottom={timeShort(eventTime.period_start, locale)} />
 }
 
-function ScheduleTimeLabel({ eventTime }: { eventTime: EventTime }) {
+function ScheduleTimeLabel({ eventTime, locale, t }: TimeLabelProps & { eventTime: EventTime }) {
   if (eventTime.time_type === 'at') {
-    return <SingleLine text={formatTimeShort(eventTime.timestamp)} />
+    return <SingleLine text={timeShort(eventTime.timestamp, locale)} />
   }
 
   if (eventTime.time_type === 'allday') {
-    return <SingleLine text="Allday" />
+    return <SingleLine text={t('eventTime.allday')} />
   }
 
   // period
   if (isSameDay(eventTime.period_start, eventTime.period_end)) {
     return (
       <DoubleLine
-        top={formatTimeShort(eventTime.period_start)}
-        bottom={formatTimeShort(eventTime.period_end)}
+        top={timeShort(eventTime.period_start, locale)}
+        bottom={timeShort(eventTime.period_end, locale)}
       />
     )
   }
 
   return (
     <DoubleLine
-      top={formatDateShort(eventTime.period_start)}
-      bottom={formatTimeShort(eventTime.period_end)}
+      top={dateShort(eventTime.period_start, locale)}
+      bottom={timeShort(eventTime.period_end, locale)}
     />
   )
 }

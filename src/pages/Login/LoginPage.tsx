@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, Link } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
+import { LanguagePicker } from '../../components/LanguagePicker'
 import { useAuthStore } from '../../stores/authStore'
 import { useLoginViewModel } from './useLoginViewModel'
 
@@ -20,7 +21,9 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-surface">
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-surface">
+      <LanguagePicker variant="labeled" className="absolute right-4 top-4" />
+
       <div className="w-full max-w-sm p-8 bg-surface-elevated rounded-2xl shadow-md">
         <h1 className="text-2xl font-bold text-center text-fg mb-2">{t('login.title')}</h1>
         <p className="text-sm text-center text-fg-tertiary mb-8">{t('login.subtitle')}</p>
@@ -72,6 +75,16 @@ export function LoginPage() {
           </div>
         )}
       </div>
+
+      <footer className="mt-6 flex items-center gap-3 text-xs text-fg-tertiary">
+        <Link to="/terms" data-testid="login-terms-link" className="hover:text-fg-secondary">
+          {t('footer.terms')}
+        </Link>
+        <span aria-hidden="true">·</span>
+        <Link to="/privacy" data-testid="login-privacy-link" className="hover:text-fg-secondary">
+          {t('footer.privacy')}
+        </Link>
+      </footer>
     </div>
   )
 }

@@ -11,6 +11,8 @@ import { ConfirmDialog } from '../ConfirmDialog'
 import { EventTimeDisplay } from '../EventTimeDisplay'
 import { formatNotification } from '../../utils/formatNotification'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { useLocale } from '../../hooks/useLocale'
+import { formatDateTimeMedium } from '../../utils/locale'
 import { BottomSheet } from '../ui/BottomSheet'
 
 const POPOVER_WIDTH = 320
@@ -36,7 +38,8 @@ export function DoneTodoDetailPopover({
   onReverted,
   onDeleted,
 }: DoneTodoDetailPopoverProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
+  const locale = useLocale()
   const isMobile = useIsMobile()
   const vm = useDoneTodoDetailPopoverViewModel(doneTodo)
   const resolved = useResolvedEventTag(doneTodo.event_tag_id)
@@ -55,11 +58,8 @@ export function DoneTodoDetailPopover({
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose, showDeleteConfirm, isMobile])
 
-  const dateLocale = i18n.language === 'en' ? 'en-US' : 'ko-KR'
   const doneTimeText = doneTodo.done_at
-    ? new Date(doneTodo.done_at * 1000).toLocaleString(dateLocale, {
-        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-      })
+    ? formatDateTimeMedium(new Date(doneTodo.done_at * 1000), locale)
     : null
 
   // 원래 시간(originEventTime) — EventTimeDisplay 재사용으로 EventDetailPopover 와 포맷 일관성 확보
