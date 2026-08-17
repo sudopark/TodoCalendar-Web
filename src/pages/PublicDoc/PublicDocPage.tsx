@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { MarkdownContent } from '../../components/markdown/MarkdownContent'
 import {
-  DOC_LANGUAGES,
-  isDocLanguage,
+  isSupportedDocLanguage,
   resolveDocLanguage,
   type DocLanguage,
   type PublicDoc,
@@ -19,7 +18,7 @@ export function PublicDocPage({ doc }: Props) {
   const { lang } = useParams()
 
   // 지원하지 않는 언어라도 404 로 막지 않는다 — 심사·외부 유입에서 문서는 반드시 떠야 한다.
-  if (!isDocLanguage(lang)) {
+  if (!isSupportedDocLanguage(doc, lang)) {
     return <PublicDocLanguageRedirect doc={doc} />
   }
   return <PublicDocView doc={doc} lang={lang} />
@@ -27,13 +26,13 @@ export function PublicDocPage({ doc }: Props) {
 
 function PublicDocLanguageRedirect({ doc }: Props) {
   const { i18n } = useTranslation()
-  return <Navigate to={`/${doc.id}/${resolveDocLanguage(i18n.language)}`} replace />
+  return <Navigate to={`/${doc.id}/${resolveDocLanguage(doc, i18n.language)}`} replace />
 }
 
 function PublicDocView({ doc, lang }: { doc: PublicDoc; lang: DocLanguage }) {
   const { t } = useTranslation()
   const { state, sourceUrl, retry } = usePublicDocViewModel(doc, lang)
-  const title = t(doc.titleKey)
+  const title = doc.titleKey ? t(doc.titleKey) : doc.title
 
   useEffect(() => {
     const previous = document.title
@@ -50,24 +49,26 @@ function PublicDocView({ doc, lang }: { doc: PublicDoc; lang: DocLanguage }) {
           <Link to="/" className="text-sm text-fg-secondary hover:text-fg">
             {t('publicDoc.home')}
           </Link>
-          <nav className="flex items-center gap-1" aria-label={t('publicDoc.language.label')}>
-            {DOC_LANGUAGES.map(code => (
-              <Link
-                key={code}
-                to={`/${doc.id}/${code}`}
-                replace
-                data-testid={`public-doc-lang-${code}`}
-                aria-current={code === lang ? 'true' : undefined}
-                className={
-                  code === lang
-                    ? 'rounded-lg bg-surface-sunken px-3 py-1.5 text-sm font-medium text-fg'
-                    : 'rounded-lg px-3 py-1.5 text-sm text-fg-tertiary hover:text-fg'
-                }
-              >
-                {t(`publicDoc.language.${code}`)}
-              </Link>
-            ))}
-          </nav>
+          {doc.languages.length > 1 && (
+            <nav className="flex items-center gap-1" aria-label={t('publicDoc.language.label')}>
+              {doc.languages.map(code => (
+                <Link
+                  key={code}
+                  to={`/${doc.id}/${code}`}
+                  replace
+                  data-testid={`public-doc-lang-${code}`}
+                  aria-current={code === lang ? 'true' : undefined}
+                  className={
+                    code === lang
+                      ? 'rounded-lg bg-surface-sunken px-3 py-1.5 text-sm font-medium text-fg'
+                      : 'rounded-lg px-3 py-1.5 text-sm text-fg-tertiary hover:text-fg'
+                  }
+                >
+                  {t(`publicDoc.language.${code}`)}
+                </Link>
+              ))}
+            </nav>
+          )}
         </div>
       </header>
 
