@@ -123,6 +123,7 @@
   "settings.menu.notification": "Bildirimler",
   "settings.menu.account": "Hesap",
   "settings.back": "Geri",
+  "settings.legal": "Yasal",
   "tag.default_name": "Varsayılan",
   "tag.holiday_name": "Tatil",
   "tag.manage": "Etkinlik Türlerini Yönet",
@@ -353,5 +354,18 @@
   "oauth.error.title": "İstek işlenemiyor",
   "oauth.error.invalid_challenge": "Bu istek zaten işlendi veya süresi doldu. Lütfen isteği gönderen uygulamadan yeniden başlatın.",
   "oauth.error.fallback": "Bir hata oluştu. Lütfen isteği gönderen uygulamadan yeniden başlatın.",
-  "oauth.error.go_home": "Ana sayfaya git"
+  "oauth.error.go_home": "Ana sayfaya git",
+  "footer.terms": "Kullanım Koşulları",
+  "footer.privacy": "Gizlilik Politikası",
+  "publicDoc.terms.title": "Kullanım Koşulları",
+  "publicDoc.privacy.title": "Gizlilik Politikası",
+  "publicDoc.home": "Uygulamaya dön",
+  "publicDoc.loading": "Belge yükleniyor",
+  "publicDoc.language.label": "Belge dili",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Belge yüklenemedi",
+  "publicDoc.error.description": "Ağ bağlantınızı kontrol edip tekrar deneyin.",
+  "publicDoc.error.retry": "Tekrar Dene",
+  "publicDoc.error.openSource": "Orijinali görüntüle"
 }

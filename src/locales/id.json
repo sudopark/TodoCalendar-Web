@@ -123,6 +123,7 @@
   "settings.menu.notification": "Notifikasi",
   "settings.menu.account": "Akun",
   "settings.back": "Kembali",
+  "settings.legal": "Hukum",
   "tag.default_name": "Default",
   "tag.holiday_name": "Hari Libur",
   "tag.manage": "Kelola Tag",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Tidak dapat memproses permintaan",
   "oauth.error.invalid_challenge": "Permintaan ini sudah diproses atau kedaluwarsa. Silakan mulai ulang dari aplikasi yang meminta.",
   "oauth.error.fallback": "Terjadi kesalahan. Silakan mulai ulang dari aplikasi yang meminta.",
-  "oauth.error.go_home": "Ke beranda"
+  "oauth.error.go_home": "Ke beranda",
+  "footer.terms": "Ketentuan Penggunaan",
+  "footer.privacy": "Kebijakan Privasi",
+  "publicDoc.terms.title": "Ketentuan Penggunaan",
+  "publicDoc.privacy.title": "Kebijakan Privasi",
+  "publicDoc.home": "Kembali ke aplikasi",
+  "publicDoc.loading": "Memuat dokumen",
+  "publicDoc.language.label": "Bahasa dokumen",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Tidak dapat memuat dokumen",
+  "publicDoc.error.description": "Periksa koneksi jaringan Anda dan coba lagi.",
+  "publicDoc.error.retry": "Coba Lagi",
+  "publicDoc.error.openSource": "Lihat asli"
 }

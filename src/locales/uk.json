@@ -123,6 +123,7 @@
   "settings.menu.notification": "Сповіщення",
   "settings.menu.account": "Обліковий запис",
   "settings.back": "Назад",
+  "settings.legal": "Правова інформація",
   "tag.default_name": "За замовчуванням",
   "tag.holiday_name": "Свято",
   "tag.manage": "Керування мітками",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Неможливо обробити запит",
   "oauth.error.invalid_challenge": "Цей запит уже оброблено або термін його дії минув. Почніть спочатку із застосунку, що надіслав запит.",
   "oauth.error.fallback": "Сталася помилка. Почніть спочатку із застосунку, що надіслав запит.",
-  "oauth.error.go_home": "На головну"
+  "oauth.error.go_home": "На головну",
+  "footer.terms": "Умови використання",
+  "footer.privacy": "Політика конфіденційності",
+  "publicDoc.terms.title": "Умови використання",
+  "publicDoc.privacy.title": "Політика конфіденційності",
+  "publicDoc.home": "Повернутися до застосунку",
+  "publicDoc.loading": "Завантаження документа",
+  "publicDoc.language.label": "Мова документа",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Не вдалося завантажити документ",
+  "publicDoc.error.description": "Перевірте підключення до мережі та спробуйте ще раз.",
+  "publicDoc.error.retry": "Повторити",
+  "publicDoc.error.openSource": "Відкрити оригінал"
 }

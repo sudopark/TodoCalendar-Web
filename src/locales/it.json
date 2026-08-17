@@ -123,6 +123,7 @@
   "settings.menu.notification": "Notifiche",
   "settings.menu.account": "Account",
   "settings.back": "Indietro",
+  "settings.legal": "Note legali",
   "tag.default_name": "Predefinita",
   "tag.holiday_name": "Festività",
   "tag.manage": "Gestisci etichette",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Impossibile elaborare la richiesta",
   "oauth.error.invalid_challenge": "Questa richiesta è già stata gestita o è scaduta. Ricomincia dall'app richiedente.",
   "oauth.error.fallback": "Si è verificato un errore. Ricomincia dall'app richiedente.",
-  "oauth.error.go_home": "Vai alla home"
+  "oauth.error.go_home": "Vai alla home",
+  "footer.terms": "Termini di utilizzo",
+  "footer.privacy": "Informativa sulla privacy",
+  "publicDoc.terms.title": "Termini di utilizzo",
+  "publicDoc.privacy.title": "Informativa sulla privacy",
+  "publicDoc.home": "Torna all'app",
+  "publicDoc.loading": "Caricamento del documento",
+  "publicDoc.language.label": "Lingua del documento",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Impossibile caricare il documento",
+  "publicDoc.error.description": "Controlla la connessione di rete e riprova.",
+  "publicDoc.error.retry": "Riprova",
+  "publicDoc.error.openSource": "Visualizza originale"
 }

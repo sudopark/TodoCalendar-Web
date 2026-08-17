@@ -123,6 +123,7 @@
   "settings.menu.notification": "通知",
   "settings.menu.account": "账户",
   "settings.back": "返回",
+  "settings.legal": "法律信息",
   "tag.default_name": "默认",
   "tag.holiday_name": "假期",
   "tag.manage": "管理标签",
@@ -353,5 +354,18 @@
   "oauth.error.title": "无法处理该请求",
   "oauth.error.invalid_challenge": "此请求已被处理或已过期，请从发起请求的应用重新开始。",
   "oauth.error.fallback": "发生错误，请从发起请求的应用重新开始。",
-  "oauth.error.go_home": "返回首页"
+  "oauth.error.go_home": "返回首页",
+  "footer.terms": "使用条款",
+  "footer.privacy": "隐私政策",
+  "publicDoc.terms.title": "使用条款",
+  "publicDoc.privacy.title": "隐私政策",
+  "publicDoc.home": "返回应用",
+  "publicDoc.loading": "正在加载文档",
+  "publicDoc.language.label": "文档语言",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "无法加载文档",
+  "publicDoc.error.description": "请检查网络连接后重试。",
+  "publicDoc.error.retry": "重试",
+  "publicDoc.error.openSource": "查看原文"
 }

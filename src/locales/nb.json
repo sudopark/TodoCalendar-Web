@@ -123,6 +123,7 @@
   "settings.menu.notification": "Varslinger",
   "settings.menu.account": "Konto",
   "settings.back": "Tilbake",
+  "settings.legal": "Juridisk",
   "tag.default_name": "Standard",
   "tag.holiday_name": "Helligdag",
   "tag.manage": "Administrer tagger",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Kan ikke behandle forespørselen",
   "oauth.error.invalid_challenge": "Denne forespørselen er allerede behandlet eller har utløpt. Start på nytt fra appen som ba om dette.",
   "oauth.error.fallback": "Det oppstod en feil. Start på nytt fra appen som ba om dette.",
-  "oauth.error.go_home": "Gå til startsiden"
+  "oauth.error.go_home": "Gå til startsiden",
+  "footer.terms": "Bruksvilkår",
+  "footer.privacy": "Personvernerklæring",
+  "publicDoc.terms.title": "Bruksvilkår",
+  "publicDoc.privacy.title": "Personvernerklæring",
+  "publicDoc.home": "Tilbake til appen",
+  "publicDoc.loading": "Laster dokument",
+  "publicDoc.language.label": "Dokumentets språk",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Kunne ikke laste dokumentet",
+  "publicDoc.error.description": "Kontroller nettverkstilkoblingen og prøv igjen.",
+  "publicDoc.error.retry": "Prøv igjen",
+  "publicDoc.error.openSource": "Vis original"
 }

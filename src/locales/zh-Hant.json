@@ -123,6 +123,7 @@
   "settings.menu.notification": "通知",
   "settings.menu.account": "帳號",
   "settings.back": "返回",
+  "settings.legal": "法律資訊",
   "tag.default_name": "預設",
   "tag.holiday_name": "假日",
   "tag.manage": "管理活動類型",
@@ -353,5 +354,18 @@
   "oauth.error.title": "無法處理此請求",
   "oauth.error.invalid_challenge": "此請求已處理或已過期，請從發出請求的應用程式重新開始。",
   "oauth.error.fallback": "發生錯誤，請從發出請求的應用程式重新開始。",
-  "oauth.error.go_home": "回到首頁"
+  "oauth.error.go_home": "回到首頁",
+  "footer.terms": "使用條款",
+  "footer.privacy": "隱私權政策",
+  "publicDoc.terms.title": "使用條款",
+  "publicDoc.privacy.title": "隱私權政策",
+  "publicDoc.home": "返回應用程式",
+  "publicDoc.loading": "正在載入文件",
+  "publicDoc.language.label": "文件語言",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "無法載入文件",
+  "publicDoc.error.description": "請檢查網路連線後再試一次。",
+  "publicDoc.error.retry": "重試",
+  "publicDoc.error.openSource": "查看原文"
 }

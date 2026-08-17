@@ -123,6 +123,7 @@
   "settings.menu.notification": "Notifications",
   "settings.menu.account": "Compte",
   "settings.back": "Retour",
+  "settings.legal": "Mentions légales",
   "tag.default_name": "Par défaut",
   "tag.holiday_name": "Jour férié",
   "tag.manage": "Gérer les étiquettes",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Impossible de traiter la requête",
   "oauth.error.invalid_challenge": "Cette requête a déjà été traitée ou a expiré. Veuillez recommencer depuis l'application demandeuse.",
   "oauth.error.fallback": "Une erreur est survenue. Veuillez recommencer depuis l'application demandeuse.",
-  "oauth.error.go_home": "Retour à l'accueil"
+  "oauth.error.go_home": "Retour à l'accueil",
+  "footer.terms": "Conditions d'utilisation",
+  "footer.privacy": "Politique de confidentialité",
+  "publicDoc.terms.title": "Conditions d'utilisation",
+  "publicDoc.privacy.title": "Politique de confidentialité",
+  "publicDoc.home": "Retour à l'app",
+  "publicDoc.loading": "Chargement du document",
+  "publicDoc.language.label": "Langue du document",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Impossible de charger le document",
+  "publicDoc.error.description": "Vérifiez votre connexion réseau et réessayez.",
+  "publicDoc.error.retry": "Réessayer",
+  "publicDoc.error.openSource": "Voir l'original"
 }

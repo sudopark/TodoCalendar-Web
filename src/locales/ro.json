@@ -123,6 +123,7 @@
   "settings.menu.notification": "Notificări",
   "settings.menu.account": "Cont",
   "settings.back": "Înapoi",
+  "settings.legal": "Informații juridice",
   "tag.default_name": "Implicit",
   "tag.holiday_name": "Sărbătoare",
   "tag.manage": "Gestionează etichetele",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Cererea nu poate fi procesată",
   "oauth.error.invalid_challenge": "Această cerere a fost deja procesată sau a expirat. Reîncepe din aplicația solicitantă.",
   "oauth.error.fallback": "A apărut o eroare. Reîncepe din aplicația solicitantă.",
-  "oauth.error.go_home": "Mergi la pagina principală"
+  "oauth.error.go_home": "Mergi la pagina principală",
+  "footer.terms": "Termeni de utilizare",
+  "footer.privacy": "Politica de confidențialitate",
+  "publicDoc.terms.title": "Termeni de utilizare",
+  "publicDoc.privacy.title": "Politica de confidențialitate",
+  "publicDoc.home": "Înapoi la aplicație",
+  "publicDoc.loading": "Se încarcă documentul",
+  "publicDoc.language.label": "Limba documentului",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Documentul nu a putut fi încărcat",
+  "publicDoc.error.description": "Verifică conexiunea la rețea și încearcă din nou.",
+  "publicDoc.error.retry": "Reîncearcă",
+  "publicDoc.error.openSource": "Vezi originalul"
 }

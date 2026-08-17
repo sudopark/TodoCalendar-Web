@@ -123,6 +123,7 @@
   "settings.menu.notification": "Meldingen",
   "settings.menu.account": "Account",
   "settings.back": "Terug",
+  "settings.legal": "Juridisch",
   "tag.default_name": "Standaard",
   "tag.holiday_name": "Feestdag",
   "tag.manage": "Labels beheren",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Kan het verzoek niet verwerken",
   "oauth.error.invalid_challenge": "Dit verzoek is al verwerkt of verlopen. Start opnieuw vanuit de aanvragende app.",
   "oauth.error.fallback": "Er is een fout opgetreden. Start opnieuw vanuit de aanvragende app.",
-  "oauth.error.go_home": "Naar startpagina"
+  "oauth.error.go_home": "Naar startpagina",
+  "footer.terms": "Gebruiksvoorwaarden",
+  "footer.privacy": "Privacybeleid",
+  "publicDoc.terms.title": "Gebruiksvoorwaarden",
+  "publicDoc.privacy.title": "Privacybeleid",
+  "publicDoc.home": "Terug naar app",
+  "publicDoc.loading": "Document wordt geladen",
+  "publicDoc.language.label": "Taal van document",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Kan het document niet laden",
+  "publicDoc.error.description": "Controleer je netwerkverbinding en probeer het opnieuw.",
+  "publicDoc.error.retry": "Opnieuw proberen",
+  "publicDoc.error.openSource": "Origineel bekijken"
 }

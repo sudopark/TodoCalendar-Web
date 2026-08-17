@@ -123,6 +123,7 @@
   "settings.menu.notification": "Thông báo",
   "settings.menu.account": "Tài khoản",
   "settings.back": "Quay lại",
+  "settings.legal": "Pháp lý",
   "tag.default_name": "Mặc định",
   "tag.holiday_name": "Ngày lễ",
   "tag.manage": "Quản lý loại sự kiện",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Không thể xử lý yêu cầu",
   "oauth.error.invalid_challenge": "Yêu cầu này đã được xử lý hoặc đã hết hạn. Vui lòng bắt đầu lại từ ứng dụng yêu cầu.",
   "oauth.error.fallback": "Đã xảy ra lỗi. Vui lòng bắt đầu lại từ ứng dụng yêu cầu.",
-  "oauth.error.go_home": "Về trang chủ"
+  "oauth.error.go_home": "Về trang chủ",
+  "footer.terms": "Điều khoản sử dụng",
+  "footer.privacy": "Chính sách bảo mật",
+  "publicDoc.terms.title": "Điều khoản sử dụng",
+  "publicDoc.privacy.title": "Chính sách bảo mật",
+  "publicDoc.home": "Quay lại ứng dụng",
+  "publicDoc.loading": "Đang tải tài liệu",
+  "publicDoc.language.label": "Ngôn ngữ tài liệu",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Không thể tải tài liệu",
+  "publicDoc.error.description": "Vui lòng kiểm tra kết nối mạng và thử lại.",
+  "publicDoc.error.retry": "Thử lại",
+  "publicDoc.error.openSource": "Xem bản gốc"
 }

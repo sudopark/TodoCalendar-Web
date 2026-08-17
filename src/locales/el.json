@@ -123,6 +123,7 @@
   "settings.menu.notification": "Ειδοποιήσεις",
   "settings.menu.account": "Λογαριασμός",
   "settings.back": "Πίσω",
+  "settings.legal": "Νομικές πληροφορίες",
   "tag.default_name": "Προεπιλογή",
   "tag.holiday_name": "Αργία",
   "tag.manage": "Διαχείριση ετικετών",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Δεν είναι δυνατή η επεξεργασία του αιτήματος",
   "oauth.error.invalid_challenge": "Αυτό το αίτημα έχει ήδη ολοκληρωθεί ή έχει λήξει. Ξεκινήστε ξανά από την εφαρμογή που το ζήτησε.",
   "oauth.error.fallback": "Παρουσιάστηκε σφάλμα. Ξεκινήστε ξανά από την εφαρμογή που το ζήτησε.",
-  "oauth.error.go_home": "Αρχική"
+  "oauth.error.go_home": "Αρχική",
+  "footer.terms": "Όροι χρήσης",
+  "footer.privacy": "Πολιτική απορρήτου",
+  "publicDoc.terms.title": "Όροι χρήσης",
+  "publicDoc.privacy.title": "Πολιτική απορρήτου",
+  "publicDoc.home": "Επιστροφή στην εφαρμογή",
+  "publicDoc.loading": "Φόρτωση εγγράφου",
+  "publicDoc.language.label": "Γλώσσα εγγράφου",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Δεν ήταν δυνατή η φόρτωση του εγγράφου",
+  "publicDoc.error.description": "Ελέγξτε τη σύνδεση δικτύου και δοκιμάστε ξανά.",
+  "publicDoc.error.retry": "Δοκιμάστε ξανά",
+  "publicDoc.error.openSource": "Προβολή πρωτοτύπου"
 }

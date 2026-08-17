@@ -123,6 +123,7 @@
   "settings.menu.notification": "Notificações",
   "settings.menu.account": "Conta",
   "settings.back": "Voltar",
+  "settings.legal": "Informações legais",
   "tag.default_name": "Padrão",
   "tag.holiday_name": "Feriado",
   "tag.manage": "Gerenciar Categorias",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Não é possível processar a solicitação",
   "oauth.error.invalid_challenge": "Esta solicitação já foi processada ou expirou. Reinicie a partir do aplicativo solicitante.",
   "oauth.error.fallback": "Ocorreu um erro. Reinicie a partir do aplicativo solicitante.",
-  "oauth.error.go_home": "Ir para o início"
+  "oauth.error.go_home": "Ir para o início",
+  "footer.terms": "Termos de uso",
+  "footer.privacy": "Política de privacidade",
+  "publicDoc.terms.title": "Termos de uso",
+  "publicDoc.privacy.title": "Política de privacidade",
+  "publicDoc.home": "Voltar ao app",
+  "publicDoc.loading": "Carregando documento",
+  "publicDoc.language.label": "Idioma do documento",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Não foi possível carregar o documento",
+  "publicDoc.error.description": "Verifique sua conexão de rede e tente novamente.",
+  "publicDoc.error.retry": "Tentar novamente",
+  "publicDoc.error.openSource": "Ver original"
 }

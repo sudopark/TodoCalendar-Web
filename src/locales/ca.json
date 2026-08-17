@@ -123,6 +123,7 @@
   "settings.menu.notification": "Notificacions",
   "settings.menu.account": "Compte",
   "settings.back": "Enrere",
+  "settings.legal": "Avís legal",
   "tag.default_name": "Per defecte",
   "tag.holiday_name": "Festiu",
   "tag.manage": "Gestiona les etiquetes",
@@ -353,5 +354,18 @@
   "oauth.error.title": "No es pot processar la sol·licitud",
   "oauth.error.invalid_challenge": "Aquesta sol·licitud ja s'ha gestionat o ha caducat. Torneu a començar des de l'aplicació sol·licitant.",
   "oauth.error.fallback": "S'ha produït un error. Torneu a començar des de l'aplicació sol·licitant.",
-  "oauth.error.go_home": "Vés a l'inici"
+  "oauth.error.go_home": "Vés a l'inici",
+  "footer.terms": "Condicions d'ús",
+  "footer.privacy": "Política de privadesa",
+  "publicDoc.terms.title": "Condicions d'ús",
+  "publicDoc.privacy.title": "Política de privadesa",
+  "publicDoc.home": "Torna a l'app",
+  "publicDoc.loading": "S'està carregant el document",
+  "publicDoc.language.label": "Idioma del document",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "No s'ha pogut carregar el document",
+  "publicDoc.error.description": "Comproveu la connexió de xarxa i torneu-ho a provar.",
+  "publicDoc.error.retry": "Torna-ho a provar",
+  "publicDoc.error.openSource": "Mostra l'original"
 }

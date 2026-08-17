@@ -123,6 +123,7 @@
   "settings.menu.notification": "การแจ้งเตือน",
   "settings.menu.account": "บัญชี",
   "settings.back": "ย้อนกลับ",
+  "settings.legal": "ข้อมูลทางกฎหมาย",
   "tag.default_name": "ค่าเริ่มต้น",
   "tag.holiday_name": "วันหยุด",
   "tag.manage": "จัดการประเภทกิจกรรม",
@@ -353,5 +354,18 @@
   "oauth.error.title": "ไม่สามารถดำเนินการตามคำขอได้",
   "oauth.error.invalid_challenge": "คำขอนี้ถูกดำเนินการไปแล้วหรือหมดอายุ กรุณาเริ่มใหม่จากแอปที่ส่งคำขอ",
   "oauth.error.fallback": "เกิดข้อผิดพลาด กรุณาเริ่มใหม่จากแอปที่ส่งคำขอ",
-  "oauth.error.go_home": "กลับหน้าหลัก"
+  "oauth.error.go_home": "กลับหน้าหลัก",
+  "footer.terms": "ข้อกำหนดการใช้งาน",
+  "footer.privacy": "นโยบายความเป็นส่วนตัว",
+  "publicDoc.terms.title": "ข้อกำหนดการใช้งาน",
+  "publicDoc.privacy.title": "นโยบายความเป็นส่วนตัว",
+  "publicDoc.home": "กลับไปที่แอป",
+  "publicDoc.loading": "กำลังโหลดเอกสาร",
+  "publicDoc.language.label": "ภาษาของเอกสาร",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "ไม่สามารถโหลดเอกสารได้",
+  "publicDoc.error.description": "กรุณาตรวจสอบการเชื่อมต่อเครือข่ายแล้วลองใหม่อีกครั้ง",
+  "publicDoc.error.retry": "ลองใหม่",
+  "publicDoc.error.openSource": "ดูต้นฉบับ"
 }

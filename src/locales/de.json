@@ -123,6 +123,7 @@
   "settings.menu.notification": "Benachrichtigungen",
   "settings.menu.account": "Konto",
   "settings.back": "Zurück",
+  "settings.legal": "Rechtliches",
   "tag.default_name": "Standard",
   "tag.holiday_name": "Feiertag",
   "tag.manage": "Ereignistypen verwalten",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Anfrage kann nicht verarbeitet werden",
   "oauth.error.invalid_challenge": "Diese Anfrage wurde bereits bearbeitet oder ist abgelaufen. Bitte starten Sie erneut über die anfragende App.",
   "oauth.error.fallback": "Ein Fehler ist aufgetreten. Bitte starten Sie erneut über die anfragende App.",
-  "oauth.error.go_home": "Zur Startseite"
+  "oauth.error.go_home": "Zur Startseite",
+  "footer.terms": "Nutzungsbedingungen",
+  "footer.privacy": "Datenschutzerklärung",
+  "publicDoc.terms.title": "Nutzungsbedingungen",
+  "publicDoc.privacy.title": "Datenschutzerklärung",
+  "publicDoc.home": "Zurück zur App",
+  "publicDoc.loading": "Dokument wird geladen",
+  "publicDoc.language.label": "Sprache des Dokuments",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Dokument konnte nicht geladen werden",
+  "publicDoc.error.description": "Bitte prüfen Sie Ihre Netzwerkverbindung und versuchen Sie es erneut.",
+  "publicDoc.error.retry": "Erneut versuchen",
+  "publicDoc.error.openSource": "Original anzeigen"
 }

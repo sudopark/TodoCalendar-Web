@@ -123,6 +123,7 @@
   "settings.menu.notification": "Ilmoitukset",
   "settings.menu.account": "Tili",
   "settings.back": "Takaisin",
+  "settings.legal": "Oikeudelliset tiedot",
   "tag.default_name": "Oletus",
   "tag.holiday_name": "Vapaapäivä",
   "tag.manage": "Hallitse tunnisteita",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Pyyntöä ei voi käsitellä",
   "oauth.error.invalid_challenge": "Tämä pyyntö on jo käsitelty tai vanhentunut. Aloita uudelleen pyynnön tehneestä sovelluksesta.",
   "oauth.error.fallback": "Tapahtui virhe. Aloita uudelleen pyynnön tehneestä sovelluksesta.",
-  "oauth.error.go_home": "Etusivulle"
+  "oauth.error.go_home": "Etusivulle",
+  "footer.terms": "Käyttöehdot",
+  "footer.privacy": "Tietosuojakäytäntö",
+  "publicDoc.terms.title": "Käyttöehdot",
+  "publicDoc.privacy.title": "Tietosuojakäytäntö",
+  "publicDoc.home": "Takaisin sovellukseen",
+  "publicDoc.loading": "Ladataan asiakirjaa",
+  "publicDoc.language.label": "Asiakirjan kieli",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Asiakirjaa ei voitu ladata",
+  "publicDoc.error.description": "Tarkista verkkoyhteys ja yritä uudelleen.",
+  "publicDoc.error.retry": "Yritä uudelleen",
+  "publicDoc.error.openSource": "Näytä alkuperäinen"
 }

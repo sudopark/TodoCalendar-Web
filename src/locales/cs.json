@@ -123,6 +123,7 @@
   "settings.menu.notification": "Upozornění",
   "settings.menu.account": "Účet",
   "settings.back": "Zpět",
+  "settings.legal": "Právní informace",
   "tag.default_name": "Výchozí",
   "tag.holiday_name": "Svátek",
   "tag.manage": "Spravovat štítky",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Požadavek nelze zpracovat",
   "oauth.error.invalid_challenge": "Tento požadavek už byl zpracován nebo vypršel. Spusťte to prosím znovu z požadující aplikace.",
   "oauth.error.fallback": "Došlo k chybě. Spusťte to prosím znovu z požadující aplikace.",
-  "oauth.error.go_home": "Přejít domů"
+  "oauth.error.go_home": "Přejít domů",
+  "footer.terms": "Podmínky použití",
+  "footer.privacy": "Zásady ochrany osobních údajů",
+  "publicDoc.terms.title": "Podmínky použití",
+  "publicDoc.privacy.title": "Zásady ochrany osobních údajů",
+  "publicDoc.home": "Zpět do aplikace",
+  "publicDoc.loading": "Načítání dokumentu",
+  "publicDoc.language.label": "Jazyk dokumentu",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Dokument se nepodařilo načíst",
+  "publicDoc.error.description": "Zkontrolujte síťové připojení a zkuste to znovu.",
+  "publicDoc.error.retry": "Zkusit znovu",
+  "publicDoc.error.openSource": "Zobrazit originál"
 }

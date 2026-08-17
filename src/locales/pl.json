@@ -123,6 +123,7 @@
   "settings.menu.notification": "Powiadomienia",
   "settings.menu.account": "Konto",
   "settings.back": "Wstecz",
+  "settings.legal": "Informacje prawne",
   "tag.default_name": "Domyślny",
   "tag.holiday_name": "Święto",
   "tag.manage": "Zarządzaj tagami",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Nie można przetworzyć żądania",
   "oauth.error.invalid_challenge": "To żądanie zostało już obsłużone lub wygasło. Uruchom proces ponownie w aplikacji, która go zainicjowała.",
   "oauth.error.fallback": "Wystąpił błąd. Uruchom proces ponownie w aplikacji, która go zainicjowała.",
-  "oauth.error.go_home": "Przejdź do strony głównej"
+  "oauth.error.go_home": "Przejdź do strony głównej",
+  "footer.terms": "Warunki korzystania",
+  "footer.privacy": "Polityka prywatności",
+  "publicDoc.terms.title": "Warunki korzystania",
+  "publicDoc.privacy.title": "Polityka prywatności",
+  "publicDoc.home": "Powrót do aplikacji",
+  "publicDoc.loading": "Wczytywanie dokumentu",
+  "publicDoc.language.label": "Język dokumentu",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Nie udało się wczytać dokumentu",
+  "publicDoc.error.description": "Sprawdź połączenie sieciowe i spróbuj ponownie.",
+  "publicDoc.error.retry": "Spróbuj ponownie",
+  "publicDoc.error.openSource": "Zobacz oryginał"
 }

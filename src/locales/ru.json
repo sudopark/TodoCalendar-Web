@@ -123,6 +123,7 @@
   "settings.menu.notification": "Уведомления",
   "settings.menu.account": "Аккаунт",
   "settings.back": "Назад",
+  "settings.legal": "Правовая информация",
   "tag.default_name": "По умолчанию",
   "tag.holiday_name": "Праздник",
   "tag.manage": "Управление типами событий",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Не удалось обработать запрос",
   "oauth.error.invalid_challenge": "Этот запрос уже обработан или истёк. Начните заново из приложения, отправившего запрос.",
   "oauth.error.fallback": "Произошла ошибка. Начните заново из приложения, отправившего запрос.",
-  "oauth.error.go_home": "На главную"
+  "oauth.error.go_home": "На главную",
+  "footer.terms": "Условия использования",
+  "footer.privacy": "Политика конфиденциальности",
+  "publicDoc.terms.title": "Условия использования",
+  "publicDoc.privacy.title": "Политика конфиденциальности",
+  "publicDoc.home": "Вернуться в приложение",
+  "publicDoc.loading": "Загрузка документа",
+  "publicDoc.language.label": "Язык документа",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Не удалось загрузить документ",
+  "publicDoc.error.description": "Проверьте подключение к сети и попробуйте ещё раз.",
+  "publicDoc.error.retry": "Повторить",
+  "publicDoc.error.openSource": "Открыть оригинал"
 }

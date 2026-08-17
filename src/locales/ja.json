@@ -123,6 +123,7 @@
   "settings.menu.notification": "通知",
   "settings.menu.account": "アカウント",
   "settings.back": "戻る",
+  "settings.legal": "法的情報",
   "tag.default_name": "デフォルト",
   "tag.holiday_name": "祝日",
   "tag.manage": "イベントタイプを管理",
@@ -353,5 +354,18 @@
   "oauth.error.title": "リクエストを処理できません",
   "oauth.error.invalid_challenge": "このリクエストはすでに処理済みか、期限切れです。リクエスト元のアプリからやり直してください。",
   "oauth.error.fallback": "エラーが発生しました。リクエスト元のアプリからやり直してください。",
-  "oauth.error.go_home": "ホームに戻る"
+  "oauth.error.go_home": "ホームに戻る",
+  "footer.terms": "利用規約",
+  "footer.privacy": "プライバシーポリシー",
+  "publicDoc.terms.title": "利用規約",
+  "publicDoc.privacy.title": "プライバシーポリシー",
+  "publicDoc.home": "アプリに戻る",
+  "publicDoc.loading": "ドキュメントを読み込み中",
+  "publicDoc.language.label": "ドキュメントの言語",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "ドキュメントを読み込めませんでした",
+  "publicDoc.error.description": "ネットワーク接続を確認して、もう一度お試しください。",
+  "publicDoc.error.retry": "再試行",
+  "publicDoc.error.openSource": "原文を表示"
 }

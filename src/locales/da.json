@@ -123,6 +123,7 @@
   "settings.menu.notification": "Notifikationer",
   "settings.menu.account": "Konto",
   "settings.back": "Tilbage",
+  "settings.legal": "Juridisk",
   "tag.default_name": "Standard",
   "tag.holiday_name": "Helligdag",
   "tag.manage": "Administrer begivenhedstyper",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Kan ikke behandle anmodningen",
   "oauth.error.invalid_challenge": "Denne anmodning er allerede blevet behandlet eller er udløbet. Start venligst forfra fra den anmodende app.",
   "oauth.error.fallback": "Der opstod en fejl. Start venligst forfra fra den anmodende app.",
-  "oauth.error.go_home": "Gå til forsiden"
+  "oauth.error.go_home": "Gå til forsiden",
+  "footer.terms": "Brugsvilkår",
+  "footer.privacy": "Privatlivspolitik",
+  "publicDoc.terms.title": "Brugsvilkår",
+  "publicDoc.privacy.title": "Privatlivspolitik",
+  "publicDoc.home": "Tilbage til appen",
+  "publicDoc.loading": "Indlæser dokument",
+  "publicDoc.language.label": "Dokumentets sprog",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Dokumentet kunne ikke indlæses",
+  "publicDoc.error.description": "Kontrollér din netværksforbindelse, og prøv igen.",
+  "publicDoc.error.retry": "Prøv igen",
+  "publicDoc.error.openSource": "Vis original"
 }

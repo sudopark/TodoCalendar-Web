@@ -123,6 +123,7 @@
   "settings.menu.notification": "Aviseringar",
   "settings.menu.account": "Konto",
   "settings.back": "Tillbaka",
+  "settings.legal": "Juridisk information",
   "tag.default_name": "Standard",
   "tag.holiday_name": "Helgdag",
   "tag.manage": "Hantera taggar",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Kan inte behandla förfrågan",
   "oauth.error.invalid_challenge": "Den här förfrågan har redan hanterats eller har gått ut. Starta om från appen som gjorde förfrågan.",
   "oauth.error.fallback": "Ett fel uppstod. Starta om från appen som gjorde förfrågan.",
-  "oauth.error.go_home": "Gå hem"
+  "oauth.error.go_home": "Gå hem",
+  "footer.terms": "Användarvillkor",
+  "footer.privacy": "Integritetspolicy",
+  "publicDoc.terms.title": "Användarvillkor",
+  "publicDoc.privacy.title": "Integritetspolicy",
+  "publicDoc.home": "Tillbaka till appen",
+  "publicDoc.loading": "Läser in dokument",
+  "publicDoc.language.label": "Dokumentets språk",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Det gick inte att läsa in dokumentet",
+  "publicDoc.error.description": "Kontrollera nätverksanslutningen och försök igen.",
+  "publicDoc.error.retry": "Försök igen",
+  "publicDoc.error.openSource": "Visa original"
 }

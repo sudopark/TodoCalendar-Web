@@ -123,6 +123,7 @@
   "settings.menu.notification": "Értesítések",
   "settings.menu.account": "Fiók",
   "settings.back": "Vissza",
+  "settings.legal": "Jogi információk",
   "tag.default_name": "Alapértelmezett",
   "tag.holiday_name": "Ünnep",
   "tag.manage": "Címkék kezelése",
@@ -353,5 +354,18 @@
   "oauth.error.title": "A kérés nem dolgozható fel",
   "oauth.error.invalid_challenge": "Ezt a kérést már feldolgozták, vagy lejárt. Kérjük, indítsa újra a kérelmező alkalmazásból.",
   "oauth.error.fallback": "Hiba történt. Kérjük, indítsa újra a kérelmező alkalmazásból.",
-  "oauth.error.go_home": "Vissza a főoldalra"
+  "oauth.error.go_home": "Vissza a főoldalra",
+  "footer.terms": "Felhasználási feltételek",
+  "footer.privacy": "Adatvédelmi tájékoztató",
+  "publicDoc.terms.title": "Felhasználási feltételek",
+  "publicDoc.privacy.title": "Adatvédelmi tájékoztató",
+  "publicDoc.home": "Vissza az alkalmazásba",
+  "publicDoc.loading": "Dokumentum betöltése",
+  "publicDoc.language.label": "A dokumentum nyelve",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "A dokumentum nem tölthető be",
+  "publicDoc.error.description": "Ellenőrizze a hálózati kapcsolatot, és próbálja újra.",
+  "publicDoc.error.retry": "Újrapróbálás",
+  "publicDoc.error.openSource": "Eredeti megtekintése"
 }

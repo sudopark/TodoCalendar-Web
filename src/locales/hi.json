@@ -123,6 +123,7 @@
   "settings.menu.notification": "सूचनाएं",
   "settings.menu.account": "खाता",
   "settings.back": "वापस",
+  "settings.legal": "कानूनी जानकारी",
   "tag.default_name": "डिफ़ॉल्ट",
   "tag.holiday_name": "अवकाश",
   "tag.manage": "टैग प्रबंधित करें",
@@ -353,5 +354,18 @@
   "oauth.error.title": "अनुरोध संसाधित नहीं किया जा सकता",
   "oauth.error.invalid_challenge": "यह अनुरोध पहले ही संसाधित हो चुका है या समाप्त हो गया है। कृपया अनुरोध करने वाले ऐप से फिर से शुरू करें।",
   "oauth.error.fallback": "एक त्रुटि हुई। कृपया अनुरोध करने वाले ऐप से फिर से शुरू करें।",
-  "oauth.error.go_home": "होम पर जाएं"
+  "oauth.error.go_home": "होम पर जाएं",
+  "footer.terms": "उपयोग की शर्तें",
+  "footer.privacy": "गोपनीयता नीति",
+  "publicDoc.terms.title": "उपयोग की शर्तें",
+  "publicDoc.privacy.title": "गोपनीयता नीति",
+  "publicDoc.home": "ऐप पर वापस जाएं",
+  "publicDoc.loading": "दस्तावेज़ लोड हो रहा है",
+  "publicDoc.language.label": "दस्तावेज़ की भाषा",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "दस्तावेज़ लोड नहीं हो सका",
+  "publicDoc.error.description": "अपना नेटवर्क कनेक्शन जांचें और फिर से प्रयास करें।",
+  "publicDoc.error.retry": "फिर से प्रयास करें",
+  "publicDoc.error.openSource": "मूल देखें"
 }

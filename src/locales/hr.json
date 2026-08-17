@@ -123,6 +123,7 @@
   "settings.menu.notification": "Obavijesti",
   "settings.menu.account": "Račun",
   "settings.back": "Natrag",
+  "settings.legal": "Pravne informacije",
   "tag.default_name": "Zadano",
   "tag.holiday_name": "Blagdan",
   "tag.manage": "Upravljanje oznakama",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Zahtjev nije moguće obraditi",
   "oauth.error.invalid_challenge": "Ovaj zahtjev je već obrađen ili je istekao. Ponovno pokrenite iz aplikacije koja je poslala zahtjev.",
   "oauth.error.fallback": "Došlo je do pogreške. Ponovno pokrenite iz aplikacije koja je poslala zahtjev.",
-  "oauth.error.go_home": "Idi na početnu"
+  "oauth.error.go_home": "Idi na početnu",
+  "footer.terms": "Uvjeti korištenja",
+  "footer.privacy": "Pravila o privatnosti",
+  "publicDoc.terms.title": "Uvjeti korištenja",
+  "publicDoc.privacy.title": "Pravila o privatnosti",
+  "publicDoc.home": "Natrag u aplikaciju",
+  "publicDoc.loading": "Učitavanje dokumenta",
+  "publicDoc.language.label": "Jezik dokumenta",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Dokument se ne može učitati",
+  "publicDoc.error.description": "Provjerite mrežnu vezu i pokušajte ponovno.",
+  "publicDoc.error.retry": "Pokušaj ponovno",
+  "publicDoc.error.openSource": "Prikaži izvornik"
 }

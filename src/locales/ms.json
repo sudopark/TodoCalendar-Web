@@ -123,6 +123,7 @@
   "settings.menu.notification": "Pemberitahuan",
   "settings.menu.account": "Akaun",
   "settings.back": "Kembali",
+  "settings.legal": "Undang-undang",
   "tag.default_name": "Lalai",
   "tag.holiday_name": "Cuti",
   "tag.manage": "Urus Tag",
@@ -353,5 +354,18 @@
   "oauth.error.title": "Tidak dapat memproses permintaan",
   "oauth.error.invalid_challenge": "Permintaan ini telah diproses atau tamat tempoh. Sila mulakan semula daripada aplikasi yang memohon.",
   "oauth.error.fallback": "Ralat berlaku. Sila mulakan semula daripada aplikasi yang memohon.",
-  "oauth.error.go_home": "Pergi ke Laman Utama"
+  "oauth.error.go_home": "Pergi ke Laman Utama",
+  "footer.terms": "Terma Penggunaan",
+  "footer.privacy": "Dasar Privasi",
+  "publicDoc.terms.title": "Terma Penggunaan",
+  "publicDoc.privacy.title": "Dasar Privasi",
+  "publicDoc.home": "Kembali ke aplikasi",
+  "publicDoc.loading": "Memuatkan dokumen",
+  "publicDoc.language.label": "Bahasa dokumen",
+  "publicDoc.language.ko": "한국어",
+  "publicDoc.language.en": "English",
+  "publicDoc.error.title": "Tidak dapat memuatkan dokumen",
+  "publicDoc.error.description": "Sila semak sambungan rangkaian anda dan cuba lagi.",
+  "publicDoc.error.retry": "Cuba Lagi",
+  "publicDoc.error.openSource": "Lihat asal"
 }
