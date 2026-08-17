@@ -8,8 +8,9 @@ import { PUBLIC_DOCS } from '../../../src/domain/publicDocs'
 import type { DocLanguage } from '../../../src/domain/publicDocs'
 import i18n from '../../../src/i18n'
 
-const TERMS = PUBLIC_DOCS[0]
-const PRIVACY = PUBLIC_DOCS[1]
+const TERMS = PUBLIC_DOCS.find(d => d.id === 'terms')!
+const PRIVACY = PUBLIC_DOCS.find(d => d.id === 'privacy')!
+const GOOGLE_CALENDAR_DATA = PUBLIC_DOCS.find(d => d.id === 'google-calendar-data')!
 
 let bodies: Partial<Record<DocLanguage, string>>
 let failures: number
@@ -49,6 +50,20 @@ function renderAt(url: string) {
       <Routes>
         <Route path="/terms/:lang?" element={<PublicDocPage doc={TERMS} />} />
         <Route path="/privacy/:lang?" element={<Loc />} />
+        <Route path="/" element={<Loc />} />
+      </Routes>
+    </MemoryRouter>
+  )
+}
+
+function renderGoogleCalendarDataAt(url: string) {
+  render(
+    <MemoryRouter initialEntries={[url]}>
+      <Routes>
+        <Route
+          path="/google-calendar-data/:lang?"
+          element={<PublicDocPage doc={GOOGLE_CALENDAR_DATA} />}
+        />
         <Route path="/" element={<Loc />} />
       </Routes>
     </MemoryRouter>
@@ -153,5 +168,58 @@ describe('PublicDocPage', () => {
     // then
     await waitFor(() => expect(screen.getByTestId('loc')).toHaveTextContent('/privacy/ko'))
     expect(PRIVACY.id).toBe('privacy')
+  })
+})
+
+describe('PublicDocPage — 영문 단일본 문서', () => {
+  beforeEach(() => {
+    bodies = { en: '# Google Calendar Integration & Data Policy\n\nEnglish only body.' }
+  })
+
+  it('한국어 UI 에서 언어 없는 경로로 들어가도 영문 본문이 뜬다', async () => {
+    // given
+    await i18n.changeLanguage('ko')
+
+    // when
+    renderGoogleCalendarDataAt('/google-calendar-data')
+
+    // then
+    await waitFor(() => expect(screen.getByText('English only body.')).toBeInTheDocument())
+  })
+
+  it('제공하지 않는 ko 경로로 직접 들어가도 영문 본문이 뜬다', async () => {
+    // given
+    await i18n.changeLanguage('ko')
+
+    // when
+    renderGoogleCalendarDataAt('/google-calendar-data/ko')
+
+    // then — ko 로 머무르면 원문 링크가 존재하지 않는 ko 파일을 가리키게 된다
+    await waitFor(() => expect(screen.getByText('English only body.')).toBeInTheDocument())
+  })
+
+  it('제공 언어가 하나뿐이면 언어 전환 링크가 보이지 않는다', async () => {
+    // given / when
+    renderGoogleCalendarDataAt('/google-calendar-data/en')
+    await waitFor(() => expect(screen.getByText('English only body.')).toBeInTheDocument())
+
+    // then
+    expect(screen.queryByTestId('public-doc-lang-ko')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('public-doc-lang-en')).not.toBeInTheDocument()
+  })
+
+  it('문서를 못 가져오면 원문 링크가 영문 경로를 가리킨다', async () => {
+    // given
+    bodies = {}
+
+    // when
+    renderGoogleCalendarDataAt('/google-calendar-data/en')
+
+    // then
+    await waitFor(() => expect(screen.getByTestId('public-doc-error')).toBeInTheDocument())
+    expect(screen.getByTestId('public-doc-source-link')).toHaveAttribute(
+      'href',
+      'https://raw.example.test/en/google-calendar-data.md'
+    )
   })
 })
