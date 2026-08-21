@@ -426,5 +426,5 @@ test('설정 페이지에서 로그아웃하면 로그인 페이지로 리다이
 
   // then — 로그인 페이지로 리다이렉트
   await expect(page).toHaveURL(/\/login/)
-  await expect(page.getByRole('heading', { name: 'TodoCalendar' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'To-do Calendar' })).toBeVisible()
 })
