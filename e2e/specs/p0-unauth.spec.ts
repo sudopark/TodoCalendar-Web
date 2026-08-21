@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test'
 
-test('로그인 페이지에 타이틀 "TodoCalendar"와 서브타이틀이 표시된다', async ({ page }) => {
+test('로그인 페이지에 타이틀 "To-do Calendar"와 서브타이틀이 표시된다', async ({ page }) => {
   // given / when
   await page.goto('/login')
   await page.waitForLoadState('networkidle')
 
   // then
-  await expect(page.getByRole('heading', { name: 'TodoCalendar' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'To-do Calendar' })).toBeVisible()
   await expect(page.getByText('계속하려면 로그인하세요')).toBeVisible()
 })
 
