@@ -16,6 +16,19 @@ interface Props {
   doc: PublicDoc
 }
 
+/**
+ * 제목 id 는 원문 텍스트 그대로라 퍼센트 디코드가 필요하지만, `#100%-free` 처럼 이스케이프가
+ * 깨진 앵커에는 decodeURIComponent 가 URIError 를 던진다. 그땐 원문 그대로 찾는다.
+ */
+function anchorId(hash: string): string {
+  const raw = hash.slice(1)
+  try {
+    return decodeURIComponent(raw)
+  } catch {
+    return raw
+  }
+}
+
 /** 하위 문서 경로를 붙인 문서 URL. slug 가 없으면 문서 루트(목차)를 가리킨다. */
 function docPath(doc: PublicDoc, lang: DocLanguage, page?: string): string {
   return page ? `/${doc.id}/${lang}/${page}` : `/${doc.id}/${lang}`
@@ -59,7 +72,7 @@ function PublicDocView({ doc, lang, page }: { doc: PublicDoc; lang: DocLanguage;
       document.documentElement.scrollTop = 0
       return
     }
-    document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView?.()
+    document.getElementById(anchorId(hash))?.scrollIntoView?.()
   }, [loadedMarkdown, hash, key])
 
   return (

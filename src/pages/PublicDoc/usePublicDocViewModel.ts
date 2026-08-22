@@ -36,5 +36,9 @@ export function usePublicDocViewModel(doc: PublicDoc, lang: DocLanguage, page?: 
   const retry = useCallback(() => setAttempt(n => n + 1), [])
   const state: PublicDocState = unreachablePage ? { status: 'error' } : fetchState
 
-  return { state, sourceUrl: publicDocRepo.sourceUrl(doc, lang, page), retry }
+  // 검증 못 한 slug 로 원문 URL 을 만들면 에러 화면의 원문 링크가 레포 밖을 가리킨다 —
+  // 브라우저가 `../` 를 정규화해 다른 저장소로 넘어간다. 이럴 땐 문서 루트를 가리킨다.
+  const sourceUrl = publicDocRepo.sourceUrl(doc, lang, unreachablePage ? undefined : page)
+
+  return { state, sourceUrl, retry }
 }

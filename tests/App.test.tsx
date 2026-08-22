@@ -43,8 +43,8 @@ vi.mock('../src/api/eventTagApi', () => ({
 // 외부 raw.githubusercontent.com 호출을 막기 위해 api 경계(createPublicDocApi)에서 모킹
 vi.mock('../src/api/publicDocApi', () => ({
   createPublicDocApi: () => ({
-    sourceUrl: (fileName: string, lang: string) => `https://example.test/${lang}/${fileName}`,
-    fetchMarkdown: async (fileName: string, lang: string) => `# Doc\n\nbody-${lang}`,
+    sourceUrl: (filePath: string) => `https://example.test/${filePath}`,
+    fetchMarkdown: async (filePath: string) => `# Doc\n\nbody-${filePath}`,
   }),
 }))
 

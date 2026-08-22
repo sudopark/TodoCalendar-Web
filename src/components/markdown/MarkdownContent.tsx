@@ -61,12 +61,10 @@ export function MarkdownContent({ markdown, lang, doc }: Props) {
             <th className="border border-line px-3 py-2 text-left font-semibold text-fg" {...props} />
           ),
           td: ({ node, ...props }) => <td className="border border-line px-3 py-2 align-top" {...props} />,
+          // lazy 로딩을 걸지 않는다 — 원문이 width 만 주고 height 를 안 줘서, 아직 로드되지
+          // 않은 위쪽 스크린샷이 0 높이로 잡히면 앵커로 진입한 스크롤이 엉뚱한 곳에 멈춘다.
           img: ({ node, ...props }) => (
-            <img
-              {...props}
-              loading="lazy"
-              className="my-6 h-auto max-w-full rounded-xl border border-line"
-            />
+            <img {...props} className="my-6 h-auto max-w-full rounded-xl border border-line" />
           ),
           a: ({ href, children }) => {
             const target = rewriteDocLink(href, lang, doc)
