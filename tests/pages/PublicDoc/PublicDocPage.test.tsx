@@ -5,28 +5,29 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { PublicDocPage } from '../../../src/pages/PublicDoc/PublicDocPage'
 import { PublicDocRepository } from '../../../src/repositories/PublicDocRepository'
 import { PUBLIC_DOCS } from '../../../src/domain/publicDocs'
-import type { DocLanguage } from '../../../src/domain/publicDocs'
 import i18n from '../../../src/i18n'
 
 const TERMS = PUBLIC_DOCS.find(d => d.id === 'terms')!
 const PRIVACY = PUBLIC_DOCS.find(d => d.id === 'privacy')!
 const GOOGLE_CALENDAR_DATA = PUBLIC_DOCS.find(d => d.id === 'google-calendar-data')!
+const GUIDE = PUBLIC_DOCS.find(d => d.id === 'guide')!
 
-let bodies: Partial<Record<DocLanguage, string>>
+// 원문 레포 상대 경로 → 본문
+let bodies: Record<string, string>
 let failures: number
 
 // API 경계에서만 모킹 — 실제 PublicDocRepository 가 동작한다
 function makeRepo() {
   return new PublicDocRepository({
     api: {
-      sourceUrl: (fileName, lang) => `https://raw.example.test/${lang}/${fileName}`,
-      async fetchMarkdown(fileName, lang) {
+      sourceUrl: filePath => `https://raw.example.test/${filePath}`,
+      async fetchMarkdown(filePath) {
         if (failures > 0) {
           failures -= 1
           throw new Error('network down')
         }
-        const body = bodies[lang]
-        if (body === undefined) throw new Error(`no doc: ${lang}/${fileName}`)
+        const body = bodies[filePath]
+        if (body === undefined) throw new Error(`no doc: ${filePath}`)
         return body
       },
     },
@@ -71,7 +72,10 @@ function renderGoogleCalendarDataAt(url: string) {
 }
 
 beforeEach(() => {
-  bodies = { ko: '# 이용약관\n\n한국어 본문입니다.', en: '# Terms of Use\n\nEnglish body.' }
+  bodies = {
+    'ko/terms.md': '# 이용약관\n\n한국어 본문입니다.',
+    'en/terms.md': '# Terms of Use\n\nEnglish body.',
+  }
   failures = 0
   repo = makeRepo()
 })
@@ -158,7 +162,7 @@ describe('PublicDocPage', () => {
   it('본문 안의 다른 문서 링크를 누르면 해당 문서 경로로 이동한다', async () => {
     // given
     const user = userEvent.setup()
-    bodies = { ko: '[방침](./privacy.md)' }
+    bodies = { 'ko/terms.md': '[방침](./privacy.md)' }
     renderAt('/terms/ko')
     await waitFor(() => expect(screen.getByRole('link', { name: '방침' })).toBeInTheDocument())
 
@@ -173,7 +177,10 @@ describe('PublicDocPage', () => {
 
 describe('PublicDocPage — 영문 단일본 문서', () => {
   beforeEach(() => {
-    bodies = { en: '# Google Calendar Integration & Data Policy\n\nEnglish only body.' }
+    bodies = {
+      'en/google-calendar-data.md':
+        '# Google Calendar Integration & Data Policy\n\nEnglish only body.',
+    }
   })
 
   it('한국어 UI 에서 언어 없는 경로로 들어가도 영문 본문이 뜬다', async () => {
