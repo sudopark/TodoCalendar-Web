@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
+import { firstHeading } from '../../components/markdown/firstHeading'
 import { MarkdownContent } from '../../components/markdown/MarkdownContent'
 import {
   isSupportedDocLanguage,
@@ -14,25 +15,33 @@ interface Props {
   doc: PublicDoc
 }
 
+/** 하위 문서 경로를 붙인 문서 URL. slug 가 없으면 문서 루트(목차)를 가리킨다. */
+function docPath(doc: PublicDoc, lang: DocLanguage, page?: string): string {
+  return page ? `/${doc.id}/${lang}/${page}` : `/${doc.id}/${lang}`
+}
+
 export function PublicDocPage({ doc }: Props) {
-  const { lang } = useParams()
+  const { lang, page } = useParams()
 
   // 지원하지 않는 언어라도 404 로 막지 않는다 — 심사·외부 유입에서 문서는 반드시 떠야 한다.
   if (!isSupportedDocLanguage(doc, lang)) {
-    return <PublicDocLanguageRedirect doc={doc} />
+    return <PublicDocLanguageRedirect doc={doc} page={page} />
   }
-  return <PublicDocView doc={doc} lang={lang} />
+  return <PublicDocView doc={doc} lang={lang} page={page} />
 }
 
-function PublicDocLanguageRedirect({ doc }: Props) {
+function PublicDocLanguageRedirect({ doc, page }: Props & { page?: string }) {
   const { i18n } = useTranslation()
-  return <Navigate to={`/${doc.id}/${resolveDocLanguage(doc, i18n.language)}`} replace />
+  return <Navigate to={docPath(doc, resolveDocLanguage(doc, i18n.language), page)} replace />
 }
 
-function PublicDocView({ doc, lang }: { doc: PublicDoc; lang: DocLanguage }) {
+function PublicDocView({ doc, lang, page }: { doc: PublicDoc; lang: DocLanguage; page?: string }) {
   const { t } = useTranslation()
-  const { state, sourceUrl, retry } = usePublicDocViewModel(doc, lang)
-  const title = doc.titleKey ? t(doc.titleKey) : doc.title
+  const { hash, key } = useLocation()
+  const { state, sourceUrl, retry } = usePublicDocViewModel(doc, lang, page)
+  const loadedMarkdown = state.status === 'loaded' ? state.markdown : undefined
+  const title =
+    (loadedMarkdown && firstHeading(loadedMarkdown)) || (doc.titleKey ? t(doc.titleKey) : doc.title)
 
   useEffect(() => {
     const previous = document.title
@@ -42,6 +51,16 @@ function PublicDocView({ doc, lang }: { doc: PublicDoc; lang: DocLanguage }) {
     }
   }, [title])
 
+  // 본문이 뜬 뒤에야 앵커 대상이 존재한다 — 문서를 옮겨 다닐 땐 맨 위에서 시작한다.
+  useEffect(() => {
+    if (loadedMarkdown === undefined) return
+    if (!hash) {
+      document.documentElement.scrollTop = 0
+      return
+    }
+    document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView?.()
+  }, [loadedMarkdown, hash, key])
+
   return (
     <div className="min-h-screen bg-surface">
       <header className="border-b border-line">
@@ -49,12 +68,12 @@ function PublicDocView({ doc, lang }: { doc: PublicDoc; lang: DocLanguage }) {
           <Link to="/" className="text-sm text-fg-secondary hover:text-fg">
             {t('publicDoc.home')}
           </Link>
-          {doc.languages.length > 1 && (
+          {doc.showsLanguageSwitch && doc.languages.length > 1 && (
             <nav className="flex items-center gap-1" aria-label={t('publicDoc.language.label')}>
               {doc.languages.map(code => (
                 <Link
                   key={code}
-                  to={`/${doc.id}/${code}`}
+                  to={docPath(doc, code, page)}
                   replace
                   data-testid={`public-doc-lang-${code}`}
                   aria-current={code === lang ? 'true' : undefined}
@@ -114,7 +133,9 @@ function PublicDocView({ doc, lang }: { doc: PublicDoc; lang: DocLanguage }) {
           </div>
         )}
 
-        {state.status === 'loaded' && <MarkdownContent markdown={state.markdown} lang={lang} />}
+        {state.status === 'loaded' && (
+          <MarkdownContent markdown={state.markdown} lang={lang} doc={doc} />
+        )}
       </main>
     </div>
   )
