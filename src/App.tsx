@@ -10,6 +10,7 @@ import { TodoFormPage } from './pages/TodoForm/TodoFormPage'
 import { ScheduleFormPage } from './pages/ScheduleForm/ScheduleFormPage'
 import { RepositoriesProvider } from './composition/RepositoriesProvider'
 import { PUBLIC_DOCS, isMultiPageDoc } from './domain/publicDocs'
+import { PublicDocSkeleton } from './pages/PublicDoc/PublicDocSkeleton'
 import './stores/themeStore'
 
 const LoginPage = React.lazy(() => import('./pages/Login/LoginPage').then(m => ({ default: m.LoginPage })))
@@ -43,7 +44,11 @@ function AppRoutes() {
             <Route
               key={doc.id}
               path={isMultiPageDoc(doc) ? `/${doc.id}/:lang?/:page?` : `/${doc.id}/:lang?`}
-              element={<PublicDocPage doc={doc} />}
+              element={
+                <Suspense fallback={<PublicDocSkeleton />}>
+                  <PublicDocPage doc={doc} />
+                </Suspense>
+              }
             />
           ))}
           <Route
