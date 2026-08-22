@@ -71,9 +71,9 @@ export function docFileName(doc: PublicDoc): string | undefined {
 }
 
 export function docFilePath(doc: PublicDoc, lang: DocLanguage, page?: string): string {
-  return doc.pathTemplate
-    .replace('{lang}', lang)
-    .replace('{page}', page ?? doc.indexPage ?? '')
+  const slug = page ?? doc.indexPage ?? ''
+  // 함수형 replacer 를 쓴다 — 문자열 replacement 는 `$&` 같은 치환 패턴을 해석한다
+  return doc.pathTemplate.replace('{lang}', () => lang).replace('{page}', () => slug)
 }
 
 /** URL 세그먼트가 그대로 원문 레포 경로에 들어가므로 상위 경로 탈출을 막는다. */

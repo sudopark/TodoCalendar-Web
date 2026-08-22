@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { ErrorBoundary } from '../../../src/components/ErrorBoundary'
 import { PublicDocPage } from '../../../src/pages/PublicDoc/PublicDocPage'
 import { PublicDocRepository } from '../../../src/repositories/PublicDocRepository'
 import { PUBLIC_DOCS } from '../../../src/domain/publicDocs'
@@ -321,6 +322,35 @@ describe('PublicDocPage — 다중 페이지 안내 문서', () => {
 
     // then
     await waitFor(() => expect(screen.getByTestId('public-doc-error')).toBeInTheDocument())
+  })
+
+  it('있을 수 없는 slug 의 원문 링크는 레포 밖이 아니라 문서 루트를 가리킨다', async () => {
+    // given / when — 브라우저가 ../ 를 정규화하면 다른 저장소로 넘어가는 형태
+    renderGuideAt('/guide/ko/..%2F..%2F..%2Fattacker%2Frepo%2Fmain%2Fanything')
+
+    // then
+    await waitFor(() => expect(screen.getByTestId('public-doc-error')).toBeInTheDocument())
+    expect(screen.getByTestId('public-doc-source-link')).toHaveAttribute(
+      'href',
+      'https://raw.example.test/guide/ko/README.md'
+    )
+  })
+
+  it('이스케이프가 깨진 앵커를 달고 들어와도 화면이 죽지 않는다', async () => {
+    // given — decodeURIComponent 가 URIError 를 던지는 앵커. 에러가 나면 ErrorBoundary 가 삼킨다
+    render(
+      <ErrorBoundary>
+        <MemoryRouter initialEntries={['/guide/ko/01-basics#100%-free']}>
+          <Routes>
+            <Route path="/guide/:lang?/:page?" element={<PublicDocPage doc={GUIDE} />} />
+          </Routes>
+        </MemoryRouter>
+      </ErrorBoundary>
+    )
+
+    // when / then
+    await waitFor(() => expect(screen.getByText('캘린더 화면 설명입니다.')).toBeInTheDocument())
+    expect(screen.queryByText(i18n.t('error.something_wrong'))).not.toBeInTheDocument()
   })
 
   it('앱 언어를 따르는 문서라 언어 전환 링크가 보이지 않는다', async () => {
