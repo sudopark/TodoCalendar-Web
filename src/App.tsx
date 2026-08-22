@@ -9,7 +9,7 @@ import { MainPage } from './pages/Main/MainPage'
 import { TodoFormPage } from './pages/TodoForm/TodoFormPage'
 import { ScheduleFormPage } from './pages/ScheduleForm/ScheduleFormPage'
 import { RepositoriesProvider } from './composition/RepositoriesProvider'
-import { PUBLIC_DOCS } from './domain/publicDocs'
+import { PUBLIC_DOCS, isMultiPageDoc } from './domain/publicDocs'
 import './stores/themeStore'
 
 const LoginPage = React.lazy(() => import('./pages/Login/LoginPage').then(m => ({ default: m.LoginPage })))
@@ -38,9 +38,13 @@ function AppRoutes() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/oauth/consent" element={<ConsentPage />} />
           <Route path="/oauth/consent/error" element={<ConsentErrorPage />} />
-          {/* 약관·방침은 미로그인 방문자와 심사관이 봐야 하므로 AuthGuard 밖에 둔다 */}
+          {/* 약관·방침·사용 안내는 미로그인 방문자와 심사관이 봐야 하므로 AuthGuard 밖에 둔다 */}
           {PUBLIC_DOCS.map(doc => (
-            <Route key={doc.id} path={`/${doc.id}/:lang?`} element={<PublicDocPage doc={doc} />} />
+            <Route
+              key={doc.id}
+              path={isMultiPageDoc(doc) ? `/${doc.id}/:lang?/:page?` : `/${doc.id}/:lang?`}
+              element={<PublicDocPage doc={doc} />}
+            />
           ))}
           <Route
             path="/*"

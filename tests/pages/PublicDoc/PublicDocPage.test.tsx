@@ -57,6 +57,17 @@ function renderAt(url: string) {
   )
 }
 
+function renderGuideAt(url: string) {
+  render(
+    <MemoryRouter initialEntries={[url]}>
+      <Routes>
+        <Route path="/guide/:lang?/:page?" element={<PublicDocPage doc={GUIDE} />} />
+        <Route path="/" element={<Loc />} />
+      </Routes>
+    </MemoryRouter>
+  )
+}
+
 function renderGoogleCalendarDataAt(url: string) {
   render(
     <MemoryRouter initialEntries={[url]}>
@@ -228,5 +239,105 @@ describe('PublicDocPage — 영문 단일본 문서', () => {
       'href',
       'https://raw.example.test/en/google-calendar-data.md'
     )
+  })
+})
+
+describe('PublicDocPage — 다중 페이지 안내 문서', () => {
+  beforeEach(() => {
+    bodies = {
+      'guide/ko/README.md': '# 목차\n\n[기본 기능](./01-basics.md)',
+      'guide/ko/01-basics.md': '# 1. 기본 기능\n\n캘린더 화면 설명입니다.\n\n[← 목차](./README.md)',
+      'guide/en/README.md': '# Guide\n\nEnglish index.',
+    }
+  })
+
+  it('언어만 있는 경로로 들어오면 목차 문서가 렌더된다', async () => {
+    // given / when
+    renderGuideAt('/guide/ko')
+
+    // then
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: '목차' })).toBeInTheDocument())
+  })
+
+  it('언어 없는 경로로 들어오면 현재 UI 언어의 목차가 뜬다', async () => {
+    // given
+    await i18n.changeLanguage('en')
+
+    // when
+    renderGuideAt('/guide')
+
+    // then
+    await waitFor(() => expect(screen.getByText('English index.')).toBeInTheDocument())
+  })
+
+  it('하위 문서 경로로 들어오면 그 문서 본문이 렌더된다', async () => {
+    // given / when
+    renderGuideAt('/guide/ko/01-basics')
+
+    // then
+    await waitFor(() => expect(screen.getByText('캘린더 화면 설명입니다.')).toBeInTheDocument())
+  })
+
+  it('목차에서 하위 문서 링크를 누르면 그 문서로 이동한다', async () => {
+    // given
+    const user = userEvent.setup()
+    renderGuideAt('/guide/ko')
+    await waitFor(() => expect(screen.getByRole('link', { name: '기본 기능' })).toBeInTheDocument())
+
+    // when
+    await user.click(screen.getByRole('link', { name: '기본 기능' }))
+
+    // then
+    await waitFor(() => expect(screen.getByText('캘린더 화면 설명입니다.')).toBeInTheDocument())
+  })
+
+  it('하위 문서에서 목차 링크를 누르면 목차로 돌아온다', async () => {
+    // given
+    const user = userEvent.setup()
+    renderGuideAt('/guide/ko/01-basics')
+    await waitFor(() => expect(screen.getByRole('link', { name: '← 목차' })).toBeInTheDocument())
+
+    // when
+    await user.click(screen.getByRole('link', { name: '← 목차' }))
+
+    // then
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: '목차' })).toBeInTheDocument())
+  })
+
+  it('지원하지 않는 언어의 하위 문서 경로로 들어와도 하위 문서를 잃지 않는다', async () => {
+    // given
+    await i18n.changeLanguage('ko')
+
+    // when
+    renderGuideAt('/guide/fr/01-basics')
+
+    // then — 목차로 떨어지지 않고 같은 하위 문서의 ko 본문이 뜬다
+    await waitFor(() => expect(screen.getByText('캘린더 화면 설명입니다.')).toBeInTheDocument())
+  })
+
+  it('원문 레포에 있을 수 없는 slug 로 들어오면 에러 안내가 뜬다', async () => {
+    // given / when
+    renderGuideAt('/guide/ko/..%2F..%2Fsecret')
+
+    // then
+    await waitFor(() => expect(screen.getByTestId('public-doc-error')).toBeInTheDocument())
+  })
+
+  it('앱 언어를 따르는 문서라 언어 전환 링크가 보이지 않는다', async () => {
+    // given / when
+    renderGuideAt('/guide/ko')
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: '목차' })).toBeInTheDocument())
+
+    // then
+    expect(screen.queryByTestId('public-doc-lang-ko')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('public-doc-lang-en')).not.toBeInTheDocument()
+  })
+
+  it('브라우저 탭 제목이 그 문서의 제목을 따른다', async () => {
+    // given / when
+    renderGuideAt('/guide/ko/01-basics')
+
+    // then
+    await waitFor(() => expect(document.title).toBe('1. 기본 기능'))
   })
 })
