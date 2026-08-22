@@ -2,31 +2,33 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { ErrorBoundary } from '../../../src/components/ErrorBoundary'
 import { PublicDocPage } from '../../../src/pages/PublicDoc/PublicDocPage'
 import { PublicDocRepository } from '../../../src/repositories/PublicDocRepository'
 import { PUBLIC_DOCS } from '../../../src/domain/publicDocs'
-import type { DocLanguage } from '../../../src/domain/publicDocs'
 import i18n from '../../../src/i18n'
 
 const TERMS = PUBLIC_DOCS.find(d => d.id === 'terms')!
 const PRIVACY = PUBLIC_DOCS.find(d => d.id === 'privacy')!
 const GOOGLE_CALENDAR_DATA = PUBLIC_DOCS.find(d => d.id === 'google-calendar-data')!
+const GUIDE = PUBLIC_DOCS.find(d => d.id === 'guide')!
 
-let bodies: Partial<Record<DocLanguage, string>>
+// 원문 레포 상대 경로 → 본문
+let bodies: Record<string, string>
 let failures: number
 
 // API 경계에서만 모킹 — 실제 PublicDocRepository 가 동작한다
 function makeRepo() {
   return new PublicDocRepository({
     api: {
-      sourceUrl: (fileName, lang) => `https://raw.example.test/${lang}/${fileName}`,
-      async fetchMarkdown(fileName, lang) {
+      sourceUrl: filePath => `https://raw.example.test/${filePath}`,
+      async fetchMarkdown(filePath) {
         if (failures > 0) {
           failures -= 1
           throw new Error('network down')
         }
-        const body = bodies[lang]
-        if (body === undefined) throw new Error(`no doc: ${lang}/${fileName}`)
+        const body = bodies[filePath]
+        if (body === undefined) throw new Error(`no doc: ${filePath}`)
         return body
       },
     },
@@ -56,6 +58,17 @@ function renderAt(url: string) {
   )
 }
 
+function renderGuideAt(url: string) {
+  render(
+    <MemoryRouter initialEntries={[url]}>
+      <Routes>
+        <Route path="/guide/:lang?/:page?" element={<PublicDocPage doc={GUIDE} />} />
+        <Route path="/" element={<Loc />} />
+      </Routes>
+    </MemoryRouter>
+  )
+}
+
 function renderGoogleCalendarDataAt(url: string) {
   render(
     <MemoryRouter initialEntries={[url]}>
@@ -71,7 +84,10 @@ function renderGoogleCalendarDataAt(url: string) {
 }
 
 beforeEach(() => {
-  bodies = { ko: '# 이용약관\n\n한국어 본문입니다.', en: '# Terms of Use\n\nEnglish body.' }
+  bodies = {
+    'ko/terms.md': '# 이용약관\n\n한국어 본문입니다.',
+    'en/terms.md': '# Terms of Use\n\nEnglish body.',
+  }
   failures = 0
   repo = makeRepo()
 })
@@ -158,7 +174,7 @@ describe('PublicDocPage', () => {
   it('본문 안의 다른 문서 링크를 누르면 해당 문서 경로로 이동한다', async () => {
     // given
     const user = userEvent.setup()
-    bodies = { ko: '[방침](./privacy.md)' }
+    bodies = { 'ko/terms.md': '[방침](./privacy.md)' }
     renderAt('/terms/ko')
     await waitFor(() => expect(screen.getByRole('link', { name: '방침' })).toBeInTheDocument())
 
@@ -173,7 +189,10 @@ describe('PublicDocPage', () => {
 
 describe('PublicDocPage — 영문 단일본 문서', () => {
   beforeEach(() => {
-    bodies = { en: '# Google Calendar Integration & Data Policy\n\nEnglish only body.' }
+    bodies = {
+      'en/google-calendar-data.md':
+        '# Google Calendar Integration & Data Policy\n\nEnglish only body.',
+    }
   })
 
   it('한국어 UI 에서 언어 없는 경로로 들어가도 영문 본문이 뜬다', async () => {
@@ -221,5 +240,134 @@ describe('PublicDocPage — 영문 단일본 문서', () => {
       'href',
       'https://raw.example.test/en/google-calendar-data.md'
     )
+  })
+})
+
+describe('PublicDocPage — 다중 페이지 안내 문서', () => {
+  beforeEach(() => {
+    bodies = {
+      'guide/ko/README.md': '# 목차\n\n[기본 기능](./01-basics.md)',
+      'guide/ko/01-basics.md': '# 1. 기본 기능\n\n캘린더 화면 설명입니다.\n\n[← 목차](./README.md)',
+      'guide/en/README.md': '# Guide\n\nEnglish index.',
+    }
+  })
+
+  it('언어만 있는 경로로 들어오면 목차 문서가 렌더된다', async () => {
+    // given / when
+    renderGuideAt('/guide/ko')
+
+    // then
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: '목차' })).toBeInTheDocument())
+  })
+
+  it('언어 없는 경로로 들어오면 현재 UI 언어의 목차가 뜬다', async () => {
+    // given
+    await i18n.changeLanguage('en')
+
+    // when
+    renderGuideAt('/guide')
+
+    // then
+    await waitFor(() => expect(screen.getByText('English index.')).toBeInTheDocument())
+  })
+
+  it('하위 문서 경로로 들어오면 그 문서 본문이 렌더된다', async () => {
+    // given / when
+    renderGuideAt('/guide/ko/01-basics')
+
+    // then
+    await waitFor(() => expect(screen.getByText('캘린더 화면 설명입니다.')).toBeInTheDocument())
+  })
+
+  it('목차에서 하위 문서 링크를 누르면 그 문서로 이동한다', async () => {
+    // given
+    const user = userEvent.setup()
+    renderGuideAt('/guide/ko')
+    await waitFor(() => expect(screen.getByRole('link', { name: '기본 기능' })).toBeInTheDocument())
+
+    // when
+    await user.click(screen.getByRole('link', { name: '기본 기능' }))
+
+    // then
+    await waitFor(() => expect(screen.getByText('캘린더 화면 설명입니다.')).toBeInTheDocument())
+  })
+
+  it('하위 문서에서 목차 링크를 누르면 목차로 돌아온다', async () => {
+    // given
+    const user = userEvent.setup()
+    renderGuideAt('/guide/ko/01-basics')
+    await waitFor(() => expect(screen.getByRole('link', { name: '← 목차' })).toBeInTheDocument())
+
+    // when
+    await user.click(screen.getByRole('link', { name: '← 목차' }))
+
+    // then
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: '목차' })).toBeInTheDocument())
+  })
+
+  it('지원하지 않는 언어의 하위 문서 경로로 들어와도 하위 문서를 잃지 않는다', async () => {
+    // given
+    await i18n.changeLanguage('ko')
+
+    // when
+    renderGuideAt('/guide/fr/01-basics')
+
+    // then — 목차로 떨어지지 않고 같은 하위 문서의 ko 본문이 뜬다
+    await waitFor(() => expect(screen.getByText('캘린더 화면 설명입니다.')).toBeInTheDocument())
+  })
+
+  it('원문 레포에 있을 수 없는 slug 로 들어오면 에러 안내가 뜬다', async () => {
+    // given / when
+    renderGuideAt('/guide/ko/..%2F..%2Fsecret')
+
+    // then
+    await waitFor(() => expect(screen.getByTestId('public-doc-error')).toBeInTheDocument())
+  })
+
+  it('있을 수 없는 slug 의 원문 링크는 레포 밖이 아니라 문서 루트를 가리킨다', async () => {
+    // given / when — 브라우저가 ../ 를 정규화하면 다른 저장소로 넘어가는 형태
+    renderGuideAt('/guide/ko/..%2F..%2F..%2Fattacker%2Frepo%2Fmain%2Fanything')
+
+    // then
+    await waitFor(() => expect(screen.getByTestId('public-doc-error')).toBeInTheDocument())
+    expect(screen.getByTestId('public-doc-source-link')).toHaveAttribute(
+      'href',
+      'https://raw.example.test/guide/ko/README.md'
+    )
+  })
+
+  it('이스케이프가 깨진 앵커를 달고 들어와도 화면이 죽지 않는다', async () => {
+    // given — decodeURIComponent 가 URIError 를 던지는 앵커. 에러가 나면 ErrorBoundary 가 삼킨다
+    render(
+      <ErrorBoundary>
+        <MemoryRouter initialEntries={['/guide/ko/01-basics#100%-free']}>
+          <Routes>
+            <Route path="/guide/:lang?/:page?" element={<PublicDocPage doc={GUIDE} />} />
+          </Routes>
+        </MemoryRouter>
+      </ErrorBoundary>
+    )
+
+    // when / then
+    await waitFor(() => expect(screen.getByText('캘린더 화면 설명입니다.')).toBeInTheDocument())
+    expect(screen.queryByText(i18n.t('error.something_wrong'))).not.toBeInTheDocument()
+  })
+
+  it('앱 언어를 따르는 문서라 언어 전환 링크가 보이지 않는다', async () => {
+    // given / when
+    renderGuideAt('/guide/ko')
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: '목차' })).toBeInTheDocument())
+
+    // then
+    expect(screen.queryByTestId('public-doc-lang-ko')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('public-doc-lang-en')).not.toBeInTheDocument()
+  })
+
+  it('브라우저 탭 제목이 그 문서의 제목을 따른다', async () => {
+    // given / when
+    renderGuideAt('/guide/ko/01-basics')
+
+    // then
+    await waitFor(() => expect(document.title).toBe('1. 기본 기능'))
   })
 })
