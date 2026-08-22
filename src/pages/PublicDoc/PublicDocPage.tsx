@@ -9,6 +9,7 @@ import {
   type DocLanguage,
   type PublicDoc,
 } from '../../domain/publicDocs'
+import { PublicDocSkeletonBody } from './PublicDocSkeleton'
 import { usePublicDocViewModel } from './usePublicDocViewModel'
 
 interface Props {
@@ -93,19 +94,7 @@ function PublicDocView({ doc, lang, page }: { doc: PublicDoc; lang: DocLanguage;
 
       {/* 문서 제목은 마크다운 본문 첫 h1 이 담당한다. 여기서 h1 을 또 두면 문서에 h1 이 둘이 된다. */}
       <main className="mx-auto max-w-3xl px-6 py-10">
-        {state.status === 'loading' && (
-          <div role="status" aria-live="polite" data-testid="public-doc-loading" className="space-y-3">
-            <span className="sr-only">{t('publicDoc.loading')}</span>
-            {[0, 1, 2, 3, 4, 5].map(i => (
-              <div
-                key={i}
-                aria-hidden="true"
-                className="h-4 animate-pulse rounded bg-surface-sunken"
-                style={{ width: i % 3 === 2 ? '60%' : '100%' }}
-              />
-            ))}
-          </div>
-        )}
+        {state.status === 'loading' && <PublicDocSkeletonBody />}
 
         {state.status === 'error' && (
           <div role="alert" data-testid="public-doc-error" className="py-12 text-center">
