@@ -187,6 +187,48 @@ describe('PublicDocPage', () => {
   })
 })
 
+describe('PublicDocPage — 하단 푸터', () => {
+  it('하단 홈 링크를 누르면 앱 홈으로 이동한다', async () => {
+    // given
+    const user = userEvent.setup()
+    renderAt('/terms/ko')
+    await waitFor(() => expect(screen.getByText('한국어 본문입니다.')).toBeInTheDocument())
+
+    // when
+    await user.click(screen.getByTestId('public-doc-home-link'))
+
+    // then
+    await waitFor(() => expect(screen.getByTestId('loc')).toHaveTextContent('/'))
+  })
+
+  it('하단 방침 링크를 누르면 지금 읽던 언어 그대로 방침 문서로 이동한다', async () => {
+    // given
+    const user = userEvent.setup()
+    renderAt('/terms/ko')
+    await waitFor(() => expect(screen.getByText('한국어 본문입니다.')).toBeInTheDocument())
+
+    // when
+    await user.click(screen.getByTestId('public-doc-privacy-link'))
+
+    // then
+    await waitFor(() => expect(screen.getByTestId('loc')).toHaveTextContent('/privacy/ko'))
+  })
+
+  it('언어 전환기가 없는 안내 문서에서도 하단 약관·방침 링크가 보인다', async () => {
+    // given
+    bodies = { 'guide/ko/README.md': '# 안내\n\n목차입니다.' }
+
+    // when
+    renderGuideAt('/guide/ko')
+
+    // then
+    await waitFor(() => expect(screen.getByText('목차입니다.')).toBeInTheDocument())
+    expect(screen.getByTestId('public-doc-terms-link')).toBeInTheDocument()
+    expect(screen.getByTestId('public-doc-privacy-link')).toBeInTheDocument()
+    expect(screen.getByTestId('public-doc-home-link')).toBeInTheDocument()
+  })
+})
+
 describe('PublicDocPage — 영문 단일본 문서', () => {
   beforeEach(() => {
     bodies = {

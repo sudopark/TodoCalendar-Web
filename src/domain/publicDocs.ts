@@ -60,6 +60,11 @@ export function findPublicDoc(id: string | undefined): PublicDoc | undefined {
   return PUBLIC_DOCS.find(d => d.id === id)
 }
 
+/** 언어가 하나뿐인 문서는 전환기를 띄울 이유가 없다. */
+export function showsDocLanguageSwitch(doc: PublicDoc): boolean {
+  return doc.showsLanguageSwitch && doc.languages.length > 1
+}
+
 export function isMultiPageDoc(doc: PublicDoc): boolean {
   return doc.pathTemplate.includes('{page}')
 }

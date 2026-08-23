@@ -6,9 +6,11 @@ import { MarkdownContent } from '../../components/markdown/MarkdownContent'
 import {
   isSupportedDocLanguage,
   resolveDocLanguage,
+  showsDocLanguageSwitch,
   type DocLanguage,
   type PublicDoc,
 } from '../../domain/publicDocs'
+import { PublicDocFooter } from './PublicDocFooter'
 import { PublicDocSkeletonBody } from './PublicDocSkeleton'
 import { usePublicDocViewModel } from './usePublicDocViewModel'
 
@@ -76,13 +78,10 @@ function PublicDocView({ doc, lang, page }: { doc: PublicDoc; lang: DocLanguage;
   }, [loadedMarkdown, hash, key])
 
   return (
-    <div className="min-h-screen bg-surface">
-      <header className="border-b border-line">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <Link to="/" className="text-sm text-fg-secondary hover:text-fg">
-            {t('publicDoc.home')}
-          </Link>
-          {doc.showsLanguageSwitch && doc.languages.length > 1 && (
+    <div className="flex min-h-screen flex-col bg-surface">
+      {showsDocLanguageSwitch(doc) && (
+        <header className="border-b border-line">
+          <div className="mx-auto flex max-w-3xl items-center justify-end px-6 py-4">
             <nav className="flex items-center gap-1" aria-label={t('publicDoc.language.label')}>
               {doc.languages.map(code => (
                 <Link
@@ -101,12 +100,12 @@ function PublicDocView({ doc, lang, page }: { doc: PublicDoc; lang: DocLanguage;
                 </Link>
               ))}
             </nav>
-          )}
-        </div>
-      </header>
+          </div>
+        </header>
+      )}
 
       {/* 문서 제목은 마크다운 본문 첫 h1 이 담당한다. 여기서 h1 을 또 두면 문서에 h1 이 둘이 된다. */}
-      <main className="mx-auto max-w-3xl px-6 py-10">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
         {state.status === 'loading' && <PublicDocSkeletonBody />}
 
         {state.status === 'error' && (
@@ -139,6 +138,8 @@ function PublicDocView({ doc, lang, page }: { doc: PublicDoc; lang: DocLanguage;
           <MarkdownContent markdown={state.markdown} lang={lang} doc={doc} />
         )}
       </main>
+
+      <PublicDocFooter lang={lang} />
     </div>
   )
 }

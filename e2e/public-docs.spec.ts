@@ -92,3 +92,12 @@ test('로그인 화면 푸터의 약관 링크로 약관 화면에 갈 수 있�
   await expect(page).toHaveURL(/\/terms/)
   await expect(page.getByRole('heading', { level: 1, name: /이용약관|Terms of Use/ })).toBeVisible()
 })
+
+test('문서 화면 푸터의 방침 링크로 읽던 언어 그대로 방침 화면에 갈 수 있다', async ({ page }) => {
+  await stubDocs(page)
+
+  await page.goto('/terms/ko')
+  await page.getByTestId('public-doc-privacy-link').click()
+
+  await expect(page).toHaveURL(/\/privacy\/ko/)
+})
