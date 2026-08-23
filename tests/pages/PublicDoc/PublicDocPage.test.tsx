@@ -214,6 +214,36 @@ describe('PublicDocPage — 하단 푸터', () => {
     await waitFor(() => expect(screen.getByTestId('loc')).toHaveTextContent('/privacy/ko'))
   })
 
+  it('UI 언어가 한국어여도 영문 문서를 읽는 중이면 푸터 문구가 영문으로 뜬다', async () => {
+    // given — UI 언어는 ko 로 두고 영문 약관을 연다
+    await i18n.changeLanguage('ko')
+
+    // when
+    renderAt('/terms/en')
+
+    // then — 문서 언어를 따라간다. UI 언어 기준이었다면 '개인정보처리방침' 이 뜬다
+    await waitFor(() => expect(screen.getByText('English body.')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByTestId('public-doc-privacy-link')).toHaveTextContent('Privacy Policy')
+    )
+    expect(screen.getByTestId('public-doc-terms-link')).toHaveTextContent('Terms of Use')
+  })
+
+  it('한국어 문서를 읽는 중이면 푸터 문구가 한국어로 뜬다', async () => {
+    // given
+    await i18n.changeLanguage('en')
+
+    // when
+    renderAt('/terms/ko')
+
+    // then
+    await waitFor(() => expect(screen.getByText('한국어 본문입니다.')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByTestId('public-doc-privacy-link')).toHaveTextContent('개인정보처리방침')
+    )
+    expect(screen.getByTestId('public-doc-terms-link')).toHaveTextContent('이용약관')
+  })
+
   it('언어 전환기가 없는 안내 문서에서도 하단 약관·방침 링크가 보인다', async () => {
     // given
     bodies = { 'guide/ko/README.md': '# 안내\n\n목차입니다.' }

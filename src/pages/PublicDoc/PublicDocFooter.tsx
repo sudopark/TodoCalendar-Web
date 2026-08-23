@@ -1,6 +1,6 @@
-import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { findPublicDoc, isDocLanguage, type DocLanguage } from '../../domain/publicDocs'
+import { useDocTranslation } from './useDocTranslation'
 
 /** 독자가 고른 언어를 그 문서도 제공하면 그대로 잇는다. 아니면 UI 언어로 재해석하게 둔다. */
 function docLinkPath(id: string, lang: DocLanguage | undefined): string {
@@ -13,8 +13,8 @@ function docLinkPath(id: string, lang: DocLanguage | undefined): string {
  * 자기가 어느 서비스의 문서를 읽고 있는지 모를 수 있어 좌측을 서비스명으로 둔다.
  */
 export function PublicDocFooter({ lang }: { lang?: string }) {
-  const { t } = useTranslation()
   const docLang = isDocLanguage(lang) ? lang : undefined
+  const t = useDocTranslation(docLang)
 
   return (
     <footer className="border-t border-line">
