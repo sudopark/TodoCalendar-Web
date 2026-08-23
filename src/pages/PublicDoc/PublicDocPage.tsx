@@ -12,6 +12,7 @@ import {
 } from '../../domain/publicDocs'
 import { PublicDocFooter } from './PublicDocFooter'
 import { PublicDocSkeletonBody } from './PublicDocSkeleton'
+import { useDocTranslation } from './useDocTranslation'
 import { usePublicDocViewModel } from './usePublicDocViewModel'
 
 interface Props {
@@ -52,7 +53,7 @@ function PublicDocLanguageRedirect({ doc, page }: Props & { page?: string }) {
 }
 
 function PublicDocView({ doc, lang, page }: { doc: PublicDoc; lang: DocLanguage; page?: string }) {
-  const { t } = useTranslation()
+  const t = useDocTranslation(lang)
   const { hash, key } = useLocation()
   const { state, sourceUrl, retry } = usePublicDocViewModel(doc, lang, page)
   const loadedMarkdown = state.status === 'loaded' ? state.markdown : undefined

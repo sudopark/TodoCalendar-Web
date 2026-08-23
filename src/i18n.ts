@@ -24,6 +24,11 @@ async function fetchBundle(lng: string): Promise<BundleLoadResult> {
   }
 }
 
+/** UI 언어를 바꾸지 않고 그 언어 리소스만 확보한다 — 공개 문서처럼 화면 언어가 UI 와 다를 때 쓴다. */
+export async function ensureLanguageBundle(lng: string): Promise<void> {
+  return ensureBundle(lng)
+}
+
 async function ensureBundle(lng: string): Promise<void> {
   if (i18n.hasResourceBundle(lng, 'translation')) return
   const result = await fetchBundle(lng)
