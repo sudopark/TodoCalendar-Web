@@ -45,7 +45,7 @@ function AppRoutes() {
               key={doc.id}
               path={isMultiPageDoc(doc) ? `/${doc.id}/:lang?/:page?` : `/${doc.id}/:lang?`}
               element={
-                <Suspense fallback={<PublicDocSkeleton />}>
+                <Suspense fallback={<PublicDocSkeleton doc={doc} />}>
                   <PublicDocPage doc={doc} />
                 </Suspense>
               }
