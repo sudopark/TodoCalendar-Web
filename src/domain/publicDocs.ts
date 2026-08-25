@@ -1,7 +1,14 @@
-export const DOC_LANGUAGES = ['ko', 'en'] as const
-export type DocLanguage = (typeof DOC_LANGUAGES)[number]
+import { FALLBACK_LANGUAGE, resolveLanguage } from '../i18n/resolveLanguage'
+import { SUPPORTED_LANGUAGES } from '../i18n/supportedLanguages'
 
-export const FALLBACK_DOC_LANGUAGE: DocLanguage = 'en'
+/** 문서 언어 후보는 UI 지원 언어 세트와 같다. 그중 어느 언어가 실제로 있는지는 문서마다 다르다. */
+export const DOC_LANGUAGES: readonly string[] = SUPPORTED_LANGUAGES
+export type DocLanguage = string
+
+export const FALLBACK_DOC_LANGUAGE: DocLanguage = FALLBACK_LANGUAGE
+
+/** 원문 레포에 ko 번역본까지 있는 문서. 나머지 약관류는 en 단일본이다. */
+const TERMS_LANGUAGES: readonly DocLanguage[] = ['ko', 'en']
 
 export interface PublicDoc {
   /** 라우트 경로이자 캐시 키 — `/terms`, `/guide` */
@@ -26,7 +33,7 @@ export const PUBLIC_DOCS: readonly PublicDoc[] = [
   {
     id: 'terms',
     pathTemplate: '{lang}/terms.md',
-    languages: DOC_LANGUAGES,
+    languages: TERMS_LANGUAGES,
     showsLanguageSwitch: true,
     title: 'Terms of Use',
     titleKey: 'publicDoc.terms.title',
@@ -34,7 +41,7 @@ export const PUBLIC_DOCS: readonly PublicDoc[] = [
   {
     id: 'privacy',
     pathTemplate: '{lang}/privacy.md',
-    languages: DOC_LANGUAGES,
+    languages: TERMS_LANGUAGES,
     showsLanguageSwitch: true,
     title: 'Privacy Policy',
     titleKey: 'publicDoc.privacy.title',
@@ -87,22 +94,19 @@ export function isValidDocPage(page: string): boolean {
 }
 
 export function isDocLanguage(value: unknown): value is DocLanguage {
-  return typeof value === 'string' && (DOC_LANGUAGES as readonly string[]).includes(value)
+  return typeof value === 'string' && DOC_LANGUAGES.includes(value)
 }
 
 export function isSupportedDocLanguage(doc: PublicDoc, value: unknown): value is DocLanguage {
   return isDocLanguage(value) && doc.languages.includes(value)
 }
 
-/** UI 언어 31개를 그 문서가 실제로 제공하는 언어로 clamp 한다. */
+/** UI 언어를 그 문서가 실제로 제공하는 언어로 clamp 한다. `ko-KR`·`zh-Hant-TW` 같은 지역 태그도 흡수한다. */
 export function resolveDocLanguage(
   doc: PublicDoc,
   uiLanguage: string | undefined | null
 ): DocLanguage {
-  const preferred: DocLanguage =
-    typeof uiLanguage === 'string' && uiLanguage.toLowerCase().startsWith('ko')
-      ? 'ko'
-      : FALLBACK_DOC_LANGUAGE
+  const preferred = resolveLanguage(uiLanguage, [], doc.languages)
   if (doc.languages.includes(preferred)) return preferred
   return doc.languages[0] ?? FALLBACK_DOC_LANGUAGE
 }

@@ -10,8 +10,10 @@ import {
   isValidDocPage,
   resolveDocLanguage,
 } from '../../src/domain/publicDocs'
+import { SUPPORTED_LANGUAGES } from '../../src/i18n/supportedLanguages'
 
 const TERMS = PUBLIC_DOCS.find(d => d.id === 'terms')!
+const PRIVACY = PUBLIC_DOCS.find(d => d.id === 'privacy')!
 const GOOGLE_CALENDAR_DATA = PUBLIC_DOCS.find(d => d.id === 'google-calendar-data')!
 const GUIDE = PUBLIC_DOCS.find(d => d.id === 'guide')!
 
@@ -35,17 +37,23 @@ describe('publicDocs 레지스트리', () => {
     expect(findPublicDoc(undefined)).toBeUndefined()
   })
 
-  it('번역본이 있는 문서는 ko/en 을, 영문 단일본은 en 만 지원 언어로 갖는다', () => {
+  it('약관류는 원문에 있는 ko/en 만, 영문 단일본은 en 만 지원 언어로 갖는다', () => {
     expect([...TERMS.languages]).toEqual(['ko', 'en'])
+    expect([...PRIVACY.languages]).toEqual(['ko', 'en'])
     expect([...GOOGLE_CALENDAR_DATA.languages]).toEqual(['en'])
+  })
+
+  it('사용 안내는 UI 지원 언어 31개를 그대로 지원 언어로 갖는다', () => {
+    expect([...GUIDE.languages]).toEqual([...SUPPORTED_LANGUAGES])
   })
 })
 
 describe('isDocLanguage', () => {
-  it('ko/en 만 문서 언어로 인정한다', () => {
+  it('UI 지원 언어 코드만 문서 언어로 인정한다', () => {
     expect(isDocLanguage('ko')).toBe(true)
-    expect(isDocLanguage('en')).toBe(true)
-    expect(isDocLanguage('fr')).toBe(false)
+    expect(isDocLanguage('fr')).toBe(true)
+    expect(isDocLanguage('zh-Hans')).toBe(true)
+    expect(isDocLanguage('xx')).toBe(false)
     expect(isDocLanguage('KO')).toBe(false)
     expect(isDocLanguage(undefined)).toBe(false)
   })
@@ -53,6 +61,8 @@ describe('isDocLanguage', () => {
 
 describe('isSupportedDocLanguage', () => {
   it('문서가 실제로 제공하는 언어만 인정한다', () => {
+    expect(isSupportedDocLanguage(GUIDE, 'ja')).toBe(true)
+    expect(isSupportedDocLanguage(TERMS, 'ja')).toBe(false)
     expect(isSupportedDocLanguage(TERMS, 'ko')).toBe(true)
     expect(isSupportedDocLanguage(TERMS, 'en')).toBe(true)
     expect(isSupportedDocLanguage(GOOGLE_CALENDAR_DATA, 'en')).toBe(true)
@@ -63,27 +73,32 @@ describe('isSupportedDocLanguage', () => {
 })
 
 describe('resolveDocLanguage', () => {
-  it('번역본이 있는 문서에서 ko 계열 UI 언어는 ko 문서로 clamp 된다', () => {
+  it('문서가 UI 언어의 번역본을 가지면 그 언어 문서로 간다', () => {
+    expect(resolveDocLanguage(GUIDE, 'ja')).toBe('ja')
+    expect(resolveDocLanguage(GUIDE, 'zh-Hans')).toBe('zh-Hans')
+    expect(resolveDocLanguage(GUIDE, 'pt-BR')).toBe('pt-BR')
     expect(resolveDocLanguage(TERMS, 'ko')).toBe('ko')
+  })
+
+  it('지역 태그가 붙은 UI 언어는 문서가 가진 기본 코드로 clamp 된다', () => {
+    expect(resolveDocLanguage(GUIDE, 'ko-KR')).toBe('ko')
+    expect(resolveDocLanguage(GUIDE, 'zh-Hant-TW')).toBe('zh-Hant')
+    expect(resolveDocLanguage(GUIDE, 'pt')).toBe('pt-BR')
     expect(resolveDocLanguage(TERMS, 'ko-KR')).toBe('ko')
   })
 
-  it('번역본이 있는 문서에서 ko 가 아닌 나머지 UI 언어는 전부 en 문서로 clamp 된다', () => {
-    expect(resolveDocLanguage(TERMS, 'en')).toBe('en')
+  it('문서가 제공하지 않는 언어는 en 문서로 clamp 된다', () => {
     expect(resolveDocLanguage(TERMS, 'ja')).toBe('en')
     expect(resolveDocLanguage(TERMS, 'zh-Hans')).toBe('en')
-    expect(resolveDocLanguage(TERMS, 'pt-BR')).toBe('en')
+    expect(resolveDocLanguage(GOOGLE_CALENDAR_DATA, 'ko')).toBe('en')
+    expect(resolveDocLanguage(GOOGLE_CALENDAR_DATA, 'ko-KR')).toBe('en')
   })
 
   it('언어를 알 수 없으면 en 문서로 clamp 된다', () => {
-    expect(resolveDocLanguage(TERMS, undefined)).toBe('en')
-    expect(resolveDocLanguage(TERMS, null)).toBe('en')
-    expect(resolveDocLanguage(TERMS, '')).toBe('en')
-  })
-
-  it('영문 단일본 문서는 ko 계열 UI 언어에서도 en 문서로 clamp 된다', () => {
-    expect(resolveDocLanguage(GOOGLE_CALENDAR_DATA, 'ko')).toBe('en')
-    expect(resolveDocLanguage(GOOGLE_CALENDAR_DATA, 'ko-KR')).toBe('en')
+    expect(resolveDocLanguage(GUIDE, undefined)).toBe('en')
+    expect(resolveDocLanguage(GUIDE, null)).toBe('en')
+    expect(resolveDocLanguage(GUIDE, '')).toBe('en')
+    expect(resolveDocLanguage(GUIDE, 'xx')).toBe('en')
   })
 })
 
@@ -96,6 +111,7 @@ describe('docFilePath', () => {
   it('다중 페이지 문서는 하위 문서 slug 를 경로에 실어 준다', () => {
     expect(docFilePath(GUIDE, 'ko', '01-basics')).toBe('guide/ko/01-basics.md')
     expect(docFilePath(GUIDE, 'en', '03-widgets')).toBe('guide/en/03-widgets.md')
+    expect(docFilePath(GUIDE, 'zh-Hans', '03-widgets')).toBe('guide/zh-Hans/03-widgets.md')
   })
 
   it('다중 페이지 문서에서 slug 를 안 주면 목차 문서를 가리킨다', () => {
