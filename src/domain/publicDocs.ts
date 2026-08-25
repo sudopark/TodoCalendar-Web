@@ -3,12 +3,13 @@ import { SUPPORTED_LANGUAGES } from '../i18n/supportedLanguages'
 
 /** 문서 언어 후보는 UI 지원 언어 세트와 같다. 그중 어느 언어가 실제로 있는지는 문서마다 다르다. */
 export const DOC_LANGUAGES: readonly string[] = SUPPORTED_LANGUAGES
+// 코드 세트가 supportedLanguages.json 이라 리터럴 유니온을 만들 수 없다 — 검증은 isDocLanguage 가 한다.
 export type DocLanguage = string
 
 export const FALLBACK_DOC_LANGUAGE: DocLanguage = FALLBACK_LANGUAGE
 
-/** 원문 레포에 ko 번역본까지 있는 문서. 나머지 약관류는 en 단일본이다. */
-const TERMS_LANGUAGES: readonly DocLanguage[] = ['ko', 'en']
+/** 원문 레포에 ko 번역본까지 있는 문서가 쓴다. 나머지 약관류는 en 단일본이다. */
+const KO_TRANSLATED_LANGUAGES: readonly DocLanguage[] = ['ko', 'en']
 
 export interface PublicDoc {
   /** 라우트 경로이자 캐시 키 — `/terms`, `/guide` */
@@ -17,7 +18,10 @@ export interface PublicDoc {
   readonly pathTemplate: string
   /** `{page}` 를 쓰는 다중 페이지 문서에서 목차에 해당하는 slug. */
   readonly indexPage?: string
-  /** 원문 레포에 실제로 존재하는 언어. 문서마다 다르다. */
+  /**
+   * 그 문서를 낼 수 있는 언어. 약관류는 원문 레포에 실제로 있는 언어를, 안내 문서는 UI 지원 언어를
+   * 그대로 쓴다 — 원문이 아직 없는 언어는 en 으로 폴백한다.
+   */
   readonly languages: readonly DocLanguage[]
   /**
    * 상단 언어 전환 노출 여부. 약관류는 앱 밖(스토어·OAuth 동의 화면)에서 유입돼
@@ -33,7 +37,7 @@ export const PUBLIC_DOCS: readonly PublicDoc[] = [
   {
     id: 'terms',
     pathTemplate: '{lang}/terms.md',
-    languages: TERMS_LANGUAGES,
+    languages: KO_TRANSLATED_LANGUAGES,
     showsLanguageSwitch: true,
     title: 'Terms of Use',
     titleKey: 'publicDoc.terms.title',
@@ -41,7 +45,7 @@ export const PUBLIC_DOCS: readonly PublicDoc[] = [
   {
     id: 'privacy',
     pathTemplate: '{lang}/privacy.md',
-    languages: TERMS_LANGUAGES,
+    languages: KO_TRANSLATED_LANGUAGES,
     showsLanguageSwitch: true,
     title: 'Privacy Policy',
     titleKey: 'publicDoc.privacy.title',

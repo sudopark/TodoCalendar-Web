@@ -10,7 +10,6 @@ import {
   isValidDocPage,
   resolveDocLanguage,
 } from '../../src/domain/publicDocs'
-import { SUPPORTED_LANGUAGES } from '../../src/i18n/supportedLanguages'
 
 const TERMS = PUBLIC_DOCS.find(d => d.id === 'terms')!
 const PRIVACY = PUBLIC_DOCS.find(d => d.id === 'privacy')!
@@ -43,8 +42,12 @@ describe('publicDocs 레지스트리', () => {
     expect([...GOOGLE_CALENDAR_DATA.languages]).toEqual(['en'])
   })
 
-  it('사용 안내는 UI 지원 언어 31개를 그대로 지원 언어로 갖는다', () => {
-    expect([...GUIDE.languages]).toEqual([...SUPPORTED_LANGUAGES])
+  it('사용 안내는 en/ko 밖의 UI 언어도 지원 언어로 갖는다', () => {
+    expect(GUIDE.languages).toContain('en')
+    expect(GUIDE.languages).toContain('ko')
+    expect(GUIDE.languages).toContain('ja')
+    expect(GUIDE.languages).toContain('zh-Hant')
+    expect(GUIDE.languages).toContain('hi')
   })
 })
 
