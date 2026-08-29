@@ -321,6 +321,7 @@ describe('PublicDocPage — 다중 페이지 안내 문서', () => {
       'guide/ko/README.md': '# 목차\n\n[기본 기능](./01-basics.md)',
       'guide/ko/01-basics.md': '# 1. 기본 기능\n\n캘린더 화면 설명입니다.\n\n[← 목차](./README.md)',
       'guide/en/README.md': '# Guide\n\nEnglish index.',
+      'guide/ja/README.md': '# ガイド\n\n日本語の目次。',
     }
   })
 
@@ -377,12 +378,23 @@ describe('PublicDocPage — 다중 페이지 안내 문서', () => {
     await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: '목차' })).toBeInTheDocument())
   })
 
-  it('지원하지 않는 언어의 하위 문서 경로로 들어와도 하위 문서를 잃지 않는다', async () => {
+  it('en/ko 밖의 UI 언어로 들어와도 그 언어의 안내 문서가 뜬다', async () => {
+    // given
+    await i18n.changeLanguage('ja')
+
+    // when
+    renderGuideAt('/guide')
+
+    // then
+    await waitFor(() => expect(screen.getByText('日本語の目次。')).toBeInTheDocument())
+  })
+
+  it('문서 언어가 아닌 코드의 하위 문서 경로로 들어와도 하위 문서를 잃지 않는다', async () => {
     // given
     await i18n.changeLanguage('ko')
 
     // when
-    renderGuideAt('/guide/fr/01-basics')
+    renderGuideAt('/guide/xx/01-basics')
 
     // then — 목차로 떨어지지 않고 같은 하위 문서의 ko 본문이 뜬다
     await waitFor(() => expect(screen.getByText('캘린더 화면 설명입니다.')).toBeInTheDocument())

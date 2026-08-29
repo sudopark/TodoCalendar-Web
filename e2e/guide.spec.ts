@@ -108,11 +108,11 @@ test('하위 문서에서 목차 링크를 누르면 목차로 돌아온다', as
   await expect(page.getByRole('heading', { level: 1, name: '서비스 안내' })).toBeVisible()
 })
 
-test('원문에 없는 언어의 하위 문서로 들어와도 같은 문서의 영문 본문으로 대체된다', async ({ page }) => {
+test('문서 언어가 아닌 코드의 하위 문서로 들어와도 같은 문서의 영문 본문으로 대체된다', async ({ page }) => {
   await stubGuide(page)
 
-  // ja 는 문서 지원 언어가 아니라 UI 언어(ko) 경로로 넘어가고, ko 번역이 없어 영문으로 폴백한다
-  await page.goto('/guide/ja/03-widgets')
+  // xx 는 지원 언어가 아니라 UI 언어(ko) 경로로 넘어가고, ko 번역이 없어 영문으로 폴백한다
+  await page.goto('/guide/xx/03-widgets')
 
   await expect(page).toHaveURL(/\/guide\/ko\/03-widgets$/)
   await expect(page.getByText('Widget list in English.')).toBeVisible()
